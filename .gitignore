@@ -1,0 +1,7 @@
+# 빅콘테스트 원본 데이터 (공개 금지)
+2026빅콘테스트_sk통신인구_데이터_레이아웃*/
+*.csv.bak
+# 중간 산출물 (블록×월, 9.5MB) — 01 스크립트로 재생성 가능
+output/block_month_features.csv
+__pycache__/
+.ipynb_checkpoints/
