@@ -5,3 +5,4 @@
 output/block_month_features.csv
 __pycache__/
 .ipynb_checkpoints/
+analysis/
