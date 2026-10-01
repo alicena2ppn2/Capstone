@@ -1,8 +1,12 @@
 body {
   margin: 0;
   background: #EDE6DE;
-  font-family: 'Gowun Dodum', 'Apple SD Gothic Neo', sans-serif;
+  font-family: 'Pretendard', sans-serif;
   color: #2E2A3A;
+}
+
+button, input, select, textarea {
+  font-family: inherit;
 }
 
 .app {
@@ -26,7 +30,7 @@ body {
   border-radius: 999px;
   border: 2px solid #8DBDE6;
   background: #EAF4FC;
-  font-family: 'Jua', sans-serif;
+  font-family: inherit;
   font-size: 15px;
   color: #2E2A3A;
   cursor: pointer;
@@ -51,7 +55,7 @@ body {
 }
 
 .jua {
-  font-family: 'Jua', sans-serif;
+  font-family: inherit;
   font-weight: 400;
 }
 
