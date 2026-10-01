@@ -33,6 +33,22 @@ def submission_for(m, client=None, user="u1"):
     return {}
 
 
+def do_mission(client, user, m, date):
+    """미션 하나를 실제 사용 흐름대로 끝내고 응답(earned·leveled_up 포함)을 돌려준다."""
+    if m["kind"] == "visit":
+        # 방문 미션: 다른 친구 방에 놀러 가면 자동 완료
+        r = client.post(f"/users/friend-of-{user}/visits", params={"date": date}, json={"visitor_id": user})
+    elif m["kind"] == "guestbook":
+        # 방명록 미션: 다른 친구 방에 쓰면 자동 완료
+        r = client.post(f"/users/friend-of-{user}/guestbook", params={"date": date},
+                        json={"author": user, "text": "놀러 왔어요", "author_id": user})
+    else:
+        r = client.post(f"/users/{user}/missions/{m['id']}/complete", params={"date": date},
+                        json={**submission_for(m, client, user), **answer_for(m)})
+    assert r.status_code == 200, r.text
+    return r.json()
+
+
 def answer_for(m):
     return {"answer": "성수동"} if m.get("prompt") else {}
 
@@ -45,8 +61,10 @@ def test_stay_home_yesterday_gives_outdoor_mission(client):
     client.post("/users/u1/steps", json={"date": YESTERDAY, "steps": 200})
     r = client.get("/users/u1/missions/today", params={"date": DAY}).json()
     assert r["stayed_home"] is True
-    assert len(r["missions"]) == 3
-    assert ms.CATALOG[r["missions"][0]["id"]].category == "outdoor"
+    assert len(r["missions"]) == 8                      # 매일 고정 5개 + 매일 바뀌는 3개
+    assert [m["id"] for m in r["missions"][:5]] == ["attendance", "walk", "diary", "visit", "guestbook"]
+    assert r["missions"][1]["min_count"] == 8000
+    assert r["missions"][5]["category"] == "outdoor"
     assert all(not m["done"] for m in r["missions"])
 
 
@@ -65,24 +83,23 @@ def test_complete_all_pays_coins_once(client):
 
     total = 0
     for m in missions:
-        r = client.post(f"/users/u1/missions/{m['id']}/complete", params={"date": DAY},
-                        json={**submission_for(m, client), **answer_for(m)})
-        assert r.status_code == 200, r.text
-        total += r.json()["earned_total"]
-    assert r.json()["all_done"]
-    expected = sum(m["coins"] for m in missions) + ms.COINS_ALL_DONE_BONUS
+        r = do_mission(client, "u1", m, DAY)
+        total += sum(i["coins"] for i in r["earned"])
+    assert r["all_done"]
+    expected = sum(m["coins"] for m in missions)
     assert total == expected
     assert client.get("/users/u1/coins").json()["coins"] == expected
 
     # 다시 제출해도 코인은 늘지 않음
-    m = missions[0]
+    m = missions[-1]
     again = client.post(f"/users/u1/missions/{m['id']}/complete", params={"date": DAY},
                         json={**submission_for(m, client), **answer_for(m)}).json()
     assert again["earned_total"] == 0
     assert again["coins"] == expected
 
     home = client.get("/users/u1/home", params={"date": DAY}).json()
-    assert home["missions_done"] == 3
+    assert home["missions_done"] == 8
+    assert home["checked_in"] is True
     assert home["step_goal"] == 8000
     assert home["coins"] == expected
 
@@ -218,41 +235,107 @@ def test_diary_rejects_unknown_photo(client):
     assert r.status_code == 422
 
 
-def topic_mission_day(client, user):
-    for d in range(1, 29):
-        date = f"2026-11-{d:02d}"
-        missions = client.get(f"/users/{user}/missions/today", params={"date": date}).json()["missions"]
-        m = next((m for m in missions if m["id"] == "topic_diary"), None)
-        if m:
-            return date, m
-    pytest.fail("주제 일기 미션이 나온 날이 없음")
 
 
-def test_topic_mission_shows_todays_topic(client):
-    date, m = topic_mission_day(client, "u1")
-    topic = client.get("/users/u1/diary/topic", params={"date": date}).json()
-    assert m["topic_id"] == topic["id"]
-    assert topic["text"] in m["desc"]
+# --- 출석·레벨 ---------------------------------------------------------------------
+
+def test_attendance_once_a_day(client):
+    r = client.post("/users/u1/attendance", params={"date": DAY}).json()
+    assert r["already_checked_in"] is False
+    assert r["earned_total"] == ms.COINS_DAILY and r["earned_xp"] == ms.XP_DAILY
+    assert r["level"]["level"] == 1
+
+    again = client.post("/users/u1/attendance", params={"date": DAY}).json()
+    assert again["already_checked_in"] is True
+    assert again["earned_total"] == 0
+
+    nxt = client.post("/users/u1/attendance", params={"date": "2026-10-03"}).json()
+    assert nxt["already_checked_in"] is False
+    assert client.get("/users/u1/coins").json()["coins"] == 2 * ms.COINS_DAILY
+    assert client.get("/users/u1/home", params={"date": DAY}).json()["checked_in"] is True
 
 
-def test_writing_topic_diary_completes_mission_and_pays(client):
-    date, m = topic_mission_day(client, "u1")
-    # 주제 없이 쓰면 주제 미션은 완료 안 됨
-    r = client.put(f"/users/u1/diary/{date}", json={"text": "그냥 쓴 일기"}).json()
-    assert "topic_diary" not in r["completed_missions"]
-    # 오늘의 주제로 쓰면 완료 + 코인
-    r = client.put(f"/users/u1/diary/{date}", json={"text": "주제로 쓴 일기", "use_topic": True}).json()
-    assert "topic_diary" in r["completed_missions"]
-    assert {"id": "topic_diary", "coins": m["coins"]} in r["earned"]
-    # 다시 고쳐도 코인은 한 번만
-    r = client.put(f"/users/u1/diary/{date}", json={"text": "고친 일기", "use_topic": True}).json()
-    assert r["earned"] == []
+def test_level_up_after_enough_missions(client):
+    leveled, total_xp, saw_last_week = False, 0, False
+    for d in range(1, 10):
+        date = f"2026-10-{d:02d}"
+        # 매일 조금씩 더 걸어서 '지난주보다 많이 걷기'도 채운다
+        client.post("/users/u1/steps", json={"date": date, "steps": 9000 + d * 300})
+        for m in client.get("/users/u1/missions/today", params={"date": date}).json()["missions"]:
+            leveled = do_mission(client, "u1", m, date)["leveled_up"] or leveled
+            total_xp += m["xp"]
+            saw_last_week = saw_last_week or m["id"] == "beat_last_week"
+    level = client.get("/users/u1/level").json()
+    assert leveled and saw_last_week
+    assert level == {"user_id": "u1", **ms.level_from_xp(total_xp)}   # 프론트와 같은 공식
+    home = client.get("/users/u1/home", params={"date": "2026-10-09"}).json()
+    assert home["level"] == {k: v for k, v in level.items() if k != "user_id"}
 
 
-def test_completing_diary_mission_saves_diary(client):
-    date, m = topic_mission_day(client, "u1")
-    r = client.post(f"/users/u1/missions/topic_diary/complete", params={"date": date}, json={"text": "미션에서 바로 씀"})
+# --- 매일 고정: 일기·방명록 ---------------------------------------------------------
+
+def test_any_diary_completes_daily_diary_mission(client):
+    m = client.get("/users/u1/missions/today", params={"date": DAY}).json()["missions"][2]
+    assert m["id"] == "diary"
+    r = client.put(f"/users/u1/diary/{DAY}", json={"text": "주제 말고 다른 이야기"}).json()
+    assert r["completed_missions"] == ["diary"]
+    assert r["earned"] == [{"id": "diary", "coins": 40, "xp": 100}]
+    # 고쳐도 다시 주지 않음
+    assert client.put(f"/users/u1/diary/{DAY}", json={"text": "고침"}).json()["earned"] == []
+
+
+def test_completing_diary_mission_saves_diary_with_suggested_topic(client):
+    m = client.get("/users/u1/missions/today", params={"date": DAY}).json()["missions"][2]
+    r = client.post("/users/u1/missions/diary/complete", params={"date": DAY}, json={"text": "미션에서 바로 씀"})
     assert r.status_code == 200
-    entry = client.get(f"/users/u1/diary/{date}").json()
+    entry = client.get(f"/users/u1/diary/{DAY}").json()
     assert entry["text"] == "미션에서 바로 씀"
-    assert entry["topic"]["id"] == m["topic_id"]
+    assert entry["topic"]["id"] == m["suggested_topic_id"]
+
+
+def test_guestbook_in_friends_room_completes_mission(client):
+    # 미션 완료 버튼만 누르면 안 됨
+    assert client.post("/users/u1/missions/guestbook/complete", params={"date": DAY}, json={}).status_code == 422
+    # 내 방에 쓴 건 인정 안 함
+    r = client.post("/users/u1/guestbook", params={"date": DAY}, json={"author": "나", "text": "내 방", "author_id": "u1"}).json()
+    assert r["completed_missions"] == []
+    # 친구 방에 쓰면 자동 완료 + 보상
+    client.get("/users/u1/missions/today", params={"date": DAY})
+    r = client.post("/users/u2/guestbook", params={"date": DAY}, json={"author": "나", "text": "놀러 왔어요", "author_id": "u1"}).json()
+    assert r["completed_missions"] == ["guestbook"]
+    assert r["earned"] == [{"id": "guestbook", "coins": 30, "xp": 100}]
+    # 같은 날 또 써도 보상은 한 번
+    r = client.post("/users/u3/guestbook", params={"date": DAY}, json={"author": "나", "text": "또 왔어요", "author_id": "u1"}).json()
+    assert r["earned"] == []
+    assert client.get("/users/u2/guestbook").json()["entries"][0]["author_id"] == "u1"
+
+
+def test_guestbook_without_author_id_still_works(client):
+    r = client.post("/users/u2/guestbook", json={"author": "손님", "text": "안녕"})
+    assert r.status_code == 200
+    assert r.json()["completed_missions"] == []
+
+
+# --- 친구 방 놀러 가기 ----------------------------------------------------------------
+
+def test_visit_friends_room_completes_mission(client):
+    client.get("/users/u1/missions/today", params={"date": DAY})
+    assert client.post("/users/u1/missions/visit/complete", params={"date": DAY}, json={}).status_code == 422
+    assert client.post("/users/u1/visits", params={"date": DAY}, json={"visitor_id": "u1"}).status_code == 422
+
+    r = client.post("/users/u2/visits", params={"date": DAY}, json={"visitor_id": "u1"}).json()
+    assert r["first_visit_today"] is True
+    assert r["completed_missions"] == ["visit"]
+    assert r["earned"] == [{"id": "visit", "coins": 30, "xp": 100}]
+
+    again = client.post("/users/u2/visits", params={"date": DAY}, json={"visitor_id": "u1"}).json()
+    assert again["first_visit_today"] is False and again["earned"] == []
+    assert client.get("/users/u2/visits", params={"date": DAY}).json()["visitors"] == ["u1"]
+
+
+def test_recommended_rooms_are_recent_other_users(client):
+    for u, d in [("a", "2026-10-01"), ("b", DAY), ("old", "2026-09-01")]:
+        client.get(f"/users/{u}/missions/today", params={"date": d})
+    client.get("/users/me/missions/today", params={"date": DAY})
+    rooms = client.get("/users/me/rooms/recommended", params={"date": DAY}).json()["rooms"]
+    assert rooms == ["b", "a"]
