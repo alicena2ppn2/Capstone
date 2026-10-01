@@ -188,3 +188,39 @@ def test_catalog_templates_have_placeholders():
         if m.goal_rule != "fixed":
             assert m.kind == "steps"
             assert "{prev}" in m.desc and "{goal}" in m.desc
+
+
+# --- 일기 주제 ------------------------------------------------------------------------
+
+from app import diary  # noqa: E402
+
+
+def test_topics_count_and_no_repeat_for_50_days():
+    assert len(diary.TOPICS) >= 50
+    from datetime import date, timedelta
+    start = date(2026, 10, 1)
+    ids = [diary.topic_for("u1", (start + timedelta(days=i)).isoformat())["id"] for i in range(len(diary.TOPICS))]
+    assert len(set(ids)) == len(diary.TOPICS)
+
+
+def test_topic_order_differs_by_user():
+    days = [f"2026-10-{d:02d}" for d in range(1, 11)]
+    a = [diary.topic_for("u1", d)["id"] for d in days]
+    b = [diary.topic_for("u2", d)["id"] for d in days]
+    assert a != b
+
+
+def test_diary_and_topic_diary_never_same_day():
+    for n in range(30):
+        for d in range(1, 29):
+            ids = {m["id"] for m in ms.pick_missions(f"u{n}", f"2026-10-{d:02d}", steps=9000)["missions"]}
+            assert not {"diary", "topic_diary"} <= ids
+
+
+def test_topic_diary_completion_needs_topic():
+    m = ms.with_topic(ms.CATALOG["topic_diary"].to_dict(), {"id": "t01", "text": "주제"})
+    assert m["desc"] == "오늘의 주제: 주제"
+    assert ms.is_complete(m, {"text": "씀", "topic_id": "t01"})
+    assert not ms.is_complete(m, {"text": "씀", "topic_id": None})
+    assert not ms.is_complete(m, {"text": " ", "topic_id": "t01"})
+    assert ms.is_complete(ms.CATALOG["diary"], {"text": "그냥 씀"})

@@ -22,6 +22,8 @@ import random
 from dataclasses import asdict, dataclass
 from pathlib import Path
 
+from . import diary
+
 import numpy as np
 
 MISSIONS_PER_DAY = 3
@@ -43,6 +45,7 @@ CATALOG_PATH = Path(__file__).resolve().parent / "data" / "missions.json"
 #   explore : 직접 찾아보고 적기 (맛집·영화·음악…) — 나갈 계기를 만든다
 #   record  : 하루 기록
 CATEGORIES = ("outdoor", "home", "explore", "record")
+KINDS = ("steps", "text", "photo", "list", "diary")
 STAY_HOME_PLAN = ("outdoor", "home", "explore")   # 안 나간 날
 WENT_OUT_PLAN = ("record", "home", "explore")     # 나간 날
 
@@ -53,7 +56,7 @@ class Mission:
     category: str      # outdoor | home | explore | record
     title: str
     desc: str
-    kind: str          # steps | text | photo | list
+    kind: str          # steps | text | photo | list | diary(기록 탭 일기로 완료)
     outdoor: bool      # 밖에 나가야 할 수 있는 미션인지
     min_count: int = 1 # list: 입력 개수, photo: 사진 장수, steps: 목표 걸음
     prompt: str = ""   # 입력 전에 먼저 묻는 것 (예: 사는 동네)
@@ -77,7 +80,7 @@ def load_catalog(path: Path = CATALOG_PATH) -> dict[str, Mission]:
             raise ValueError(f"미션 id 중복: {m.id}")
         if m.category not in CATEGORIES:
             raise ValueError(f"알 수 없는 분류: {m.id} → {m.category}")
-        if m.kind not in ("steps", "text", "photo", "list"):
+        if m.kind not in KINDS:
             raise ValueError(f"알 수 없는 종류: {m.id} → {m.kind}")
         if m.goal_rule not in ("fixed", "yesterday", "last_week"):
             raise ValueError(f"알 수 없는 걸음 목표 규칙: {m.id} → {m.goal_rule}")
@@ -86,6 +89,9 @@ def load_catalog(path: Path = CATALOG_PATH) -> dict[str, Mission]:
 
 
 CATALOG: dict[str, Mission] = load_catalog()
+
+# 하루에 같이 나오면 하나로 둘 다 끝나 버리는 미션 (일기 한 번에 두 미션 완료 방지)
+CONFLICTS = {"diary": {"topic_diary"}, "topic_diary": {"diary"}}
 BY_CATEGORY: dict[str, list[str]] = {c: [m.id for m in CATALOG.values() if m.category == c] for c in CATEGORIES}
 
 
@@ -130,6 +136,13 @@ def personalize(mission: dict, baselines: dict[str, float]) -> dict:
     return {**mission, "min_count": goal, "desc": mission["desc"].format(prev=f"{round(prev):,}", goal=f"{goal:,}")}
 
 
+def with_topic(mission: dict, topic: dict) -> dict:
+    """주제 일기 미션에 오늘의 주제를 넣는다."""
+    if "{topic}" not in mission["desc"]:
+        return mission
+    return {**mission, "desc": mission["desc"].format(topic=topic["text"]), "topic_id": topic["id"]}
+
+
 def pick_missions(
     user_id: str,
     date: str,
@@ -155,11 +168,13 @@ def pick_missions(
     for category in plan:
         # 기준 기록이 없는 걸음 미션(어제보다·지난주보다)은 후보에서 뺀다
         options = [m for m in BY_CATEGORY[category] if CATALOG[m].goal_rule == "fixed" or CATALOG[m].goal_rule in baselines]
+        options = [m for m in options if not CONFLICTS.get(m, set()) & set(picked)]
         fresh = [m for m in options if m not in recent and m not in picked]
         choices = fresh or [m for m in options if m not in picked]
         picked.append(rng.choice(choices))
 
-    missions = [personalize(CATALOG[m].to_dict(), baselines) for m in picked[:MISSIONS_PER_DAY]]
+    topic = diary.topic_for(user_id, date)
+    missions = [with_topic(personalize(CATALOG[m].to_dict(), baselines), topic) for m in picked[:MISSIONS_PER_DAY]]
 
     return {
         "date": date,
@@ -181,8 +196,11 @@ def is_complete(mission: Mission | dict, submission: dict) -> bool:
     kind, need = m["kind"], m["min_count"]
     if kind == "steps":
         return (submission.get("steps") or 0) >= need
-    if kind == "text":
-        return bool(str(submission.get("text") or "").strip())
+    if kind in ("text", "diary"):
+        if not str(submission.get("text") or "").strip():
+            return False
+        # 주제 일기 미션은 오늘의 주제로 쓴 일기여야 한다
+        return "topic_id" not in m or submission.get("topic_id") == m["topic_id"]
     if kind == "photo":
         return len(submission.get("photos") or []) >= need
     if kind == "list":
