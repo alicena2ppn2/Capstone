@@ -5,6 +5,52 @@
 스택: **Python, FastAPI**
 마감: **10/22 발표** — 실제 스마트폰으로 걷기 → 데이터 전달 → 미션 판정 → AI 응답 → 캐릭터 말풍선까지 하나의 흐름으로 시연
 
+## 실행
+
+```bash
+cd backend
+python -m venv .venv
+.venv/Scripts/activate        # macOS/Linux: source .venv/bin/activate
+pip install -r requirements.txt
+uvicorn app.main:app --reload  # http://localhost:8000/docs
+pytest                         # 테스트
+```
+
+| 파일 | 내용 |
+|---|---|
+| `app/main.py` | FastAPI 라우트 |
+| `app/db.py` | SQLite 저장 (걸음·미션·완료·코인·사진·방명록) |
+| `app/missions.py` | 오늘의 미션 고르기, 완료 판정, 코인 계산 |
+| `app/data/missions.json` | **미션 목록 — 미션 추가·수정은 이 파일만** |
+| `app/indicators.py` | 지표 계산 (걸음 중앙값, IS, 수면 중간점, 결측) |
+
+## 지금 동작하는 API
+
+| API | 하는 일 |
+|---|---|
+| `POST /users/{id}/steps` | 하루 걸음 수 올리기 (앱 만보기 → 서버) |
+| `GET /users/{id}/home` | 걸음, 걸음 목표(8,000보), 코인, 미션 진행, 말풍선 |
+| `GET /users/{id}/missions/today` | 오늘의 미션 3개 (그날 처음 부를 때 정해지고 하루 동안 고정) |
+| `POST /users/{id}/missions/{mission_id}/complete` | 완료 판정 → 코인 지급 (중복 지급 없음) |
+| `POST /users/{id}/photos` | 사진 업로드 → `photo_id` (사진 미션 제출에 사용) |
+| `GET /photos/{photo_id}` | 사진 보기 |
+| `GET /users/{id}/coins` | 코인 잔액 |
+| `GET /users/{id}/diary/topic` | 오늘의 일기 주제 (주제 50개, `app/data/diary_topics.json`) |
+| `PUT /users/{id}/diary/{date}` | 일기 쓰기·고치기 (글·기분·사진, 오늘의 주제 사용 여부). 일기 미션이 있으면 자동 완료 |
+| `GET /users/{id}/diary/{date}` | 하루 일기 보기 |
+| `GET /users/{id}/diary?from=&to=` | 일기 목록 (기록 탭) |
+| `GET·POST /users/{id}/guestbook` | 방명록 |
+
+날짜를 받는 API는 `?date=YYYY-MM-DD`로 날짜를 바꿀 수 있다 (발표 데모에서 날짜 넘기기).
+
+### 미션 규칙
+- 어제 걸음이 1,000보 미만이거나 평소의 절반 미만이면 "안 나간 날"
+  - 안 나간 날: 밖으로 한 발 + 집에서 + 찾아보기
+  - 나간 날: 기록 + 집에서 + 찾아보기
+- 확인 방법: 사진 업로드 / 찾아서 목록 입력 / 글쓰기 / 걸음 수
+- 걸음 목표: 기본 8,000보. "어제보다 많이", "지난주(최근 7일 평균)보다 많이"는 기록이 있을 때만 나옴
+- 코인: 밖 미션 30, 집 미션 20, 하루 3개 모두 완료 보너스 30
+
 ## 10/22 발표 MVP 스프린트
 
 | 기간 | 백엔드 할 일 | 공통 목표 (프론트와 합의) |
@@ -56,7 +102,7 @@
 - [ ] 데모·admin API는 출시 앱에서 접근 못 하게 분리 (인증 또는 별도 환경)
 - [ ] 실제 사용자 데이터 저장 방식·삭제 요청 처리 (개인정보 처리방침과 맞추기)
 
-## API 목록 (안)
+## API 목록 (초기 안 — 위 "지금 동작하는 API" 참고)
 
 | API | 용도 |
 |---|---|
