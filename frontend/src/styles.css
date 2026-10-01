@@ -1,8 +1,12 @@
 body {
   margin: 0;
   background: #EDE6DE;
-  font-family: 'Gowun Dodum', 'Apple SD Gothic Neo', sans-serif;
+  font-family: 'Pretendard', sans-serif;
   color: #2E2A3A;
+}
+
+button, input, select, textarea {
+  font-family: inherit;
 }
 
 .app {
@@ -16,8 +20,26 @@ body {
 }
 
 /* 화면 전환용 (시안에는 없는 개발용 네비게이션) */
+.seoul-clock {
+  width: min(374px, calc(100vw - 24px));
+  box-sizing: border-box;
+  padding: 14px 18px;
+  border: 2px solid #B9D7F0;
+  border-radius: 22px;
+  background: #F5FAFF;
+  box-shadow: 0 3px 0 #D9EAF8;
+  text-align: center;
+}
+.seoul-clock-location { display: flex; align-items: center; justify-content: center; gap: 6px; color: #3D7CC0; font-size: 12px; font-weight: 600; }
+.seoul-clock-zone { padding: 2px 6px; border-radius: 6px; background: #D9EAF8; font-size: 10px; }
+.seoul-clock time { display: flex; flex-direction: column; gap: 4px; margin-top: 6px; }
+.seoul-clock-time { font-size: 30px; font-weight: 700; font-variant-numeric: tabular-nums; letter-spacing: 2px; color: #244A73; }
+.seoul-clock-date { font-size: 12px; color: #63677B; }
+
 .screen-nav {
   display: flex;
+  flex-wrap: wrap;
+  justify-content: center;
   gap: 6px;
 }
 .screen-nav button {
@@ -26,7 +48,7 @@ body {
   border-radius: 999px;
   border: 2px solid #8DBDE6;
   background: #EAF4FC;
-  font-family: 'Jua', sans-serif;
+  font-family: inherit;
   font-size: 15px;
   color: #2E2A3A;
   cursor: pointer;
@@ -51,7 +73,7 @@ body {
 }
 
 .jua {
-  font-family: 'Jua', sans-serif;
+  font-family: inherit;
   font-weight: 400;
 }
 
@@ -62,3 +84,92 @@ body {
   outline: 2px solid #3D7CC0;
   outline-offset: 1px;
 }
+
+.settings-screen { width: min(390px, 100vw); min-height: 860px; padding: 24px 22px; box-sizing: border-box; border: 3px solid #A27E62; border-radius: 34px; background: linear-gradient(180deg, #E4F2FD, #F8F5EE 48%, #FFF1E5); }
+.settings-header { display: flex; align-items: center; justify-content: space-between; }
+.settings-header h1 { display: flex; align-items: center; gap: 8px; margin: 0; font-size: 27px; color: #3D7CC0; }
+.settings-back { width: 42px; height: 42px; border: 2px solid #9CC7EC; border-radius: 14px; background: white; color: #3D7CC0; font-size: 25px; }
+.settings-header-spacer { width: 42px; }
+.settings-intro { text-align: center; padding: 24px 0 18px; }
+.settings-avatar { width: 112px; height: 100px; display: flex; align-items: center; justify-content: center; margin: auto; border-radius: 50%; background: #FFF6DD; border: 2px dashed #E6C891; }
+.settings-intro h2 { font-size: 23px; margin: 14px 0 6px; }
+.settings-intro p, .settings-row p { margin: 0; color: #63677B; font-size: 12px; line-height: 1.6; }
+.settings-card { background: #FFFFFFE8; border: 2px solid #B9D7F0; border-radius: 22px; padding: 18px; margin-bottom: 14px; box-shadow: 0 4px 0 #D9EAF8; }
+.settings-card h2 { margin: 0 0 4px; font-size: 20px; color: #3D7CC0; }
+.settings-card-pink { border-color: #F2BFD0; box-shadow: 0 4px 0 #FADCE6; }
+.settings-card-pink h2 { color: #B4506E; }
+.settings-row { display: flex; align-items: center; justify-content: space-between; gap: 10px; padding: 14px 0; }
+.settings-row + .settings-row { border-top: 1px solid #E4EDF5; }
+.settings-row strong { display: block; font-size: 14px; margin-bottom: 4px; }
+.settings-toggle { flex-shrink: 0; width: 48px; height: 28px; padding: 3px; border: 2px solid #A9B6C5; border-radius: 20px; background: #DDE4EB; }
+.settings-toggle span { display: block; width: 18px; height: 18px; border-radius: 50%; background: white; box-shadow: 0 1px 3px #0002; transition: transform .15s; }
+.settings-toggle[aria-checked='true'] { background: #8BD0A0; border-color: #5AAB73; }
+.settings-toggle[aria-checked='true'] span { transform: translateX(20px); }
+.settings-volume { border-top: 1px solid #E4EDF5; padding-top: 14px; }
+.settings-volume label { display: flex; justify-content: space-between; font-size: 13px; font-weight: bold; }
+.settings-volume output { color: #3D7CC0; }
+.settings-volume input { width: 100%; margin: 14px 0 6px; accent-color: #6FA9DA; }
+.settings-volume div { display: flex; justify-content: space-between; font-size: 11px; color: #63677B; }
+.settings-note { padding: 14px 0 20px; text-align: center; font-size: 12px; color: #7B684F; }
+.settings-note span { color: #D4A535; padding-right: 4px; }
+.settings-save { width: 100%; min-height: 50px; background: #9CC7EC; border: 2px solid #3F7DB3; border-radius: 17px; box-shadow: 0 4px 0 #3F7DB3; color: #244A73; font-size: 20px; }
+.settings-status { min-height: 32px; text-align: center; font-size: 11px; color: #63677B; line-height: 1.5; margin: 14px 0; }
+.settings-footer { text-align: center; color: #9B8471; font-size: 16px; }
+.settings-footer span { display: block; margin-top: 4px; font-size: 11px; }
+.settings-screen button:focus-visible, .settings-screen input:focus-visible { outline: 3px solid #3D7CC0; outline-offset: 4px; }
+
+.shop-screen { width: min(390px, 100vw); min-height: 860px; box-sizing: border-box; padding: 20px 18px; border: 3px solid #A27E62; border-radius: 34px; background: linear-gradient(#FFF4E4, #FFF9F1 42%, #F3EDFC); }
+.shop-header { display: flex; align-items: center; justify-content: space-between; gap: 8px; }
+.shop-header h1 { margin: 0; font-size: 21px; color: #795E48; }
+.shop-wallet { flex-shrink: 0; padding: 8px 10px; border: 2px solid #E3C36D; border-radius: 20px; background: #FFF9DE; font-size: 13px; font-weight: 700; color: #86641A; }
+.shop-wallet span { color: #D8AD39; }
+.shop-preview { display: flex; flex-direction: column; align-items: center; margin-top: 18px; padding: 16px; background: #FFFFFFB3; border: 2px dashed #E3C9A4; border-radius: 26px; }
+.shop-tag { color: #92785F; font-size: 12px; }
+.shop-preview strong { margin-top: 2px; font-size: 15px; color: #795E48; }
+.shop-basic { margin-top: 10px; border: 0; background: #F4EEE6; border-radius: 20px; padding: 8px 12px; color: #796750; font-size: 12px; }
+.shop-tabs { display: flex; gap: 8px; margin-top: 20px; }
+.shop-tabs button { flex: 1; padding: 12px; border: 2px solid #D8CBE9; border-radius: 15px; background: white; color: #78638F; font-size: 14px; font-weight: 600; }
+.shop-tabs button[aria-pressed='true'] { background: #E8DDF7; border-color: #AB92CD; }
+.shop-tabs span { margin-left: 4px; }
+.shop-hint { font-size: 11px; text-align: center; color: #7F718D; line-height: 1.6; margin: 12px 0; }
+.shop-grid { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 12px; }
+.shop-item { display: flex; flex-direction: column; padding: 10px; border: 2px solid #E3D9ED; border-radius: 20px; background: #FFFFFFE8; gap: 8px; }
+.shop-item.is-preview { border-color: #9C80C4; box-shadow: 0 0 0 2px #E8DDF7; }
+.shop-item-preview { display: flex; flex-direction: column; align-items: center; gap: 10px; padding: 0; border: 0; background: transparent; }
+.shop-item-art { display: flex; justify-content: center; width: 100%; border-radius: 14px; padding: 4px 0; }
+.shop-item strong { font-size: 13px; }
+.shop-price { text-align: center; font-size: 11px; color: #887048; }
+.shop-buy { width: 100%; min-height: 36px; padding: 6px 2px; border-radius: 11px; background: #FFE7A3; border: 2px solid #DDB85A; color: #735620; font-size: 11px; font-weight: 700; }
+.shop-buy:disabled { background: #F1EDF5; border-color: #DCD3E5; color: #7D708C; }
+.shop-empty { text-align: center; padding: 40px 10px; color: #78638F; font-size: 14px; line-height: 1.8; }
+.shop-message { min-height: 20px; text-align: center; color: #6B4B91; font-size: 12px; line-height: 1.6; }
+.shop-disclaimer { text-align: center; color: #857D90; font-size: 10px; line-height: 1.6; }
+.shop-screen button:focus-visible { outline: 3px solid #3D7CC0; outline-offset: 3px; }
+
+.pet-name-title { border: 0; background: transparent; max-width: 100%; padding: 0 6px; }
+.pet-name-title:focus-visible { outline: 3px solid #3D7CC0; outline-offset: 4px; border-radius: 8px; }
+.settings-name-label { display: block; margin: 12px 0 8px; font-size: 13px; color: #63677B; }
+.settings-name-controls { display: flex; gap: 8px; }
+.settings-name-controls input { flex: 1; min-width: 0; height: 42px; padding: 0 10px; border: 2px solid #B9D7F0; border-radius: 12px; font-size: 14px; color: #2E2A3A; }
+.settings-name-controls button { border: 2px solid #6FA9DA; border-radius: 12px; background: #E4F2FD; color: #24507E; font-size: 12px; padding: 0 10px; }
+.settings-name-hint { font-size: 11px; color: #63677B; margin: 8px 0 0; }
+.settings-name-status { font-size: 12px; color: #3D7CC0; margin: 6px 0 0; line-height: 1.5; }
+
+.growth-bar { display: flex; align-items: center; gap: 8px; width: min(374px, calc(100vw - 24px)); box-sizing: border-box; padding: 12px; border-radius: 16px; background: #FFF8DE; border: 2px solid #E3C36D; font-size: 11px; color: #795E48; }
+.growth-bar strong { font-size: 14px; white-space: nowrap; }
+.growth-bar progress { width: 75px; height: 10px; accent-color: #A591CB; }
+.growth-bar button { margin-left: auto; border: 0; background: transparent; color: #795E48; font-size: 11px; }
+.character-current { display: flex; align-items: center; margin-top: 14px; border-radius: 22px; border: 2px dashed #E3C9A4; background: #FFFFFFB3; }
+.character-current div { display: flex; flex-direction: column; gap: 8px; padding-right: 10px; }
+.character-current span { font-size: 11px; color: #7F718D; }
+.character-current strong, .character-name { font-size: 13px; text-align: center; }
+.character-mystery { height: 110px; display: flex; align-items: center; justify-content: center; border-radius: 14px; background: repeating-linear-gradient(45deg, #EEE8F5, #EEE8F5 12px, #F5F1FA 12px, #F5F1FA 24px); color: #B1A0C6; font-size: 60px; font-weight: 700; }
+.quest-loop { margin-top: 12px; text-align: center; font-size: 11px; color: #586F91; }
+.growth-quests { display: flex; flex-direction: column; gap: 12px; margin-top: 16px; }
+.growth-quest { padding: 15px; border: 2px solid #B9D7F0; border-radius: 18px; background: #FFFFFFEB; }
+.growth-quest strong { font-size: 14px; }
+.growth-quest p { font-size: 12px; color: #63677B; margin: 7px 0 12px; }
+.growth-quest > div { display: flex; gap: 8px; align-items: center; justify-content: space-between; }
+.growth-quest > div span { font-size: 11px; color: #795E48; white-space: nowrap; }
+.growth-quest .shop-buy { width: auto; padding: 6px 10px; }
+.quest-reward-note { padding: 14px; background: #FFF8DE; border-radius: 16px; border: 2px solid #E3C36D; font-size: 12px; color: #795E48; line-height: 1.8; }
