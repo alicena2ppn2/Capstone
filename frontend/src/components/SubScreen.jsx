@@ -81,28 +81,28 @@ export const bottomBtn = {
   minWidth: 52, minHeight: 52, fontSize: 12, fontWeight: 700, color: '#2E2A3A',
 };
 
-function BottomBar({ petColor }) {
+function BottomBar({ petColor, onShop, onSettings }) {
   return (
     <div style={{ position: 'absolute', left: 0, right: 0, bottom: 0, height: 92, display: 'flex', alignItems: 'flex-end', justifyContent: 'space-between', padding: '0 14px 10px', boxSizing: 'border-box', zIndex: 3 }}>
-      <button type="button" className="pb" style={bottomBtn}><GearIcon size={28} />설정</button>
+      <button type="button" className="pb" onClick={onSettings} style={bottomBtn}><GearIcon size={28} />설정</button>
       <div style={{ width: 150, height: 84, overflow: 'hidden', display: 'flex', justifyContent: 'center' }}>
         <Mochi color={petColor} width={150} height={142} />
       </div>
-      <button type="button" className="pb" style={bottomBtn}><ShopIcon width={30} height={28} />상점</button>
+      <button type="button" className="pb" onClick={onShop} style={bottomBtn}><ShopIcon width={30} height={28} />상점</button>
     </div>
   );
 }
 
-export default function SubScreen({ title, petColor, children }) {
+export default function SubScreen({ title, petColor, children, onShop, onSettings, level = 1 }) {
   return (
     <div style={{ position: 'relative', width: 390, height: 844, overflow: 'hidden', background: '#D6EAF8' }}>
       <RoomBackdrop />
       <div style={{ position: 'relative', zIndex: 2, padding: '14px 14px 0', boxSizing: 'border-box' }}>
-        <TopBar />
+        <TopBar level={level} />
         <CloudTitle>{title}</CloudTitle>
         {children}
       </div>
-      <BottomBar petColor={petColor} />
+      <BottomBar petColor={petColor} onShop={onShop} onSettings={onSettings} />
     </div>
   );
 }
