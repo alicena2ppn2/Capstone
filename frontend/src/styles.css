@@ -1,0 +1,64 @@
+body {
+  margin: 0;
+  background: #EDE6DE;
+  font-family: 'Gowun Dodum', 'Apple SD Gothic Neo', sans-serif;
+  color: #2E2A3A;
+}
+
+.app {
+  min-height: 100vh;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 12px;
+  padding: 16px 0;
+  box-sizing: border-box;
+}
+
+/* 화면 전환용 (시안에는 없는 개발용 네비게이션) */
+.screen-nav {
+  display: flex;
+  gap: 6px;
+}
+.screen-nav button {
+  min-height: 36px;
+  padding: 0 14px;
+  border-radius: 999px;
+  border: 2px solid #8DBDE6;
+  background: #EAF4FC;
+  font-family: 'Jua', sans-serif;
+  font-size: 15px;
+  color: #2E2A3A;
+  cursor: pointer;
+}
+.screen-nav button[aria-current='page'] {
+  background: #FFE79A;
+  border-color: #E0B83A;
+}
+
+.pb {
+  appearance: none;
+  -webkit-appearance: none;
+  font: inherit;
+  cursor: pointer;
+  margin: 0;
+}
+.pb:active {
+  transform: translateY(2px);
+}
+.pb:disabled {
+  cursor: default;
+}
+
+.jua {
+  font-family: 'Jua', sans-serif;
+  font-weight: 400;
+}
+
+.inp::placeholder {
+  color: #8A93A8;
+}
+.inp:focus {
+  outline: 2px solid #3D7CC0;
+  outline-offset: 1px;
+}
