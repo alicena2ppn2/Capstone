@@ -21,6 +21,7 @@ export function outline(color, w, drop = 0) {
 }
 
 export const PET_COLORS = [
+  { name: '크림', hex: '#FFF5E6' },
   { name: '복숭아', hex: '#FFD9C4' },
   { name: '민트', hex: '#CDEFE0' },
   { name: '라벤더', hex: '#E3D9F7' },
