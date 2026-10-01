@@ -1,5 +1,66 @@
 [
   {
+    "id": "attendance",
+    "category": "daily",
+    "title": "출석하기",
+    "desc": "오늘도 와 줘서 고마워요! 앱을 열면 출석돼요.",
+    "kind": "checkin",
+    "outdoor": false,
+    "min_count": 1,
+    "prompt": ""
+  },
+  {
+    "id": "walk",
+    "category": "daily",
+    "title": "오늘 걸음 채우기",
+    "desc": "하루 권장 걸음 8,000보를 채워 봐요.",
+    "kind": "steps",
+    "outdoor": true,
+    "min_count": 8000,
+    "prompt": ""
+  },
+  {
+    "id": "beat_last_week",
+    "category": "daily",
+    "title": "지난주보다 많이 걷기",
+    "desc": "지난 7일 동안 하루 평균 {prev}보 걸었어요. 오늘은 {goal}보 이상 걸어 봐요.",
+    "kind": "steps",
+    "outdoor": true,
+    "min_count": 0,
+    "prompt": "",
+    "goal_rule": "last_week"
+  },
+  {
+    "id": "diary",
+    "category": "daily",
+    "title": "오늘의 일기 쓰기",
+    "desc": "오늘의 주제: {topic} 다른 이야기를 써도 괜찮아요.",
+    "kind": "diary",
+    "outdoor": false,
+    "min_count": 1,
+    "prompt": ""
+  },
+  {
+    "id": "visit",
+    "category": "daily",
+    "title": "다른 친구 방 놀러 가기",
+    "desc": "다른 친구 방에 한 번 놀러 가 봐요.",
+    "kind": "visit",
+    "outdoor": false,
+    "min_count": 1,
+    "prompt": ""
+  },
+  {
+    "id": "guestbook",
+    "category": "daily",
+    "title": "방명록 남기기",
+    "desc": "다른 친구 방에 놀러 가서 방명록을 한 줄 남겨요.",
+    "kind": "guestbook",
+    "outdoor": false,
+    "min_count": 1,
+    "prompt": ""
+  },
+  {
     "id": "door_5min",
     "category": "outdoor",
     "title": "집 앞 5분 나가기",
@@ -7,16 +68,6 @@
     "kind": "steps",
     "outdoor": true,
     "min_count": 500,
-    "prompt": ""
-  },
-  {
-    "id": "walk",
-    "category": "outdoor",
-    "title": "오늘 걸음 채우기",
-    "desc": "하루 권장 걸음 8,000보를 채워 봐요.",
-    "kind": "steps",
-    "outdoor": true,
-    "min_count": 8000,
     "prompt": ""
   },
   {
@@ -29,17 +80,6 @@
     "min_count": 0,
     "prompt": "",
     "goal_rule": "yesterday"
-  },
-  {
-    "id": "beat_last_week",
-    "category": "outdoor",
-    "title": "지난주보다 많이 걷기",
-    "desc": "지난 7일 동안 하루 평균 {prev}보 걸었어요. 오늘은 {goal}보 이상 걸어 봐요.",
-    "kind": "steps",
-    "outdoor": true,
-    "min_count": 0,
-    "prompt": "",
-    "goal_rule": "last_week"
   },
   {
     "id": "block_walk",
@@ -238,16 +278,6 @@
     "desc": "우체국, 은행, 세탁소처럼 미뤄 둔 볼일을 보고 그곳 사진을 올려요.",
     "kind": "photo",
     "outdoor": true,
-    "min_count": 1,
-    "prompt": ""
-  },
-  {
-    "id": "topic_diary",
-    "category": "home",
-    "title": "오늘의 주제로 일기 쓰기",
-    "desc": "오늘의 주제: {topic}",
-    "kind": "diary",
-    "outdoor": false,
     "min_count": 1,
     "prompt": ""
   },
@@ -629,16 +659,6 @@
     "kind": "list",
     "outdoor": false,
     "min_count": 3,
-    "prompt": ""
-  },
-  {
-    "id": "diary",
-    "category": "record",
-    "title": "오늘의 하루 기록하기",
-    "desc": "기록 탭에 오늘 하루를 짧게 남겨요. 한 줄이어도 좋아요.",
-    "kind": "diary",
-    "outdoor": false,
-    "min_count": 1,
     "prompt": ""
   },
   {

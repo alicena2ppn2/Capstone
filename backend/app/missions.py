@@ -32,9 +32,17 @@ STAY_HOME_RATIO = 0.5            # 또는 평소 걸음 중앙값의 50% 미만
 LAST_WEEK_MIN_DAYS = 4            # '지난주보다' 미션은 지난 7일 중 기록이 4일 이상일 때만
 DAILY_STEP_GOAL = 8_000          # 하루 걸음 목표 (권장 걸음). 홈 화면 걸음 바와 '오늘 걸음 채우기' 미션에 쓴다
 
-COINS_OUTDOOR = 30               # 밖에 나가야 하는 미션
-COINS_HOME = 20                  # 집에서 할 수 있는 미션
-COINS_ALL_DONE_BONUS = 30        # 하루 미션을 모두 끝냈을 때
+# 보상: (코인, 경험치). 코인은 상점에서 쓰면 줄고, 경험치는 계속 쌓여 레벨이 된다.
+# 수치는 프론트 frontend/src/utils/game.js 의 '오늘' 퀘스트와 맞춘다 (100 XP, 30 코인, 기록 40 코인).
+COINS_OUTDOOR, XP_OUTDOOR = 30, 100       # 밖에 나가야 하는 미션
+COINS_HOME, XP_HOME = 30, 100             # 집에서 할 수 있는 미션
+COINS_DIARY = 40                          # 일기 미션 (프론트 '오늘의 하루 기록하기')
+COINS_DAILY, XP_DAILY = 10, 10            # 출석하기 (프론트에는 아직 없음)
+# 매일 고정 미션: 출석하기 + 걸음 8,000보 + 지난주보다 많이 걷기(기록이 있을 때) + 오늘의 일기 쓰기 + 친구 방 놀러 가기 + 방명록 남기기. 나머지 3개는 매일 바뀐다.
+# 하루 3개를 모두 끝내면 코인 대신 특별 캐릭터(프론트 '하루 친구 모찌')를 준다 → 상점 기능에서 지급
+
+# 레벨: 프론트와 같은 공식. LV = 1 + 누적 XP // 100
+XP_PER_LEVEL = 100
 
 
 CATALOG_PATH = Path(__file__).resolve().parent / "data" / "missions.json"
@@ -44,8 +52,9 @@ CATALOG_PATH = Path(__file__).resolve().parent / "data" / "missions.json"
 #   home    : 집에서 할 수 있는 작은 행동
 #   explore : 직접 찾아보고 적기 (맛집·영화·음악…) — 나갈 계기를 만든다
 #   record  : 하루 기록
-CATEGORIES = ("outdoor", "home", "explore", "record")
-KINDS = ("steps", "text", "photo", "list", "diary")
+#   daily   : 매일 고정으로 나오는 미션 (출석하기, 걸음 8,000보, 지난주보다 많이 걷기, 오늘의 일기 쓰기, 친구 방 놀러 가기, 방명록 남기기). 하루 3개와 별도
+CATEGORIES = ("daily", "outdoor", "home", "explore", "record")
+KINDS = ("steps", "text", "photo", "list", "diary", "checkin", "guestbook", "visit")
 STAY_HOME_PLAN = ("outdoor", "home", "explore")   # 안 나간 날
 WENT_OUT_PLAN = ("record", "home", "explore")     # 나간 날
 
@@ -56,7 +65,7 @@ class Mission:
     category: str      # outdoor | home | explore | record
     title: str
     desc: str
-    kind: str          # steps | text | photo | list | diary(기록 탭 일기로 완료)
+    kind: str          # steps | text | photo | list | diary(기록 탭 일기로 완료) | guestbook(다른 사람 방에 방명록) | visit(다른 사람 방 방문) | checkin(출석)
     outdoor: bool      # 밖에 나가야 할 수 있는 미션인지
     min_count: int = 1 # list: 입력 개수, photo: 사진 장수, steps: 목표 걸음
     prompt: str = ""   # 입력 전에 먼저 묻는 것 (예: 사는 동네)
@@ -64,10 +73,20 @@ class Mission:
 
     @property
     def coins(self) -> int:
+        if self.kind == "checkin":
+            return COINS_DAILY
+        if self.kind == "diary":
+            return COINS_DIARY
         return COINS_OUTDOOR if self.outdoor else COINS_HOME
 
+    @property
+    def xp(self) -> int:
+        if self.kind == "checkin":
+            return XP_DAILY
+        return XP_OUTDOOR if self.outdoor else XP_HOME
+
     def to_dict(self) -> dict:
-        return {**asdict(self), "coins": self.coins}
+        return {**asdict(self), "coins": self.coins, "xp": self.xp}
 
 
 def load_catalog(path: Path = CATALOG_PATH) -> dict[str, Mission]:
@@ -89,9 +108,6 @@ def load_catalog(path: Path = CATALOG_PATH) -> dict[str, Mission]:
 
 
 CATALOG: dict[str, Mission] = load_catalog()
-
-# 하루에 같이 나오면 하나로 둘 다 끝나 버리는 미션 (일기 한 번에 두 미션 완료 방지)
-CONFLICTS = {"diary": {"topic_diary"}, "topic_diary": {"diary"}}
 BY_CATEGORY: dict[str, list[str]] = {c: [m.id for m in CATALOG.values() if m.category == c] for c in CATEGORIES}
 
 
@@ -137,10 +153,10 @@ def personalize(mission: dict, baselines: dict[str, float]) -> dict:
 
 
 def with_topic(mission: dict, topic: dict) -> dict:
-    """주제 일기 미션에 오늘의 주제를 넣는다."""
+    """일기 미션 설명에 오늘의 추천 주제를 넣는다. 주제는 추천일 뿐, 다른 이야기를 써도 완료된다."""
     if "{topic}" not in mission["desc"]:
         return mission
-    return {**mission, "desc": mission["desc"].format(topic=topic["text"]), "topic_id": topic["id"]}
+    return {**mission, "desc": mission["desc"].format(topic=topic["text"]), "suggested_topic_id": topic["id"]}
 
 
 def pick_missions(
@@ -168,13 +184,15 @@ def pick_missions(
     for category in plan:
         # 기준 기록이 없는 걸음 미션(어제보다·지난주보다)은 후보에서 뺀다
         options = [m for m in BY_CATEGORY[category] if CATALOG[m].goal_rule == "fixed" or CATALOG[m].goal_rule in baselines]
-        options = [m for m in options if not CONFLICTS.get(m, set()) & set(picked)]
         fresh = [m for m in options if m not in recent and m not in picked]
         choices = fresh or [m for m in options if m not in picked]
         picked.append(rng.choice(choices))
 
     topic = diary.topic_for(user_id, date)
     missions = [with_topic(personalize(CATALOG[m].to_dict(), baselines), topic) for m in picked[:MISSIONS_PER_DAY]]
+    # 매일 고정 미션(출석·걸음·지난주보다·일기·방문·방명록)을 맨 앞에. 기준 기록이 없는 걸음 미션은 빠진다.
+    daily = [m for m in BY_CATEGORY["daily"] if CATALOG[m].goal_rule == "fixed" or CATALOG[m].goal_rule in baselines]
+    missions = [with_topic(personalize(CATALOG[m].to_dict(), baselines), topic) for m in daily] + missions
 
     return {
         "date": date,
@@ -196,11 +214,16 @@ def is_complete(mission: Mission | dict, submission: dict) -> bool:
     kind, need = m["kind"], m["min_count"]
     if kind == "steps":
         return (submission.get("steps") or 0) >= need
+    if kind == "checkin":
+        return True
+    if kind == "guestbook":
+        # 서버가 확인한 값: 그날 다른 사람 방에 방명록을 남겼는지
+        return bool(submission.get("written"))
+    if kind == "visit":
+        # 서버가 확인한 값: 그날 다른 사람 방을 방문했는지
+        return bool(submission.get("visited"))
     if kind in ("text", "diary"):
-        if not str(submission.get("text") or "").strip():
-            return False
-        # 주제 일기 미션은 오늘의 주제로 쓴 일기여야 한다
-        return "topic_id" not in m or submission.get("topic_id") == m["topic_id"]
+        return bool(str(submission.get("text") or "").strip())
     if kind == "photo":
         return len(submission.get("photos") or []) >= need
     if kind == "list":
@@ -210,20 +233,34 @@ def is_complete(mission: Mission | dict, submission: dict) -> bool:
 
 
 def settle_coins(missions: list[dict], completed_ids: set[str] | list[str], already_paid: set[str] | list[str] = ()) -> dict:
-    """오늘 받을 코인을 계산한다.
+    """오늘 받을 코인과 경험치를 계산한다.
 
-    missions: pick_missions()가 준 오늘의 미션
+    missions: pick_missions()가 준 오늘의 미션 (출석하기 포함)
     completed_ids: 완료 판정을 통과한 미션 id
-    already_paid: 이미 코인을 준 항목 id (미션 id, 보너스는 "all_done"). 같은 보상을 두 번 주지 않기 위해 쓴다.
+    already_paid: 이미 보상을 준 미션 id. 같은 보상을 두 번 주지 않기 위해 쓴다.
 
-    돌려주는 값: {"items": [{"id", "coins"}...], "total": 이번에 줄 코인, "all_done": 3개 다 했는지}
+    all_done: 매일 고정 미션(출석·걸음·일기·방문·방명록)을 뺀, 매일 바뀌는 미션 3개를 모두 끝냈는지. 이때 주는 특별 캐릭터는 상점 기능에서 지급한다.
+    돌려주는 값: {"items": [{"id", "coins", "xp"}...], "total": 코인 합, "xp": 경험치 합, "all_done": 3개 다 했는지}
     """
     today = {m["id"]: m for m in missions}
     done = set(completed_ids) & set(today)
     paid = set(already_paid)
 
-    items = [{"id": mid, "coins": today[mid]["coins"]} for mid in today if mid in done and mid not in paid]
-    all_done = len(today) > 0 and done == set(today)
-    if all_done and "all_done" not in paid:
-        items.append({"id": "all_done", "coins": COINS_ALL_DONE_BONUS})
-    return {"items": items, "total": sum(i["coins"] for i in items), "all_done": all_done}
+    items = [{"id": mid, "coins": today[mid]["coins"], "xp": today[mid]["xp"]}
+             for mid in today if mid in done and mid not in paid]
+    main = {mid for mid, m in today.items() if m.get("category") != "daily"}
+    all_done = len(main) > 0 and main <= done
+    return {
+        "items": items,
+        "total": sum(i["coins"] for i in items),
+        "xp": sum(i["xp"] for i in items),
+        "all_done": all_done,
+    }
+
+
+def level_from_xp(total_xp: int) -> dict:
+    """누적 경험치 → 레벨. 프론트 levelFor()와 같다. 예: 0 → LV.1, 99 → LV.1, 100 → LV.2, 250 → LV.3"""
+    xp = max(0, int(total_xp))
+    level = 1 + xp // XP_PER_LEVEL
+    in_level = xp % XP_PER_LEVEL
+    return {"level": level, "xp": xp, "xp_in_level": in_level, "xp_to_next": XP_PER_LEVEL - in_level, "xp_for_level": XP_PER_LEVEL}
