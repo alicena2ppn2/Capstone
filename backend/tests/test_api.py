@@ -24,7 +24,7 @@ def upload(client, user="u1", content=JPEG, content_type="image/jpeg"):
 
 
 def submission_for(m, client=None, user="u1"):
-    if m["kind"] == "text":
+    if m["kind"] in ("text", "diary"):
         return {"text": "했어요"}
     if m["kind"] == "photo":
         return {"photos": [upload(client, user).json()["photo_id"] for _ in range(m["min_count"])]}
@@ -183,3 +183,76 @@ def test_relative_step_missions_use_uploaded_steps(client):
             if m["id"] in ("beat_yesterday", "beat_last_week"):
                 seen[m["id"]] = m["min_count"]
     assert seen == {"beat_yesterday": 600, "beat_last_week": 2700}
+
+
+# --- 일기 ------------------------------------------------------------------------
+
+def test_diary_topic_is_stable(client):
+    a = client.get("/users/u1/diary/topic", params={"date": DAY}).json()
+    assert a == client.get("/users/u1/diary/topic", params={"date": DAY}).json()
+    assert a["text"] and a["id"].startswith("t")
+
+
+def test_write_and_read_diary(client):
+    photo = upload(client).json()["photo_id"]
+    r = client.put(f"/users/u1/diary/{DAY}", json={"text": "산책했다", "use_topic": True, "mood": "좋음", "photos": [photo]})
+    assert r.status_code == 200
+    topic = client.get("/users/u1/diary/topic", params={"date": DAY}).json()
+    assert r.json()["entry"]["topic"]["id"] == topic["id"]
+
+    got = client.get(f"/users/u1/diary/{DAY}").json()
+    assert got["text"] == "산책했다" and got["mood"] == "좋음" and got["photos"] == [photo]
+
+    # 고치기
+    client.put(f"/users/u1/diary/{DAY}", json={"text": "산책하고 빵 샀다"})
+    got = client.get(f"/users/u1/diary/{DAY}").json()
+    assert got["text"] == "산책하고 빵 샀다" and got["topic"] is None
+
+    entries = client.get("/users/u1/diary", params={"from": "2026-10-01", "to": "2026-10-31"}).json()["entries"]
+    assert [e["date"] for e in entries] == [DAY]
+    assert client.get("/users/u1/diary/2026-10-03").status_code == 404
+
+
+def test_diary_rejects_unknown_photo(client):
+    r = client.put(f"/users/u1/diary/{DAY}", json={"text": "x", "photos": ["nope"]})
+    assert r.status_code == 422
+
+
+def topic_mission_day(client, user):
+    for d in range(1, 29):
+        date = f"2026-11-{d:02d}"
+        missions = client.get(f"/users/{user}/missions/today", params={"date": date}).json()["missions"]
+        m = next((m for m in missions if m["id"] == "topic_diary"), None)
+        if m:
+            return date, m
+    pytest.fail("주제 일기 미션이 나온 날이 없음")
+
+
+def test_topic_mission_shows_todays_topic(client):
+    date, m = topic_mission_day(client, "u1")
+    topic = client.get("/users/u1/diary/topic", params={"date": date}).json()
+    assert m["topic_id"] == topic["id"]
+    assert topic["text"] in m["desc"]
+
+
+def test_writing_topic_diary_completes_mission_and_pays(client):
+    date, m = topic_mission_day(client, "u1")
+    # 주제 없이 쓰면 주제 미션은 완료 안 됨
+    r = client.put(f"/users/u1/diary/{date}", json={"text": "그냥 쓴 일기"}).json()
+    assert "topic_diary" not in r["completed_missions"]
+    # 오늘의 주제로 쓰면 완료 + 코인
+    r = client.put(f"/users/u1/diary/{date}", json={"text": "주제로 쓴 일기", "use_topic": True}).json()
+    assert "topic_diary" in r["completed_missions"]
+    assert {"id": "topic_diary", "coins": m["coins"]} in r["earned"]
+    # 다시 고쳐도 코인은 한 번만
+    r = client.put(f"/users/u1/diary/{date}", json={"text": "고친 일기", "use_topic": True}).json()
+    assert r["earned"] == []
+
+
+def test_completing_diary_mission_saves_diary(client):
+    date, m = topic_mission_day(client, "u1")
+    r = client.post(f"/users/u1/missions/topic_diary/complete", params={"date": date}, json={"text": "미션에서 바로 씀"})
+    assert r.status_code == 200
+    entry = client.get(f"/users/u1/diary/{date}").json()
+    assert entry["text"] == "미션에서 바로 씀"
+    assert entry["topic"]["id"] == m["topic_id"]

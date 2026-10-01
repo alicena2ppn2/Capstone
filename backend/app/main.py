@@ -23,6 +23,7 @@ from fastapi.middleware.cors import CORSMiddleware
 from pydantic import BaseModel, Field
 
 from . import db
+from . import diary as dy
 from . import missions as ms
 
 USUAL_STEPS_DAYS = 28   # 평소 걸음 = 최근 28일 걸음 중앙값
@@ -85,6 +86,13 @@ class CompleteIn(BaseModel):
     answer: str | None = Field(None, description="먼저 묻는 질문의 답 (사는 동네, 좋아하는 장르 등)")
 
 
+class DiaryIn(BaseModel):
+    text: str = Field(..., min_length=1, max_length=2000)
+    use_topic: bool = Field(False, description="오늘의 주제로 썼으면 true")
+    mood: str | None = Field(None, max_length=20, description="기분 (예: 좋음, 보통, 피곤)")
+    photos: list[str] = Field(default_factory=list, description="POST /users/{id}/photos 로 올린 사진의 photo_id")
+
+
 class GuestbookIn(BaseModel):
     author: str = Field(..., min_length=1, max_length=20)
     text: str = Field(..., min_length=1, max_length=60)
@@ -115,6 +123,27 @@ def todays_missions(conn, user_id: str, today: Date) -> dict:
     )
     db.save_mission_day(conn, user_id, picked)
     return picked
+
+
+def check_photos(conn, user_id: str, photo_ids: list[str]) -> list[str]:
+    """이 사용자가 실제로 올린 사진만 인정한다."""
+    photos = list(dict.fromkeys(photo_ids or []))
+    unknown = set(photos) - db.owned_photo_ids(conn, user_id, photos)
+    if unknown:
+        raise HTTPException(422, f"올라오지 않은 사진입니다: {sorted(unknown)}")
+    return photos
+
+
+def finish_and_pay(conn, user_id: str, today: Date, day_: dict, mission_id: str, submission: dict) -> dict:
+    """완료를 저장하고 받을 코인을 지급한다."""
+    db.save_completion(conn, user_id, today.isoformat(), mission_id, submission)
+    settle = ms.settle_coins(
+        day_["missions"],
+        db.completed_ids(conn, user_id, today.isoformat()),
+        already_paid=db.paid_ids(conn, user_id, today.isoformat()),
+    )
+    db.add_coins(conn, user_id, today.isoformat(), settle["items"])
+    return settle
 
 
 def with_status(conn, user_id: str, day_: dict) -> dict:
@@ -178,24 +207,18 @@ def complete_mission(user_id: str, mission_id: str, body: CompleteIn, date: str 
         # 걸음 미션은 사용자가 입력하지 않고 서버에 올라온 걸음으로 판정한다.
         submission = {"steps": db.get_steps(conn, user_id, today.isoformat()) or 0}
     if mission["kind"] == "photo":
-        # 이 사용자가 실제로 올린 사진만 인정한다.
-        photos = list(dict.fromkeys(submission.get("photos") or []))
-        unknown = set(photos) - db.owned_photo_ids(conn, user_id, photos)
-        if unknown:
-            raise HTTPException(422, f"올라오지 않은 사진입니다: {sorted(unknown)}")
-        submission["photos"] = photos
+        submission["photos"] = check_photos(conn, user_id, submission.get("photos"))
+    if mission["kind"] == "diary":
+        # 일기 미션은 기록 탭 일기로 저장한다. 주제 미션이면 오늘의 주제로 쓴 것으로 본다.
+        submission["topic_id"] = mission.get("topic_id")
     if mission.get("prompt") and not body.answer:
         raise HTTPException(422, f"먼저 답해 주세요: {mission['prompt']}")
     if not ms.is_complete(mission, submission):
         raise HTTPException(422, "아직 완료 조건을 채우지 못했어요.")
 
-    db.save_completion(conn, user_id, today.isoformat(), mission_id, submission)
-    settle = ms.settle_coins(
-        day_["missions"],
-        db.completed_ids(conn, user_id, today.isoformat()),
-        already_paid=db.paid_ids(conn, user_id, today.isoformat()),
-    )
-    db.add_coins(conn, user_id, today.isoformat(), settle["items"])
+    if mission["kind"] == "diary":
+        db.save_diary(conn, user_id, today.isoformat(), submission["text"].strip(), submission["topic_id"], None, [])
+    settle = finish_and_pay(conn, user_id, today, day_, mission_id, submission)
     return {
         "mission_id": mission_id,
         "earned": settle["items"],
@@ -229,6 +252,51 @@ def get_photo(photo_id: str, conn=Depends(get_conn)):
     if photo is None:
         raise HTTPException(404, "사진이 없습니다.")
     return FileResponse(upload_dir() / photo["filename"], media_type=photo["content_type"])
+
+
+@app.get("/users/{user_id}/diary/topic", summary="오늘의 일기 주제")
+def get_diary_topic(user_id: str, date: str | None = DateQuery):
+    today = day(date)
+    return {"date": today.isoformat(), **dy.topic_for(user_id, today.isoformat())}
+
+
+@app.put("/users/{user_id}/diary/{entry_date}", summary="일기 쓰기·고치기 (일기 미션이 있으면 자동 완료)")
+def put_diary(user_id: str, entry_date: str, body: DiaryIn, conn=Depends(get_conn)):
+    today = day(entry_date)
+    topic = dy.topic_for(user_id, today.isoformat()) if body.use_topic else None
+    photos = check_photos(conn, user_id, body.photos)
+    entry = db.save_diary(conn, user_id, today.isoformat(), body.text.strip(), topic and topic["id"], body.mood, photos)
+
+    # 오늘의 미션에 일기 미션이 있으면 같이 완료 처리
+    completed, earned = [], []
+    day_ = db.get_mission_day(conn, user_id, today.isoformat())
+    if day_:
+        submission = {"text": entry["text"], "topic_id": entry["topic_id"]}
+        for m in day_["missions"]:
+            if m["kind"] == "diary" and ms.is_complete(m, submission):
+                settle = finish_and_pay(conn, user_id, today, day_, m["id"], submission)
+                completed.append(m["id"])
+                earned += settle["items"]
+    return {
+        "entry": {**entry, "topic": topic},
+        "completed_missions": completed,
+        "earned": earned,
+        "coins": db.coin_balance(conn, user_id),
+    }
+
+
+@app.get("/users/{user_id}/diary/{entry_date}", summary="하루 일기 보기")
+def get_diary_entry(user_id: str, entry_date: str, conn=Depends(get_conn)):
+    entry = db.get_diary(conn, user_id, day(entry_date).isoformat())
+    if entry is None:
+        raise HTTPException(404, "그날 일기가 없습니다.")
+    return {**entry, "topic": dy.TOPICS_BY_ID.get(entry["topic_id"])}
+
+
+@app.get("/users/{user_id}/diary", summary="일기 목록 (기록 탭)")
+def list_diary(user_id: str, start: str = Query(..., alias="from"), end: str = Query(..., alias="to"), conn=Depends(get_conn)):
+    entries = db.list_diary(conn, user_id, day(start).isoformat(), day(end).isoformat())
+    return {"entries": [{**e, "topic": dy.TOPICS_BY_ID.get(e["topic_id"])} for e in entries]}
 
 
 @app.get("/users/{user_id}/coins", summary="코인 잔액")
