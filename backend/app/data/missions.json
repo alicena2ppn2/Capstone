@@ -1,0 +1,744 @@
+[
+  {
+    "id": "door_5min",
+    "category": "outdoor",
+    "title": "집 앞 5분 나가기",
+    "desc": "현관문 열고 딱 5분만 밖에 있어 봐요. 걸음으로 확인할게요.",
+    "kind": "steps",
+    "outdoor": true,
+    "min_count": 500,
+    "prompt": ""
+  },
+  {
+    "id": "walk",
+    "category": "outdoor",
+    "title": "오늘 걸음 채우기",
+    "desc": "하루 권장 걸음 8,000보를 채워 봐요.",
+    "kind": "steps",
+    "outdoor": true,
+    "min_count": 8000,
+    "prompt": ""
+  },
+  {
+    "id": "beat_yesterday",
+    "category": "outdoor",
+    "title": "어제보다 많이 걷기",
+    "desc": "어제는 {prev}보 걸었어요. 오늘은 {goal}보 이상 걸어 봐요.",
+    "kind": "steps",
+    "outdoor": true,
+    "min_count": 0,
+    "prompt": "",
+    "goal_rule": "yesterday"
+  },
+  {
+    "id": "beat_last_week",
+    "category": "outdoor",
+    "title": "지난주보다 많이 걷기",
+    "desc": "지난 7일 동안 하루 평균 {prev}보 걸었어요. 오늘은 {goal}보 이상 걸어 봐요.",
+    "kind": "steps",
+    "outdoor": true,
+    "min_count": 0,
+    "prompt": "",
+    "goal_rule": "last_week"
+  },
+  {
+    "id": "block_walk",
+    "category": "outdoor",
+    "title": "동네 한 바퀴",
+    "desc": "집 주변 블록을 한 바퀴 돌아봐요.",
+    "kind": "steps",
+    "outdoor": true,
+    "min_count": 1500,
+    "prompt": ""
+  },
+  {
+    "id": "sky_photo",
+    "category": "outdoor",
+    "title": "오늘 하늘 찍기",
+    "desc": "밖에 나가서 오늘 하늘을 찍어 올려요.",
+    "kind": "photo",
+    "outdoor": true,
+    "min_count": 1,
+    "prompt": ""
+  },
+  {
+    "id": "photo_nature",
+    "category": "outdoor",
+    "title": "밖에서 만난 친구 찍기",
+    "desc": "고양이, 강아지, 꽃… 눈에 띈 걸 찍어서 스토리에 올려봐요.",
+    "kind": "photo",
+    "outdoor": true,
+    "min_count": 1,
+    "prompt": ""
+  },
+  {
+    "id": "drink_run",
+    "category": "outdoor",
+    "title": "좋아하는 음료수 사 오기",
+    "desc": "가까운 가게에 들러 좋아하는 음료수를 사 와서 찍어 올려요.",
+    "kind": "photo",
+    "outdoor": true,
+    "min_count": 1,
+    "prompt": ""
+  },
+  {
+    "id": "snack_new",
+    "category": "outdoor",
+    "title": "편의점 신상 간식 사 오기",
+    "desc": "편의점에서 처음 보는 간식을 하나 사 와서 찍어 올려요.",
+    "kind": "photo",
+    "outdoor": true,
+    "min_count": 1,
+    "prompt": ""
+  },
+  {
+    "id": "bakery",
+    "category": "outdoor",
+    "title": "동네 빵집 빵 사 오기",
+    "desc": "동네 빵집에서 마음에 드는 빵을 사 와서 찍어 올려요.",
+    "kind": "photo",
+    "outdoor": true,
+    "min_count": 1,
+    "prompt": ""
+  },
+  {
+    "id": "sunlight",
+    "category": "outdoor",
+    "title": "햇볕 10분 쬐기",
+    "desc": "해 있을 때 밖에서 10분 쉬고, 그때 본 풍경을 찍어 올려요.",
+    "kind": "photo",
+    "outdoor": true,
+    "min_count": 1,
+    "prompt": ""
+  },
+  {
+    "id": "bench",
+    "category": "outdoor",
+    "title": "공원 벤치에 앉아 보기",
+    "desc": "공원 벤치에 앉아서 보이는 풍경을 찍어 올려요.",
+    "kind": "photo",
+    "outdoor": true,
+    "min_count": 1,
+    "prompt": ""
+  },
+  {
+    "id": "sunset",
+    "category": "outdoor",
+    "title": "노을 찍기",
+    "desc": "해 질 무렵 밖에 나가 노을을 찍어 올려요.",
+    "kind": "photo",
+    "outdoor": true,
+    "min_count": 1,
+    "prompt": ""
+  },
+  {
+    "id": "season_scene",
+    "category": "outdoor",
+    "title": "계절 풍경 찾기",
+    "desc": "요즘 계절이 느껴지는 장면(낙엽, 벚꽃, 눈…)을 찍어 올려요.",
+    "kind": "photo",
+    "outdoor": true,
+    "min_count": 1,
+    "prompt": ""
+  },
+  {
+    "id": "mural",
+    "category": "outdoor",
+    "title": "동네 벽화·간판 찾기",
+    "desc": "동네에서 재밌는 벽화나 간판을 찾아 찍어 올려요.",
+    "kind": "photo",
+    "outdoor": true,
+    "min_count": 1,
+    "prompt": ""
+  },
+  {
+    "id": "flower_shop",
+    "category": "outdoor",
+    "title": "꽃집 구경하기",
+    "desc": "꽃집 앞을 지나가며 마음에 드는 꽃을 찍어 올려요.",
+    "kind": "photo",
+    "outdoor": true,
+    "min_count": 1,
+    "prompt": ""
+  },
+  {
+    "id": "market",
+    "category": "outdoor",
+    "title": "시장 구경 가기",
+    "desc": "가까운 시장에 들러 구경하고 한 장 찍어 올려요.",
+    "kind": "photo",
+    "outdoor": true,
+    "min_count": 1,
+    "prompt": ""
+  },
+  {
+    "id": "library_visit",
+    "category": "outdoor",
+    "title": "도서관 들러 보기",
+    "desc": "가까운 도서관에 가서 입구나 책장을 찍어 올려요.",
+    "kind": "photo",
+    "outdoor": true,
+    "min_count": 1,
+    "prompt": ""
+  },
+  {
+    "id": "cafe_visit",
+    "category": "outdoor",
+    "title": "동네 카페 가 보기",
+    "desc": "안 가 본 동네 카페에 가서 음료 사진을 올려요.",
+    "kind": "photo",
+    "outdoor": true,
+    "min_count": 1,
+    "prompt": ""
+  },
+  {
+    "id": "recycle",
+    "category": "outdoor",
+    "title": "분리수거 내놓기",
+    "desc": "쌓인 분리수거를 들고 나가 버리고, 분리수거장 사진을 올려요.",
+    "kind": "photo",
+    "outdoor": true,
+    "min_count": 1,
+    "prompt": ""
+  },
+  {
+    "id": "bus_stop_walk",
+    "category": "outdoor",
+    "title": "한 정거장 걸어 보기",
+    "desc": "버스 한 정거장 거리를 걸어봐요.",
+    "kind": "steps",
+    "outdoor": true,
+    "min_count": 1500,
+    "prompt": ""
+  },
+  {
+    "id": "new_road",
+    "category": "outdoor",
+    "title": "안 가 본 길로 걷기",
+    "desc": "평소 안 다니던 골목으로 걸어 보고 찍어 올려요.",
+    "kind": "photo",
+    "outdoor": true,
+    "min_count": 1,
+    "prompt": ""
+  },
+  {
+    "id": "trail",
+    "category": "outdoor",
+    "title": "가까운 산책로 걷기",
+    "desc": "근처 산책로나 하천길을 걸어봐요.",
+    "kind": "steps",
+    "outdoor": true,
+    "min_count": 3000,
+    "prompt": ""
+  },
+  {
+    "id": "errand",
+    "category": "outdoor",
+    "title": "작은 볼일 보러 나가기",
+    "desc": "우체국, 은행, 세탁소처럼 미뤄 둔 볼일을 보고 그곳 사진을 올려요.",
+    "kind": "photo",
+    "outdoor": true,
+    "min_count": 1,
+    "prompt": ""
+  },
+  {
+    "id": "meal_photo",
+    "category": "home",
+    "title": "오늘 먹은 밥 공유하기",
+    "desc": "오늘 먹은 한 끼를 찍어 올려요.",
+    "kind": "photo",
+    "outdoor": false,
+    "min_count": 1,
+    "prompt": ""
+  },
+  {
+    "id": "seasonal_food",
+    "category": "home",
+    "title": "제철 음식 먹기",
+    "desc": "요즘 맛있는 제철 음식을 먹고 찍어 올려요.",
+    "kind": "photo",
+    "outdoor": false,
+    "min_count": 1,
+    "prompt": ""
+  },
+  {
+    "id": "cook",
+    "category": "home",
+    "title": "간단한 요리 해 보기",
+    "desc": "계란 프라이라도 좋아요. 직접 만든 음식을 찍어 올려요.",
+    "kind": "photo",
+    "outdoor": false,
+    "min_count": 1,
+    "prompt": ""
+  },
+  {
+    "id": "make_bed",
+    "category": "home",
+    "title": "이불 개기",
+    "desc": "일어나서 이불을 개고 찍어 올려요.",
+    "kind": "photo",
+    "outdoor": false,
+    "min_count": 1,
+    "prompt": ""
+  },
+  {
+    "id": "air_out",
+    "category": "home",
+    "title": "창문 열고 환기하기",
+    "desc": "창문을 활짝 열고, 열린 창문 사진을 올려요.",
+    "kind": "photo",
+    "outdoor": false,
+    "min_count": 1,
+    "prompt": ""
+  },
+  {
+    "id": "window_view",
+    "category": "home",
+    "title": "창밖 풍경 찍기",
+    "desc": "창밖으로 보이는 오늘 풍경을 찍어 올려요.",
+    "kind": "photo",
+    "outdoor": false,
+    "min_count": 1,
+    "prompt": ""
+  },
+  {
+    "id": "tidy_corner",
+    "category": "home",
+    "title": "방 한 구석 정리하기",
+    "desc": "책상 위나 서랍 하나만 정리하고 찍어 올려요.",
+    "kind": "photo",
+    "outdoor": false,
+    "min_count": 1,
+    "prompt": ""
+  },
+  {
+    "id": "water_plant",
+    "category": "home",
+    "title": "화분 물 주기",
+    "desc": "화분에 물을 주고 찍어 올려요. 화분이 없으면 물 한 잔이라도!",
+    "kind": "photo",
+    "outdoor": false,
+    "min_count": 1,
+    "prompt": ""
+  },
+  {
+    "id": "tea",
+    "category": "home",
+    "title": "좋아하는 차 한 잔",
+    "desc": "따뜻한 차나 음료를 한 잔 타서 찍어 올려요.",
+    "kind": "photo",
+    "outdoor": false,
+    "min_count": 1,
+    "prompt": ""
+  },
+  {
+    "id": "outfit",
+    "category": "home",
+    "title": "오늘 입은 옷 찍기",
+    "desc": "잠옷 말고 다른 옷으로 갈아입고 찍어 올려요.",
+    "kind": "photo",
+    "outdoor": false,
+    "min_count": 1,
+    "prompt": ""
+  },
+  {
+    "id": "read_10",
+    "category": "home",
+    "title": "책 10쪽 읽기",
+    "desc": "아무 책이나 10쪽 읽고, 읽은 쪽을 찍어 올려요.",
+    "kind": "photo",
+    "outdoor": false,
+    "min_count": 1,
+    "prompt": ""
+  },
+  {
+    "id": "draw",
+    "category": "home",
+    "title": "낙서 한 장",
+    "desc": "아무거나 그려서 찍어 올려요. 잘 그릴 필요 없어요.",
+    "kind": "photo",
+    "outdoor": false,
+    "min_count": 1,
+    "prompt": ""
+  },
+  {
+    "id": "fruit",
+    "category": "home",
+    "title": "과일 하나 먹기",
+    "desc": "과일 하나를 먹고 찍어 올려요.",
+    "kind": "photo",
+    "outdoor": false,
+    "min_count": 1,
+    "prompt": ""
+  },
+  {
+    "id": "desk_photo",
+    "category": "home",
+    "title": "내 자리 찍기",
+    "desc": "지금 앉아 있는 자리를 찍어 올려요.",
+    "kind": "photo",
+    "outdoor": false,
+    "min_count": 1,
+    "prompt": ""
+  },
+  {
+    "id": "local_food",
+    "category": "explore",
+    "title": "우리 동네 맛집 찾아보기",
+    "desc": "사는 동네 맛집을 직접 찾아보고 몇 곳 적어 올려요. 끌리는 곳이 있으면 다음엔 가 봐요!",
+    "kind": "list",
+    "outdoor": false,
+    "min_count": 3,
+    "prompt": "사는 동네가 어디예요?"
+  },
+  {
+    "id": "movies",
+    "category": "explore",
+    "title": "요즘 상영 영화 찾아보기",
+    "desc": "요즘 극장에서 하는 영화를 찾아보고 세 편 이상 적어봐요.",
+    "kind": "list",
+    "outdoor": false,
+    "min_count": 3,
+    "prompt": ""
+  },
+  {
+    "id": "music",
+    "category": "explore",
+    "title": "좋아하는 음악 찾아보기",
+    "desc": "좋아하는 장르의 음악을 직접 찾아 듣고 세 곡 이상 적어봐요.",
+    "kind": "list",
+    "outdoor": false,
+    "min_count": 3,
+    "prompt": "좋아하는 음악 장르는?"
+  },
+  {
+    "id": "parks",
+    "category": "outdoor",
+    "title": "가까운 공원 가 보기",
+    "desc": "가까운 공원에 가서 사진을 찍어 올려요.",
+    "kind": "photo",
+    "outdoor": true,
+    "min_count": 1,
+    "prompt": ""
+  },
+  {
+    "id": "cafes",
+    "category": "explore",
+    "title": "가 보고 싶은 카페 찾아보기",
+    "desc": "동네에서 가 보고 싶은 카페를 세 곳 찾아 적어요.",
+    "kind": "list",
+    "outdoor": false,
+    "min_count": 3,
+    "prompt": "사는 동네가 어디예요?"
+  },
+  {
+    "id": "bakeries",
+    "category": "explore",
+    "title": "동네 빵집 찾아보기",
+    "desc": "근처 빵집을 세 곳 찾아 적어요.",
+    "kind": "list",
+    "outdoor": false,
+    "min_count": 3,
+    "prompt": "사는 동네가 어디예요?"
+  },
+  {
+    "id": "walk_course",
+    "category": "explore",
+    "title": "산책 코스 짜 보기",
+    "desc": "집에서 출발하는 30분 산책 코스를 지도에서 찾아 들를 곳 세 군데를 적어요.",
+    "kind": "list",
+    "outdoor": false,
+    "min_count": 3,
+    "prompt": ""
+  },
+  {
+    "id": "festival",
+    "category": "explore",
+    "title": "동네 행사 찾아보기",
+    "desc": "이번 달 동네 축제나 행사를 찾아 세 개 적어요.",
+    "kind": "list",
+    "outdoor": false,
+    "min_count": 3,
+    "prompt": "사는 동네가 어디예요?"
+  },
+  {
+    "id": "exhibitions",
+    "category": "explore",
+    "title": "무료 전시 찾아보기",
+    "desc": "가까운 곳의 무료 전시나 공연을 세 개 찾아 적어요.",
+    "kind": "list",
+    "outdoor": false,
+    "min_count": 3,
+    "prompt": ""
+  },
+  {
+    "id": "library_program",
+    "category": "explore",
+    "title": "도서관 프로그램 찾아보기",
+    "desc": "가까운 도서관에서 하는 강좌·모임을 찾아 세 개 적어요.",
+    "kind": "list",
+    "outdoor": false,
+    "min_count": 3,
+    "prompt": ""
+  },
+  {
+    "id": "hobbies",
+    "category": "explore",
+    "title": "배우고 싶은 취미 찾아보기",
+    "desc": "해 보고 싶은 취미를 세 가지 찾아 적어요.",
+    "kind": "list",
+    "outdoor": false,
+    "min_count": 3,
+    "prompt": ""
+  },
+  {
+    "id": "classes",
+    "category": "explore",
+    "title": "원데이 클래스 찾아보기",
+    "desc": "가까운 원데이 클래스(공방, 요리, 운동…)를 세 개 찾아 적어요.",
+    "kind": "list",
+    "outdoor": false,
+    "min_count": 3,
+    "prompt": ""
+  },
+  {
+    "id": "gyms",
+    "category": "explore",
+    "title": "가까운 운동 시설 찾아보기",
+    "desc": "구민체육센터나 공원 운동기구 같은 곳을 세 군데 찾아 적어요.",
+    "kind": "list",
+    "outdoor": false,
+    "min_count": 3,
+    "prompt": ""
+  },
+  {
+    "id": "fruits",
+    "category": "explore",
+    "title": "제철 과일 찾아보기",
+    "desc": "지금이 제철인 과일을 세 가지 찾아 적어요.",
+    "kind": "list",
+    "outdoor": false,
+    "min_count": 3,
+    "prompt": ""
+  },
+  {
+    "id": "recipes",
+    "category": "explore",
+    "title": "해 보고 싶은 요리 찾아보기",
+    "desc": "만들어 보고 싶은 간단한 요리를 세 개 찾아 적어요.",
+    "kind": "list",
+    "outdoor": false,
+    "min_count": 3,
+    "prompt": ""
+  },
+  {
+    "id": "books",
+    "category": "explore",
+    "title": "요즘 인기 책 찾아보기",
+    "desc": "요즘 많이 읽는 책을 세 권 찾아 적어요.",
+    "kind": "list",
+    "outdoor": false,
+    "min_count": 3,
+    "prompt": ""
+  },
+  {
+    "id": "trips",
+    "category": "explore",
+    "title": "가 보고 싶은 곳 찾아보기",
+    "desc": "당일치기로 가 볼 만한 곳을 세 군데 찾아 적어요.",
+    "kind": "list",
+    "outdoor": false,
+    "min_count": 3,
+    "prompt": ""
+  },
+  {
+    "id": "markets",
+    "category": "explore",
+    "title": "동네 시장 찾아보기",
+    "desc": "가까운 시장이나 장터를 찾아 적고, 열리는 날도 같이 적어요.",
+    "kind": "list",
+    "outdoor": false,
+    "min_count": 2,
+    "prompt": "사는 동네가 어디예요?"
+  },
+  {
+    "id": "volunteer",
+    "category": "explore",
+    "title": "봉사활동 찾아보기",
+    "desc": "가까운 곳에서 할 수 있는 봉사활동을 두 개 찾아 적어요.",
+    "kind": "list",
+    "outdoor": false,
+    "min_count": 2,
+    "prompt": ""
+  },
+  {
+    "id": "youth_center",
+    "category": "explore",
+    "title": "동네 청년·주민 센터 찾아보기",
+    "desc": "가까운 청년센터나 주민센터 프로그램을 두 개 찾아 적어요.",
+    "kind": "list",
+    "outdoor": false,
+    "min_count": 2,
+    "prompt": "사는 동네가 어디예요?"
+  },
+  {
+    "id": "weekend_plan",
+    "category": "explore",
+    "title": "주말에 갈 곳 찾아보기",
+    "desc": "주말 날씨를 확인하고 가 볼 만한 곳을 두 군데 적어요.",
+    "kind": "list",
+    "outdoor": false,
+    "min_count": 2,
+    "prompt": ""
+  },
+  {
+    "id": "podcasts",
+    "category": "explore",
+    "title": "들어 볼 팟캐스트 찾아보기",
+    "desc": "관심 가는 팟캐스트나 라디오를 세 개 찾아 적어요.",
+    "kind": "list",
+    "outdoor": false,
+    "min_count": 3,
+    "prompt": ""
+  },
+  {
+    "id": "dramas",
+    "category": "explore",
+    "title": "볼 만한 드라마 찾아보기",
+    "desc": "요즘 볼 만한 드라마를 세 편 찾아 적어요.",
+    "kind": "list",
+    "outdoor": false,
+    "min_count": 3,
+    "prompt": ""
+  },
+  {
+    "id": "snacks",
+    "category": "explore",
+    "title": "먹어 보고 싶은 간식 찾아보기",
+    "desc": "편의점이나 동네 가게에서 먹어 보고 싶은 간식을 세 개 적어요.",
+    "kind": "list",
+    "outdoor": false,
+    "min_count": 3,
+    "prompt": ""
+  },
+  {
+    "id": "diary",
+    "category": "record",
+    "title": "오늘의 하루 기록하기",
+    "desc": "짧게 한 줄이어도 좋아요.",
+    "kind": "text",
+    "outdoor": false,
+    "min_count": 1,
+    "prompt": ""
+  },
+  {
+    "id": "grateful",
+    "category": "record",
+    "title": "감사한 일 세 가지",
+    "desc": "오늘 고마웠던 일을 세 가지 적어요. 아주 작은 것도 좋아요.",
+    "kind": "list",
+    "outdoor": false,
+    "min_count": 3,
+    "prompt": ""
+  },
+  {
+    "id": "mood_word",
+    "category": "record",
+    "title": "오늘 기분 한 단어",
+    "desc": "오늘 기분을 한 단어로 적어요.",
+    "kind": "text",
+    "outdoor": false,
+    "min_count": 1,
+    "prompt": ""
+  },
+  {
+    "id": "good_moment",
+    "category": "record",
+    "title": "오늘 좋았던 순간",
+    "desc": "오늘 가장 좋았던 순간 하나를 적어요.",
+    "kind": "text",
+    "outdoor": false,
+    "min_count": 1,
+    "prompt": ""
+  },
+  {
+    "id": "tomorrow",
+    "category": "record",
+    "title": "내일 하고 싶은 일 하나",
+    "desc": "내일 해 보고 싶은 일을 하나만 적어요.",
+    "kind": "text",
+    "outdoor": false,
+    "min_count": 1,
+    "prompt": ""
+  },
+  {
+    "id": "ate_today",
+    "category": "record",
+    "title": "오늘 먹은 것 적기",
+    "desc": "오늘 먹은 것들을 적어요.",
+    "kind": "list",
+    "outdoor": false,
+    "min_count": 1,
+    "prompt": ""
+  },
+  {
+    "id": "week_win",
+    "category": "record",
+    "title": "이번 주 잘한 일",
+    "desc": "이번 주에 잘한 일 하나를 적어요.",
+    "kind": "text",
+    "outdoor": false,
+    "min_count": 1,
+    "prompt": ""
+  },
+  {
+    "id": "interest",
+    "category": "record",
+    "title": "요즘 관심 있는 것",
+    "desc": "요즘 궁금하거나 관심 가는 걸 적어요.",
+    "kind": "text",
+    "outdoor": false,
+    "min_count": 1,
+    "prompt": ""
+  },
+  {
+    "id": "childhood",
+    "category": "record",
+    "title": "어릴 때 좋아했던 것",
+    "desc": "어릴 때 좋아했던 놀이나 음식을 적어요.",
+    "kind": "text",
+    "outdoor": false,
+    "min_count": 1,
+    "prompt": ""
+  },
+  {
+    "id": "wish_place",
+    "category": "record",
+    "title": "언젠가 가 보고 싶은 곳",
+    "desc": "언젠가 꼭 가 보고 싶은 곳을 적어요.",
+    "kind": "text",
+    "outdoor": false,
+    "min_count": 1,
+    "prompt": ""
+  },
+  {
+    "id": "today_song",
+    "category": "record",
+    "title": "오늘의 노래",
+    "desc": "오늘 들은 노래 중 하나를 적어요.",
+    "kind": "text",
+    "outdoor": false,
+    "min_count": 1,
+    "prompt": ""
+  },
+  {
+    "id": "small_change",
+    "category": "record",
+    "title": "어제와 달라진 것 하나",
+    "desc": "어제와 다르게 해 본 것을 하나 적어요.",
+    "kind": "text",
+    "outdoor": false,
+    "min_count": 1,
+    "prompt": ""
+  }
+]
