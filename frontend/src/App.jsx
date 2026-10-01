@@ -2,11 +2,13 @@ import { useState } from 'react';
 import Home from './screens/Home.jsx';
 import Quest from './screens/Quest.jsx';
 import Guestbook from './screens/Guestbook.jsx';
+import Settings from './screens/Settings.jsx';
 
 const SCREENS = [
   { id: 'home', label: '홈' },
   { id: 'quest', label: '퀘스트' },
   { id: 'guest', label: '방명록' },
+  { id: 'settings', label: '설정' },
 ];
 
 export default function App() {
@@ -23,9 +25,10 @@ export default function App() {
           </button>
         ))}
       </nav>
-      {screen === 'home' && <Home petColor={petColor} onPetColor={setPetColor} />}
+      <div hidden={screen !== 'home'}><Home petColor={petColor} onPetColor={setPetColor} onSettings={() => setScreen('settings')} /></div>
       {screen === 'quest' && <Quest petColor={petColor} />}
       {screen === 'guest' && <Guestbook petColor={petColor} />}
+      <div hidden={screen !== 'settings'}><Settings petColor={petColor} onBack={() => setScreen('home')} /></div>
     </div>
   );
 }

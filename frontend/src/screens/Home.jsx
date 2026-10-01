@@ -83,7 +83,7 @@ function ActionButton({ b }) {
   );
 }
 
-export default function Home({ petName = 'MOCHI', petColor, onPetColor, showStats = true }) {
+export default function Home({ petName = 'MOCHI', petColor, onPetColor, onSettings, showStats = true }) {
   const [st, setSt] = useState({ hunger: 80, happy: 95, energy: 70, level: 3, mess: true, fed: false, asleep: false, steps: 7850, coins: 540 });
   const [msg, setMsg] = useState('');
   const [palOpen, setPalOpen] = useState(false);
@@ -127,7 +127,7 @@ export default function Home({ petName = 'MOCHI', petColor, onPetColor, showStat
       <div style={{ position: 'relative', width: '100%', height: '100%', boxSizing: 'border-box', border: '3px solid #A27E62', borderRadius: 34, overflow: 'hidden', background: '#D6EAF8' }}>
         <RoomBackdrop />
 
-        <button type="button" className="pb" aria-label="설정" style={{ ...roundIconBtn, right: 14, zIndex: 3 }}>
+        <button type="button" className="pb" aria-label="설정" onClick={onSettings} style={{ ...roundIconBtn, right: 14, zIndex: 3 }}>
           <GearIcon fill="#E8F4FF" />
         </button>
 
@@ -229,7 +229,7 @@ export default function Home({ petName = 'MOCHI', petColor, onPetColor, showStat
           </div>
 
           <div style={{ display: 'grid', gridTemplateColumns: '56px minmax(0, 1fr) minmax(0, 1fr) 56px', gap: 10, marginTop: 14, height: 96, alignItems: 'end' }}>
-            <button type="button" className="pb" style={{ ...bottomBtn, minWidth: 0, minHeight: 56 }}><GearIcon />설정</button>
+            <button type="button" className="pb" onClick={onSettings} style={{ ...bottomBtn, minWidth: 0, minHeight: 56 }}><GearIcon />설정</button>
             {row2.map((b) => <ActionButton key={b.label} b={b} />)}
             <button type="button" className="pb" style={{ ...bottomBtn, minWidth: 0, minHeight: 56 }}><ShopIcon />상점</button>
           </div>
