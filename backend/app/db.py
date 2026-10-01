@@ -50,6 +50,16 @@ CREATE TABLE IF NOT EXISTS photos (
     content_type TEXT NOT NULL,
     created_at   TEXT NOT NULL DEFAULT (datetime('now'))
 );
+CREATE TABLE IF NOT EXISTS diary (
+    user_id    TEXT NOT NULL,
+    date       TEXT NOT NULL,
+    topic_id   TEXT,                     -- 오늘의 주제로 썼으면 주제 id
+    text       TEXT NOT NULL,
+    mood       TEXT,
+    photos     TEXT NOT NULL DEFAULT '[]', -- JSON (photo_id 목록)
+    updated_at TEXT NOT NULL DEFAULT (datetime('now')),
+    PRIMARY KEY (user_id, date)
+);
 CREATE TABLE IF NOT EXISTS guestbook (
     id         INTEGER PRIMARY KEY AUTOINCREMENT,
     owner_id   TEXT NOT NULL,            -- 방 주인
@@ -173,6 +183,38 @@ def owned_photo_ids(conn, user_id: str, photo_ids: list[str]) -> set[str]:
     marks = ",".join("?" * len(photo_ids))
     rows = conn.execute(f"SELECT id FROM photos WHERE user_id = ? AND id IN ({marks})", (user_id, *photo_ids)).fetchall()
     return {r["id"] for r in rows}
+
+
+# --- 일기 ------------------------------------------------------------------------
+
+def save_diary(conn, user_id: str, date: str, text: str, topic_id: str | None, mood: str | None, photos: list[str]) -> dict:
+    conn.execute(
+        "INSERT INTO diary (user_id, date, topic_id, text, mood, photos) VALUES (?, ?, ?, ?, ?, ?) "
+        "ON CONFLICT (user_id, date) DO UPDATE SET topic_id = excluded.topic_id, text = excluded.text, "
+        "mood = excluded.mood, photos = excluded.photos, updated_at = datetime('now')",
+        (user_id, date, topic_id, text, mood, json.dumps(photos)),
+    )
+    conn.commit()
+    return get_diary(conn, user_id, date)
+
+
+def _diary_row(row) -> dict:
+    d = dict(row)
+    d["photos"] = json.loads(d["photos"])
+    return d
+
+
+def get_diary(conn, user_id: str, date: str) -> dict | None:
+    row = conn.execute("SELECT * FROM diary WHERE user_id = ? AND date = ?", (user_id, date)).fetchone()
+    return _diary_row(row) if row else None
+
+
+def list_diary(conn, user_id: str, start: str, end: str) -> list[dict]:
+    rows = conn.execute(
+        "SELECT * FROM diary WHERE user_id = ? AND date BETWEEN ? AND ? ORDER BY date DESC",
+        (user_id, start, end),
+    ).fetchall()
+    return [_diary_row(r) for r in rows]
 
 
 # --- 방명록 -----------------------------------------------------------------------

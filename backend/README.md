@@ -35,6 +35,10 @@ pytest                         # 테스트
 | `POST /users/{id}/photos` | 사진 업로드 → `photo_id` (사진 미션 제출에 사용) |
 | `GET /photos/{photo_id}` | 사진 보기 |
 | `GET /users/{id}/coins` | 코인 잔액 |
+| `GET /users/{id}/diary/topic` | 오늘의 일기 주제 (주제 50개, `app/data/diary_topics.json`) |
+| `PUT /users/{id}/diary/{date}` | 일기 쓰기·고치기 (글·기분·사진, 오늘의 주제 사용 여부). 일기 미션이 있으면 자동 완료 |
+| `GET /users/{id}/diary/{date}` | 하루 일기 보기 |
+| `GET /users/{id}/diary?from=&to=` | 일기 목록 (기록 탭) |
 | `GET·POST /users/{id}/guestbook` | 방명록 |
 
 날짜를 받는 API는 `?date=YYYY-MM-DD`로 날짜를 바꿀 수 있다 (발표 데모에서 날짜 넘기기).
