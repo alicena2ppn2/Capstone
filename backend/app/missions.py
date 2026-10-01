@@ -2,7 +2,13 @@
 
 복잡한 점수 대신 한 가지만 본다: 오늘(또는 어제) 밖에 나갔는가?
 - 안 나갔으면: 부담 없이 밖으로 한 발 나가게 하는 미션 + 집에서도 할 수 있는 미션
-- 나갔으면: 기록·공유 위주의 가벼운 미션
+- 나갔으면: 기록 + 집에서 할 것 + 찾아보기
+
+미션 목록은 app/data/missions.json 에 있다.
+
+미션은 상태를 판정하는 게 아니라 행동을 유도하는 장치다.
+예: 동네 맛집을 직접 찾아보게 하면 → 가보고 싶은 곳이 생기고 → 밖으로 나갈 계기가 된다.
+그래서 찾아보기·사진 찍기처럼 사용자가 직접 움직이는 미션만 둔다.
 
 미션은 하루 최대 3개. 같은 날이면 같은 미션이 나오도록 날짜로 고정한다.
 미션을 끝내면 코인을 준다. 밖에 나가는 미션은 더 많이 주고, 3개를 다 하면 보너스.
@@ -10,29 +16,48 @@
 
 from __future__ import annotations
 
+import json
+import math
 import random
 from dataclasses import asdict, dataclass
+from pathlib import Path
 
 import numpy as np
 
 MISSIONS_PER_DAY = 3
 STAY_HOME_STEPS = 1_000          # 이 걸음 미만이면 "안 나간 날"
 STAY_HOME_RATIO = 0.5            # 또는 평소 걸음 중앙값의 50% 미만
+LAST_WEEK_MIN_DAYS = 4            # '지난주보다' 미션은 지난 7일 중 기록이 4일 이상일 때만
+DAILY_STEP_GOAL = 8_000          # 하루 걸음 목표 (권장 걸음). 홈 화면 걸음 바와 '오늘 걸음 채우기' 미션에 쓴다
 
 COINS_OUTDOOR = 30               # 밖에 나가야 하는 미션
 COINS_HOME = 20                  # 집에서 할 수 있는 미션
 COINS_ALL_DONE_BONUS = 30        # 하루 미션을 모두 끝냈을 때
 
 
+CATALOG_PATH = Path(__file__).resolve().parent / "data" / "missions.json"
+
+# 분류 (missions.json의 category)
+#   outdoor : 밖으로 한 발 (걸음·밖에서 사진)
+#   home    : 집에서 할 수 있는 작은 행동
+#   explore : 직접 찾아보고 적기 (맛집·영화·음악…) — 나갈 계기를 만든다
+#   record  : 하루 기록
+CATEGORIES = ("outdoor", "home", "explore", "record")
+STAY_HOME_PLAN = ("outdoor", "home", "explore")   # 안 나간 날
+WENT_OUT_PLAN = ("record", "home", "explore")     # 나간 날
+
+
 @dataclass(frozen=True)
 class Mission:
     id: str
+    category: str      # outdoor | home | explore | record
     title: str
     desc: str
     kind: str          # steps | text | photo | list
     outdoor: bool      # 밖에 나가야 할 수 있는 미션인지
     min_count: int = 1 # list: 입력 개수, photo: 사진 장수, steps: 목표 걸음
     prompt: str = ""   # 입력 전에 먼저 묻는 것 (예: 사는 동네)
+    goal_rule: str = "fixed"  # 걸음 목표: fixed(min_count 그대로) | yesterday(어제보다) | last_week(지난 7일 평균보다)
 
     @property
     def coins(self) -> int:
@@ -42,30 +67,26 @@ class Mission:
         return {**asdict(self), "coins": self.coins}
 
 
-CATALOG: dict[str, Mission] = {m.id: m for m in [
-    Mission("walk", "오늘 걸음 채우기", "집 앞이라도 천천히 걸어봐요.", "steps", True, 2_000),
-    Mission("diary", "오늘의 하루 기록하기", "짧게 한 줄이어도 좋아요.", "text", False),
-    Mission("photo_nature", "밖에서 만난 친구 찍기", "고양이, 강아지, 꽃… 눈에 띈 걸 찍어서 스토리에 올려봐요.", "photo", True),
-    Mission("seasonal_food", "제철 음식 먹기", "요즘 맛있는 제철 음식을 먹고 사진으로 남겨봐요.", "photo", False),
-    Mission("drink_run", "좋아하는 음료수 사 오기", "가까운 가게에 들러 좋아하는 음료수를 사 와요.", "photo", True),
-    Mission("local_food", "우리 동네 맛집 세 곳", "사는 동네의 맛집을 세 곳 이상 적어봐요.", "list", False, 3, "사는 동네가 어디예요?"),
-    Mission("movies", "요즘 영화 세 편", "요즘 상영 중인 영화를 세 편 이상 적어봐요.", "list", False, 3),
-    Mission("music", "좋아하는 음악 세 곡 적기", "좋아하는 장르의 음악을 직접 찾아서 세 곡 이상 적어봐요.", "list", False, 3, "좋아하는 음악 장르는?"),
-    Mission("meal_photo", "오늘 먹은 밥 공유하기", "오늘 먹은 한 끼를 사진으로 공유해요.", "photo", False),
-]}
+def load_catalog(path: Path = CATALOG_PATH) -> dict[str, Mission]:
+    """missions.json을 읽는다. 미션을 추가·수정할 때는 이 파일만 고치면 된다."""
+    rows = json.loads(path.read_text(encoding="utf-8"))
+    catalog: dict[str, Mission] = {}
+    for row in rows:
+        m = Mission(**row)
+        if m.id in catalog:
+            raise ValueError(f"미션 id 중복: {m.id}")
+        if m.category not in CATEGORIES:
+            raise ValueError(f"알 수 없는 분류: {m.id} → {m.category}")
+        if m.kind not in ("steps", "text", "photo", "list"):
+            raise ValueError(f"알 수 없는 종류: {m.id} → {m.kind}")
+        if m.goal_rule not in ("fixed", "yesterday", "last_week"):
+            raise ValueError(f"알 수 없는 걸음 목표 규칙: {m.id} → {m.goal_rule}")
+        catalog[m.id] = m
+    return catalog
 
-# 안 나간 날: 밖으로 한 발 + 집에서 할 것 + 입력형
-STAY_HOME_POOL = {
-    "outdoor": ["photo_nature", "drink_run", "walk"],
-    "home": ["meal_photo", "seasonal_food", "diary"],
-    "input": ["local_food", "movies", "music"],
-}
-# 나간 날: 기록·공유 위주
-WENT_OUT_POOL = {
-    "record": ["diary", "meal_photo"],
-    "share": ["photo_nature", "seasonal_food"],
-    "input": ["local_food", "movies", "music"],
-}
+
+CATALOG: dict[str, Mission] = load_catalog()
+BY_CATEGORY: dict[str, list[str]] = {c: [m.id for m in CATALOG.values() if m.category == c] for c in CATEGORIES}
 
 
 def stayed_home(steps: float | None, usual_steps: float | None = None) -> bool | None:
@@ -79,35 +100,66 @@ def stayed_home(steps: float | None, usual_steps: float | None = None) -> bool |
     return False
 
 
+def _valid(v) -> bool:
+    return v is not None and not (isinstance(v, float) and math.isnan(v))
+
+
+def beat_goal(prev: float) -> int:
+    """기준보다 많이: 기준을 넘는 다음 100보 단위. 예: 3,240 → 3,300, 3,200 → 3,300"""
+    return int(math.floor(prev / 100) * 100 + 100)
+
+
+def step_baselines(steps: float | None, last_week_steps: list[float] | None) -> dict[str, float]:
+    """기록 기반 걸음 미션에 쓸 기준값. 기록이 부족한 규칙은 빠진다."""
+    out = {}
+    if _valid(steps):
+        out["yesterday"] = float(steps)
+    week = [float(v) for v in (last_week_steps or []) if _valid(v)]
+    if len(week) >= LAST_WEEK_MIN_DAYS:
+        out["last_week"] = sum(week) / len(week)
+    return out
+
+
+def personalize(mission: dict, baselines: dict[str, float]) -> dict:
+    """기록 기반 걸음 미션의 목표와 문구를 채운다."""
+    rule = mission.get("goal_rule", "fixed")
+    if rule == "fixed":
+        return mission
+    prev = baselines[rule]
+    goal = beat_goal(prev)
+    return {**mission, "min_count": goal, "desc": mission["desc"].format(prev=f"{round(prev):,}", goal=f"{goal:,}")}
+
+
 def pick_missions(
     user_id: str,
     date: str,
     steps: float | None,
     usual_steps: float | None = None,
     recent: list[str] | None = None,
+    last_week_steps: list[float] | None = None,
 ) -> dict:
     """오늘의 미션 3개를 고른다.
 
     steps: 판단에 쓸 걸음 수 (보통 어제 걸음 — 오늘은 아직 안 끝났으므로)
     usual_steps: 평소 걸음 중앙값 (있으면 "평소의 절반 미만"도 안 나간 날로 봄)
     recent: 최근에 줬던 미션 id. 가능하면 겹치지 않게 고른다.
+    last_week_steps: 지난 7일 걸음 (있으면 "지난주보다 많이 걷기" 미션이 나올 수 있음)
     """
+    baselines = step_baselines(steps, last_week_steps)
     home = stayed_home(steps, usual_steps)
-    pool = STAY_HOME_POOL if home in (True, None) else WENT_OUT_POOL
+    plan = STAY_HOME_PLAN if home in (True, None) else WENT_OUT_PLAN
     rng = random.Random(f"{user_id}:{date}")
     recent = set(recent or [])
 
     picked: list[str] = []
-    for options in pool.values():
+    for category in plan:
+        # 기준 기록이 없는 걸음 미션(어제보다·지난주보다)은 후보에서 뺀다
+        options = [m for m in BY_CATEGORY[category] if CATALOG[m].goal_rule == "fixed" or CATALOG[m].goal_rule in baselines]
         fresh = [m for m in options if m not in recent and m not in picked]
         choices = fresh or [m for m in options if m not in picked]
         picked.append(rng.choice(choices))
 
-    missions = [CATALOG[m].to_dict() for m in picked[:MISSIONS_PER_DAY]]
-    walk = next((m for m in missions if m["id"] == "walk"), None)
-    if walk and usual_steps and not np.isnan(usual_steps):
-        # 평소의 절반, 1,000~5,000보 사이에서 100보 단위
-        walk["min_count"] = int(min(5_000, max(1_000, round(usual_steps * 0.5, -2))))
+    missions = [personalize(CATALOG[m].to_dict(), baselines) for m in picked[:MISSIONS_PER_DAY]]
 
     return {
         "date": date,
