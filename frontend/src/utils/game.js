@@ -19,14 +19,34 @@ export const QUESTS = [
   { id: 'month-diary', period: 'month', name: '한 달 기록 열다섯 번', description: '지난 하루를 돌아봐요.', xp: 200, coins: 80 },
 ];
 export const levelFor = (xp) => 1 + Math.floor(xp / XP_PER_LEVEL);
-export const initialGame = () => ({ xp: 0, coins: 540, completed: [], characters: ['potato'], character: 'potato' });
+export const initialGame = () => ({ xp: 0, coins: 540, completed: [], characters: ['potato'], character: 'potato', attendance: {} });
+export function grantMilestone(state) {
+  return levelFor(state.xp) >= 3 && !state.characters.includes('pink') ? { ...state, characters: [...state.characters, 'pink'] } : state;
+}
 export function completeQuest(state, id) {
   const quest = QUESTS.find((item) => item.id === id);
   if (!quest || state.completed.includes(id)) return state;
   const next = { ...state, xp: state.xp + quest.xp, coins: state.coins + quest.coins, completed: [...state.completed, id] };
-  if (levelFor(next.xp) >= 3 && !next.characters.includes('pink')) next.characters = [...next.characters, 'pink'];
   if (QUESTS.filter((item) => item.period === 'day').every((item) => next.completed.includes(item.id)) && !next.characters.includes('sky')) next.characters = [...next.characters, 'sky'];
-  return next;
+  return grantMilestone(next);
+}
+
+export const ATTENDANCE_REWARDS = [
+  { type: 'coins', amount: 10 }, { type: 'coins', amount: 20 }, { type: 'coins', amount: 30 },
+  { type: 'xp', amount: 20 }, { type: 'xp', amount: 35 }, { type: 'xp', amount: 50 },
+];
+export function randomAttendanceReward() {
+  return ATTENDANCE_REWARDS[Math.floor(Math.random() * ATTENDANCE_REWARDS.length)];
+}
+export function claimAttendance(state, dayKey, reward) {
+  if (!/^\d{4}-\d{2}-\d{2}$/.test(dayKey) || state.attendance?.[dayKey]) return state;
+  if (!ATTENDANCE_REWARDS.some((item) => item.type === reward?.type && item.amount === reward?.amount)) return state;
+  return grantMilestone({
+    ...state,
+    coins: state.coins + (reward.type === 'coins' ? reward.amount : 0),
+    xp: state.xp + (reward.type === 'xp' ? reward.amount : 0),
+    attendance: { ...state.attendance, [dayKey]: { ...reward } },
+  });
 }
 export function buyCharacter(state, id) {
   const item = CHARACTERS.find((entry) => entry.id === id);

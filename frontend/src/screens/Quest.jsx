@@ -6,7 +6,7 @@ export default function Quest({ game, onComplete, petColor, onShop, onSettings }
   const [tab, setTab] = useState('day');
   const [message, setMessage] = useState('');
   const level = levelFor(game.xp);
-  return <SubScreen title="성장 퀘스트" petColor={petColor} onShop={onShop} onSettings={onSettings} level={level}>
+  return <SubScreen title="성장 퀘스트" plainTitle petColor={petColor} onShop={onShop} onSettings={onSettings} level={level}>
     <div className="quest-loop">퀘스트 → XP · 코인 → 레벨업 → 새로운 선택지</div>
     <div className="shop-tabs">
       {[['day', '오늘'], ['week', '이번 주'], ['month', '이번 달']].map(([id, name]) => <button type="button" className="pb" key={id} aria-pressed={tab === id} onClick={() => setTab(id)}>{name}</button>)}
