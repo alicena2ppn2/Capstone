@@ -63,7 +63,7 @@ function TopBar({ moon = 200, level = 1 }) {
   );
 }
 
-function CloudTitle({ children }) {
+function CloudTitle({ children, plain = false }) {
   return (
     <div style={{ position: 'relative', display: 'flex', justifyContent: 'center', alignItems: 'center', height: 76, marginTop: 4 }}>
       <svg width="250" height="70" viewBox="0 0 250 70" aria-hidden="true" style={{ position: 'absolute' }}>
@@ -71,7 +71,7 @@ function CloudTitle({ children }) {
       </svg>
       <StarIcon style={{ position: 'absolute', left: 70, top: 14 }} />
       <StarIcon style={{ position: 'absolute', right: 70, top: 14 }} />
-      <h1 className="jua" style={{ position: 'relative', margin: 0, fontSize: 32, color: '#8CCBF7', textShadow: outline('#2F6FB3', 2.5, 4) }}>{children}</h1>
+      <h1 className="jua" style={{ position: 'relative', margin: 0, fontSize: 32, fontWeight: plain ? 700 : 400, color: plain ? '#2F6FB3' : '#8CCBF7', textShadow: plain ? 'none' : outline('#2F6FB3', 2.5, 4) }}>{children}</h1>
     </div>
   );
 }
@@ -93,13 +93,13 @@ function BottomBar({ petColor, onShop, onSettings }) {
   );
 }
 
-export default function SubScreen({ title, petColor, children, onShop, onSettings, level = 1 }) {
+export default function SubScreen({ title, petColor, children, onShop, onSettings, level = 1, plainTitle = false }) {
   return (
     <div style={{ position: 'relative', width: 390, height: 844, overflow: 'hidden', background: '#D6EAF8' }}>
       <RoomBackdrop />
       <div style={{ position: 'relative', zIndex: 2, padding: '14px 14px 0', boxSizing: 'border-box' }}>
         <TopBar level={level} />
-        <CloudTitle>{title}</CloudTitle>
+        <CloudTitle plain={plainTitle}>{title}</CloudTitle>
         {children}
       </div>
       <BottomBar petColor={petColor} onShop={onShop} onSettings={onSettings} />

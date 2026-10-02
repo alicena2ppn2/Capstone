@@ -1,5 +1,6 @@
 import { useEffect, useRef, useState } from 'react';
 import Mochi from '../components/Mochi.jsx';
+import SeoulClock from '../components/SeoulClock.jsx';
 import { GearIcon, HeartIcon, ShopIcon } from '../components/Icons.jsx';
 import { bottomBtn } from '../components/SubScreen.jsx';
 import { darken, outline, PET_COLORS } from '../utils/color.js';
@@ -126,6 +127,7 @@ export default function Home({ level = 1, petName = 'MOCHI', petColor, onPetColo
     <div style={{ width: 390, height: 860, boxSizing: 'border-box', padding: 8, background: '#EDE6DE' }}>
       <div style={{ position: 'relative', width: '100%', height: '100%', boxSizing: 'border-box', border: '3px solid #A27E62', borderRadius: 34, overflow: 'hidden', background: '#D6EAF8' }}>
         <RoomBackdrop />
+        <SeoulClock />
 
         <button type="button" className="pb" aria-label="설정" onClick={onSettings} style={{ ...roundIconBtn, right: 14, zIndex: 3 }}>
           <GearIcon fill="#E8F4FF" />

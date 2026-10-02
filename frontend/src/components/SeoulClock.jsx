@@ -1,10 +1,10 @@
 import { useEffect, useState } from 'react';
 
 const timeFormat = new Intl.DateTimeFormat('ko-KR', {
-  timeZone: 'Asia/Seoul', hour: '2-digit', minute: '2-digit', second: '2-digit', hour12: false,
+  timeZone: 'Asia/Seoul', hour: 'numeric', minute: '2-digit', hour12: true,
 });
 const dateFormat = new Intl.DateTimeFormat('ko-KR', {
-  timeZone: 'Asia/Seoul', year: 'numeric', month: 'long', day: 'numeric', weekday: 'short',
+  timeZone: 'Asia/Seoul', month: 'long', day: 'numeric',
 });
 
 export default function SeoulClock() {
@@ -21,12 +21,8 @@ export default function SeoulClock() {
   }, []);
 
   return (
-    <div className="seoul-clock" role="timer" aria-live="off" aria-label="대한민국 서울 현재 시간">
-      <div className="seoul-clock-location"><span aria-hidden="true">◷</span> 대한민국 · 서울 <span className="seoul-clock-zone">KST</span></div>
-      <time dateTime={now.toISOString()}>
-        <span className="seoul-clock-time">{timeFormat.format(now)}</span>
-        <span className="seoul-clock-date">{dateFormat.format(now)}</span>
-      </time>
+    <div className="seoul-clock" role="timer" aria-live="off" aria-label="대한민국 서울 현재 시간과 날짜">
+      <time dateTime={now.toISOString()}>{timeFormat.format(now)} · {dateFormat.format(now)}</time>
     </div>
   );
 }
