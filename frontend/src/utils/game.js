@@ -1,3 +1,5 @@
+import { seoulDateKey } from './seoulDate.js';
+
 export const XP_PER_LEVEL = 100;
 export const CHARACTERS = [
   { id: 'potato', name: '꼬질 감자 모찌', level: 1, price: 0, color: '#D6AE7F', method: 'starter' },
@@ -11,6 +13,11 @@ export const QUESTS = [
   { id: 'day-walk', period: 'day', name: '잠깐 밖에 나가보기', description: '집 앞에서 짧게 산책해요.', xp: 100, coins: 30 },
   { id: 'day-wake', period: 'day', name: '내 시간에 일어나기', description: '오늘 하루를 천천히 시작해요.', xp: 100, coins: 30 },
   { id: 'day-diary', period: 'day', name: '오늘의 하루 기록하기', description: '오늘의 기분을 한 줄 남겨요.', xp: 100, coins: 40 },
+  { id: 'day-music', period: 'day', name: '좋아하는 음악 장르 입력', description: '내가 좋아하는 음악 장르를 남겨요.', input: true, xp: 100, coins: 30 },
+  { id: 'day-food', period: 'day', name: '가장 좋아하는 음식 적기', description: '생각만 해도 기분 좋아지는 음식은 무엇인가요?', input: true, xp: 100, coins: 30 },
+  { id: 'day-more-steps', period: 'day', name: '어제보다 더 많이 걸어 보기', description: '내 페이스대로 어제보다 조금 더 걸어봐요.', xp: 100, coins: 30 },
+  { id: 'day-seasonal', period: 'day', name: '제철음식 먹어 보기', description: '오늘 한 끼에 제철 음식을 만나봐요.', xp: 100, coins: 30 },
+  { id: 'day-drink', period: 'day', name: '좋아하는 음료수 직접 사 오기', description: '좋아하는 음료를 직접 골라 사 와요.', xp: 100, coins: 30 },
   { id: 'week-walk', period: 'week', name: '이번 주 산책 두 번', description: '가까운 곳도 좋아요.', xp: 150, coins: 50 },
   { id: 'week-wake', period: 'week', name: '일정한 생활 리듬 만들기', description: '이번 주 3일은 비슷한 시간에 일어나요.', xp: 150, coins: 50 },
   { id: 'week-diary', period: 'week', name: '하루 기록 다섯 번', description: '작은 일상을 차곡차곡 모아요.', xp: 150, coins: 50 },
@@ -19,15 +26,22 @@ export const QUESTS = [
   { id: 'month-diary', period: 'month', name: '한 달 기록 열다섯 번', description: '지난 하루를 돌아봐요.', xp: 200, coins: 80 },
 ];
 export const levelFor = (xp) => 1 + Math.floor(xp / XP_PER_LEVEL);
-export const initialGame = () => ({ xp: 0, coins: 540, completed: [], characters: ['potato'], character: 'potato', attendance: {} });
+export const initialGame = () => ({ xp: 0, coins: 540, completed: [], characters: ['potato'], character: 'potato', attendance: {}, questAnswers: {} });
+export function questCompletionKey(quest, dayKey = seoulDateKey()) {
+  return quest.period === 'day' ? `${dayKey}:${quest.id}` : quest.id;
+}
 export function grantMilestone(state) {
   return levelFor(state.xp) >= 3 && !state.characters.includes('pink') ? { ...state, characters: [...state.characters, 'pink'] } : state;
 }
-export function completeQuest(state, id) {
+export function completeQuest(state, id, now = new Date(), answer = '') {
   const quest = QUESTS.find((item) => item.id === id);
-  if (!quest || state.completed.includes(id)) return state;
-  const next = { ...state, xp: state.xp + quest.xp, coins: state.coins + quest.coins, completed: [...state.completed, id] };
-  if (QUESTS.filter((item) => item.period === 'day').every((item) => next.completed.includes(item.id)) && !next.characters.includes('sky')) next.characters = [...next.characters, 'sky'];
+  if (!quest) return state;
+  const dayKey = seoulDateKey(now);
+  const key = questCompletionKey(quest, dayKey);
+  const text = typeof answer === 'string' ? answer.trim().slice(0, 80) : '';
+  if (state.completed.includes(key) || (quest.input && !text)) return state;
+  const next = { ...state, xp: state.xp + quest.xp, coins: state.coins + quest.coins, completed: [...state.completed, key], questAnswers: { ...state.questAnswers, ...(quest.input ? { [key]: text } : {}) } };
+  if (QUESTS.filter((item) => item.period === 'day' && next.completed.includes(questCompletionKey(item, dayKey))).length >= 3 && !next.characters.includes('sky')) next.characters = [...next.characters, 'sky'];
   return grantMilestone(next);
 }
 

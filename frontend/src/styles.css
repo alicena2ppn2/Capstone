@@ -167,7 +167,10 @@ button, input, select, textarea {
 .character-current strong, .character-name { font-size: 13px; text-align: center; }
 .character-mystery { height: 110px; display: flex; align-items: center; justify-content: center; border-radius: 14px; background: repeating-linear-gradient(45deg, #EEE8F5, #EEE8F5 12px, #F5F1FA 12px, #F5F1FA 24px); color: #B1A0C6; font-size: 60px; font-weight: 700; }
 .quest-loop { margin-top: 12px; text-align: center; font-size: 11px; color: #586F91; }
-.growth-quests { display: flex; flex-direction: column; gap: 12px; margin-top: 16px; }
+.growth-quests { display: flex; flex-direction: column; gap: 12px; margin-top: 12px; max-height: 360px; overflow-y: auto; scrollbar-width: thin; padding-right: 4px; }
+.quest-day-label { margin-top: 12px; text-align: center; color: #63677B; font-size: 11px; }
+.quest-answer { box-sizing: border-box; width: 100%; height: 38px; margin-bottom: 12px; padding: 0 10px; border: 2px solid #B9D7F0; border-radius: 10px; background: #FFFFFF; color: #2E2A3A; font-size: 13px; }
+.quest-answer:disabled { background: #F4F7FA; color: #63677B; }
 .growth-quest { padding: 15px; border: 2px solid #B9D7F0; border-radius: 18px; background: #FFFFFFEB; }
 .growth-quest strong { font-size: 14px; }
 .growth-quest p { font-size: 12px; color: #63677B; margin: 7px 0 12px; }
