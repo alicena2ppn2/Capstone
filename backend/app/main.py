@@ -172,7 +172,8 @@ def grant_free_items(conn, user_id: str, all_done: bool = False) -> list[dict]:
     grants = shop.free_grants(level, all_done)
     how = {(k, i): shop.CATALOG[k][i]["method"] for k, i in grants}
     added = db.add_items(conn, user_id, grants, how)
-    return [{"type": k, "id": i, "name": shop.CATALOG[k][i]["name"]} for k, i in added]
+    # 기본 캐릭터(starter)는 원래 가진 것이라 "새로 받았어요" 알림에서 뺀다
+    return [{"type": k, "id": i, "name": shop.CATALOG[k][i]["name"]} for k, i in added if how[(k, i)] != "starter"]
 
 
 def finish_and_pay(conn, user_id: str, today: Date, day_: dict, mission_id: str, submission: dict) -> dict:
