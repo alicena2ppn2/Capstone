@@ -107,3 +107,9 @@ def test_delete_account_clears_shop(client):
     v = client.get(f"/users/{me['id']}/shop").json()
     assert v["coins"] == 0
     assert item(v, "outfit", "sky")["status"] == "no_coins"
+
+
+def test_starter_not_announced_as_new(client):
+    r = client.post("/users/u9/attendance", params={"date": DAY}).json()
+    assert r["new_items"] == []
+    assert item(client.get("/users/u9/shop").json(), "character", "potato")["status"] == "owned"
