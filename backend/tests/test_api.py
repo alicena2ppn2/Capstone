@@ -330,7 +330,7 @@ def test_visit_friends_room_completes_mission(client):
 
     again = client.post("/users/u2/visits", params={"date": DAY}, json={"visitor_id": "u1"}).json()
     assert again["first_visit_today"] is False and again["earned"] == []
-    assert client.get("/users/u2/visits", params={"date": DAY}).json()["visitors"] == ["u1"]
+    assert client.get("/users/u2/visits", params={"date": DAY}).json()["visitors"] == [{"id": "u1", "nickname": None}]
 
 
 def test_recommended_rooms_are_recent_other_users(client):
@@ -338,4 +338,101 @@ def test_recommended_rooms_are_recent_other_users(client):
         client.get(f"/users/{u}/missions/today", params={"date": d})
     client.get("/users/me/missions/today", params={"date": DAY})
     rooms = client.get("/users/me/rooms/recommended", params={"date": DAY}).json()["rooms"]
-    assert rooms == ["b", "a"]
+    assert [r["id"] for r in rooms] == ["b", "a"]
+
+
+# --- 사용자 ------------------------------------------------------------------------
+
+def signup(client, nickname):
+    r = client.post("/users", json={"nickname": nickname})
+    assert r.status_code == 201, r.text
+    return r.json()
+
+
+def test_signup_and_profile(client):
+    me = signup(client, "  모찌  러버 ")
+    assert me["nickname"] == "모찌 러버"           # 앞뒤·연속 공백 정리
+    assert len(me["id"]) == 32
+    got = client.get(f"/users/{me['id']}").json()
+    assert got["nickname"] == "모찌 러버"
+    assert got["level"]["level"] == 1
+    assert client.get("/users/nobody").status_code == 404
+
+
+@pytest.mark.parametrize("name", ["가", "열세글자닉네임은너무길어요", "   "])
+def test_nickname_length(client, name):
+    assert client.post("/users", json={"nickname": name}).status_code == 422
+
+
+def test_nickname_unique_ignoring_case_and_spaces(client):
+    signup(client, "Mochi Lover")
+    assert client.post("/users", json={"nickname": "mochilover"}).status_code == 409
+    check = client.get("/nicknames/check", params={"nickname": "MOCHI lover"}).json()
+    assert check["available"] is False
+    assert client.get("/nicknames/check", params={"nickname": "새 이름"}).json()["available"] is True
+
+
+def test_rename(client):
+    a = signup(client, "에이")
+    b = signup(client, "비이")
+    assert client.patch(f"/users/{a['id']}", json={"nickname": "비이"}).status_code == 409
+    assert client.patch(f"/users/{a['id']}", json={"nickname": "에이 "}).status_code == 200   # 내 이름 그대로는 허용
+    r = client.patch(f"/users/{a['id']}", json={"nickname": "새에이"}).json()
+    assert r["nickname"] == "새에이"
+    assert client.patch("/users/nobody", json={"nickname": "아무개"}).status_code == 404
+
+
+def test_names_shown_for_visits_and_rooms(client):
+    a = signup(client, "놀러감")
+    b = signup(client, "방주인")
+    client.get(f"/users/{b['id']}/missions/today", params={"date": DAY})
+    client.post(f"/users/{b['id']}/visits", params={"date": DAY}, json={"visitor_id": a["id"]})
+    visitors = client.get(f"/users/{b['id']}/visits", params={"date": DAY}).json()["visitors"]
+    assert visitors == [{"id": a["id"], "nickname": "놀러감"}]
+    rooms = client.get(f"/users/{a['id']}/rooms/recommended", params={"date": DAY}).json()["rooms"]
+    assert {"id": b["id"], "nickname": "방주인"} in rooms
+
+
+def test_guestbook_uses_nickname_when_author_missing(client):
+    a = signup(client, "글쓴이")
+    r = client.post("/users/someone/guestbook", params={"date": DAY}, json={"text": "안녕", "author_id": a["id"]})
+    assert r.status_code == 200
+    assert r.json()["entry"]["author"] == "글쓴이"
+    assert client.post("/users/someone/guestbook", json={"text": "익명"}).status_code == 422
+
+
+def test_delete_account_removes_everything(client, tmp_path):
+    a = signup(client, "지울사람")
+    b = signup(client, "남는사람")
+    uid = a["id"]
+    client.post(f"/users/{uid}/steps", json={"date": DAY, "steps": 9000})
+    client.post(f"/users/{uid}/attendance", params={"date": DAY})
+    photo = upload(client, uid).json()["photo_id"]
+    client.put(f"/users/{uid}/diary/{DAY}", json={"text": "일기", "photos": [photo]})
+    client.post(f"/users/{b['id']}/visits", params={"date": DAY}, json={"visitor_id": uid})
+    client.post(f"/users/{b['id']}/guestbook", params={"date": DAY}, json={"text": "흔적", "author_id": uid})
+    client.post(f"/users/{uid}/guestbook", params={"date": DAY}, json={"text": "내 방 글", "author": "손님"})
+    assert len(list((tmp_path / "uploads").iterdir())) == 1
+
+    assert client.delete(f"/users/{uid}").json() == {"deleted": uid}
+
+    assert client.get(f"/users/{uid}").status_code == 404
+    assert client.get(f"/users/{uid}/coins").json()["coins"] == 0
+    assert client.get(f"/users/{uid}/diary/{DAY}").status_code == 404
+    assert client.get(f"/photos/{photo}").status_code == 404
+    assert list((tmp_path / "uploads").iterdir()) == []
+    assert client.get(f"/users/{b['id']}/visits", params={"date": DAY}).json()["visitors"] == []
+    assert client.get(f"/users/{b['id']}/guestbook").json()["entries"] == []
+    assert client.get(f"/users/{uid}/guestbook").json()["entries"] == []
+    # 닉네임은 다시 쓸 수 있다
+    assert signup(client, "지울사람")["nickname"] == "지울사람"
+    # 다른 사람은 그대로
+    assert client.get(f"/users/{b['id']}").status_code == 200
+    assert client.delete("/users/nobody").status_code == 404
+
+
+def test_default_date_is_seoul(client, monkeypatch):
+    from datetime import date
+    from app import main
+    monkeypatch.setattr(main, "seoul_today", lambda: date(2026, 12, 25))
+    assert client.get("/users/u1/missions/today").json()["date"] == "2026-12-25"
