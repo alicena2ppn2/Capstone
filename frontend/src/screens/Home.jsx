@@ -3,7 +3,7 @@ import Mochi from '../components/Mochi.jsx';
 import SeoulClock from '../components/SeoulClock.jsx';
 import { GearIcon, HeartIcon, ShopIcon } from '../components/Icons.jsx';
 import { bottomBtn } from '../components/SubScreen.jsx';
-import { darken, outline, PET_COLORS } from '../utils/color.js';
+import { outline } from '../utils/color.js';
 
 const clamp = (v) => Math.max(0, Math.min(100, v));
 
@@ -84,10 +84,9 @@ function ActionButton({ b }) {
   );
 }
 
-export default function Home({ level = 1, petName = 'MOCHI', petColor, onPetColor, onSettings, onShop, coins, outfit, onEarnCoins, showStats = true }) {
+export default function Home({ level = 1, petName = 'MOCHI', petColor, onQuest, onGuestbook, onVisit, onSettings, onShop, coins, outfit, onEarnCoins, showStats = true }) {
   const [st, setSt] = useState({ hunger: 80, happy: 95, energy: 70, level: 3, mess: true, fed: false, asleep: false, steps: 7850 });
   const [msg, setMsg] = useState('');
-  const [palOpen, setPalOpen] = useState(false);
   const timer = useRef(null);
 
   useEffect(() => () => clearTimeout(timer.current), []);
@@ -124,39 +123,35 @@ export default function Home({ level = 1, petName = 'MOCHI', petColor, onPetColo
   const stepPct = `${Math.min(100, st.steps / 100).toFixed(1)}%`;
 
   return (
-    <div style={{ width: 390, height: 860, boxSizing: 'border-box', padding: 8, background: '#EDE6DE' }}>
-      <div style={{ position: 'relative', width: '100%', height: '100%', boxSizing: 'border-box', border: '3px solid #A27E62', borderRadius: 34, overflow: 'hidden', background: '#D6EAF8' }}>
+    <div className="home-screen" style={{ width: 390, height: 860, boxSizing: 'border-box', padding: 8, background: '#D6EAF8' }}>
+      <div style={{ position: 'relative', width: '100%', height: '100%', boxSizing: 'border-box', overflow: 'hidden', background: '#D6EAF8' }}>
         <RoomBackdrop />
         <SeoulClock />
+        <button type="button" className="pb room-visit" aria-label="다른 사용자 집 방문하기" onClick={onVisit}>
+          <svg width="38" height="38" viewBox="0 0 40 40" aria-hidden="true"><path d="M4 19 L20 5 L36 19 M9 16 V34 H31 V16" fill="#FFF7E9" stroke="#7DA4BC" strokeWidth="2.5" strokeLinejoin="round" /><path d="M16 34 V23 H24 V34" fill="#B9DDCF" stroke="#7DA4BC" strokeWidth="2" /><path d="M27 8 H35 M32 5 L35 8 L32 11" fill="none" stroke="#CC967E" strokeWidth="2" strokeLinecap="round" /></svg>
+          <span>방문하기</span>
+        </button>
 
         <button type="button" className="pb" aria-label="설정" onClick={onSettings} style={{ ...roundIconBtn, right: 14, zIndex: 3 }}>
           <GearIcon fill="#E8F4FF" />
         </button>
 
-        <button type="button" className="pb" aria-label="떡 색 바꾸기" aria-expanded={palOpen} onClick={() => setPalOpen((o) => !o)} style={{ ...roundIconBtn, left: 14, zIndex: 5 }}>
-          <svg width="30" height="30" viewBox="0 0 24 24" aria-hidden="true">
-            <path d="M12 3 C6.5 3 3 7 3 11.5 C3 16 6.5 20 11 20 C12.5 20 13 19 12.5 17.8 C12 16.5 12.8 15.5 14 15.5 H16 C18.8 15.5 21 13.5 21 10.8 C21 6.5 17 3 12 3Z" fill="#E8F4FF" stroke="#3D7CC0" strokeWidth="1.8" strokeLinejoin="round" />
-            <circle cx="7.5" cy="11" r="1.6" fill="#F59AB5" /><circle cx="10" cy="7" r="1.6" fill="#8BD66B" /><circle cx="14.5" cy="7" r="1.6" fill="#B79AF0" /><circle cx="17" cy="10.5" r="1.6" fill="#F7D35C" />
+        <button type="button" className="pb" aria-label="퀘스트 열기" onClick={onQuest} style={{ ...roundIconBtn, left: 14, zIndex: 5 }}>
+          <svg width="30" height="34" viewBox="0 0 30 34" aria-hidden="true">
+            <rect x="4" y="5" width="22" height="26" rx="4" fill="#FFFCF0" stroke="#3D7CC0" strokeWidth="2" />
+            <rect x="10" y="2" width="10" height="7" rx="2" fill="#A8D3F4" stroke="#3D7CC0" strokeWidth="2" />
+            <path d="M8 16 L10 18 L13 14 M16 16 H22 M8 24 L10 26 L13 22 M16 24 H22" fill="none" stroke="#3D7CC0" strokeWidth="2" strokeLinecap="round" />
           </svg>
         </button>
-
-        {palOpen && (
-          <div style={{ position: 'absolute', top: 66, left: 12, right: 12, zIndex: 6, background: '#FFFFFF', border: '2.5px solid #4B6E96', borderRadius: 20, padding: 12, boxShadow: '0 6px 0 rgba(75,110,150,0.25)', display: 'flex', flexDirection: 'column', gap: 10 }}>
-            <span className="jua" style={{ fontSize: 16 }}>떡 색 고르기</span>
-            <div style={{ display: 'flex', flexWrap: 'wrap', gap: 8, justifyContent: 'space-between' }}>
-              {PET_COLORS.map((p) => {
-                const on = p.hex.toLowerCase() === petColor.toLowerCase();
-                return (
-                  <button key={p.hex} type="button" className="pb"
-                    aria-label={p.name + (on ? ' (선택됨)' : '')} aria-pressed={on}
-                    onClick={() => { onPetColor(p.hex); setPalOpen(false); }}
-                    style={{ width: 40, height: 40, borderRadius: '50%', background: p.hex, border: `3px solid ${darken(p.hex)}`, boxShadow: on ? '0 0 0 3px #FFFFFF, 0 0 0 5px #2E2A3A' : 'none' }} />
-                );
-              })}
-            </div>
-          </div>
-        )}
-
+        <button type="button" className="pb room-memo" aria-label="방명록 열기" onClick={onGuestbook}>
+          <svg width="44" height="48" viewBox="0 0 44 48" aria-hidden="true">
+            <path d="M5 5 H39 V34 L28 44 H5Z" fill="#FFF3B9" stroke="#C5A269" strokeWidth="2" />
+            <path d="M28 44 V34 H39" fill="#F1D98C" stroke="#C5A269" strokeWidth="2" />
+            <rect x="15" y="2" width="14" height="7" rx="2" fill="#ECAFB8" opacity=".8" />
+            <path d="M12 17 H31 M12 23 H29 M12 29 H23" stroke="#B79769" strokeWidth="2" strokeLinecap="round" />
+          </svg>
+          <span>방명록</span>
+        </button>
         <div style={{ position: 'relative', zIndex: 2, height: '100%', display: 'flex', flexDirection: 'column', padding: '14px 12px 12px', boxSizing: 'border-box' }}>
           <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', height: 96, justifyContent: 'center' }}>
             <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
@@ -183,7 +178,7 @@ export default function Home({ level = 1, petName = 'MOCHI', petColor, onPetColo
 
           <div style={{ position: 'relative', flexGrow: 1 }}>
             {msg && (
-              <div style={{ position: 'absolute', top: 16, left: '50%', transform: 'translateX(-50%)', background: '#FFFFFF', border: '2.5px solid #4B6E96', borderRadius: 16, padding: '8px 14px', fontSize: 15, fontWeight: 700, whiteSpace: 'nowrap', zIndex: 4 }}>{msg}</div>
+              <div role="status" className="care-message">{msg}</div>
             )}
             {!st.fed && (
               <div style={{ ...bubble, left: 22 }}>

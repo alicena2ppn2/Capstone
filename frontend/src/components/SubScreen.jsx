@@ -34,7 +34,7 @@ const chip = (bg) => ({
   display: 'flex', alignItems: 'center', justifyContent: 'center', boxSizing: 'border-box',
 });
 
-function TopBar({ moon = 200, level = 1 }) {
+function TopBar({ moon = 200, level = 1, onHome }) {
   return (
     <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', height: 48 }}>
       <div style={{ display: 'flex', alignItems: 'center', gap: 2 }}>
@@ -45,19 +45,10 @@ function TopBar({ moon = 200, level = 1 }) {
         <span className="jua" style={{ fontSize: 18, color: '#FFFFFF', textShadow: outline('#3A3A55', 1.5, 2) }}>{moon}</span>
       </div>
       <div style={{ display: 'flex', gap: 6 }}>
-        <span style={chip('#F6D365')}>
-          <svg width="20" height="20" viewBox="0 0 20 20" aria-hidden="true"><ellipse cx="13" cy="6" rx="4" ry="5" transform="rotate(35 13 6)" fill="#3A3A55" /><path d="M10 9 L3 17" stroke="#3A3A55" strokeWidth="3" strokeLinecap="round" /></svg>
-        </span>
-        <span style={chip('#8BD66B')}>
-          <svg width="20" height="20" viewBox="0 0 20 20" aria-hidden="true"><path d="M10 3 V17 M3 10 H17" stroke="#3A3A55" strokeWidth="4" strokeLinecap="round" /></svg>
-        </span>
-        <span style={chip('#8BD66B')}>
-          <svg width="20" height="20" viewBox="0 0 20 20" aria-hidden="true"><path d="M4 8 H16 V16 C16 17 15 18 14 18 H6 C5 18 4 17 4 16Z" fill="#3A3A55" /><path d="M7 8 V6 C7 3 13 3 13 6 V8" fill="none" stroke="#3A3A55" strokeWidth="2.2" /></svg>
-        </span>
-        <span style={chip('#8BD66B')}>
-          <svg width="20" height="20" viewBox="0 0 20 20" aria-hidden="true"><path d="M12 2 L5 11 H10 L8 18 L15 9 H10Z" fill="#3A3A55" /></svg>
-        </span>
-      </div>
+        <button type="button" className="pb" aria-label="내 집으로 돌아가기" onClick={onHome} style={chip('#F6D365')}>
+          <svg width="22" height="22" viewBox="0 0 24 24" aria-hidden="true"><path d="M3 11 L12 3 L21 11 M6 9 V21 H18 V9 M10 21 V14 H14 V21" fill="none" stroke="#3A3A55" strokeWidth="2.2" strokeLinejoin="round" strokeLinecap="round" /></svg>
+        </button>
+        {[1, 2, 3].map(index => <span key={index} style={chip('#8BD66B')} aria-hidden="true"><svg width="20" height="20" viewBox="0 0 20 20"><path d="M10 3 V17 M3 10 H17" stroke="#3A3A55" strokeWidth="4" strokeLinecap="round" /></svg></span>)}      </div>
       <span className="jua" style={{ width: 44, height: 40, borderRadius: '20px 20px 14px 14px', background: '#FFFFFF', border: '2.5px solid #3A3A55', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 20, color: '#3A3A55', boxSizing: 'border-box' }}>{level}</span>
     </div>
   );
@@ -93,12 +84,12 @@ function BottomBar({ petColor, onShop, onSettings }) {
   );
 }
 
-export default function SubScreen({ title, petColor, children, onShop, onSettings, level = 1, plainTitle = false }) {
+export default function SubScreen({ title, petColor, children, onShop, onSettings, onHome, level = 1, plainTitle = false }) {
   return (
-    <div style={{ position: 'relative', width: 390, height: 844, overflow: 'hidden', background: '#D6EAF8' }}>
+    <div className="sub-screen" style={{ position: 'relative', width: 390, height: 844, overflow: 'hidden', background: '#D6EAF8' }}>
       <RoomBackdrop />
-      <div style={{ position: 'relative', zIndex: 2, padding: '14px 14px 0', boxSizing: 'border-box' }}>
-        <TopBar level={level} />
+      <div className="sub-screen-content" style={{ position: 'relative', zIndex: 2, padding: '14px 14px 0', boxSizing: 'border-box' }}>
+        <TopBar level={level} onHome={onHome} />
         <CloudTitle plain={plainTitle}>{title}</CloudTitle>
         {children}
       </div>
