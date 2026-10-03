@@ -31,7 +31,7 @@ function today() {
 
 const pageBtn = { border: 0, background: 'transparent', width: 40, height: 36, display: 'flex', alignItems: 'center', justifyContent: 'center' };
 
-export default function Guestbook({ level, petColor, onShop, onSettings }) {
+export default function Guestbook({ level, petColor, onShop, onSettings, onHome }) {
   const [entries, setEntries] = useState(SEED);
   const [draft, setDraft] = useState('');
   const [liked, setLiked] = useState({});
@@ -50,7 +50,7 @@ export default function Guestbook({ level, petColor, onShop, onSettings }) {
   };
 
   return (
-    <SubScreen title="방명록" petColor={petColor} onShop={onShop} onSettings={onSettings} level={level}>
+    <SubScreen title="방명록" plainTitle petColor={petColor} onShop={onShop} onSettings={onSettings} onHome={onHome} level={level}>
       <div style={{ marginTop: 4, background: 'rgba(255,255,255,0.88)', border: '3px solid #8DBDE6', borderRadius: 22, padding: 12, display: 'flex', flexDirection: 'column', gap: 10 }}>
         <div style={{ display: 'flex', alignItems: 'center', gap: 8, padding: 8, borderRadius: 16, background: '#EAF4FC', border: '2px solid #B9D7F0' }}>
           <span style={{ position: 'relative', flexShrink: 0, width: 52, height: 50, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
