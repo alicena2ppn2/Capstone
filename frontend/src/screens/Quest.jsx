@@ -3,7 +3,7 @@ import SubScreen from '../components/SubScreen.jsx';
 import { CHARACTERS, QUESTS, levelFor, questCompletionKey } from '../utils/game.js';
 import { seoulDateKey } from '../utils/seoulDate.js';
 
-export default function Quest({ game, onComplete, petColor, onShop, onSettings }) {
+export default function Quest({ game, onComplete, petColor, onShop, onSettings, onHome }) {
   const [tab, setTab] = useState('day');
   const [message, setMessage] = useState('');
   const [today, setToday] = useState(() => seoulDateKey());
@@ -16,7 +16,7 @@ export default function Quest({ game, onComplete, petColor, onShop, onSettings }
   }, []);
   useEffect(() => { setMessage(''); setDrafts({}); }, [today]);
   const level = levelFor(game.xp);
-  return <SubScreen title="성장 퀘스트" plainTitle petColor={petColor} onShop={onShop} onSettings={onSettings} level={level}>
+  return <SubScreen title="성장 퀘스트" plainTitle petColor={petColor} onShop={onShop} onSettings={onSettings} onHome={onHome} level={level}>
     <div className="quest-loop">퀘스트 → XP · 코인 → 레벨업 → 새로운 선택지</div>
     <div className="shop-tabs">
       {[['day', '오늘'], ['week', '이번 주'], ['month', '이번 달']].map(([id, name]) => <button type="button" className="pb" key={id} aria-pressed={tab === id} onClick={() => setTab(id)}>{name}</button>)}
