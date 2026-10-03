@@ -1,6 +1,7 @@
 import { useContext } from 'react';
 import { CharacterContext } from './CharacterContext.jsx';
 import Potato from './Potato.jsx';
+import MochiFriends from './MochiFriends.jsx';
 
 function Flower() {
   return <g transform="translate(151 65)" stroke="#8EA9CD" strokeWidth="1.8">
@@ -14,10 +15,7 @@ function Flower() {
 export default function Mochi({ color = '#FFF5E6', width, height, full = false, asleep = false, label, outfit, variant }) {
   const active = useContext(CharacterContext);
   if ((variant ?? active) === 'potato') return <Potato width={width} height={height} full={full} asleep={asleep} label={label} outfit={outfit} />;
-  if ((variant ?? active) === 'lavender') color = '#E3D9F7';
-  if ((variant ?? active) === 'mint') color = '#CDEFE0';
-  if ((variant ?? active) === 'pink') color = '#F9D4E2';
-  if ((variant ?? active) === 'sky') color = '#D3E8FA';
+  if (['pink', 'lavender', 'mint', 'sky'].includes(variant ?? active)) return <MochiFriends variant={variant ?? active} width={width} height={height} full={full} asleep={asleep} label={label} outfit={outfit} />;
   const a11y = label ? { role: 'img', 'aria-label': label } : { 'aria-hidden': true };
   const line = '#91A6C5';
   return (

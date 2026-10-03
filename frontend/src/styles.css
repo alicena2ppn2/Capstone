@@ -21,42 +21,23 @@ button, input, select, textarea {
 
 /* 화면 전환용 (시안에는 없는 개발용 네비게이션) */
 .seoul-clock {
-  width: min(374px, calc(100vw - 24px));
-  box-sizing: border-box;
-  padding: 14px 18px;
-  border: 2px solid #B9D7F0;
-  border-radius: 22px;
-  background: #F5FAFF;
-  box-shadow: 0 3px 0 #D9EAF8;
-  text-align: center;
-}
-.seoul-clock-location { display: flex; align-items: center; justify-content: center; gap: 6px; color: #3D7CC0; font-size: 12px; font-weight: 600; }
-.seoul-clock-zone { padding: 2px 6px; border-radius: 6px; background: #D9EAF8; font-size: 10px; }
-.seoul-clock time { display: flex; flex-direction: column; gap: 4px; margin-top: 6px; }
-.seoul-clock-time { font-size: 30px; font-weight: 700; font-variant-numeric: tabular-nums; letter-spacing: 2px; color: #244A73; }
-.seoul-clock-date { font-size: 12px; color: #63677B; }
-
-.screen-nav {
-  display: flex;
-  flex-wrap: wrap;
-  justify-content: center;
-  gap: 6px;
-}
-.screen-nav button {
-  min-height: 36px;
-  padding: 0 14px;
+  position: absolute;
+  top: 182px;
+  left: 50%;
+  transform: translateX(-50%);
+  z-index: 3;
+  padding: 6px 12px;
+  border: 1px solid #AAC5DA;
   border-radius: 999px;
-  border: 2px solid #8DBDE6;
-  background: #EAF4FC;
-  font-family: inherit;
-  font-size: 15px;
-  color: #2E2A3A;
-  cursor: pointer;
+  background: #FFFFFFD9;
+  color: #526C83;
+  font-size: 12px;
+  font-weight: 500;
+  font-variant-numeric: tabular-nums;
+  white-space: nowrap;
+  pointer-events: none;
 }
-.screen-nav button[aria-current='page'] {
-  background: #FFE79A;
-  border-color: #E0B83A;
-}
+
 
 .pb {
   appearance: none;
@@ -165,7 +146,10 @@ button, input, select, textarea {
 .character-current strong, .character-name { font-size: 13px; text-align: center; }
 .character-mystery { height: 110px; display: flex; align-items: center; justify-content: center; border-radius: 14px; background: repeating-linear-gradient(45deg, #EEE8F5, #EEE8F5 12px, #F5F1FA 12px, #F5F1FA 24px); color: #B1A0C6; font-size: 60px; font-weight: 700; }
 .quest-loop { margin-top: 12px; text-align: center; font-size: 11px; color: #586F91; }
-.growth-quests { display: flex; flex-direction: column; gap: 12px; margin-top: 16px; }
+.growth-quests { display: flex; flex-direction: column; gap: 12px; margin-top: 12px; max-height: 360px; overflow-y: auto; scrollbar-width: thin; padding-right: 4px; }
+.quest-day-label { margin-top: 12px; text-align: center; color: #63677B; font-size: 11px; }
+.quest-answer { box-sizing: border-box; width: 100%; height: 38px; margin-bottom: 12px; padding: 0 10px; border: 2px solid #B9D7F0; border-radius: 10px; background: #FFFFFF; color: #2E2A3A; font-size: 13px; }
+.quest-answer:disabled { background: #F4F7FA; color: #63677B; }
 .growth-quest { padding: 15px; border: 2px solid #B9D7F0; border-radius: 18px; background: #FFFFFFEB; }
 .growth-quest strong { font-size: 14px; }
 .growth-quest p { font-size: 12px; color: #63677B; margin: 7px 0 12px; }
@@ -173,3 +157,87 @@ button, input, select, textarea {
 .growth-quest > div span { font-size: 11px; color: #795E48; white-space: nowrap; }
 .growth-quest .shop-buy { width: auto; padding: 6px 10px; }
 .quest-reward-note { padding: 14px; background: #FFF8DE; border-radius: 16px; border: 2px solid #E3C36D; font-size: 12px; color: #795E48; line-height: 1.8; }
+
+.attendance-open { padding: 8px 14px; border: 1px solid #C8B7DC; border-radius: 999px; background: #F4EDF9; color: #715A8E; font-size: 12px; }
+.attendance-open span { margin-left: 6px; font-weight: 700; }
+.attendance-dialog { position: fixed; width: min(380px, calc(100vw - 32px)); max-height: calc(100dvh - 40px); overflow-y: auto; box-sizing: border-box; padding: 32px 20px 20px; border: 2px solid #C9B8DF; border-radius: 28px; background: linear-gradient(#FFF9EE, #F6EFFC); color: #403A50; text-align: center; box-shadow: 0 16px 70px #33294230; }
+.attendance-dialog::backdrop { background: #30283E60; }
+.attendance-close { position: absolute; top: 8px; right: 10px; border: 0; background: transparent; color: #887799; width: 36px; height: 36px; font-size: 27px; }
+.attendance-dialog h2 { margin: 12px 0; font-size: 22px; }
+.attendance-dialog > p { font-size: 12px; line-height: 1.8; color: #7B7188; }
+.attendance-week-label { margin: 22px 0 14px; color: #8D799F; font-size: 12px; }
+.attendance-stamps { display: grid; grid-template-columns: repeat(7, minmax(0, 1fr)); gap: 6px; }
+.attendance-day { display: flex; flex-direction: column; align-items: center; gap: 8px; color: #7B7188; font-size: 12px; }
+.attendance-day small { font-size: 9px; }
+.attendance-stamp { width: 34px; height: 34px; display: flex; align-items: center; justify-content: center; box-sizing: border-box; border: 1px dashed #D5C7E0; border-radius: 50%; background: #FFFFFFA8; color: #C7B6D5; font-size: 22px; }
+.attendance-stamp.is-checked { background: #E2EFD9; border: 2px solid #A1C38F; color: #61834F; }
+.attendance-day.is-today { font-weight: 700; color: #6E5689; }
+.attendance-day.is-today .attendance-stamp { outline: 2px solid #BEA5D5; outline-offset: 3px; }
+.attendance-receipt { min-height: 30px; margin: 18px 0 8px; font-size: 13px; color: #715A8E; line-height: 1.6; }
+.attendance-claim { width: 100%; min-height: 46px; border: 2px solid #AB90C8; border-radius: 14px; background: #DCCBED; color: #55416F; font-size: 14px; font-weight: 700; }
+.attendance-claim:disabled { background: #E2EFD9; border-color: #A1C38F; color: #61834F; }
+.attendance-later { min-height: 40px; margin-top: 6px; padding: 8px; border: 0; background: transparent; color: #8D799F; font-size: 12px; }
+.attendance-dialog button:focus-visible, .attendance-open:focus-visible { outline: 3px solid #8A6DAF; outline-offset: 3px; }
+@media (max-width: 360px) { .attendance-dialog { padding-left: 12px; padding-right: 12px; } .attendance-stamps { gap: 3px; } .attendance-stamp { width: 30px; height: 30px; } }
+
+/* 모든 화면과 공통 이동/성장 UI를 휴대폰 틀 안에 배치 */
+.phone-shell { width: 390px; border: 3px solid #A27E62; border-radius: 34px; overflow: hidden; background: #D6EAF8; display: flex; flex-direction: column; }
+.phone-shell .growth-bar { width: auto; margin: 10px 12px 6px; flex-shrink: 0; }
+.phone-shell .attendance-open { align-self: flex-end; margin: 0 14px 6px; }
+.phone-shell .settings-screen, .phone-shell .shop-screen { width: 100%; border: 0; border-radius: 0; }
+.room-memo { position: absolute; top: 290px; right: 18px; z-index: 5; display: flex; flex-direction: column; align-items: center; gap: 2px; border: 0; background: transparent; color: #796247; font-size: 11px; font-weight: 700; transform: rotate(5deg); }
+
+.room-visit { position: absolute; top: 292px; left: 18px; z-index: 5; display: flex; flex-direction: column; align-items: center; gap: 3px; border: 0; background: #FFFAEACC; border-radius: 14px; padding: 6px; font-size: 11px; font-weight: 700; color: #667D8F; }
+.visit-screen { min-height: 844px; box-sizing: border-box; padding: 22px 18px; background: linear-gradient(#E4F1FA, #FFF9EE); }
+.visit-header { display: flex; align-items: center; gap: 10px; }
+.visit-header h1 { margin: 0; font-size: 22px; color: #456B88; text-shadow: none; }
+.visit-header button { width: 38px; height: 38px; border: 1px solid #B7CDDC; border-radius: 50%; background: #FFFFFF; font-size: 23px; color: #456B88; }
+.visit-intro { font-size: 13px; color: #718191; line-height: 1.6; text-align: center; margin: 18px 0; }
+.visit-recommendations { display: grid; gap: 16px; margin: 26px 0; }
+.visit-card { display: flex; align-items: center; gap: 12px; padding: 18px 12px; border: 2px solid #BED5E5; border-radius: 22px; background: #FFFFFF; text-align: left; color: #526D83; box-shadow: 0 4px 0 #D9E5EE; }
+.visit-avatar { position: relative; width: 80px; height: 80px; flex-shrink: 0; border-radius: 24px; }
+.visit-avatar > span { position: absolute; right: -4px; bottom: -4px; font-size: 22px; }
+.visit-profile { display: flex; flex: 1; flex-direction: column; gap: 6px; min-width: 0; }
+.visit-profile strong { font-size: 17px; }
+.visit-profile > span { font-size: 12px; }
+.visit-profile small { font-size: 11px; color: #8A959E; }
+.visitor-room { position: relative; height: 310px; overflow: hidden; border: 2px solid #C0AC98; border-radius: 24px; background: linear-gradient(var(--wall) 0 68%, var(--floor) 68%); }
+.visitor-room-theme { position: absolute; top: 14px; left: 0; right: 0; text-align: center; font-size: 12px; color: #7A6A70; }
+.visitor-window { position: absolute; top: 50px; left: 50%; transform: translateX(-50%); width: 90px; height: 110px; border: 6px solid #C6AE91; border-radius: 40px 40px 4px 4px; background: linear-gradient(#D6ECF9, #FFFBDA); text-align: center; }
+.visitor-window span { display: block; margin-top: 14px; font-size: 27px; }
+.visitor-window::after { content: ''; position: absolute; top: 0; bottom: 0; left: 50%; width: 4px; background: #C6AE91; }
+.visitor-shelf { position: absolute; top: 130px; left: 12px; width: 60px; display: flex; gap: 6px; border-bottom: 6px solid #BCA087; font-size: 24px; }
+.visitor-rug { position: absolute; bottom: 14px; left: 50%; transform: translateX(-50%); width: 230px; height: 54px; border-radius: 50%; background: #FFF9EDAA; border: 2px solid #FFFFFF77; }
+.visitor-pet { position: absolute; bottom: 15px; left: 50%; transform: translateX(-50%); }
+.visit-guestbook { padding: 16px; border-radius: 22px; background: #FFFFFFDE; border: 1px solid #CBDBE5; }
+.visit-guestbook h2 { margin: 0 0 12px; font-size: 20px; color: #456B88; text-shadow: none; }
+.visit-guestbook label { display: block; font-size: 12px; margin-bottom: 8px; color: #748292; }
+.visit-guestbook textarea { display: block; width: 100%; box-sizing: border-box; resize: vertical; min-height: 72px; padding: 10px; border: 1px solid #BED2E1; border-radius: 12px; background: #F6FAFD; font-size: 13px; }
+.visit-guestbook form > div { display: flex; align-items: center; justify-content: space-between; margin-top: 8px; color: #8996A0; }
+.visit-guestbook form button { padding: 8px 18px; border: 1px solid #799FB9; border-radius: 999px; background: #DBECF8; color: #456B88; }
+.visit-guestbook form button:disabled { opacity: .45; }
+.visit-status { font-size: 12px; color: #758994; }
+.visit-notes { max-height: 200px; overflow: auto; }
+.visit-notes article { display: flex; align-items: flex-start; gap: 8px; padding: 12px 0; border-top: 1px solid #E4EBEF; }
+.visit-notes article > div { flex: 1; min-width: 0; }
+.visit-notes strong { font-size: 13px; }
+.visit-notes small { margin-left: 8px; font-size: 10px; color: #8C979E; }
+.visit-notes p { margin: 6px 0 0; font-size: 13px; line-height: 1.5; overflow-wrap: anywhere; white-space: pre-wrap; }
+.visit-empty, .visit-mock-note { text-align: center; font-size: 11px; color: #8A969F; }
+.visit-mock-note { margin-top: 26px; }
+.room-visit:focus-visible, .visit-screen button:focus-visible, .visit-screen textarea:focus-visible { outline: 3px solid #709BBF; outline-offset: 3px; }
+
+/* 상단을 작게 고정하고 화면별 콘텐츠만 남은 높이를 사용한다. */
+.phone-shell { position: relative; height: 860px; max-height: calc(100dvh - 32px); }
+.phone-shell .growth-bar { height: 38px; margin: 8px 104px 8px 10px; padding: 5px 8px; gap: 5px; border-radius: 12px; }
+.phone-shell .growth-bar progress { width: 56px; }
+.phone-shell .growth-bar button { display: none; }
+.phone-shell .attendance-open { position: absolute; top: 10px; right: 10px; margin: 0; z-index: 10; }
+.phone-content { flex: 1; min-height: 0; overflow: auto; }
+.phone-page:not([hidden]) { height: 100%; }
+.phone-content .home-screen { height: 100% !important; min-height: 730px; }
+.phone-content .sub-screen { height: 100% !important; min-height: 600px; }
+.sub-screen-content { height: calc(100% - 92px); overflow-y: auto; }
+.phone-content .settings-screen, .phone-content .shop-screen, .phone-content .visit-screen { min-height: 100%; }
+
+.care-message { position: absolute; bottom: 8px; left: 0; width: 94px; box-sizing: border-box; padding: 9px 8px; border: 2px solid #8BAAC4; border-radius: 15px 15px 5px 15px; background: #FFFCF5; color: #526D83; font-size: 12px; font-weight: 700; line-height: 1.5; overflow-wrap: anywhere; z-index: 4; box-shadow: 0 3px 0 #B6C9D644; }
