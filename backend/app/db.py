@@ -14,6 +14,27 @@ from pathlib import Path
 DEFAULT_PATH = Path(__file__).resolve().parent.parent / "app.db"
 
 SCHEMA = """
+CREATE TABLE IF NOT EXISTS users (
+    id             TEXT PRIMARY KEY,      -- 서버가 만든 id (앱이 저장해 두고 모든 API에 사용)
+    nickname       TEXT NOT NULL,
+    nickname_key   TEXT NOT NULL UNIQUE,  -- 중복 확인용 (소문자, 공백 제거)
+    game_center_id TEXT UNIQUE,           -- 나중에 iPhone Game Center 연결용
+    created_at     TEXT NOT NULL DEFAULT (datetime('now')),
+    updated_at     TEXT NOT NULL DEFAULT (datetime('now'))
+);
+CREATE TABLE IF NOT EXISTS inventory (
+    user_id     TEXT NOT NULL,
+    item_type   TEXT NOT NULL,            -- character | outfit
+    item_id     TEXT NOT NULL,
+    how         TEXT NOT NULL,            -- bought | starter | milestone | quest
+    acquired_at TEXT NOT NULL DEFAULT (datetime('now')),
+    PRIMARY KEY (user_id, item_type, item_id)
+);
+CREATE TABLE IF NOT EXISTS equipped (
+    user_id      TEXT PRIMARY KEY,
+    character_id TEXT,
+    outfit_id    TEXT
+);
 CREATE TABLE IF NOT EXISTS steps (
     user_id TEXT NOT NULL,
     date    TEXT NOT NULL,
@@ -96,6 +117,121 @@ def connect(path: str | os.PathLike | None = None) -> sqlite3.Connection:
             conn.execute(f"ALTER TABLE guestbook ADD COLUMN {col} TEXT")
     conn.commit()
     return conn
+
+
+# --- 사용자 ------------------------------------------------------------------------
+
+def nickname_key(nickname: str) -> str:
+    return "".join(nickname.split()).lower()
+
+
+def create_user(conn, user_id: str, nickname: str) -> dict:
+    conn.execute(
+        "INSERT INTO users (id, nickname, nickname_key) VALUES (?, ?, ?)",
+        (user_id, nickname, nickname_key(nickname)),
+    )
+    conn.commit()
+    return get_user(conn, user_id)
+
+
+def get_user(conn, user_id: str) -> dict | None:
+    row = conn.execute("SELECT id, nickname, game_center_id, created_at, updated_at FROM users WHERE id = ?", (user_id,)).fetchone()
+    return dict(row) if row else None
+
+
+def nickname_taken(conn, nickname: str, except_id: str | None = None) -> bool:
+    row = conn.execute(
+        "SELECT 1 FROM users WHERE nickname_key = ? AND id != COALESCE(?, '')",
+        (nickname_key(nickname), except_id),
+    ).fetchone()
+    return row is not None
+
+
+def rename_user(conn, user_id: str, nickname: str) -> dict:
+    conn.execute(
+        "UPDATE users SET nickname = ?, nickname_key = ?, updated_at = datetime('now') WHERE id = ?",
+        (nickname, nickname_key(nickname), user_id),
+    )
+    conn.commit()
+    return get_user(conn, user_id)
+
+
+def nicknames(conn, user_ids: list[str]) -> dict[str, str]:
+    if not user_ids:
+        return {}
+    marks = ",".join("?" * len(user_ids))
+    rows = conn.execute(f"SELECT id, nickname FROM users WHERE id IN ({marks})", tuple(user_ids)).fetchall()
+    return {r["id"]: r["nickname"] for r in rows}
+
+
+def delete_user(conn, user_id: str) -> list[str]:
+    """사용자와 그 사람의 기록을 모두 지운다. 지울 사진 파일 이름을 돌려준다.
+
+    남의 방에 남긴 방명록·방문 기록도 지운다 (계정 삭제 = 흔적까지 삭제).
+    """
+    photos = [r["filename"] for r in conn.execute("SELECT filename FROM photos WHERE user_id = ?", (user_id,))]
+    for sql in (
+        "DELETE FROM steps WHERE user_id = ?",
+        "DELETE FROM mission_days WHERE user_id = ?",
+        "DELETE FROM completions WHERE user_id = ?",
+        "DELETE FROM coin_ledger WHERE user_id = ?",
+        "DELETE FROM photos WHERE user_id = ?",
+        "DELETE FROM diary WHERE user_id = ?",
+    ):
+        conn.execute(sql, (user_id,))
+    conn.execute("DELETE FROM visits WHERE owner_id = ? OR visitor_id = ?", (user_id, user_id))
+    conn.execute("DELETE FROM guestbook WHERE owner_id = ? OR author_id = ?", (user_id, user_id))
+    conn.execute("DELETE FROM inventory WHERE user_id = ?", (user_id,))
+    conn.execute("DELETE FROM equipped WHERE user_id = ?", (user_id,))
+    conn.execute("DELETE FROM users WHERE id = ?", (user_id,))
+    conn.commit()
+    return photos
+
+
+# --- 상점 ------------------------------------------------------------------------
+
+def owned_items(conn, user_id: str) -> set[tuple[str, str]]:
+    rows = conn.execute("SELECT item_type, item_id FROM inventory WHERE user_id = ?", (user_id,)).fetchall()
+    return {(r["item_type"], r["item_id"]) for r in rows}
+
+
+def add_items(conn, user_id: str, items: list[tuple[str, str]], how: str | dict) -> list[tuple[str, str]]:
+    """보유 목록에 추가. 새로 들어간 것만 돌려준다. how는 문자열 하나 또는 {(type, id): how}."""
+    added = []
+    for kind, item_id in items:
+        h = how if isinstance(how, str) else how[(kind, item_id)]
+        cur = conn.execute(
+            "INSERT OR IGNORE INTO inventory (user_id, item_type, item_id, how) VALUES (?, ?, ?, ?)",
+            (user_id, kind, item_id, h),
+        )
+        if cur.rowcount == 1:
+            added.append((kind, item_id))
+    conn.commit()
+    return added
+
+
+def spend_coins(conn, user_id: str, date: str, item_key: str, coins: int) -> None:
+    """코인 사용은 보상 장부에 마이너스로 남긴다 (잔액 = 장부 합계)."""
+    conn.execute(
+        "INSERT INTO coin_ledger (user_id, date, item_id, coins, xp) VALUES (?, ?, ?, ?, 0)",
+        (user_id, date, item_key, -coins),
+    )
+    conn.commit()
+
+
+def get_equipped(conn, user_id: str) -> dict:
+    row = conn.execute("SELECT character_id, outfit_id FROM equipped WHERE user_id = ?", (user_id,)).fetchone()
+    return dict(row) if row else {"character_id": None, "outfit_id": None}
+
+
+def set_equipped(conn, user_id: str, character_id: str | None, outfit_id: str | None) -> dict:
+    conn.execute(
+        "INSERT INTO equipped (user_id, character_id, outfit_id) VALUES (?, ?, ?) "
+        "ON CONFLICT (user_id) DO UPDATE SET character_id = excluded.character_id, outfit_id = excluded.outfit_id",
+        (user_id, character_id, outfit_id),
+    )
+    conn.commit()
+    return get_equipped(conn, user_id)
 
 
 # --- 걸음 ------------------------------------------------------------------------
