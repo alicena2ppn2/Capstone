@@ -1,0 +1,17 @@
+{
+  "_note": "프론트 frontend/src/utils/game.js(CHARACTERS), frontend/src/screens/Shop.jsx(CLOTHES)와 같은 값. method: starter(처음 제공) · milestone(레벨 도달 시 무료) · quest(하루 미션 모두 완료 시 무료) · 없음(구매)",
+  "characters": [
+    {"id": "potato", "name": "꼬질 감자 모찌", "level": 1, "price": 0, "method": "starter"},
+    {"id": "pink", "name": "복숭아 토끼 모찌", "level": 3, "price": 0, "method": "milestone"},
+    {"id": "mochi", "name": "구름 모찌", "level": 5, "price": 300},
+    {"id": "lavender", "name": "달빛 양 모찌", "level": 8, "price": 450},
+    {"id": "mint", "name": "새잎 거북 모찌", "level": 12, "price": 600},
+    {"id": "sky", "name": "하루 펭귄 모찌", "level": 1, "price": 0, "method": "quest"}
+  ],
+  "outfits": [
+    {"id": "sky", "name": "하늘빛 맨투맨", "level": 1, "price": 120},
+    {"id": "berry", "name": "딸기 우유 티셔츠", "level": 1, "price": 180},
+    {"id": "leaf", "name": "새싹 산책복", "level": 3, "price": 220},
+    {"id": "star", "name": "별빛 잠옷", "level": 5, "price": 300}
+  ]
+}
