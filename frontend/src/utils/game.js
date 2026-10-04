@@ -1,4 +1,6 @@
-import { seoulDateKey } from './seoulDate.js';
+import { seoulDateKey, attendanceWeek } from './seoulDate.js';
+import { CLOTHES } from './clothes.js';
+import { DECOR } from './decor.js';
 
 export const XP_PER_LEVEL = 100;
 export const CHARACTERS = [
@@ -52,13 +54,40 @@ export const ATTENDANCE_REWARDS = [
 export function randomAttendanceReward() {
   return ATTENDANCE_REWARDS[Math.floor(Math.random() * ATTENDANCE_REWARDS.length)];
 }
+export function ensureAttendanceWeek(state, dayKey, random = Math.random) {
+  const days = attendanceWeek(dayKey);
+  const monday = days[0];
+  if (state.attendancePlans?.[monday]) return state;
+  const plan = {};
+  let previous;
+  for (const day of days) {
+    const roll = random();
+    let reward = roll < .1
+      ? { type: 'outfit', id: CLOTHES[Math.floor(random() * CLOTHES.length)].id }
+      : roll < .2 ? { type: 'decor', id: DECOR[Math.floor(random() * DECOR.length)].id }
+      : { ...ATTENDANCE_REWARDS[Math.floor(random() * ATTENDANCE_REWARDS.length)] };
+    if (previous && JSON.stringify(previous) === JSON.stringify(reward)) {
+      reward = { ...ATTENDANCE_REWARDS.find(item => item.type !== previous.type) };
+    }
+    plan[day] = state.attendance?.[day] ?? reward;
+    previous = plan[day];
+  }
+  return { ...state, attendancePlans: { ...state.attendancePlans, [monday]: plan } };
+}
 export function claimAttendance(state, dayKey, reward) {
   if (!/^\d{4}-\d{2}-\d{2}$/.test(dayKey) || state.attendance?.[dayKey]) return state;
-  if (!ATTENDANCE_REWARDS.some((item) => item.type === reward?.type && item.amount === reward?.amount)) return state;
+  reward = state.attendancePlans?.[attendanceWeek(dayKey)[0]]?.[dayKey] ?? reward;
+  const clothing = reward?.type === 'outfit' && CLOTHES.find(item => item.id === reward.id);
+  const decoration = reward?.type === 'decor' && DECOR.find(item => item.id === reward.id);
+  if (!clothing && !decoration && !ATTENDANCE_REWARDS.some((item) => item.type === reward?.type && item.amount === reward?.amount)) return state;
+  if (clothing && state.attendanceClothes?.includes(reward.id)) reward = { type: 'coins', amount: 30, duplicateOutfit: clothing.name };
+  if (decoration && state.ownedDecor?.includes(reward.id)) reward = { type: 'coins', amount: 30, duplicateDecor: decoration.name };
   return grantMilestone({
     ...state,
     coins: state.coins + (reward.type === 'coins' ? reward.amount : 0),
     xp: state.xp + (reward.type === 'xp' ? reward.amount : 0),
+    attendanceClothes: reward.type === 'outfit' ? [...(state.attendanceClothes ?? []), reward.id] : (state.attendanceClothes ?? []),
+    ownedDecor: reward.type === 'decor' ? [...(state.ownedDecor ?? []), reward.id] : (state.ownedDecor ?? []),
     attendance: { ...state.attendance, [dayKey]: { ...reward } },
   });
 }
@@ -69,4 +98,14 @@ export function buyCharacter(state, id) {
 }
 export function equipCharacter(state, id) {
   return id === null || state.characters.includes(id) ? { ...state, character: id } : state;
+}
+export function buyDecor(state, id) {
+  const item = DECOR.find(entry => entry.id === id);
+  if (!item || levelFor(state.xp) < item.level || state.coins < item.price || state.ownedDecor?.includes(id)) return state;
+  return { ...state, coins: state.coins - item.price, ownedDecor: [...(state.ownedDecor ?? []), id] };
+}
+export function equipDecor(state, slot, id) {
+  if (!['lamp', 'carpet', 'frame', 'doll', 'scenery'].includes(slot)) return state;
+  if (id !== null && (!state.ownedDecor?.includes(id) || !DECOR.some(item => item.id === id && item.slot === slot))) return state;
+  return { ...state, decor: { ...state.decor, [slot]: id } };
 }

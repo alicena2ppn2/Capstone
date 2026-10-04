@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react';
+import { useCallback, useEffect, useState } from 'react';
 import Home from './screens/Home.jsx';
 import Visit from './screens/Visit.jsx';
 import Quest from './screens/Quest.jsx';
@@ -6,7 +6,7 @@ import Guestbook from './screens/Guestbook.jsx';
 import Settings from './screens/Settings.jsx';
 import Shop, { CLOTHES } from './screens/Shop.jsx';
 import { CharacterContext } from './components/CharacterContext.jsx';
-import { initialGame, levelFor, completeQuest, buyCharacter, equipCharacter, claimAttendance } from './utils/game.js';
+import { initialGame, levelFor, completeQuest, buyCharacter, equipCharacter, claimAttendance, ensureAttendanceWeek, buyDecor, equipDecor } from './utils/game.js';
 import Attendance from './components/Attendance.jsx';
 
 export default function App() {
@@ -23,6 +23,7 @@ export default function App() {
     } catch { /* 처음 방문이면 기본 캐릭터 제공 */ }
     return initialGame();
   });
+  const prepareAttendance = useCallback(date => setGame(value => ensureAttendanceWeek(value, date)), []);
   const level = levelFor(game.xp);
   const [wardrobe, setWardrobe] = useState(() => {
     try { const saved = JSON.parse(localStorage.getItem('mochi.wardrobe.v1')); if (saved && Array.isArray(saved.owned)) return saved; } catch { /* 기본 옷장 */ }
@@ -38,28 +39,29 @@ export default function App() {
     setPetName(name);
     try { localStorage.setItem('mochi.petName', name); } catch { /* 저장이 제한되어도 현재 화면에는 반영 */ }
   };
+  const ownedClothes = [...new Set([...wardrobe.owned, ...(game.attendanceClothes ?? [])])];
   const outfit = CLOTHES.find((item) => item.id === wardrobe.outfit);
   const buy = (item) => {
-    if (game.coins < item.price || level < (item.level ?? 1) || wardrobe.owned.includes(item.id)) return false;
+    if (game.coins < item.price || level < (item.level ?? 1) || ownedClothes.includes(item.id)) return false;
     setGame((value) => ({ ...value, coins: value.coins - item.price }));
     setWardrobe((value) => ({ ...value, owned: [...value.owned, item.id] }));
     return true;
   };
-  const wear = (id) => setWardrobe((value) => id === null || value.owned.includes(id) ? { ...value, outfit: id } : value);
+  const wear = (id) => setWardrobe((value) => id === null || ownedClothes.includes(id) ? { ...value, outfit: id } : value);
 
   return (
     <CharacterContext.Provider value={game.character ?? 'potato'}>
     <div className="app">
       <div className="phone-shell">
-      <Attendance records={game.attendance} onClaim={(date, reward) => setGame((value) => claimAttendance(value, date, reward))} />
+      <Attendance records={game.attendance} plans={game.attendancePlans ?? {}} onPrepare={prepareAttendance} onClaim={(date) => setGame(value => claimAttendance({ ...ensureAttendanceWeek(value, date), attendanceClothes: ownedClothes }, date))} />
       <div className="growth-bar"><strong>LV.{level}</strong><progress value={game.xp % 100} max="100" aria-label="다음 레벨까지 경험치" /><span>{game.xp % 100} / 100 XP</span><button type="button" className="pb" onClick={() => setScreen('quest')}>퀘스트 →</button></div>
       <div className="phone-content">
-      <div className="phone-page" hidden={screen !== 'home'}><Home level={level} petName={petName} petColor={petColor} onQuest={() => setScreen('quest')} onGuestbook={() => setScreen('guest')} onVisit={() => setScreen('visit')} onSettings={() => setScreen('settings')} onShop={() => setScreen('shop')} coins={game.coins} outfit={outfit} onEarnCoins={() => setGame((value) => ({ ...value, coins: value.coins + 5 }))} /></div>
+      <div className="phone-page" hidden={screen !== 'home'}><Home level={level} petName={petName} petColor={petColor} onQuest={() => setScreen('quest')} onGuestbook={() => setScreen('guest')} onVisit={() => setScreen('visit')} onSettings={() => setScreen('settings')} onShop={() => setScreen('shop')} coins={game.coins} outfit={outfit} decor={game.decor ?? {}} onEarnCoins={() => setGame((value) => ({ ...value, coins: value.coins + 5 }))} /></div>
       {screen === 'visit' && <Visit visitorName={petName} visitorVariant={game.character ?? 'potato'} onBack={() => setScreen('home')} />}
       {screen === 'quest' && <Quest game={game} onComplete={(id, answer) => setGame((value) => completeQuest(value, id, new Date(), answer))} petColor={petColor} onShop={() => setScreen('shop')} onSettings={() => setScreen('settings')} onHome={() => setScreen('home')} />}
-      {screen === 'guest' && <Guestbook level={level} petColor={petColor} onShop={() => setScreen('shop')} onSettings={() => setScreen('settings')} onHome={() => setScreen('home')} />}
+      {screen === 'guest' && <Guestbook petName={petName} level={level} petColor={petColor} onShop={() => setScreen('shop')} onSettings={() => setScreen('settings')} onHome={() => setScreen('home')} />}
       <div className="phone-page" hidden={screen !== 'settings'}><Settings petColor={petColor} petName={petName} onPetName={rename} onBack={() => setScreen('home')} /></div>
-      {screen === 'shop' && <Shop game={game} level={level} onBuyCharacter={(id) => setGame((value) => buyCharacter(value, id))} onEquipCharacter={(id) => setGame((value) => equipCharacter(value, id))} petColor={petColor} coins={game.coins} owned={wardrobe.owned} outfit={wardrobe.outfit} onBuy={buy} onWear={wear} onBack={() => setScreen('home')} />}
+      {screen === 'shop' && <Shop onBuyDecor={id => setGame(value => buyDecor(value, id))} onEquipDecor={(slot, id) => setGame(value => equipDecor(value, slot, id))} game={game} level={level} onBuyCharacter={(id) => setGame((value) => buyCharacter(value, id))} onEquipCharacter={(id) => setGame((value) => equipCharacter(value, id))} petColor={petColor} coins={game.coins} owned={ownedClothes} outfit={wardrobe.outfit} onBuy={buy} onWear={wear} onBack={() => setScreen('home')} />}
       </div>
       </div>
     </div>
