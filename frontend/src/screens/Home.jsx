@@ -1,6 +1,7 @@
 import { useEffect, useRef, useState } from 'react';
 import Mochi from '../components/Mochi.jsx';
 import SeoulClock from '../components/SeoulClock.jsx';
+import HouseDecor from '../components/HouseDecor.jsx';
 import { GearIcon, HeartIcon, ShopIcon } from '../components/Icons.jsx';
 import { bottomBtn } from '../components/SubScreen.jsx';
 import { outline } from '../utils/color.js';
@@ -15,10 +16,10 @@ const ICONS = {
   walk: 'M12 14 C12 8 16 5 22 5 C28 5 32 8 32 14 V33 C32 35 31 36 29 36 H15 C13 36 12 35 12 33Z M12 18 H32 M17 24 H27 V30 H17Z M17 5 V3 M27 5 V3',
 };
 
-function RoomBackdrop() {
+export function RoomBackdrop({ decor = {}, wallColor = '#D6EAF8', floorColor = '#EBCDA6' }) {
   return (
-    <svg width="368" height="838" viewBox="0 0 368 838" aria-hidden="true" style={{ position: 'absolute', left: 0, top: 0 }}>
-      <rect x="0" y="0" width="368" height="430" fill="#D6EAF8" />
+    <svg width="100%" height="100%" viewBox="0 0 368 838" preserveAspectRatio="none" aria-hidden="true" style={{ position: 'absolute', inset: 0 }}>
+      <rect x="0" y="0" width="368" height="430" fill={wallColor} />
       <g stroke="#C7DFF2" strokeWidth="10">
         <line x1="20" y1="0" x2="20" y2="430" /><line x1="60" y1="0" x2="60" y2="430" /><line x1="100" y1="0" x2="100" y2="430" />
         <line x1="268" y1="0" x2="268" y2="430" /><line x1="308" y1="0" x2="308" y2="430" /><line x1="348" y1="0" x2="348" y2="430" />
@@ -44,13 +45,14 @@ function RoomBackdrop() {
       <rect x="282" y="372" width="74" height="58" rx="6" fill="#E9C9A0" stroke="#C49E73" strokeWidth="3" />
       <line x1="282" y1="400" x2="356" y2="400" stroke="#C49E73" strokeWidth="2.5" />
       <circle cx="319" cy="388" r="3" fill="#C49E73" /><circle cx="319" cy="414" r="3" fill="#C49E73" />
-      <rect x="0" y="430" width="368" height="408" fill="#EBCDA6" />
+      <rect x="0" y="430" width="368" height="408" fill={floorColor} />
       <g stroke="#DDB98C" strokeWidth="2.5">
         <line x1="0" y1="486" x2="368" y2="486" /><line x1="0" y1="560" x2="368" y2="560" /><line x1="0" y1="650" x2="368" y2="650" /><line x1="0" y1="750" x2="368" y2="750" />
         <line x1="120" y1="430" x2="120" y2="486" /><line x1="260" y1="486" x2="260" y2="560" /><line x1="80" y1="560" x2="80" y2="650" /><line x1="230" y1="650" x2="230" y2="750" />
       </g>
       <rect x="0" y="426" width="368" height="8" fill="#C9A982" />
       <ellipse cx="184" cy="482" rx="166" ry="50" fill="#FFF8EE" stroke="#EADFCB" strokeWidth="3" />
+      <HouseDecor equipped={decor} />
     </svg>
   );
 }
@@ -84,7 +86,7 @@ function ActionButton({ b }) {
   );
 }
 
-export default function Home({ level = 1, petName = 'MOCHI', petColor, onQuest, onGuestbook, onVisit, onSettings, onShop, coins, outfit, onEarnCoins, showStats = true }) {
+export default function Home({ level = 1, petName = 'MOCHI', petColor, onQuest, onGuestbook, onVisit, onSettings, onShop, coins, outfit, decor, onEarnCoins, showStats = true }) {
   const [st, setSt] = useState({ hunger: 80, happy: 95, energy: 70, level: 3, mess: true, fed: false, asleep: false, steps: 7850 });
   const [msg, setMsg] = useState('');
   const timer = useRef(null);
@@ -123,9 +125,9 @@ export default function Home({ level = 1, petName = 'MOCHI', petColor, onQuest, 
   const stepPct = `${Math.min(100, st.steps / 100).toFixed(1)}%`;
 
   return (
-    <div className="home-screen" style={{ width: 390, height: 860, boxSizing: 'border-box', padding: 8, background: '#D6EAF8' }}>
+    <div className="home-screen" style={{ width: '100%', height: 860, boxSizing: 'border-box', padding: 0, background: '#D6EAF8' }}>
       <div style={{ position: 'relative', width: '100%', height: '100%', boxSizing: 'border-box', overflow: 'hidden', background: '#D6EAF8' }}>
-        <RoomBackdrop />
+        <RoomBackdrop decor={decor} />
         <SeoulClock />
         <button type="button" className="pb room-visit" aria-label="다른 사용자 집 방문하기" onClick={onVisit}>
           <svg width="38" height="38" viewBox="0 0 40 40" aria-hidden="true"><path d="M4 19 L20 5 L36 19 M9 16 V34 H31 V16" fill="#FFF7E9" stroke="#7DA4BC" strokeWidth="2.5" strokeLinejoin="round" /><path d="M16 34 V23 H24 V34" fill="#B9DDCF" stroke="#7DA4BC" strokeWidth="2" /><path d="M27 8 H35 M32 5 L35 8 L32 11" fill="none" stroke="#CC967E" strokeWidth="2" strokeLinecap="round" /></svg>
