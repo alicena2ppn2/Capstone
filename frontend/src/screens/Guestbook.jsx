@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import Mochi from '../components/Mochi.jsx';
 import SubScreen from '../components/SubScreen.jsx';
 import { HeartIcon } from '../components/Icons.jsx';
@@ -31,10 +31,19 @@ function today() {
 
 const pageBtn = { border: 0, background: 'transparent', width: 40, height: 36, display: 'flex', alignItems: 'center', justifyContent: 'center' };
 
-export default function Guestbook({ level, petColor, onShop, onSettings, onHome }) {
-  const [entries, setEntries] = useState(SEED);
+export default function Guestbook({ level, petColor, onShop, onSettings, onHome, petName }) {
+  const [entries, setEntries] = useState(() => {
+    try { const value = JSON.parse(localStorage.getItem('mochi.homeGuestbook.v1')); if (Array.isArray(value)) return value; } catch { /* 샘플 글 제공 */ }
+    return SEED.map((entry, index) => ({ ...entry, variant: ['pink', 'sky', 'mint', 'lavender', 'mochi', 'potato'][index % 6] }));
+  });
   const [draft, setDraft] = useState('');
-  const [liked, setLiked] = useState({});
+  const [liked, setLiked] = useState(() => {
+    try { const value = JSON.parse(localStorage.getItem('mochi.homeGuestLikes.v1')); if (value && typeof value === 'object' && !Array.isArray(value)) return value; } catch { /* 빈 좋아요 */ }
+    return {};
+  });
+  useEffect(() => {
+    try { localStorage.setItem('mochi.homeGuestbook.v1', JSON.stringify(entries)); localStorage.setItem('mochi.homeGuestLikes.v1', JSON.stringify(liked)); } catch { /* 현재 화면 유지 */ }
+  }, [entries, liked]);
   const [page, setPage] = useState(0);
 
   const pages = Math.max(1, Math.ceil(entries.length / PER_PAGE));
@@ -44,7 +53,7 @@ export default function Guestbook({ level, petColor, onShop, onSettings, onHome 
   const submit = () => {
     const text = draft.trim();
     if (!text) return;
-    setEntries((list) => [{ id: `m${Date.now()}`, name: '나', date: today(), text, likes: 0, color: petColor, tone: 'blue' }, ...list]);
+    setEntries((list) => [{ id: `m${Date.now()}`, name: petName || '나', date: today(), text, likes: 0, color: petColor, tone: 'blue' }, ...list]);
     setDraft('');
     setPage(0);
   };
@@ -73,7 +82,7 @@ export default function Guestbook({ level, petColor, onShop, onSettings, onHome 
           return (
             <div key={e.id} style={{ display: 'flex', gap: 10, padding: '10px 12px', borderRadius: 16, background: t[0], border: `2px solid ${t[1]}` }}>
               <span style={{ flexShrink: 0, width: 54, height: 54, borderRadius: '50%', background: t[2], display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
-                <Mochi color={e.color} width={44} height={42} />
+                <Mochi variant={e.variant} color={e.color} width={44} height={42} />
               </span>
               <div style={{ display: 'flex', flexDirection: 'column', gap: 4, minWidth: 0, flexGrow: 1 }}>
                 <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'baseline', gap: 8 }}>
