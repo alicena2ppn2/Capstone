@@ -143,19 +143,20 @@ button, input, select, textarea {
 .character-current { display: flex; align-items: center; margin-top: 14px; border-radius: 22px; border: 2px dashed #E3C9A4; background: #FFFFFFB3; }
 .character-current div { display: flex; flex-direction: column; gap: 8px; padding-right: 10px; }
 .character-current span { font-size: 11px; color: #7F718D; }
-.character-current strong, .character-name { font-size: 13px; text-align: center; }
+.character-current strong { font-size: 18px; line-height: 1.4; text-align: center; }
+.character-name { font-size: 16px; line-height: 1.4; text-align: center; }
 .character-mystery { height: 110px; display: flex; align-items: center; justify-content: center; border-radius: 14px; background: repeating-linear-gradient(45deg, #EEE8F5, #EEE8F5 12px, #F5F1FA 12px, #F5F1FA 24px); color: #B1A0C6; font-size: 60px; font-weight: 700; }
 .quest-loop { margin-top: 12px; text-align: center; font-size: 11px; color: #586F91; }
-.growth-quests { display: flex; flex-direction: column; gap: 12px; margin-top: 12px; max-height: 360px; overflow-y: auto; scrollbar-width: thin; padding-right: 4px; }
+.growth-quests { display: flex; flex-direction: column; gap: 8px; margin-top: 10px; }
 .quest-day-label { margin-top: 12px; text-align: center; color: #63677B; font-size: 11px; }
-.quest-answer { box-sizing: border-box; width: 100%; height: 38px; margin-bottom: 12px; padding: 0 10px; border: 2px solid #B9D7F0; border-radius: 10px; background: #FFFFFF; color: #2E2A3A; font-size: 13px; }
+.quest-answer { box-sizing: border-box; width: 100%; height: 32px; margin-bottom: 6px; padding: 0 8px; border: 1px solid #B9D7F0; border-radius: 8px; background: #FFFFFF; color: #2E2A3A; font-size: 12px; }
 .quest-answer:disabled { background: #F4F7FA; color: #63677B; }
-.growth-quest { padding: 15px; border: 2px solid #B9D7F0; border-radius: 18px; background: #FFFFFFEB; }
-.growth-quest strong { font-size: 14px; }
-.growth-quest p { font-size: 12px; color: #63677B; margin: 7px 0 12px; }
+.growth-quest { padding: 9px 11px; border: 1px solid #B9D7F0; border-radius: 13px; background: #FFFFFFEB; }
+.growth-quest strong { font-size: 13px; line-height: 1.4; }
+.growth-quest p { font-size: 11px; line-height: 1.4; color: #63677B; margin: 3px 0 6px; }
 .growth-quest > div { display: flex; gap: 8px; align-items: center; justify-content: space-between; }
 .growth-quest > div span { font-size: 11px; color: #795E48; white-space: nowrap; }
-.growth-quest .shop-buy { width: auto; padding: 6px 10px; }
+.growth-quest .shop-buy { width: auto; min-height: 32px; margin-top: 0; padding: 4px 9px; font-size: 11px; border-radius: 10px; }
 .quest-reward-note { padding: 14px; background: #FFF8DE; border-radius: 16px; border: 2px solid #E3C36D; font-size: 12px; color: #795E48; line-height: 1.8; }
 
 .attendance-open { padding: 8px 14px; border: 1px solid #C8B7DC; border-radius: 999px; background: #F4EDF9; color: #715A8E; font-size: 12px; }
@@ -263,3 +264,17 @@ button, input, select, textarea {
 .visit-like { display: flex; align-items: center; justify-content: flex-end; gap: 4px; margin: 6px 0 0 auto; min-width: 48px; min-height: 32px; border: 0; background: transparent; color: #AE8595; font-size: 12px; }
 .visit-like span { font-size: 21px; }
 .visit-like[aria-pressed='true'] { color: #CC6E95; }
+
+.phone-content.is-quest { overflow: hidden; }
+.phone-content.is-quest .sub-screen { min-height: 0; }
+.phone-content.is-quest .sub-screen-content { overscroll-behavior-y: contain; scrollbar-width: thin; padding-bottom: 16px !important; }
+
+.quest-remaining { display: inline-flex; align-items: center; justify-content: center; min-width: 18px; height: 18px; box-sizing: border-box; margin-left: 6px; padding: 0 4px; border-radius: 999px; background: #FFFFFFD9; color: #6E5689; font-size: 10px; font-weight: 700; vertical-align: middle; }
+
+.quest-toast-region { position: absolute; inset: 0; pointer-events: none; z-index: 10; display: grid; place-items: center; }
+.quest-reward-toast { display: flex; flex-direction: column; gap: 8px; padding: 20px 24px; border: 2px solid #B9D7F0; border-radius: 18px; background: #FFFDF5; box-shadow: 0 6px 24px #3A3A5533; text-align: center; color: #795F48; }
+.quest-reward-toast strong { font-size: 16px; }
+.quest-reward-toast span { font-size: 14px; }
+.growth-quest > div { justify-content: flex-end; }
+.growth-quest.is-started { background: #FFF9E8; border-color: #E3C36D; }
+.quest-started-badge { display: inline-block; margin-left: 8px; padding: 2px 6px; border-radius: 8px; background: #F8E5AA; color: #795E48; font-size: 10px; }
