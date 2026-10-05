@@ -14,7 +14,7 @@ export const CHARACTERS = [
 export const QUESTS = [
   { id: 'day-walk', period: 'day', name: '잠깐 밖에 나가보기', description: '집 앞에서 짧게 산책해요.', xp: 100, coins: 30 },
   { id: 'day-wake', period: 'day', name: '내 시간에 일어나기', description: '오늘 하루를 천천히 시작해요.', xp: 100, coins: 30 },
-  { id: 'day-diary', period: 'day', name: '오늘의 하루 기록하기', description: '오늘의 기분을 한 줄 남겨요.', xp: 100, coins: 40 },
+  { id: 'day-diary', period: 'day', name: '오늘의 하루 기록하기', description: '오늘의 기분을 한 줄 남겨요.', input: true, xp: 100, coins: 40 },
   { id: 'day-music', period: 'day', name: '좋아하는 음악 장르 입력', description: '내가 좋아하는 음악 장르를 남겨요.', input: true, xp: 100, coins: 30 },
   { id: 'day-food', period: 'day', name: '가장 좋아하는 음식 적기', description: '생각만 해도 기분 좋아지는 음식은 무엇인가요?', input: true, xp: 100, coins: 30 },
   { id: 'day-more-steps', period: 'day', name: '어제보다 더 많이 걸어 보기', description: '내 페이스대로 어제보다 조금 더 걸어봐요.', xp: 100, coins: 30 },
@@ -28,9 +28,27 @@ export const QUESTS = [
   { id: 'month-diary', period: 'month', name: '한 달 기록 열다섯 번', description: '지난 하루를 돌아봐요.', xp: 200, coins: 80 },
 ];
 export const levelFor = (xp) => 1 + Math.floor(xp / XP_PER_LEVEL);
-export const initialGame = () => ({ xp: 0, coins: 540, completed: [], characters: ['potato'], character: 'potato', attendance: {}, questAnswers: {} });
+export const initialGame = () => ({ xp: 0, coins: 540, completed: [], started: [], questPeriodsMigrated: true, characters: ['potato'], character: 'potato', attendance: {}, questAnswers: {} });
 export function questCompletionKey(quest, dayKey = seoulDateKey()) {
-  return quest.period === 'day' ? `${dayKey}:${quest.id}` : quest.id;
+  const period = quest.period === 'week' ? attendanceWeek(dayKey)[0] : quest.period === 'month' ? dayKey.slice(0, 7) : dayKey;
+  return `${period}:${quest.id}`;
+}
+export function migrateQuestProgress(state, dayKey = seoulDateKey()) {
+  const started = Array.isArray(state.started) ? state.started : [];
+  if (state.questPeriodsMigrated) return state.started === started ? state : { ...state, started };
+  const completed = [...state.completed];
+  for (const quest of QUESTS.filter(item => item.period !== 'day')) {
+    const key = questCompletionKey(quest, dayKey);
+    if (completed.includes(quest.id) && !completed.includes(key)) completed.push(key);
+  }
+  return { ...state, started, completed, questPeriodsMigrated: true };
+}
+export function startQuest(state, id, now = new Date()) {
+  const quest = QUESTS.find(item => item.id === id);
+  if (!quest || quest.input) return state;
+  const key = questCompletionKey(quest, seoulDateKey(now));
+  if (state.completed.includes(key) || state.started?.includes(key)) return state;
+  return { ...state, started: [...(state.started ?? []), key] };
 }
 export function grantMilestone(state) {
   return levelFor(state.xp) >= 3 && !state.characters.includes('pink') ? { ...state, characters: [...state.characters, 'pink'] } : state;
@@ -41,8 +59,8 @@ export function completeQuest(state, id, now = new Date(), answer = '') {
   const dayKey = seoulDateKey(now);
   const key = questCompletionKey(quest, dayKey);
   const text = typeof answer === 'string' ? answer.trim().slice(0, 80) : '';
-  if (state.completed.includes(key) || (quest.input && !text)) return state;
-  const next = { ...state, xp: state.xp + quest.xp, coins: state.coins + quest.coins, completed: [...state.completed, key], questAnswers: { ...state.questAnswers, ...(quest.input ? { [key]: text } : {}) } };
+  if (state.completed.includes(key) || (quest.input ? !text : !state.started?.includes(key))) return state;
+  const next = { ...state, xp: state.xp + quest.xp, coins: state.coins + quest.coins, completed: [...state.completed, key], questReward: { key, xp: quest.xp, coins: quest.coins, sequence: (state.questReward?.sequence ?? 0) + 1 }, questAnswers: { ...state.questAnswers, ...(quest.input ? { [key]: text } : {}) } };
   if (QUESTS.filter((item) => item.period === 'day' && next.completed.includes(questCompletionKey(item, dayKey))).length >= 3 && !next.characters.includes('sky')) next.characters = [...next.characters, 'sky'];
   return grantMilestone(next);
 }
