@@ -68,8 +68,11 @@ python scripts/seed_demo.py --date 2026-10-22 --days 21
 | `GET /users/{id}/missions/today` | 매일 고정(출석·걸음·지난주보다·일기·방문·방명록) + 매일 바뀌는 3개 (그날 처음 부를 때 정해지고 하루 동안 고정) |
 | `POST /users/{id}/missions/{mission_id}/complete` | 완료 판정 → 코인·경험치 지급 (중복 지급 없음), 레벨업 여부 |
 | `POST /users/{id}/attendance` | 출석하기 (앱을 열 때 호출, 하루 한 번 보상) |
-| `POST /users/{id}/photos` | 사진 업로드 → `photo_id` (jpeg·png·webp·heic, 10MB 이하) |
+| `POST /users/{id}/photos` | 사진 업로드 → `photo_id` (jpeg·png·webp·heic, 10MB 이하). 촬영 일시는 서버에만 저장 |
 | `GET /photos/{photo_id}` | 사진 보기 |
+| `GET /users/{id}/album?from=&to=&page=&per_page=` | 사진첩: 내가 올린 사진, 날짜 최신순, 어떤 미션·일기에 올렸는지 |
+| `GET /users/{id}/album/months` | 사진첩 월별 개수 |
+| `DELETE /users/{id}/photos/{photo_id}` | 사진 지우기 (일기에서도 떼어 냄, 받은 보상은 그대로) |
 | `GET /users/{id}/diary/topic` | 오늘의 일기 주제 |
 | `PUT /users/{id}/diary/{date}` | 일기 쓰기·고치기 (글·기분·사진, 오늘의 주제 사용 여부). 일기 미션이 있으면 자동 완료 |
 | `GET /users/{id}/diary/{date}` | 하루 일기 보기 |
@@ -123,7 +126,7 @@ python scripts/seed_demo.py --date 2026-10-22 --days 21
 
 | kind | 완료 조건 |
 |---|---|
-| `photo` | 본인이 업로드한 사진 `min_count`장 이상 |
+| `photo` | 본인이 업로드한 사진 `min_count`장 이상. 촬영 일시가 있으면 **오늘 찍은 사진만** (없으면 인정, `ALLOW_PHOTO_WITHOUT_TAKEN_AT`). 검증은 서버 안에서만, 사용자에게는 짧은 안내만 |
 | `list` | 서로 다른 항목 `min_count`개 이상 (`prompt`가 있으면 그 답도 필요, 예: 사는 동네) |
 | `text` | 빈칸이 아닌 글 |
 | `diary` | 그날 일기 저장 (주제는 추천일 뿐) |
