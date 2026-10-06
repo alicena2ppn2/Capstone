@@ -62,7 +62,7 @@ function CloudTitle({ children, plain = false }) {
       </svg>
       <StarIcon style={{ position: 'absolute', left: 70, top: 14 }} />
       <StarIcon style={{ position: 'absolute', right: 70, top: 14 }} />
-      <h1 className="jua" style={{ position: 'relative', margin: 0, fontSize: 32, fontWeight: plain ? 700 : 400, color: plain ? '#2F6FB3' : '#8CCBF7', textShadow: plain ? 'none' : outline('#2F6FB3', 2.5, 4) }}>{children}</h1>
+      <h1 className="jua" style={{ position: 'relative', margin: 0, fontSize: plain ? 22 : 32, fontWeight: plain ? 700 : 400, color: plain ? '#2F6FB3' : '#8CCBF7', textShadow: plain ? 'none' : outline('#2F6FB3', 2.5, 4) }}>{children}</h1>
     </div>
   );
 }
