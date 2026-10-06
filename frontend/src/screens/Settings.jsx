@@ -33,13 +33,13 @@ export default function Settings({ petColor, petName, onPetName, onBack }) {
         setNameDraft(name);
         setNameMessage(`이제 이름은 ${name}이에요!`);
       }}>
-        <h2 className="jua">모찌 이름</h2>
-        <label className="settings-name-label" htmlFor="pet-name">모찌를 어떻게 부를까요?</label>
+        <h2 className="jua">함께하는 친구의 애칭</h2>
+        <label className="settings-name-label" htmlFor="pet-name">현재 친구를 어떻게 부를까요?</label>
         <div className="settings-name-controls">
           <input id="pet-name" className="inp" type="text" maxLength={12} value={nameDraft} placeholder="모찌 이름 입력" onChange={(event) => { setNameDraft(event.target.value); setNameMessage(''); }} aria-describedby="pet-name-hint pet-name-status" />
           <button type="submit" className="pb">이름 저장</button>
         </div>
-        <p id="pet-name-hint" className="settings-name-hint">최대 12자 · 홈 제목에 반영돼요.</p>
+        <p id="pet-name-hint" className="settings-name-hint">최대 12자 · 친구별로 저장하며 고유 이름은 그대로 유지해요.</p>
         <p id="pet-name-status" className="settings-name-status" role="status">{nameMessage}</p>
       </form>
       <div className="settings-card">
