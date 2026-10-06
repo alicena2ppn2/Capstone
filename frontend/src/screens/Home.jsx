@@ -1,20 +1,7 @@
-import { useEffect, useRef, useState } from 'react';
 import Mochi from '../components/Mochi.jsx';
 import SeoulClock from '../components/SeoulClock.jsx';
 import HouseDecor from '../components/HouseDecor.jsx';
-import { GearIcon, HeartIcon, ShopIcon } from '../components/Icons.jsx';
-import { bottomBtn } from '../components/SubScreen.jsx';
-import { outline } from '../utils/color.js';
-
-const clamp = (v) => Math.max(0, Math.min(100, v));
-
-const ICONS = {
-  food: 'M5 18 H39 C39 29 31 35 22 35 C13 35 5 29 5 18Z M10 18 C10 13 14 11 17 13 C19 9 25 9 27 13 C30 11 34 13 34 18',
-  play: 'M7 20 a15 15 0 1 0 30 0 a15 15 0 1 0 -30 0Z M9 13 C16 18 28 18 35 13 M9 31 C16 26 28 26 35 31',
-  clean: 'M1 30 a7 7 0 1 0 14 0 a7 7 0 1 0 -14 0Z M11 20 a9 9 0 1 0 18 0 a9 9 0 1 0 -18 0Z M27 30 a6 6 0 1 0 12 0 a6 6 0 1 0 -12 0Z M34 2 l2 4 4 2 -4 2 -2 4 -2 -4 -4 -2 4 -2Z',
-  sleep: 'M27 5 C17 7 11 16 13 25 C15 33 24 37 32 34 C24 33 19 26 20 18 C21 12 24 8 27 5Z M34 10 l1.2 2.4 2.6.4-1.9 1.8.5 2.6-2.4-1.3-2.4 1.3.5-2.6-1.9-1.8 2.6-.4Z',
-  walk: 'M12 14 C12 8 16 5 22 5 C28 5 32 8 32 14 V33 C32 35 31 36 29 36 H15 C13 36 12 35 12 33Z M12 18 H32 M17 24 H27 V30 H17Z M17 5 V3 M27 5 V3',
-};
+import { GearIcon, ShopIcon } from '../components/Icons.jsx';
 
 export function RoomBackdrop({ decor = {}, wallColor = '#D6EAF8', floorColor = '#EBCDA6' }) {
   return (
@@ -57,183 +44,32 @@ export function RoomBackdrop({ decor = {}, wallColor = '#D6EAF8', floorColor = '
   );
 }
 
-const roundIconBtn = {
-  position: 'absolute', top: 16, width: 44, height: 44, borderRadius: '50%', border: 0, background: 'transparent',
-  display: 'flex', alignItems: 'center', justifyContent: 'center',
-};
-
-const bubble = {
-  position: 'absolute', top: 74, width: 64, height: 64, borderRadius: '50%', background: '#FFFFFF',
-  border: '2.5px solid #4B6E96', display: 'flex', alignItems: 'center', justifyContent: 'center', boxSizing: 'border-box',
-};
-
-const actionBtn = (bg, dark) => ({
-  position: 'relative', height: 96, borderRadius: 22, border: `3px solid ${dark}`, background: bg, boxShadow: `0 5px 0 ${dark}`,
-  display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', gap: 4,
-});
-
-function ActionButton({ b }) {
-  return (
-    <button type="button" className="pb" onClick={b.act} style={actionBtn(b.bg, b.dark)}>
-      {b.badge && (
-        <span className="jua" style={{ position: 'absolute', top: -10, right: -4, background: '#E5484D', color: '#FFFFFF', fontSize: 12, padding: '3px 8px', borderRadius: 999, border: '2px solid #FFFFFF' }}>치워줘!</span>
-      )}
-      <svg width="44" height="40" viewBox="0 0 44 40" aria-hidden="true">
-        <path d={b.icon} fill="#FFFFFF" stroke="#3A3A55" strokeWidth="2.5" strokeLinejoin="round" strokeLinecap="round" />
-      </svg>
-      <span className="jua" style={{ fontSize: 18, color: '#FFFFFF', textShadow: outline('#3A3A55', 1.5) }}>{b.label}</span>
-    </button>
-  );
-}
-
-export default function Home({ level = 1, petName = 'MOCHI', petColor, onQuest, onGuestbook, onVisit, onSettings, onShop, coins, outfit, decor, onEarnCoins, showStats = true }) {
-  const [st, setSt] = useState({ hunger: 80, happy: 95, energy: 70, level: 3, mess: true, fed: false, asleep: false, steps: 7850 });
-  const [msg, setMsg] = useState('');
-  const timer = useRef(null);
-
-  useEffect(() => () => clearTimeout(timer.current), []);
-
-  const say = (text, patch) => {
-    setSt((s) => ({ ...s, ...patch(s) }));
-    setMsg(text);
-    clearTimeout(timer.current);
-    timer.current = setTimeout(() => setMsg(''), 2200);
-  };
-
-  const stats = [
-    { label: '레벨', pct: 100, text: `Lv.${level}`, color: '#7FB6E8' },
-    { label: '배부름', pct: st.hunger, color: '#F2A65A' },
-    { label: '행복', pct: st.happy, color: '#F27BA0' },
-    { label: '기운', pct: st.energy, color: '#F2CC4A' },
-  ];
-
-  const row1 = [
-    { label: '밥 주기', icon: ICONS.food, bg: '#F59AB5', dark: '#C9587E',
-      act: () => say('냠냠, 맛있다!', (s) => ({ hunger: clamp(s.hunger + 15), fed: true })) },
-    { label: '놀아주기', icon: ICONS.play, bg: '#8BD66B', dark: '#4F9B3A',
-      act: () => say('한 판 더 하자!', (s) => ({ happy: clamp(s.happy + 5), energy: clamp(s.energy - 10), asleep: false })) },
-    { label: '치우기', icon: ICONS.clean, bg: '#7EC4F0', dark: '#3F86BA', badge: st.mess,
-      act: () => say('개운해졌어!', () => ({ mess: false })) },
-  ];
-  const row2 = [
-    { label: '재우기', icon: ICONS.sleep, bg: '#B79AF0', dark: '#7D5FC4',
-      act: () => say('잘 자…', (s) => ({ asleep: true, energy: clamp(s.energy + 20) })) },
-    { label: '산책 가기', icon: ICONS.walk, bg: '#F7D35C', dark: '#C49A1E',
-      act: () => { say('같이 나가볼까? +5 코인!', (s) => ({ asleep: false, steps: s.steps + 500 })); onEarnCoins(); } },
-  ];
-
-  const stepPct = `${Math.min(100, st.steps / 100).toFixed(1)}%`;
-
-  return (
-    <div className="home-screen" style={{ width: '100%', height: 860, boxSizing: 'border-box', padding: 0, background: '#D6EAF8' }}>
-      <div style={{ position: 'relative', width: '100%', height: '100%', boxSizing: 'border-box', overflow: 'hidden', background: '#D6EAF8' }}>
-        <RoomBackdrop decor={decor} />
-        <SeoulClock />
-        <button type="button" className="pb room-visit" aria-label="다른 사용자 집 방문하기" onClick={onVisit}>
-          <svg width="38" height="38" viewBox="0 0 40 40" aria-hidden="true"><path d="M4 19 L20 5 L36 19 M9 16 V34 H31 V16" fill="#FFF7E9" stroke="#7DA4BC" strokeWidth="2.5" strokeLinejoin="round" /><path d="M16 34 V23 H24 V34" fill="#B9DDCF" stroke="#7DA4BC" strokeWidth="2" /><path d="M27 8 H35 M32 5 L35 8 L32 11" fill="none" stroke="#CC967E" strokeWidth="2" strokeLinecap="round" /></svg>
-          <span>방문하기</span>
+export default function Home({ petName = 'MOCHI', petColor, onQuest, onGuestbook, onVisit, onSettings, onShop, outfit, decor, active, reactionId, onReactionConsumed }) {
+  return <section className="home-screen" aria-label="내 집">
+    <div className="home-room">
+      <RoomBackdrop decor={decor} />
+      <header className="home-room-heading">
+        <span>MY</span>
+        <button type="button" className="pb pet-name-title" onClick={onSettings} aria-label={`${petName}, 이름 바꾸기`}>{petName}</button>
+      </header>
+      <SeoulClock />
+      <nav className="home-room-menus" aria-label="보조 메뉴">
+        <button type="button" className="pb" onClick={onSettings}><GearIcon size={22} />설정</button>
+        <button type="button" className="pb" onClick={onShop}><ShopIcon width={22} height={22} />상점</button>
+        <button type="button" className="pb" onClick={onVisit}>
+          <svg width="22" height="22" viewBox="0 0 24 24" aria-hidden="true"><path d="M3 11 L12 3 L21 11 M6 9 V21 H18 V9 M10 21 V14 H14 V21" fill="none" stroke="currentColor" strokeWidth="1.7" strokeLinejoin="round" /></svg>방문하기
         </button>
-
-        <button type="button" className="pb" aria-label="설정" onClick={onSettings} style={{ ...roundIconBtn, right: 14, zIndex: 3 }}>
-          <GearIcon fill="#E8F4FF" />
+        <button type="button" className="pb" onClick={onGuestbook}>
+          <svg width="22" height="22" viewBox="0 0 24 24" aria-hidden="true"><path d="M5 3 H19 V16 L14 21 H5Z M14 21 V16 H19 M8 8 H16 M8 12 H15" fill="none" stroke="currentColor" strokeWidth="1.7" strokeLinejoin="round" /></svg>방명록
         </button>
-
-        <button type="button" className="pb" aria-label="퀘스트 열기" onClick={onQuest} style={{ ...roundIconBtn, left: 14, zIndex: 5 }}>
-          <svg width="30" height="34" viewBox="0 0 30 34" aria-hidden="true">
-            <rect x="4" y="5" width="22" height="26" rx="4" fill="#FFFCF0" stroke="#3D7CC0" strokeWidth="2" />
-            <rect x="10" y="2" width="10" height="7" rx="2" fill="#A8D3F4" stroke="#3D7CC0" strokeWidth="2" />
-            <path d="M8 16 L10 18 L13 14 M16 16 H22 M8 24 L10 26 L13 22 M16 24 H22" fill="none" stroke="#3D7CC0" strokeWidth="2" strokeLinecap="round" />
-          </svg>
-        </button>
-        <button type="button" className="pb room-memo" aria-label="방명록 열기" onClick={onGuestbook}>
-          <svg width="44" height="48" viewBox="0 0 44 48" aria-hidden="true">
-            <path d="M5 5 H39 V34 L28 44 H5Z" fill="#FFF3B9" stroke="#C5A269" strokeWidth="2" />
-            <path d="M28 44 V34 H39" fill="#F1D98C" stroke="#C5A269" strokeWidth="2" />
-            <rect x="15" y="2" width="14" height="7" rx="2" fill="#ECAFB8" opacity=".8" />
-            <path d="M12 17 H31 M12 23 H29 M12 29 H23" stroke="#B79769" strokeWidth="2" strokeLinecap="round" />
-          </svg>
-          <span>방명록</span>
-        </button>
-        <div style={{ position: 'relative', zIndex: 2, height: '100%', display: 'flex', flexDirection: 'column', padding: '14px 12px 12px', boxSizing: 'border-box' }}>
-          <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', height: 96, justifyContent: 'center' }}>
-            <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
-              <HeartIcon fill="#9CD0F5" stroke="#3D7CC0" />
-              <span className="jua" style={{ fontSize: 28, lineHeight: 1, color: '#E8F5FF', textShadow: outline('#3D7CC0', 2, 4) }}>MY</span>
-              <HeartIcon fill="#9CD0F5" stroke="#3D7CC0" />
-            </div>
-            <button type="button" className="pb jua pet-name-title" onClick={onSettings} aria-label={`${petName}, 이름 바꾸기`} title="이름 바꾸기" style={{ fontSize: Math.min(50, 290 / [...petName].length), lineHeight: 1.05, letterSpacing: '0.02em', color: '#E8F5FF', textShadow: outline('#3D7CC0', 3, 6) }}>{petName}</button>
-          </div>
-
-          {showStats && (
-            <div style={{ display: 'grid', gridTemplateColumns: 'repeat(4, minmax(0, 1fr))', gap: 6, height: 44, marginTop: 6 }}>
-              {stats.map((s) => (
-                <div key={s.label} style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 3 }}>
-                  <span style={{ fontSize: 12, fontWeight: 700 }}>{s.label}</span>
-                  <div style={{ position: 'relative', width: '100%', height: 22, borderRadius: 999, background: '#FFFFFF', border: '2px solid #4B6E96', boxSizing: 'border-box', overflow: 'hidden' }}>
-                    <span style={{ position: 'absolute', left: 0, top: 0, bottom: 0, width: `${s.pct}%`, background: s.color }} />
-                    <span className="jua" style={{ position: 'absolute', inset: 0, display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 13, color: '#FFFFFF', textShadow: outline('#2E3F5C', 1) }}>{s.text ?? `${s.pct}%`}</span>
-                  </div>
-                </div>
-              ))}
-            </div>
-          )}
-
-          <div style={{ position: 'relative', flexGrow: 1 }}>
-            {msg && (
-              <div role="status" className="care-message">{msg}</div>
-            )}
-            {!st.fed && (
-              <div style={{ ...bubble, left: 22 }}>
-                <svg width="38" height="26" viewBox="0 0 38 26" aria-hidden="true"><path d="M2 8 H36 C36 18 29 24 19 24 C9 24 2 18 2 8Z" fill="#DCEBF8" stroke="#4B6E96" strokeWidth="2.5" /><ellipse cx="19" cy="8" rx="17" ry="4" fill="#FFFFFF" stroke="#4B6E96" strokeWidth="2.5" /></svg>
-              </div>
-            )}
-            {st.mess && (
-              <div style={{ ...bubble, right: 22 }}>
-                <svg width="34" height="30" viewBox="0 0 34 30" aria-hidden="true"><path d="M4 26 C1 26 1 20 5 19 C3 15 7 11 11 12 C11 7 15 4 19 6 C22 3 27 5 26 10 C30 11 31 16 28 18 C33 20 32 26 28 26Z" fill="#9C6B45" stroke="#6B4529" strokeWidth="2" /><circle cx="13" cy="19" r="2" fill="#FFFFFF" /><circle cx="21" cy="19" r="2" fill="#FFFFFF" /></svg>
-                <span className="jua" style={{ position: 'absolute', top: -6, right: -6, width: 22, height: 22, borderRadius: '50%', background: '#E5484D', color: '#FFFFFF', fontSize: 15, display: 'flex', alignItems: 'center', justifyContent: 'center', border: '2px solid #FFFFFF' }}>!</span>
-              </div>
-            )}
-            <div style={{ position: 'absolute', left: '50%', bottom: 8, transform: 'translateX(-50%)', width: 210, height: 200 }}>
-              <Mochi color={petColor} width={210} height={200} full asleep={st.asleep} label={petName} outfit={outfit} />
-            </div>
-          </div>
-
-          <div style={{ display: 'flex', alignItems: 'center', gap: 8, height: 40, marginTop: 4 }}>
-            <svg width="46" height="34" viewBox="0 0 46 34" aria-hidden="true" style={{ flexShrink: 0, marginRight: -14, position: 'relative', zIndex: 1 }}>
-              <path d="M4 26 C4 18 8 10 14 8 L20 14 C26 16 34 16 40 20 C44 22 44 28 40 28 L6 28 C4 28 4 27 4 26Z" fill="#FFFFFF" stroke="#3D7CC0" strokeWidth="2.5" strokeLinejoin="round" />
-              <path d="M4 28 H42" stroke="#3D7CC0" strokeWidth="3" strokeLinecap="round" />
-              <path d="M16 14 l4 -2 M19 18 l4 -2 M22 21 l4 -2" stroke="#3D7CC0" strokeWidth="2" strokeLinecap="round" />
-            </svg>
-            <div style={{ position: 'relative', flexGrow: 1, height: 32, borderRadius: 999, background: '#FFFFFF', border: '2.5px solid #4B6E96', boxSizing: 'border-box', overflow: 'hidden' }}>
-              <span style={{ position: 'absolute', left: 0, top: 0, bottom: 0, width: stepPct, background: '#A8D3F4' }} />
-              <span className="jua" style={{ position: 'absolute', inset: 0, display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 20, color: '#24507E' }}>{st.steps.toLocaleString('ko-KR')}</span>
-            </div>
-            <span style={{ fontSize: 13, fontWeight: 700, flexShrink: 0 }}>걸음 수</span>
-          </div>
-
-          <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 12, height: 36, marginTop: 4 }}>
-            <button type="button" className="pb" onClick={onShop} style={{ border: 0, background: 'transparent', display: 'flex', alignItems: 'center', gap: 4, minHeight: 36, padding: '0 4px', fontSize: 13, fontWeight: 700, color: '#2E2A3A' }}>
-              <svg width="20" height="14" viewBox="0 0 20 14" fill="none" stroke="#2E2A3A" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true"><path d="M10 4 C10 1 13 1 13 3 C13 4.5 10 5 10 6 L2 12 H18 L10 6" /></svg>
-              코인으로 옷 사기
-            </button>
-            <div style={{ display: 'flex', alignItems: 'center', gap: 6, background: '#FFFFFF', border: '2.5px solid #4B6E96', borderRadius: 999, padding: '3px 12px 3px 4px' }}>
-              <svg width="22" height="22" viewBox="0 0 22 22" aria-hidden="true"><circle cx="11" cy="11" r="9.5" fill="#F7D35C" stroke="#C99A1E" strokeWidth="2" /><path d="M11 6 l1.5 3 3.2.4-2.3 2.2.6 3.2L11 13.3 8 14.8l.6-3.2-2.3-2.2 3.2-.4z" fill="#FFF3C2" /></svg>
-              <span className="jua" style={{ fontSize: 18 }}>{coins.toLocaleString('ko-KR')}</span>
-            </div>
-            <span style={{ fontSize: 13, fontWeight: 700 }}>코인</span>
-          </div>
-
-          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, minmax(0, 1fr))', gap: 10, marginTop: 8, height: 96 }}>
-            {row1.map((b) => <ActionButton key={b.label} b={b} />)}
-          </div>
-
-          <div style={{ display: 'grid', gridTemplateColumns: '56px minmax(0, 1fr) minmax(0, 1fr) 56px', gap: 10, marginTop: 14, height: 96, alignItems: 'end' }}>
-            <button type="button" className="pb" onClick={onSettings} style={{ ...bottomBtn, minWidth: 0, minHeight: 56 }}><GearIcon />설정</button>
-            {row2.map((b) => <ActionButton key={b.label} b={b} />)}
-            <button type="button" className="pb" onClick={onShop} style={{ ...bottomBtn, minWidth: 0, minHeight: 56 }}><ShopIcon />상점</button>
-          </div>
-        </div>
+      </nav>
+      <div className="home-character">
+        <Mochi color={petColor} width={210} height={200} full asleep={false} label={petName} outfit={outfit} interactive active={active} reactionId={reactionId} onReactionConsumed={onReactionConsumed} />
       </div>
     </div>
-  );
+    <footer className="home-quest-actions">
+      <button type="button" className="pb home-quest-start" onClick={onQuest}>오늘의 도전</button>
+      <button type="button" className="pb home-decor-open" onClick={onShop}>꾸미기</button>
+    </footer>
+  </section>;
 }

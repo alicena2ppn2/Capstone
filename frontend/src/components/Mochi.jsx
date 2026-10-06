@@ -12,10 +12,10 @@ function Flower() {
 }
 
 // cha1의 둥근 윤곽, 하늘색 귀와 꼬리, 꽃 장식을 표현한다.
-export default function Mochi({ color = '#FFF5E6', width, height, full = false, asleep = false, label, outfit, variant }) {
-  const active = useContext(CharacterContext);
-  if ((variant ?? active) === 'potato') return <Potato width={width} height={height} full={full} asleep={asleep} label={label} outfit={outfit} />;
-  if (['pink', 'lavender', 'mint', 'sky'].includes(variant ?? active)) return <MochiFriends variant={variant ?? active} width={width} height={height} full={full} asleep={asleep} label={label} outfit={outfit} />;
+export default function Mochi({ color = '#FFF5E6', width, height, full = false, asleep = false, label, outfit, variant, interactive, active, reactionId, onReactionConsumed }) {
+  const character = useContext(CharacterContext);
+  if ((variant ?? character) === 'potato') return <Potato width={width} height={height} full={full} asleep={asleep} label={label} outfit={outfit} interactive={interactive} active={active} reactionId={reactionId} onReactionConsumed={onReactionConsumed} />;
+  if (['pink', 'lavender', 'mint', 'sky'].includes(variant ?? character)) return <MochiFriends variant={variant ?? character} width={width} height={height} full={full} asleep={asleep} label={label} outfit={outfit} />;
   const a11y = label ? { role: 'img', 'aria-label': label } : { 'aria-hidden': true };
   const line = '#91A6C5';
   return (
