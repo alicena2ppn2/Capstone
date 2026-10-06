@@ -17,11 +17,12 @@ from datetime import date as Date, datetime, timedelta, timezone
 
 from pathlib import Path
 
-from fastapi import Depends, FastAPI, File, HTTPException, Query, Request, UploadFile
+from fastapi import Depends, FastAPI, File, Header, HTTPException, Query, Request, UploadFile
 from fastapi.responses import FileResponse
 from fastapi.middleware.cors import CORSMiddleware
 from pydantic import BaseModel, Field
 
+from . import crisis
 from . import db
 from . import diary as dy
 from . import missions as ms
@@ -118,7 +119,7 @@ class UserIn(BaseModel):
 
 
 class BuyIn(BaseModel):
-    type: str = Field(..., description="character | outfit")
+    type: str = Field(..., description="character | outfit | decor")
     item_id: str
 
 
@@ -126,6 +127,11 @@ class EquipIn(BaseModel):
     """보낸 칸만 바꾼다. character_id=null → 기본 캐릭터, outfit_id=null → 옷 벗기."""
     character_id: str | None = None
     outfit_id: str | None = None
+
+
+class DecorIn(BaseModel):
+    slot: str = Field(..., description="lamp | carpet | frame | doll | scenery")
+    item_id: str | None = Field(..., description="놓을 소품 id. null이면 그 자리 비우기")
 
 
 class GuestbookIn(BaseModel):
@@ -192,6 +198,19 @@ def check_taken_today(conn, photo_ids: list[str], today: Date) -> None:
             continue
         if Date.fromisoformat(taken[:10]) != today:
             raise HTTPException(422, "오늘 찍은 사진으로 다시 올려 주세요.")
+
+
+def screen_text(conn, user_id: str, today: Date, source: str, text: str) -> dict | None:
+    """사용자가 쓴 글에서 위기 신호를 찾아 기록하고, 사용자에게 보낼 반응(care)을 돌려준다.
+
+    high → 상담 안내, medium → 캐릭터 안부, low·없음 → None (사용자에게는 아무것도 안 보임).
+    글 내용과 걸린 단어는 저장·응답하지 않는다.
+    """
+    result = crisis.assess(text)
+    if result.level is None:
+        return None
+    db.add_signal(conn, user_id, today.isoformat(), source, result.level, result.categories)
+    return result.care()
 
 
 def finish_and_pay(conn, user_id: str, today: Date, day_: dict, mission_id: str, submission: dict) -> dict:
@@ -325,7 +344,9 @@ def get_home(user_id: str, date: str | None = DateQuery, conn=Depends(get_conn))
     today = day(date)
     missions = with_status(conn, user_id, todays_missions(conn, user_id, today))
     steps = db.get_steps(conn, user_id, today.isoformat()) or 0
-    if missions["done_count"] == len(missions["missions"]):
+    if db.worst_signal(conn, user_id, today.isoformat()) in ("high", "medium"):
+        bubble = crisis.CHECK_IN_MESSAGE                     # 오늘 힘든 글을 썼으면 미션 독려 대신 안부
+    elif missions["done_count"] == len(missions["missions"]):
         bubble = "오늘 미션 다 했다! 최고야!"
     elif missions["stayed_home"]:
         bubble = "오늘은 잠깐 같이 나가볼까?"
@@ -340,6 +361,7 @@ def get_home(user_id: str, date: str | None = DateQuery, conn=Depends(get_conn))
         "level": ms.level_from_xp(db.xp_total(conn, user_id)),
         "equipped": {"character": (db.get_equipped(conn, user_id)["character_id"] or shop.DEFAULT_CHARACTER),
                      "outfit": db.get_equipped(conn, user_id)["outfit_id"]},
+        "room": room_view(conn, user_id),
         "checked_in": any(m["id"] == "attendance" and m["done"] for m in missions["missions"]),
         "missions_done": missions["done_count"],
         "missions_total": len(missions["missions"]),
@@ -385,12 +407,16 @@ def complete_mission(user_id: str, mission_id: str, body: CompleteIn, date: str 
     if not ms.is_complete(mission, submission):
         raise HTTPException(422, "아직 완료 조건을 채우지 못했어요.")
 
+    care = None
+    if mission["kind"] in ("text", "diary", "list"):
+        written = submission.get("text") or " ".join(submission.get("items") or [])
+        care = screen_text(conn, user_id, today, "diary" if mission["kind"] == "diary" else f"mission:{mission_id}", written)
     if mission["kind"] == "diary":
         db.save_diary(conn, user_id, today.isoformat(), submission["text"].strip(), submission["topic_id"], None, [])
     if mission["kind"] == "photo":
         db.tag_photos(conn, user_id, submission["photos"], mission_id, today.isoformat())   # 사진첩에 미션 이름으로
     settle = finish_and_pay(conn, user_id, today, day_, mission_id, submission)
-    return {"mission_id": mission_id, **rewards(conn, user_id, settle)}
+    return {"mission_id": mission_id, **rewards(conn, user_id, settle), "care": care}
 
 
 @app.post("/users/{user_id}/attendance", summary="출석하기 (앱을 열 때 호출)")
@@ -483,10 +509,11 @@ def put_diary(user_id: str, entry_date: str, body: DiaryIn, conn=Depends(get_con
     photos = check_photos(conn, user_id, body.photos)
     entry = db.save_diary(conn, user_id, today.isoformat(), body.text.strip(), topic and topic["id"], body.mood, photos)
     db.tag_photos(conn, user_id, photos, "diary", today.isoformat())
+    care = screen_text(conn, user_id, today, "diary", entry["text"])
 
     # 오늘의 미션에 일기 미션이 있으면 같이 완료 처리
     result = auto_complete(conn, user_id, today, "diary", {"text": entry["text"], "topic_id": entry["topic_id"]})
-    return {"entry": {**entry, "topic": topic}, **result}
+    return {"entry": {**entry, "topic": topic}, **result, "care": care}
 
 
 @app.get("/users/{user_id}/diary/{entry_date}", summary="하루 일기 보기")
@@ -511,26 +538,50 @@ def shop_view(conn, user_id: str) -> dict:
     equipped = db.get_equipped(conn, user_id)
     current = {"character": equipped["character_id"] or shop.DEFAULT_CHARACTER, "outfit": equipped["outfit_id"]}
 
+    placed = db.get_decor(conn, user_id)
+
     def show(item: dict) -> dict:
         st = shop.status(item, level["level"], coins, owned)
-        secret = item["type"] == "character" and st in ("locked", "hidden")
-        return {
+        # 프론트처럼 잠긴 캐릭터·소품은 이름(과 소품은 레벨)을 숨긴다 → ??? 로 표시
+        secret = item["type"] in ("character", "decor") and st in ("locked", "hidden")
+        out = {
             "type": item["type"],
             "id": item["id"],
-            "name": None if secret else item["name"],          # 프론트처럼 잠긴 캐릭터는 ??? 로
-            "level": None if st == "hidden" else item["level"],
+            "name": None if secret else item["name"],
+            "level": None if st == "hidden" or (secret and item["type"] == "decor") else item["level"],
             "price": item["price"],
             "how": item["method"] or "buy",
             "status": st,
-            "equipped": current[item["type"]] == item["id"],
         }
+        if item["type"] == "decor":
+            out["slot"] = item["slot"]
+            out["landscape"] = item.get("landscape")
+            out["placed"] = placed.get(item["slot"]) == item["id"]
+        else:
+            out["equipped"] = current[item["type"]] == item["id"]
+        return out
 
     return {
         "coins": coins,
         "level": level,
         "equipped": current,
+        "decor_slots": shop.DECOR_SLOTS,
+        "placed": {slot: placed.get(slot) for slot in shop.DECOR_SLOTS},
         "characters": [show(i) for i in shop.CATALOG["character"].values()],
         "outfits": [show(i) for i in shop.CATALOG["outfit"].values()],
+        "decor": [show(i) for i in shop.CATALOG["decor"].values()],
+    }
+
+
+def room_view(conn, user_id: str) -> dict:
+    """방 모습: 캐릭터·옷·놓은 소품. 내 홈과 이웃 방문 화면에서 같은 모양으로 쓴다."""
+    equipped = db.get_equipped(conn, user_id)
+    placed = db.get_decor(conn, user_id)
+    return {
+        "character": equipped["character_id"] or shop.DEFAULT_CHARACTER,
+        "outfit": equipped["outfit_id"],
+        "decor": {slot: placed.get(slot) for slot in shop.DECOR_SLOTS},
+        "scenery_landscape": shop.CATALOG["decor"].get(placed.get("scenery", ""), {}).get("landscape"),
     }
 
 
@@ -554,6 +605,31 @@ def buy(user_id: str, body: BuyIn, date: str | None = DateQuery, conn=Depends(ge
             "coins": db.coin_balance(conn, user_id)}
 
 
+@app.put("/users/{user_id}/decor", summary="집 꾸미기 배치 — 가진 소품을 맞는 자리에. item_id=null이면 그 자리 비우기")
+def place_decor(user_id: str, body: DecorIn, conn=Depends(get_conn)):
+    if body.slot not in shop.DECOR_SLOTS:
+        raise HTTPException(422, "없는 자리예요.")
+    if body.item_id is not None:
+        item = shop.CATALOG["decor"].get(body.item_id)
+        if item is None or item["slot"] != body.slot:
+            raise HTTPException(422, "이 자리에 놓을 수 없는 소품이에요.")
+        if ("decor", body.item_id) not in db.owned_items(conn, user_id):
+            raise HTTPException(422, "가지고 있지 않은 소품이에요.")
+    db.set_decor(conn, user_id, body.slot, body.item_id)
+    return room_view(conn, user_id)
+
+
+@app.get("/users/{user_id}/room", summary="방 모습 (내 방·이웃 방 공통): 닉네임·레벨·캐릭터·옷·놓은 소품")
+def get_room(user_id: str, conn=Depends(get_conn)):
+    user = db.get_user(conn, user_id)
+    return {
+        "user_id": user_id,
+        "nickname": user["nickname"] if user else None,
+        "level": ms.level_from_xp(db.xp_total(conn, user_id))["level"],
+        **room_view(conn, user_id),
+    }
+
+
 @app.put("/users/{user_id}/equipped", summary="장착 — 가지고 있는 캐릭터·옷만. 산다고 자동 장착되지 않음")
 def equip(user_id: str, body: EquipIn, conn=Depends(get_conn)):
     grant_free_items(conn, user_id)
@@ -570,6 +646,17 @@ def equip(user_id: str, body: EquipIn, conn=Depends(get_conn)):
         outfit_id = body.outfit_id
     saved = db.set_equipped(conn, user_id, character_id, outfit_id)
     return {"character": saved["character_id"] or shop.DEFAULT_CHARACTER, "outfit": saved["outfit_id"]}
+
+
+@app.get("/admin/users/{user_id}/signals", summary="[관리자] 위기 신호 기록 — 환경변수 ADMIN_TOKEN과 같은 X-Admin-Token 헤더 필요")
+def admin_signals(user_id: str, start: str = Query(..., alias="from"), end: str = Query(..., alias="to"),
+                  x_admin_token: str | None = Header(None), conn=Depends(get_conn)):
+    token = os.environ.get("ADMIN_TOKEN")
+    if not token:
+        raise HTTPException(404, "Not Found")          # 관리자 기능이 꺼져 있으면 없는 주소처럼
+    if x_admin_token != token:
+        raise HTTPException(403, "권한이 없습니다.")
+    return {"user_id": user_id, "signals": db.signals(conn, user_id, day(start).isoformat(), day(end).isoformat())}
 
 
 @app.get("/users/{user_id}/coins", summary="코인 잔액")
