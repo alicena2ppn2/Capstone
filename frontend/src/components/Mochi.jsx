@@ -2,6 +2,8 @@ import { useContext } from 'react';
 import { CharacterContext } from './CharacterContext.jsx';
 import Potato from './Potato.jsx';
 import MochiFriends from './MochiFriends.jsx';
+import useFriendReaction from './useFriendReaction.js';
+import FriendEffects from './FriendEffects.jsx';
 
 function Flower() {
   return <g transform="translate(151 65)" stroke="#8EA9CD" strokeWidth="1.8">
@@ -14,14 +16,16 @@ function Flower() {
 // cha1의 둥근 윤곽, 하늘색 귀와 꼬리, 꽃 장식을 표현한다.
 export default function Mochi({ color = '#FFF5E6', width, height, full = false, asleep = false, label, outfit, variant, interactive, active, reactionId, onReactionConsumed }) {
   const character = useContext(CharacterContext);
+  const motion = useFriendReaction({ interactive: interactive && (variant ?? character) === 'mochi', active, reactionId, onReactionConsumed });
   if ((variant ?? character) === 'potato') return <Potato width={width} height={height} full={full} asleep={asleep} label={label} outfit={outfit} interactive={interactive} active={active} reactionId={reactionId} onReactionConsumed={onReactionConsumed} />;
-  if (['pink', 'lavender', 'mint', 'sky'].includes(variant ?? character)) return <MochiFriends variant={variant ?? character} width={width} height={height} full={full} asleep={asleep} label={label} outfit={outfit} />;
+  if (['pink', 'lavender', 'mint', 'sky'].includes(variant ?? character)) return <MochiFriends variant={variant ?? character} width={width} height={height} full={full} asleep={asleep} label={label} outfit={outfit} interactive={interactive} active={active} reactionId={reactionId} onReactionConsumed={onReactionConsumed} />;
   const a11y = label ? { role: 'img', 'aria-label': label } : { 'aria-hidden': true };
   const line = '#91A6C5';
   return (
-    <svg width={width} height={height} viewBox={full ? '0 0 200 210' : '15 0 170 146'} {...a11y}>
+    <svg width={width} height={height} viewBox={full ? '0 0 200 210' : '15 0 170 146'} {...a11y} {...motion.props} className="friend-svg">
+      {full && <ellipse cx="102" cy="200" rx="67" ry="6" fill="#AFC9E6" opacity=".22" />}
+      <g key={motion.reaction?.id ?? 'idle'} className={`friend-body${motion.reaction ? ` is-${motion.reaction.kind}` : ''}`}>
       {full && <>
-        <ellipse cx="102" cy="200" rx="67" ry="6" fill="#AFC9E6" opacity=".22" />
         <path d="M137 159 C150 138 179 138 176 155 C197 157 190 179 180 179 C193 196 169 204 163 195 C146 206 133 190 140 182Z" fill="#D8E8F8" stroke={line} strokeWidth="2.5" />
         <path d="M153 162 Q171 150 174 166 Q184 166 179 178 Q172 181 170 189" fill="none" stroke="#F9FCFF" strokeWidth="7" strokeLinecap="round" />
         <path d="M70 120 Q55 143 64 169 Q58 178 72 183 Q84 192 100 183 Q118 193 130 180 Q143 176 136 166 Q145 140 131 120Z" fill={color} stroke={line} strokeWidth="2.5" />
@@ -61,7 +65,7 @@ export default function Mochi({ color = '#FFF5E6', width, height, full = false, 
         <path d="M59 94 Q68 100 77 94 M123 94 Q132 100 141 94" />
         <text x="156" y="12" fill="#91ACD4" stroke="none" fontSize="17">z</text>
       </g> : <g>
-        {[68, 132].map((x) => <g key={x}>
+        {[68, 132].map((x) => <g key={x} className={motion.blink ? 'friend-eye is-blinking' : 'friend-eye'}>
           <ellipse cx={x} cy="94" rx="10" ry="14" fill="#637EA9" stroke="#7189AD" strokeWidth="1.5" />
           <ellipse cx={x} cy="101" rx="8" ry="7" fill="#B8D7F4" />
           <ellipse cx={x + 2} cy="104" rx="5" ry="4" fill="#E5F4FF" opacity=".85" />
@@ -72,6 +76,8 @@ export default function Mochi({ color = '#FFF5E6', width, height, full = false, 
       <path d="M95 112 Q98 117 101 112 Q104 117 107 112" fill="none" stroke="#9D8296" strokeWidth="1.8" strokeLinecap="round" />
       <path d="M156 79 Q171 83 168 95 L156 90 L149 98 L146 82" fill="#C7DFF6" stroke={line} strokeWidth="1.8" strokeLinejoin="round" />
       <Flower />
+      </g>
+      <FriendEffects reaction={motion.reaction} />
     </svg>
   );
 }
