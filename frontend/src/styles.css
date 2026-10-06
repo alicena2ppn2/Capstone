@@ -463,5 +463,10 @@ button, input, select, textarea, details, summary {
 .home-character-level { display: flex; align-items: center; gap: 6px; min-height: 20px; white-space: nowrap; color: #5C6270; font-size: 11px; line-height: 1.5; }
 .home-character-level strong { font-size: 12px; }
 .home-character-level progress { width: 54px; height: 6px; accent-color: #86AFCD; }
+.home-room-menus button { font-weight: 700; }
+.home-room-menus .home-visit-button svg { color: #BD8E16; }
+.home-room-menus .home-visit-button svg path { fill: #FFE6A1; }
+.home-room-menus .home-guestbook-button svg { color: #C87699; }
+.home-room-menus .home-guestbook-button svg path { fill: #FAD3E3; }
 .home-screen .home-quest-actions { padding: 8px 12px; gap: 8px; }
 .home-screen .home-quest-actions button { min-height: 48px; padding: 8px; }
