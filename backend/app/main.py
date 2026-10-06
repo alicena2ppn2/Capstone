@@ -25,12 +25,16 @@ from pydantic import BaseModel, Field
 from . import db
 from . import diary as dy
 from . import missions as ms
+from . import photo_meta
 from . import shop
 
 USUAL_STEPS_DAYS = 28   # 평소 걸음 = 최근 28일 걸음 중앙값
 
 # 사진 업로드
 MAX_PHOTO_BYTES = 10 * 1024 * 1024
+# 사진 미션은 오늘 찍은 사진만 인정한다 (촬영 일시가 있을 때).
+# 촬영 일시가 없는 사진(스크린샷·메신저 사진 등)은 일단 인정한다 → 막으려면 False로.
+ALLOW_PHOTO_WITHOUT_TAKEN_AT = True
 PHOTO_TYPES = {"image/jpeg": ".jpg", "image/png": ".png", "image/webp": ".webp", "image/heic": ".heic", "image/heif": ".heif"}
 
 
@@ -174,6 +178,20 @@ def grant_free_items(conn, user_id: str, all_done: bool = False) -> list[dict]:
     added = db.add_items(conn, user_id, grants, how)
     # 기본 캐릭터(starter)는 원래 가진 것이라 "새로 받았어요" 알림에서 뺀다
     return [{"type": k, "id": i, "name": shop.CATALOG[k][i]["name"]} for k, i in added if how[(k, i)] != "starter"]
+
+
+def check_taken_today(conn, photo_ids: list[str], today: Date) -> None:
+    """사진 미션: 촬영 일시가 있으면 오늘 찍은 사진이어야 한다.
+
+    검증은 서버 안에서만 한다. 사용자에게는 촬영 일시나 확인 방법을 알리지 않고 짧은 안내만 준다.
+    """
+    for taken in db.photo_taken_at(conn, photo_ids).values():
+        if taken is None:
+            if not ALLOW_PHOTO_WITHOUT_TAKEN_AT:
+                raise HTTPException(422, "오늘 찍은 사진으로 다시 올려 주세요.")
+            continue
+        if Date.fromisoformat(taken[:10]) != today:
+            raise HTTPException(422, "오늘 찍은 사진으로 다시 올려 주세요.")
 
 
 def finish_and_pay(conn, user_id: str, today: Date, day_: dict, mission_id: str, submission: dict) -> dict:
@@ -348,6 +366,7 @@ def complete_mission(user_id: str, mission_id: str, body: CompleteIn, date: str 
         submission = {"steps": db.get_steps(conn, user_id, today.isoformat()) or 0}
     if mission["kind"] == "photo":
         submission["photos"] = check_photos(conn, user_id, submission.get("photos"))
+        check_taken_today(conn, submission["photos"], today)
     if mission["kind"] == "visit":
         # 방문 미션은 사용자가 입력하지 않고 서버 기록으로 확인한다.
         submission = {"visited": db.visited_someone(conn, user_id, today.isoformat())}
@@ -368,6 +387,8 @@ def complete_mission(user_id: str, mission_id: str, body: CompleteIn, date: str 
 
     if mission["kind"] == "diary":
         db.save_diary(conn, user_id, today.isoformat(), submission["text"].strip(), submission["topic_id"], None, [])
+    if mission["kind"] == "photo":
+        db.tag_photos(conn, user_id, submission["photos"], mission_id, today.isoformat())   # 사진첩에 미션 이름으로
     settle = finish_and_pay(conn, user_id, today, day_, mission_id, submission)
     return {"mission_id": mission_id, **rewards(conn, user_id, settle)}
 
@@ -387,7 +408,7 @@ def get_level(user_id: str, conn=Depends(get_conn)):
 
 
 @app.post("/users/{user_id}/photos", summary="사진 업로드 (카메라·앨범) → photo_id")
-async def upload_photo(user_id: str, file: UploadFile = File(...), conn=Depends(get_conn)):
+async def upload_photo(user_id: str, file: UploadFile = File(...), date: str | None = DateQuery, conn=Depends(get_conn)):
     ext = PHOTO_TYPES.get(file.content_type or "")
     if ext is None:
         raise HTTPException(415, f"사진 파일만 올릴 수 있어요 (jpeg, png, webp, heic): {file.content_type}")
@@ -399,9 +420,46 @@ async def upload_photo(user_id: str, file: UploadFile = File(...), conn=Depends(
 
     photo_id = uuid.uuid4().hex
     filename = photo_id + ext
+    taken = photo_meta.taken_at(data)
     (upload_dir() / filename).write_bytes(data)
-    db.add_photo(conn, photo_id, user_id, filename, file.content_type)
-    return {"photo_id": photo_id, "url": f"/photos/{photo_id}"}
+    db.add_photo(conn, photo_id, user_id, filename, file.content_type, day(date).isoformat(), taken)
+    return {"photo_id": photo_id, "url": f"/photos/{photo_id}"}   # 촬영 일시는 서버에만 저장 (응답에 안 넣음)
+
+
+def album_label(used_for: str | None) -> dict | None:
+    """사진첩에 보여 줄 '어디에 올린 사진인지'."""
+    if used_for is None:
+        return None
+    if used_for == "diary":
+        return {"type": "diary", "id": "diary", "title": "일기"}
+    m = ms.CATALOG.get(used_for)
+    return {"type": "mission", "id": used_for, "title": m.title if m else used_for}
+
+
+@app.get("/users/{user_id}/album", summary="사진첩: 내가 올린 사진 (날짜 최신순, 어떤 미션·일기에 올렸는지)")
+def get_album(user_id: str, start: str | None = Query(None, alias="from", description="YYYY-MM-DD"),
+              end: str | None = Query(None, alias="to", description="YYYY-MM-DD"),
+              page: int = Query(0, ge=0), per_page: int = Query(30, ge=1, le=100), conn=Depends(get_conn)):
+    start = day(start).isoformat() if start else None
+    end = day(end).isoformat() if end else None
+    rows, total = db.album(conn, user_id, start, end, per_page, page * per_page)
+    photos = [{"photo_id": r["id"], "url": f"/photos/{r['id']}", "date": r["date"],
+               "used_for": album_label(r["used_for"]), "uploaded_at": r["created_at"]} for r in rows]
+    return {"photos": photos, "total": total, "page": page, "per_page": per_page}
+
+
+@app.get("/users/{user_id}/album/months", summary="사진첩 월별 개수 (달력·탭용)")
+def get_album_months(user_id: str, conn=Depends(get_conn)):
+    return {"months": db.album_months(conn, user_id)}
+
+
+@app.delete("/users/{user_id}/photos/{photo_id}", summary="사진 지우기 (사진첩에서). 이미 받은 미션 보상은 그대로")
+def delete_photo(user_id: str, photo_id: str, conn=Depends(get_conn)):
+    filename = db.delete_photo(conn, user_id, photo_id)
+    if filename is None:
+        raise HTTPException(404, "사진이 없습니다.")
+    (upload_dir() / filename).unlink(missing_ok=True)
+    return {"deleted": photo_id}
 
 
 @app.get("/photos/{photo_id}", summary="사진 보기")
@@ -424,6 +482,7 @@ def put_diary(user_id: str, entry_date: str, body: DiaryIn, conn=Depends(get_con
     topic = dy.topic_for(user_id, today.isoformat()) if body.use_topic else None
     photos = check_photos(conn, user_id, body.photos)
     entry = db.save_diary(conn, user_id, today.isoformat(), body.text.strip(), topic and topic["id"], body.mood, photos)
+    db.tag_photos(conn, user_id, photos, "diary", today.isoformat())
 
     # 오늘의 미션에 일기 미션이 있으면 같이 완료 처리
     result = auto_complete(conn, user_id, today, "diary", {"text": entry["text"], "topic_id": entry["topic_id"]})
