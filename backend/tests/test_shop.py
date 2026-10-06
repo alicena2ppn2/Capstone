@@ -1,5 +1,6 @@
 import pytest
 
+from app import missions as ms
 from app import shop
 from tests.test_api import DAY, client, do_mission, signup  # noqa: F401  (client는 fixture)
 
@@ -57,7 +58,7 @@ def test_buy_checks_coins_level_and_duplicates(client):
 
 
 def test_spending_does_not_lower_level(client):
-    give(client, "u1", coins=1000, xp=500)                    # LV.6
+    give(client, "u1", coins=1000, xp=ms.xp_to_reach(6))    # LV.6
     before = client.get("/users/u1/level").json()
     assert client.post("/users/u1/shop/buy", json={"type": "character", "item_id": "mochi"}).status_code == 200
     after = client.get("/users/u1/level").json()
@@ -66,14 +67,14 @@ def test_spending_does_not_lower_level(client):
 
 
 def test_milestone_character_at_level_3(client):
-    give(client, "u1", xp=200)                                # LV.3
+    give(client, "u1", xp=ms.xp_to_reach(3))                 # LV.3
     v = client.get("/users/u1/shop").json()
     assert item(v, "character", "pink")["status"] == "owned"
     assert v["equipped"]["character"] == "potato"             # 자동 장착 안 함
 
 
 def test_equip_rules(client):
-    give(client, "u1", coins=1000, xp=500)
+    give(client, "u1", coins=1000, xp=ms.xp_to_reach(6))
     client.post("/users/u1/shop/buy", json={"type": "character", "item_id": "mochi"})
     client.post("/users/u1/shop/buy", json={"type": "outfit", "item_id": "berry"})
     assert client.put("/users/u1/equipped", json={"character_id": "mint"}).status_code == 422

@@ -1,3 +1,4 @@
+from app import missions as ms
 from app import shop
 from tests.test_api import DAY, client, signup  # noqa: F401  (client는 fixture)
 from tests.test_shop import give
@@ -27,7 +28,7 @@ def test_shop_lists_decor_and_hides_locked(client):
 
 
 def test_buy_and_place_decor(client):
-    give(client, "u1", coins=1000, xp=300)                         # LV.4
+    give(client, "u1", coins=1000, xp=ms.xp_to_reach(4))          # LV.4
     assert client.post("/users/u1/shop/buy", json={"type": "decor", "item_id": "carpet-sea"}).status_code == 422   # LV.5
     assert client.post("/users/u1/shop/buy", json={"type": "decor", "item_id": "lamp-flower"}).status_code == 200
     assert client.post("/users/u1/shop/buy", json={"type": "decor", "item_id": "view-jeju"}).status_code == 200

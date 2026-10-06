@@ -41,8 +41,11 @@ COINS_DAILY, XP_DAILY = 10, 10            # 출석하기 (프론트에는 아직
 # 매일 고정 미션: 출석하기 + 걸음 8,000보 + 지난주보다 많이 걷기(기록이 있을 때) + 오늘의 일기 쓰기 + 친구 방 놀러 가기 + 방명록 남기기. 나머지 3개는 매일 바뀐다.
 # 하루 3개를 모두 끝내면 코인 대신 특별 캐릭터(프론트 '하루 친구 모찌')를 준다 → 상점 기능에서 지급
 
-# 레벨: 프론트와 같은 공식. LV = 1 + 누적 XP // 100
-XP_PER_LEVEL = 100
+# 레벨: 처음엔 빨리, 갈수록 천천히 오른다.
+# LV.n → n+1 에 필요한 경험치 = LEVEL_BASE_XP + LEVEL_STEP_XP × (n − 1)  → 100, 250, 400, 550, …
+# 누적: LV.3 350 · LV.5 1,300 · LV.8 3,850 · LV.12 9,350 (하루 400 XP면 LV.12까지 약 24일)
+LEVEL_BASE_XP = 100
+LEVEL_STEP_XP = 150
 
 
 CATALOG_PATH = Path(__file__).resolve().parent / "data" / "missions.json"
@@ -258,9 +261,22 @@ def settle_coins(missions: list[dict], completed_ids: set[str] | list[str], alre
     }
 
 
+def xp_for_next(level: int) -> int:
+    """LV.level → level+1 에 필요한 경험치."""
+    return LEVEL_BASE_XP + LEVEL_STEP_XP * (level - 1)
+
+
+def xp_to_reach(level: int) -> int:
+    """LV.level 에 도달하는 데 필요한 누적 경험치. 예: LV.2 100, LV.3 350, LV.12 9,350"""
+    return sum(xp_for_next(n) for n in range(1, level))
+
+
 def level_from_xp(total_xp: int) -> dict:
-    """누적 경험치 → 레벨. 프론트 levelFor()와 같다. 예: 0 → LV.1, 99 → LV.1, 100 → LV.2, 250 → LV.3"""
+    """누적 경험치 → 레벨. 예: 0 → LV.1, 100 → LV.2, 350 → LV.3, 9,350 → LV.12"""
     xp = max(0, int(total_xp))
-    level = 1 + xp // XP_PER_LEVEL
-    in_level = xp % XP_PER_LEVEL
-    return {"level": level, "xp": xp, "xp_in_level": in_level, "xp_to_next": XP_PER_LEVEL - in_level, "xp_for_level": XP_PER_LEVEL}
+    level, left = 1, xp
+    while left >= xp_for_next(level):
+        left -= xp_for_next(level)
+        level += 1
+    need = xp_for_next(level)
+    return {"level": level, "xp": xp, "xp_in_level": left, "xp_to_next": need - left, "xp_for_level": need}
