@@ -4,6 +4,7 @@ import { USERS, dailyVisitors, VISITOR_NOTES } from '../utils/visitors.js';
 import { CLOTHES } from '../utils/clothes.js';
 import { RoomBackdrop } from './Home.jsx';
 import { seoulDateKey } from '../utils/seoulDate.js';
+import { initialConnections, visitNeighbor, favoriteNeighbor, isSampleNote } from '../utils/neighbors.js';
 
 function loadNotes() {
   try {
@@ -14,6 +15,10 @@ function loadNotes() {
 }
 
 export default function Visit({ visitorName, visitorVariant, onBack }) {
+  const [connections, setConnections] = useState(() => { try { const value = JSON.parse(localStorage.getItem('mochi.visitConnections.v1')); return { ...initialConnections(), ...value, recent: Array.isArray(value?.recent) ? value.recent : [], favorites: Array.isArray(value?.favorites) ? value.favorites : [] }; } catch { return initialConnections(); } });
+  const [list, setList] = useState('recommended');
+  useEffect(() => { try { localStorage.setItem('mochi.visitConnections.v1', JSON.stringify(connections)); } catch { /* 현재 화면 유지 */ } }, [connections]);
+  const open = user => { if (!user) return; setSelected(user); setConnections(value => visitNeighbor(value, user.id)); setDraft(''); setMessage(''); };
   const [day, setDay] = useState(() => seoulDateKey());
   const [selected, setSelected] = useState(null);
   const [recommendation, setRecommendation] = useState(() => {
@@ -44,10 +49,10 @@ export default function Visit({ visitorName, visitorVariant, onBack }) {
     event.preventDefault();
     const text = draft.trim();
     if (!text) return;
-    const entry = { name: visitorName, variant: visitorVariant, text, likes: 0, date: seoulDateKey(), id: `${Date.now()}-${Math.random()}` };
+    const entry = { source: 'local', name: visitorName, variant: visitorVariant, text, likes: 0, date: seoulDateKey(), id: `${Date.now()}-${Math.random()}` };
     setNotes(value => ({ ...value, [selected.id]: [entry, ...(Array.isArray(value[selected.id]) ? value[selected.id] : [])] }));
     setDraft('');
-    setMessage('방명록을 남겼어요!');
+    setMessage('이 브라우저에 기록했어요. 실제 상대에게 전달되지 않아요.');
   };
   return <section className="visit-screen">
     <header className="visit-header">
@@ -56,6 +61,8 @@ export default function Visit({ visitorName, visitorVariant, onBack }) {
     </header>
     {selected ? <>
       <p className="visit-intro">{selected.icon} {selected.name} · {selected.nickname}</p>
+      <button type="button" className="pb" aria-pressed={connections.favorites.includes(selected.id)} onClick={() => setConnections(value => favoriteNeighbor(value, selected.id))}>{connections.favorites.includes(selected.id) ? '저장한 이웃 해제' : '이웃 저장'}</button>
+      {['응원해요', '고마워요'].map(label => <button type="button" className="pb" key={label} aria-pressed={connections.reactions?.[selected.id] === label} onClick={() => { setConnections(value => ({ ...value, reactions: { ...value.reactions, [selected.id]: label } })); setMessage('내 반응을 이 브라우저에 저장했어요.'); }}>{label}</button>)}
       <div className="visitor-room" style={{ '--wall': selected.wall, '--floor': selected.floor }}>
         <span className="visitor-room-theme">{selected.theme}</span>
         <RoomBackdrop decor={selected.decorItems} wallColor={selected.wall} floorColor={selected.floor} />
@@ -73,16 +80,17 @@ export default function Visit({ visitorName, visitorVariant, onBack }) {
         </form>
         <p role="status" className="visit-status">{message}</p>
         <div className="visit-notes">
-          {(Array.isArray(notes[selected.id]) ? notes[selected.id] : []).map(entry => <article key={entry.id}><Mochi variant={entry.variant} width={40} height={40} /><div><strong>{entry.name}</strong><small>{entry.date}</small><p>{entry.text}</p><button type="button" className="pb visit-like" aria-pressed={!!liked[entry.id]} aria-label={`${entry.name}의 글 좋아요 ${(entry.likes ?? 0) + (liked[entry.id] ? 1 : 0)}개`} onClick={() => setLiked(value => ({ ...value, [entry.id]: !value[entry.id] }))}><span aria-hidden="true">{liked[entry.id] ? '♥' : '♡'}</span> {(entry.likes ?? 0) + (liked[entry.id] ? 1 : 0)}</button></div></article>)}
+          {(Array.isArray(notes[selected.id]) ? notes[selected.id] : []).map(entry => <article key={entry.id}><Mochi variant={entry.variant} width={40} height={40} /><div><strong>{entry.name}</strong><small>{entry.date} · {isSampleNote(entry) ? '시연 글' : '내 브라우저 작성 글'}</small><p>{entry.text}</p><button type="button" className="pb visit-like" aria-pressed={!!liked[entry.id]} aria-label={`${entry.name}의 글 좋아요 ${(entry.likes ?? 0) + (liked[entry.id] ? 1 : 0)}개`} onClick={() => setLiked(value => ({ ...value, [entry.id]: !value[entry.id] }))}><span aria-hidden="true">{liked[entry.id] ? '♥' : '♡'}</span> {(entry.likes ?? 0) + (liked[entry.id] ? 1 : 0)}</button></div></article>)}
           {!notes[selected.id]?.length && <p className="visit-empty">첫 번째 안부를 남겨주세요.</p>}
         </div>
       </section>
     </> : <>
-      <p className="visit-intro">오늘 만나볼 세 이웃</p>
-      <div className="visit-recommendations">{recommendation.ids.map(id => USERS.find(user => user.id === id)).map(user => <button type="button" className="pb visit-card" key={user.id} onClick={() => { setSelected(user); setDraft(''); setMessage(''); }}>
+      <p className="visit-intro">샘플 이웃 · 실제 사용자 추천이 아니에요.</p>
+      <div className="shop-tabs">{[['recommended', '오늘 추천'], ['recent', '최근 방문'], ['favorites', '저장한 이웃'], ['notes', '내가 남긴 글']].map(([id, label]) => <button type="button" className="pb" key={id} aria-pressed={list === id} onClick={() => setList(id)}>{label}</button>)}</div>
+      {list === 'notes' ? Object.entries(notes).flatMap(([id, entries]) => entries.filter(entry => !isSampleNote(entry)).map(entry => <article className="growth-quest" key={entry.id}><strong>{USERS.find(user => user.id === id)?.nickname}에게 · {entry.date}</strong><p>{entry.text}</p><button type="button" className="pb" onClick={() => open(USERS.find(user => user.id === id))}>그 집 방명록 보기</button></article>)) : <div className="visit-recommendations">{(list === 'recommended' ? recommendation.ids : connections[list]).map(id => USERS.find(user => user.id === id)).filter(Boolean).map(user => <button type="button" className="pb visit-card" key={user.id} onClick={() => open(user)}>
         <span className="visit-avatar" style={{ background: user.wall }}><Mochi variant={user.variant} width={80} height={80} /><span>{user.icon}</span></span>
         <span className="visit-profile"><strong>{user.nickname}</strong><span>{user.name}</span><small>{user.theme}</small></span><span aria-hidden="true">→</span>
-      </button>)}</div>
+      </button>)}</div>}
       <p className="visit-intro">서울 시간 자정에 새로운 이웃을 추천해요.</p>
     </>}
     <p className="visit-mock-note">가상 이웃 목업 · 방명록은 이 브라우저에만 저장돼요.</p>

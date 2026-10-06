@@ -1,6 +1,8 @@
 import { seoulDateKey, attendanceWeek } from './seoulDate.js';
 import { CLOTHES } from './clothes.js';
 import { DECOR } from './decor.js';
+import { CHALLENGES, migrateChallenges, ensureChallenges, previewReward, goalProgress } from './challenges.js';
+export { selectChallenge, pauseChallenge, replaceChallenge, ensureChallenges, goalProgress, previewReward } from './challenges.js';
 
 export const XP_PER_LEVEL = 100;
 export const CHARACTERS = [
@@ -11,41 +13,34 @@ export const CHARACTERS = [
   { id: 'mint', name: '새잎 거북 모찌', level: 12, price: 600, color: '#D9EDBC' },
   { id: 'sky', name: '하루 펭귄 모찌', level: 1, price: 0, color: '#D9EAF5', method: 'quest' },
 ];
-export const QUESTS = [
-  { id: 'day-walk', period: 'day', name: '잠깐 밖에 나가보기', description: '집 앞에서 짧게 산책해요.', xp: 100, coins: 30 },
-  { id: 'day-wake', period: 'day', name: '내 시간에 일어나기', description: '오늘 하루를 천천히 시작해요.', xp: 100, coins: 30 },
-  { id: 'day-diary', period: 'day', name: '오늘의 하루 기록하기', description: '오늘의 기분을 한 줄 남겨요.', input: true, xp: 100, coins: 40 },
-  { id: 'day-music', period: 'day', name: '좋아하는 음악 장르 입력', description: '내가 좋아하는 음악 장르를 남겨요.', input: true, xp: 100, coins: 30 },
-  { id: 'day-food', period: 'day', name: '가장 좋아하는 음식 적기', description: '생각만 해도 기분 좋아지는 음식은 무엇인가요?', input: true, xp: 100, coins: 30 },
-  { id: 'day-more-steps', period: 'day', name: '어제보다 더 많이 걸어 보기', description: '내 페이스대로 어제보다 조금 더 걸어봐요.', xp: 100, coins: 30 },
-  { id: 'day-seasonal', period: 'day', name: '제철음식 먹어 보기', description: '오늘 한 끼에 제철 음식을 만나봐요.', xp: 100, coins: 30 },
-  { id: 'day-drink', period: 'day', name: '좋아하는 음료수 직접 사 오기', description: '좋아하는 음료를 직접 골라 사 와요.', xp: 100, coins: 30 },
-  { id: 'week-walk', period: 'week', name: '이번 주 산책 두 번', description: '가까운 곳도 좋아요.', xp: 150, coins: 50 },
-  { id: 'week-wake', period: 'week', name: '일정한 생활 리듬 만들기', description: '이번 주 3일은 비슷한 시간에 일어나요.', xp: 150, coins: 50 },
-  { id: 'week-diary', period: 'week', name: '하루 기록 다섯 번', description: '작은 일상을 차곡차곡 모아요.', xp: 150, coins: 50 },
-  { id: 'month-place', period: 'month', name: '새로운 장소 가보기', description: '낯선 풍경을 하나 만나봐요.', xp: 200, coins: 80 },
-  { id: 'month-rhythm', period: 'month', name: '꾸준한 생활 이어가기', description: '나만의 리듬을 두 주 동안 지켜요.', xp: 200, coins: 80 },
-  { id: 'month-diary', period: 'month', name: '한 달 기록 열다섯 번', description: '지난 하루를 돌아봐요.', xp: 200, coins: 80 },
+// Keep retired weekly/monthly IDs only for one-time compatibility migration.
+const LEGACY_QUESTS = [
+  ...['week-walk', 'week-wake', 'week-diary'].map(id => ({ id, period: 'week' })),
+  ...['month-place', 'month-rhythm', 'month-diary'].map(id => ({ id, period: 'month' })),
 ];
+export const QUESTS = CHALLENGES;
 export const levelFor = (xp) => 1 + Math.floor(xp / XP_PER_LEVEL);
-export const initialGame = () => ({ xp: 0, coins: 540, completed: [], started: [], questPeriodsMigrated: true, characters: ['potato'], character: 'potato', attendance: {}, questAnswers: {} });
+export const initialGame = ({ demo = false } = {}) => migrateChallenges({ xp: 0, coins: demo ? 540 : 90, completed: [], started: [], questPeriodsMigrated: true, characters: ['potato'], character: 'potato', attendance: {}, questAnswers: {} });
 export function questCompletionKey(quest, dayKey = seoulDateKey()) {
   const period = quest.period === 'week' ? attendanceWeek(dayKey)[0] : quest.period === 'month' ? dayKey.slice(0, 7) : dayKey;
   return `${period}:${quest.id}`;
 }
 export function migrateQuestProgress(state, dayKey = seoulDateKey()) {
   const started = Array.isArray(state.started) ? state.started : [];
-  if (state.questPeriodsMigrated) return state.started === started ? state : { ...state, started };
+  if (state.questPeriodsMigrated) return migrateChallenges(state.started === started ? state : { ...state, started });
   const completed = [...state.completed];
-  for (const quest of QUESTS.filter(item => item.period !== 'day')) {
+  for (const quest of LEGACY_QUESTS.filter(item => item.period !== 'day')) {
     const key = questCompletionKey(quest, dayKey);
     if (completed.includes(quest.id) && !completed.includes(key)) completed.push(key);
   }
-  return { ...state, started, completed, questPeriodsMigrated: true };
+  return migrateChallenges({ ...state, started, completed, questPeriodsMigrated: true });
 }
 export function startQuest(state, id, now = new Date()) {
   const quest = QUESTS.find(item => item.id === id);
-  if (!quest || quest.input) return state;
+  if (!quest || quest.input || quest.period !== 'day') return state;
+  state = ensureChallenges(state, seoulDateKey(now));
+  if (!state.challengeDays[seoulDateKey(now)].selected.includes(id)) return state;
+  if (quest.choices && !quest.choices.includes(state.challengeChoices?.[questCompletionKey(quest, seoulDateKey(now))])) return state;
   const key = questCompletionKey(quest, seoulDateKey(now));
   if (state.completed.includes(key) || state.started?.includes(key)) return state;
   return { ...state, started: [...(state.started ?? []), key] };
@@ -55,19 +50,36 @@ export function grantMilestone(state) {
 }
 export function completeQuest(state, id, now = new Date(), answer = '') {
   const quest = QUESTS.find((item) => item.id === id);
-  if (!quest) return state;
+  if (!quest || quest.period !== 'day') return state;
   const dayKey = seoulDateKey(now);
   const key = questCompletionKey(quest, dayKey);
   const text = typeof answer === 'string' ? answer.trim().slice(0, 80) : '';
   if (state.completed.includes(key) || (quest.input ? !text : !state.started?.includes(key))) return state;
-  const next = { ...state, xp: state.xp + quest.xp, coins: state.coins + quest.coins, completed: [...state.completed, key], questReward: { key, xp: quest.xp, coins: quest.coins, sequence: (state.questReward?.sequence ?? 0) + 1 }, questAnswers: { ...state.questAnswers, ...(quest.input ? { [key]: text } : {}) } };
-  if (QUESTS.filter((item) => item.period === 'day' && next.completed.includes(questCompletionKey(item, dayKey))).length >= 3 && !next.characters.includes('sky')) next.characters = [...next.characters, 'sky'];
+  if (quest.choices && !quest.choices.includes(state.challengeChoices?.[key])) return state;
+  state = ensureChallenges(state, dayKey);
+  if (quest.period === 'day' && !state.challengeDays[dayKey].selected.includes(id)) return state;
+  const reward = previewReward(state, quest, dayKey);
+  const next = { ...state, xp: state.xp + reward.xp, coins: state.coins + reward.coins, completed: [...state.completed, key], questReward: { key, ...reward, sequence: (state.questReward?.sequence ?? 0) + 1 }, questAnswers: { ...state.questAnswers, ...(quest.input ? { [key]: text } : {}) } };
+  next.activityRecords = { ...state.activityRecords, [key]: { id, day: dayKey, category: quest.category, input: !!quest.input, rewarded: reward.xp > 0 } };
+  next.rewardDays = { ...state.rewardDays, [dayKey]: Math.max(state.rewardDays[dayKey] ?? 0, Object.values(state.activityRecords).filter(record => record.day === dayKey && record.rewarded).length) + (reward.xp > 0 ? 1 : 0) };
+  if (quest.input) next.journals = { ...state.journals, [dayKey]: text };
+  if (Object.values(next.activityRecords).filter(record => !record.input && record.category !== undefined).length >= 10 && !next.characters.includes('sky')) next.characters = [...next.characters, 'sky'];
   return grantMilestone(next);
+}
+
+export function claimGoal(state, id, now = new Date()) {
+  state = migrateChallenges(state);
+  const quest = QUESTS.find(q => q.id === id && q.period !== 'day');
+  const day = seoulDateKey(now);
+  if (!quest || goalProgress(state, quest, day) < quest.target) return state;
+  const key = questCompletionKey(quest, day);
+  if (state.completed.includes(key)) return state;
+  return grantMilestone({ ...state, xp: state.xp + quest.xp, coins: state.coins + quest.coins, completed: [...state.completed, key], questReward: { key, xp: quest.xp, coins: quest.coins, sequence: (state.questReward?.sequence ?? 0) + 1 } });
 }
 
 export const ATTENDANCE_REWARDS = [
   { type: 'coins', amount: 10 }, { type: 'coins', amount: 20 }, { type: 'coins', amount: 30 },
-  { type: 'xp', amount: 20 }, { type: 'xp', amount: 35 }, { type: 'xp', amount: 50 },
+  { type: 'xp', amount: 5 }, { type: 'xp', amount: 8 }, { type: 'xp', amount: 10 },
 ];
 export function randomAttendanceReward() {
   return ATTENDANCE_REWARDS[Math.floor(Math.random() * ATTENDANCE_REWARDS.length)];
@@ -97,7 +109,7 @@ export function claimAttendance(state, dayKey, reward) {
   reward = state.attendancePlans?.[attendanceWeek(dayKey)[0]]?.[dayKey] ?? reward;
   const clothing = reward?.type === 'outfit' && CLOTHES.find(item => item.id === reward.id);
   const decoration = reward?.type === 'decor' && DECOR.find(item => item.id === reward.id);
-  if (!clothing && !decoration && !ATTENDANCE_REWARDS.some((item) => item.type === reward?.type && item.amount === reward?.amount)) return state;
+  if (!clothing && !decoration && ![...ATTENDANCE_REWARDS, ...[20, 35, 50].map(amount => ({ type: 'xp', amount }))].some((item) => item.type === reward?.type && item.amount === reward?.amount)) return state;
   if (clothing && state.attendanceClothes?.includes(reward.id)) reward = { type: 'coins', amount: 30, duplicateOutfit: clothing.name };
   if (decoration && state.ownedDecor?.includes(reward.id)) reward = { type: 'coins', amount: 30, duplicateDecor: decoration.name };
   return grantMilestone({

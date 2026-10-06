@@ -14,7 +14,7 @@ test('월요일 새 주를 표시하며 월/연도 경계를 정확히 계산한
 });
 test('하루 한 번만 지급하고 새로고침된 기록에서도 중복을 막는다', () => {
   const next = claimAttendance(initialGame(), '2026-10-02', { type: 'coins', amount: 20 });
-  assert.equal(next.coins, 560);
+  assert.equal(next.coins, 110);
   assert.equal(next.xp, 0);
   assert.equal(claimAttendance(next, '2026-10-02', { type: 'xp', amount: 50 }), next);
   const restored = JSON.parse(JSON.stringify(next));
@@ -23,7 +23,7 @@ test('하루 한 번만 지급하고 새로고침된 기록에서도 중복을 �
 test('결석해도 보상을 받으며 주 변경은 기존 코인/XP를 초기화하지 않는다', () => {
   let state = claimAttendance(initialGame(), '2026-10-02', { type: 'coins', amount: 10 });
   state = claimAttendance(state, '2026-10-05', { type: 'xp', amount: 35 });
-  assert.equal(state.coins, 550);
+  assert.equal(state.coins, 100);
   assert.equal(state.xp, 35);
   assert.equal(attendanceWeek('2026-10-05').filter((key) => state.attendance[key]).length, 1);
 });
