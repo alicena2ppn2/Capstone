@@ -241,3 +241,25 @@ button, input, select, textarea {
 .phone-content .settings-screen, .phone-content .shop-screen, .phone-content .visit-screen { min-height: 100%; }
 
 .care-message { position: absolute; bottom: 8px; left: 0; width: 94px; box-sizing: border-box; padding: 9px 8px; border: 2px solid #8BAAC4; border-radius: 15px 15px 5px 15px; background: #FFFCF5; color: #526D83; font-size: 12px; font-weight: 700; line-height: 1.5; overflow-wrap: anywhere; z-index: 4; box-shadow: 0 3px 0 #B6C9D644; }
+
+.attendance-stamp { position: relative; }
+.attendance-check { position: absolute; right: -4px; bottom: -4px; border-radius: 50%; background: #80A873; border: 2px solid #FFF9EE; color: white; width: 16px; height: 16px; font-size: 11px; line-height: 16px; }
+.attendance-reward-label { white-space: nowrap; color: #847294; }
+
+.decor-preview { position: relative; height: 220px; border: 2px solid #C6B198; border-radius: 22px; overflow: hidden; margin: 16px 0; }
+.decor-preview > svg { height: 340px; top: -50px !important; }
+.decor-preview > span { position: absolute; bottom: 10px; left: 50%; transform: translateX(-50%); background: #FFFFFFE6; border-radius: 999px; padding: 6px 12px; font-size: 12px; white-space: nowrap; color: #796757; }
+.decor-categories { display: flex; flex-wrap: wrap; justify-content: center; gap: 6px; }
+.decor-categories button { border: 1px solid #CFBBA4; background: #FFF9EE; color: #8C7864; border-radius: 999px; padding: 8px 12px; font-size: 12px; }
+.decor-categories button[aria-pressed='true'] { background: #E1EBDD; color: #64825F; border-color: #9CB591; }
+.decor-item-preview { display: flex; flex-direction: column; align-items: center; gap: 9px; width: 100%; border: 0; background: transparent; color: #655747; font-size: 13px; }
+.decor-item-icon { display: flex; align-items: center; justify-content: center; width: 90px; height: 88px; border-radius: 20px; font-size: 44px; }
+.scenery-thumb { width: 90px; height: 100px; border: 4px solid #CDB292; border-radius: 16px; background: #DCECF8; }
+.decor-item-preview:focus-visible, .decor-categories button:focus-visible { outline: 3px solid #85ABCB; outline-offset: 3px; }
+
+.visitor-room-theme { z-index: 2; background: #FFFFFFCC; left: 20px; right: 20px; border-radius: 999px; padding: 5px; }
+.visitor-pet { z-index: 1; }
+
+.visit-like { display: flex; align-items: center; justify-content: flex-end; gap: 4px; margin: 6px 0 0 auto; min-width: 48px; min-height: 32px; border: 0; background: transparent; color: #AE8595; font-size: 12px; }
+.visit-like span { font-size: 21px; }
+.visit-like[aria-pressed='true'] { color: #CC6E95; }
