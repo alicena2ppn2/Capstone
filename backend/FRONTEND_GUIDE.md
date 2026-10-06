@@ -22,8 +22,9 @@ API를 직접 눌러 보려면 서버를 켜고 `http://localhost:8000/docs`.
 | 출석 보상 | 무작위 (코인 10·20·30 또는 XP 20·35·50) | 고정 10 코인 · 10 XP |
 | 하루 펭귄 모찌 | 하루 퀘스트 아무거나 3개 | 매일 바뀌는 3개를 모두 완료 |
 | 시작 코인 | 540 | 0 |
-| 레벨 공식 | `1 + XP // 100` | 같음 |
-| 상점 상품·가격·레벨 조건 | `CHARACTERS`, `CLOTHES` | 같음 (`app/data/shop.json`) |
+| 레벨 공식 | `1 + XP // 100` (레벨마다 100) | 다음 레벨까지 100 + 150 × (레벨 − 1) → 100, 250, 400 … **프론트도 서버 `level` 값을 그대로 표시** |
+| 상점 상품·가격·레벨 조건 | `CHARACTERS`, `CLOTHES`, `DECOR` | 같음 (`app/data/shop.json`) |
+| 집 꾸미기 보유·배치 | localStorage `ownedDecor`, `decor` | `GET /shop`의 `decor`·`placed`, `PUT /decor` |
 | 걸음 수 | 화면 안 가짜 값 | 만보기 값을 `POST /steps`로 올리고 `GET /home`의 `steps`를 표시 |
 | 방명록 | 샘플 8개, 화면을 떠나면 사라짐 | `GET·POST /guestbook` |
 
@@ -56,8 +57,10 @@ API를 직접 눌러 보려면 서버를 켜고 `http://localhost:8000/docs`.
 | 사진첩 | 월별 탭·달력 | `GET /users/{id}/album/months` |
 | 사진첩 | 사진 지우기 | `DELETE /users/{id}/photos/{photo_id}` |
 | 상점 | 목록·내 상태 | `GET /users/{id}/shop` |
-| 상점 | 구매 | `POST /users/{id}/shop/buy` `{type: "character"\|"outfit", item_id}` |
+| 상점 | 구매 | `POST /users/{id}/shop/buy` `{type: "character"\|"outfit"\|"decor", item_id}` |
 | 상점 | 장착 | `PUT /users/{id}/equipped` `{character_id}` 또는 `{outfit_id}` (`null`이면 기본 캐릭터 / 옷 벗기) |
+| 집 꾸미기 | 소품 놓기·빼기 | `PUT /users/{id}/decor` `{slot: "lamp", item_id: "lamp-moon"}` (`null`이면 비우기) → 방 모습 |
+| 홈·이웃 방문 | 방 그리기 | 내 방: `GET /home`의 `room` / 이웃 방: `GET /users/{이웃}/room` → `character`, `outfit`, `decor{slot: id}`, `scenery_landscape` |
 | 설정 | 닉네임 바꾸기 | `PATCH /users/{id}` `{nickname}` |
 | 설정 | 계정 삭제 | `DELETE /users/{id}` → localStorage `id`도 지우기 |
 
@@ -88,12 +91,13 @@ API를 직접 눌러 보려면 서버를 켜고 `http://localhost:8000/docs`.
 
 ```json
 {"earned": [{"id": "sky_photo", "coins": 30, "xp": 100}], "earned_total": 30, "earned_xp": 100,
- "coins": 340, "level": {"level": 4, "xp": 310, "xp_in_level": 10, "xp_to_next": 90, "xp_for_level": 100},
+ "coins": 340, "level": {"level": 3, "xp": 410, "xp_in_level": 60, "xp_to_next": 340, "xp_for_level": 400},
  "leveled_up": true, "all_done": false,
  "new_items": [{"type": "character", "id": "pink", "name": "복숭아 토끼 모찌"}]}
 ```
 
 - `earned`가 비어 있으면 이미 받은 보상 (중복 지급 없음)
+- 레벨 진행 바: `xp_in_level` / `xp_for_level` (레벨마다 필요한 양이 다르므로 서버 값을 그대로 사용)
 - `leveled_up` → 레벨업 연출, `new_items` → "새 캐릭터를 받았어요" 안내
 - 실패하면 `detail`에 사용자에게 보여 줄 수 있는 한국어 문장 (예: "아직 다른 친구 방에 놀러 가지 않았어요.")
 
@@ -101,6 +105,19 @@ API를 직접 눌러 보려면 서버를 켜고 `http://localhost:8000/docs`.
 
 - 사진 파일을 **원본 그대로** 올린다 (리사이즈·캔버스 변환을 하면 서버 확인에 필요한 정보가 사라질 수 있음)
 - 서버가 사진을 확인하는 방법은 사용자에게 안내하지 않는다
+
+## 위기 표현 응답 (`care`)
+
+일기 저장(`PUT /diary`)과 글·목록 미션 완료 응답에 `care`가 들어온다.
+
+| `care.type` | 프론트 표시 |
+|---|---|
+| `support` | 다른 화면을 띄우지 말고 차분한 안내 카드: `message` + `contacts`(이름·번호·운영 시간). 번호는 누르면 바로 전화 (`tel:109`) |
+| `check_in` | 캐릭터 말풍선으로 `message` (경고처럼 보이지 않게) |
+| `null` | 아무것도 표시하지 않음 |
+
+- 어떤 단어가 걸렸는지, "위험도" 같은 말은 사용자에게 보여 주지 않는다
+- `support`가 와도 보상·레벨업 연출과 겹치지 않게, 안내 카드를 먼저 보여 준다
 
 ## 상점 상태 값
 
@@ -123,5 +140,5 @@ API를 직접 눌러 보려면 서버를 켜고 `http://localhost:8000/docs`.
 
 ## 아직 없는 것
 
-- 로그인 토큰 (지금은 `id`만으로 동작)
+- 로그인: **Supabase Auth로 프론트에서** 처리하기로 함. 백엔드 연결 후에는 요청마다 `Authorization: Bearer <Supabase 토큰>`을 보내야 함 (지금은 `id`만으로 동작)
 - 주간·월간 퀘스트, 방명록 좋아요·답글, 캐릭터 말풍선 AI

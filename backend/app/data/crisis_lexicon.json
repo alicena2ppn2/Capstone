@@ -1,0 +1,659 @@
+{
+  "_note": "위기 표현 목록. 띄어쓰기는 무시하고 비교한다 (\"죽고 싶어\" = \"죽고싶어\"). 진단용이 아니라 도움 안내·안부를 위한 신호. 문구는 아래 출처의 분류를 참고해 직접 작성했다.",
+  "sources": {
+    "warning_signs": "자살 경고신호 언어적 신호 — 보건복지부·한국생명존중희망재단 '보고듣고말하기', 정신건강복지센터 안내 (죽음 언급, 신체 불편 호소, 자기비하, 무가치감·죄책감)",
+    "absolutist": "Al-Mosaiwi & Johnstone (2018), In an Absolute State, Clinical Psychological Science, doi:10.1177/2167702617747074 — 영어 19단어를 한국어로 옮김",
+    "loneliness": "Guntuku et al. (2019), Studying expressions of loneliness on Twitter, BMJ Open, doi:10.1136/bmjopen-2019-030355 — 관계 어려움·수면·식사 주제",
+    "team": "팀에서 추가"
+  },
+  "severity": {
+    "high": "직접적인 죽음·자해 언급 → 바로 상담 안내",
+    "medium": "절망·무가치감·자기비하·강한 고립 → 경고 없이 캐릭터가 안부, 기록",
+    "low": "절대주의 단어·수면/식욕 호소·외로움 → 사용자에게 아무것도 안 보이고 기록만"
+  },
+  "exclude": [
+    "자살예방",
+    "자살률",
+    "자살뉴스",
+    "자살보도",
+    "자해예방",
+    "배고파죽",
+    "웃겨죽",
+    "귀여워죽",
+    "졸려죽",
+    "더워죽",
+    "추워죽",
+    "심심해죽",
+    "좋아죽",
+    "보고싶어죽",
+    "끝내주",
+    "끝내줘",
+    "끝내줬",
+    "끝내준",
+    "살고싶지않으면",
+    "살기싫어하기보다",
+    "살기싫으면",
+    "하나만없으면"
+  ],
+  "terms": [
+    {
+      "term": "죽고싶",
+      "category": "death_wish",
+      "severity": "high",
+      "source": "warning_signs"
+    },
+    {
+      "term": "죽어버리고싶",
+      "category": "death_wish",
+      "severity": "high",
+      "source": "warning_signs"
+    },
+    {
+      "term": "죽어버릴까",
+      "category": "death_wish",
+      "severity": "high",
+      "source": "warning_signs"
+    },
+    {
+      "term": "죽었으면좋겠",
+      "category": "death_wish",
+      "severity": "high",
+      "source": "warning_signs"
+    },
+    {
+      "term": "죽는게낫",
+      "category": "death_wish",
+      "severity": "high",
+      "source": "warning_signs"
+    },
+    {
+      "term": "죽는편이낫",
+      "category": "death_wish",
+      "severity": "high",
+      "source": "warning_signs"
+    },
+    {
+      "term": "죽을방법",
+      "category": "suicide_plan",
+      "severity": "high",
+      "source": "warning_signs"
+    },
+    {
+      "term": "죽는방법",
+      "category": "suicide_plan",
+      "severity": "high",
+      "source": "warning_signs"
+    },
+    {
+      "term": "자살하고싶",
+      "category": "death_wish",
+      "severity": "high",
+      "source": "warning_signs"
+    },
+    {
+      "term": "자살할까",
+      "category": "death_wish",
+      "severity": "high",
+      "source": "warning_signs"
+    },
+    {
+      "term": "자살생각",
+      "category": "death_wish",
+      "severity": "high",
+      "source": "warning_signs"
+    },
+    {
+      "term": "자살충동",
+      "category": "death_wish",
+      "severity": "high",
+      "source": "warning_signs"
+    },
+    {
+      "term": "자살하려",
+      "category": "suicide_plan",
+      "severity": "high",
+      "source": "warning_signs"
+    },
+    {
+      "term": "자해하고싶",
+      "category": "self_harm",
+      "severity": "high",
+      "source": "warning_signs"
+    },
+    {
+      "term": "자해했",
+      "category": "self_harm",
+      "severity": "high",
+      "source": "warning_signs"
+    },
+    {
+      "term": "자해를했",
+      "category": "self_harm",
+      "severity": "high",
+      "source": "warning_signs"
+    },
+    {
+      "term": "자해충동",
+      "category": "self_harm",
+      "severity": "high",
+      "source": "warning_signs"
+    },
+    {
+      "term": "손목을긋",
+      "category": "self_harm",
+      "severity": "high",
+      "source": "warning_signs"
+    },
+    {
+      "term": "목숨을끊",
+      "category": "death_wish",
+      "severity": "high",
+      "source": "warning_signs"
+    },
+    {
+      "term": "생을마감",
+      "category": "death_wish",
+      "severity": "high",
+      "source": "warning_signs"
+    },
+    {
+      "term": "삶을끝내",
+      "category": "death_wish",
+      "severity": "high",
+      "source": "warning_signs"
+    },
+    {
+      "term": "인생을끝내",
+      "category": "death_wish",
+      "severity": "high",
+      "source": "warning_signs"
+    },
+    {
+      "term": "모든걸끝내고싶",
+      "category": "death_wish",
+      "severity": "high",
+      "source": "warning_signs"
+    },
+    {
+      "term": "다끝내고싶",
+      "category": "death_wish",
+      "severity": "high",
+      "source": "warning_signs"
+    },
+    {
+      "term": "세상을떠나고싶",
+      "category": "death_wish",
+      "severity": "high",
+      "source": "warning_signs"
+    },
+    {
+      "term": "사라지고싶",
+      "category": "death_wish",
+      "severity": "high",
+      "source": "warning_signs"
+    },
+    {
+      "term": "없어지고싶",
+      "category": "death_wish",
+      "severity": "high",
+      "source": "warning_signs"
+    },
+    {
+      "term": "사라져버리고싶",
+      "category": "death_wish",
+      "severity": "high",
+      "source": "warning_signs"
+    },
+    {
+      "term": "없어져버리고싶",
+      "category": "death_wish",
+      "severity": "high",
+      "source": "warning_signs"
+    },
+    {
+      "term": "살고싶지않",
+      "category": "death_wish",
+      "severity": "high",
+      "source": "warning_signs"
+    },
+    {
+      "term": "살기싫",
+      "category": "death_wish",
+      "severity": "high",
+      "source": "warning_signs"
+    },
+    {
+      "term": "더이상살수없",
+      "category": "death_wish",
+      "severity": "high",
+      "source": "warning_signs"
+    },
+    {
+      "term": "살아야할이유가없",
+      "category": "death_wish",
+      "severity": "high",
+      "source": "warning_signs"
+    },
+    {
+      "term": "살아갈이유가없",
+      "category": "death_wish",
+      "severity": "high",
+      "source": "warning_signs",
+      "note": "\"살 이유가 없다\"는 '사다(buy)'와 헷갈려서 \"살아갈 이유\"로 좁힘"
+    },
+    {
+      "term": "태어나지말았어야",
+      "category": "death_wish",
+      "severity": "high",
+      "source": "warning_signs"
+    },
+    {
+      "term": "내가없어지는게낫",
+      "category": "burden",
+      "severity": "high",
+      "source": "warning_signs"
+    },
+    {
+      "term": "내가없어지는것이낫",
+      "category": "burden",
+      "severity": "high",
+      "source": "warning_signs"
+    },
+    {
+      "term": "내가없으면다들편할",
+      "category": "burden",
+      "severity": "high",
+      "source": "warning_signs"
+    },
+    {
+      "term": "나만없으면",
+      "category": "burden",
+      "severity": "high",
+      "source": "warning_signs"
+    },
+    {
+      "term": "유서를쓰",
+      "category": "suicide_plan",
+      "severity": "high",
+      "source": "warning_signs"
+    },
+    {
+      "term": "유서를썼",
+      "category": "suicide_plan",
+      "severity": "high",
+      "source": "warning_signs"
+    },
+    {
+      "term": "뛰어내리고싶",
+      "category": "suicide_plan",
+      "severity": "high",
+      "source": "warning_signs"
+    },
+    {
+      "term": "뛰어내릴까",
+      "category": "suicide_plan",
+      "severity": "high",
+      "source": "warning_signs"
+    },
+    {
+      "term": "수면제를모아",
+      "category": "suicide_plan",
+      "severity": "high",
+      "source": "warning_signs"
+    },
+    {
+      "term": "번개탄",
+      "category": "suicide_plan",
+      "severity": "high",
+      "source": "warning_signs"
+    },
+    {
+      "term": "쓸모없",
+      "category": "worthlessness",
+      "severity": "medium",
+      "source": "warning_signs"
+    },
+    {
+      "term": "쓸모가없",
+      "category": "worthlessness",
+      "severity": "medium",
+      "source": "warning_signs"
+    },
+    {
+      "term": "아무짝에도",
+      "category": "worthlessness",
+      "severity": "medium",
+      "source": "warning_signs"
+    },
+    {
+      "term": "가치가없는사람",
+      "category": "worthlessness",
+      "severity": "medium",
+      "source": "warning_signs"
+    },
+    {
+      "term": "나같은건",
+      "category": "worthlessness",
+      "severity": "medium",
+      "source": "warning_signs"
+    },
+    {
+      "term": "나같은게",
+      "category": "worthlessness",
+      "severity": "medium",
+      "source": "warning_signs"
+    },
+    {
+      "term": "짐이되는것같",
+      "category": "burden",
+      "severity": "medium",
+      "source": "warning_signs"
+    },
+    {
+      "term": "짐만되",
+      "category": "burden",
+      "severity": "medium",
+      "source": "warning_signs"
+    },
+    {
+      "term": "민폐만",
+      "category": "burden",
+      "severity": "medium",
+      "source": "warning_signs"
+    },
+    {
+      "term": "다내탓",
+      "category": "self_blame",
+      "severity": "medium",
+      "source": "warning_signs"
+    },
+    {
+      "term": "내가다망쳤",
+      "category": "self_blame",
+      "severity": "medium",
+      "source": "warning_signs"
+    },
+    {
+      "term": "희망이없",
+      "category": "hopelessness",
+      "severity": "medium",
+      "source": "warning_signs"
+    },
+    {
+      "term": "희망이안보",
+      "category": "hopelessness",
+      "severity": "medium",
+      "source": "warning_signs"
+    },
+    {
+      "term": "미래가없",
+      "category": "hopelessness",
+      "severity": "medium",
+      "source": "warning_signs"
+    },
+    {
+      "term": "앞이안보",
+      "category": "hopelessness",
+      "severity": "medium",
+      "source": "warning_signs"
+    },
+    {
+      "term": "사는게의미가없",
+      "category": "hopelessness",
+      "severity": "medium",
+      "source": "warning_signs"
+    },
+    {
+      "term": "사는게무슨의미",
+      "category": "hopelessness",
+      "severity": "medium",
+      "source": "warning_signs"
+    },
+    {
+      "term": "버틸힘이없",
+      "category": "hopelessness",
+      "severity": "medium",
+      "source": "warning_signs"
+    },
+    {
+      "term": "더는못버티",
+      "category": "hopelessness",
+      "severity": "medium",
+      "source": "warning_signs"
+    },
+    {
+      "term": "더이상못버티",
+      "category": "hopelessness",
+      "severity": "medium",
+      "source": "warning_signs"
+    },
+    {
+      "term": "다포기하고싶",
+      "category": "hopelessness",
+      "severity": "medium",
+      "source": "warning_signs"
+    },
+    {
+      "term": "아무도날",
+      "category": "isolation",
+      "severity": "medium",
+      "source": "warning_signs"
+    },
+    {
+      "term": "아무도나를",
+      "category": "isolation",
+      "severity": "medium",
+      "source": "warning_signs"
+    },
+    {
+      "term": "내편은없",
+      "category": "isolation",
+      "severity": "medium",
+      "source": "warning_signs"
+    },
+    {
+      "term": "내편이없",
+      "category": "isolation",
+      "severity": "medium",
+      "source": "warning_signs"
+    },
+    {
+      "term": "세상에혼자",
+      "category": "isolation",
+      "severity": "medium",
+      "source": "warning_signs"
+    },
+    {
+      "term": "버려진것같",
+      "category": "isolation",
+      "severity": "medium",
+      "source": "warning_signs"
+    },
+    {
+      "term": "항상",
+      "category": "absolutist",
+      "severity": "low",
+      "source": "absolutist"
+    },
+    {
+      "term": "언제나",
+      "category": "absolutist",
+      "severity": "low",
+      "source": "absolutist"
+    },
+    {
+      "term": "맨날",
+      "category": "absolutist",
+      "severity": "low",
+      "source": "absolutist"
+    },
+    {
+      "term": "매번",
+      "category": "absolutist",
+      "severity": "low",
+      "source": "absolutist"
+    },
+    {
+      "term": "절대",
+      "category": "absolutist",
+      "severity": "low",
+      "source": "absolutist"
+    },
+    {
+      "term": "전혀",
+      "category": "absolutist",
+      "severity": "low",
+      "source": "absolutist"
+    },
+    {
+      "term": "결코",
+      "category": "absolutist",
+      "severity": "low",
+      "source": "absolutist"
+    },
+    {
+      "term": "아무것도",
+      "category": "absolutist",
+      "severity": "low",
+      "source": "absolutist"
+    },
+    {
+      "term": "하나도",
+      "category": "absolutist",
+      "severity": "low",
+      "source": "absolutist"
+    },
+    {
+      "term": "완전히",
+      "category": "absolutist",
+      "severity": "low",
+      "source": "absolutist"
+    },
+    {
+      "term": "영원히",
+      "category": "absolutist",
+      "severity": "low",
+      "source": "absolutist"
+    },
+    {
+      "term": "모든게",
+      "category": "absolutist",
+      "severity": "low",
+      "source": "absolutist"
+    },
+    {
+      "term": "모든것이",
+      "category": "absolutist",
+      "severity": "low",
+      "source": "absolutist"
+    },
+    {
+      "term": "잠을못",
+      "category": "somatic",
+      "severity": "low",
+      "source": "warning_signs"
+    },
+    {
+      "term": "잠이안와",
+      "category": "somatic",
+      "severity": "low",
+      "source": "warning_signs"
+    },
+    {
+      "term": "잠이안오",
+      "category": "somatic",
+      "severity": "low",
+      "source": "warning_signs"
+    },
+    {
+      "term": "입맛이없",
+      "category": "somatic",
+      "severity": "low",
+      "source": "warning_signs"
+    },
+    {
+      "term": "밥맛이없",
+      "category": "somatic",
+      "severity": "low",
+      "source": "warning_signs"
+    },
+    {
+      "term": "하루종일누워",
+      "category": "somatic",
+      "severity": "low",
+      "source": "loneliness"
+    },
+    {
+      "term": "아무것도하기싫",
+      "category": "low_mood",
+      "severity": "low",
+      "source": "warning_signs"
+    },
+    {
+      "term": "무기력",
+      "category": "low_mood",
+      "severity": "low",
+      "source": "team"
+    },
+    {
+      "term": "우울",
+      "category": "low_mood",
+      "severity": "low",
+      "source": "team"
+    },
+    {
+      "term": "공허",
+      "category": "low_mood",
+      "severity": "low",
+      "source": "team"
+    },
+    {
+      "term": "텅빈것같",
+      "category": "low_mood",
+      "severity": "low",
+      "source": "warning_signs"
+    },
+    {
+      "term": "외로",
+      "category": "isolation",
+      "severity": "low",
+      "source": "loneliness"
+    },
+    {
+      "term": "외롭",
+      "category": "isolation",
+      "severity": "low",
+      "source": "loneliness"
+    },
+    {
+      "term": "연락할사람이없",
+      "category": "isolation",
+      "severity": "low",
+      "source": "loneliness"
+    },
+    {
+      "term": "말할사람이없",
+      "category": "isolation",
+      "severity": "low",
+      "source": "loneliness"
+    },
+    {
+      "term": "만날사람이없",
+      "category": "isolation",
+      "severity": "low",
+      "source": "loneliness"
+    },
+    {
+      "term": "아무도안만나",
+      "category": "isolation",
+      "severity": "low",
+      "source": "loneliness"
+    },
+    {
+      "term": "집밖에안나가",
+      "category": "isolation",
+      "severity": "low",
+      "source": "team"
+    }
+  ]
+}

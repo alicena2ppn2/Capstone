@@ -1,17 +1,199 @@
 {
-  "_note": "프론트 frontend/src/utils/game.js(CHARACTERS), frontend/src/screens/Shop.jsx(CLOTHES)와 같은 값. method: starter(처음 제공) · milestone(레벨 도달 시 무료) · quest(하루 미션 모두 완료 시 무료) · 없음(구매)",
+  "_note": "프론트 frontend/src/utils/game.js(CHARACTERS), frontend/src/utils/clothes.js(CLOTHES), frontend/src/utils/decor.js(DECOR)와 같은 값. method: starter(처음 제공) · milestone(레벨 도달 시 무료) · quest(하루 미션 모두 완료 시 무료) · 없음(구매)",
   "characters": [
-    {"id": "potato", "name": "꼬질 감자 모찌", "level": 1, "price": 0, "method": "starter"},
-    {"id": "pink", "name": "복숭아 토끼 모찌", "level": 3, "price": 0, "method": "milestone"},
-    {"id": "mochi", "name": "구름 모찌", "level": 5, "price": 300},
-    {"id": "lavender", "name": "달빛 양 모찌", "level": 8, "price": 450},
-    {"id": "mint", "name": "새잎 거북 모찌", "level": 12, "price": 600},
-    {"id": "sky", "name": "하루 펭귄 모찌", "level": 1, "price": 0, "method": "quest"}
+    {
+      "id": "potato",
+      "name": "꼬질 감자 모찌",
+      "level": 1,
+      "price": 0,
+      "method": "starter"
+    },
+    {
+      "id": "pink",
+      "name": "복숭아 토끼 모찌",
+      "level": 3,
+      "price": 0,
+      "method": "milestone"
+    },
+    {
+      "id": "mochi",
+      "name": "구름 모찌",
+      "level": 5,
+      "price": 300
+    },
+    {
+      "id": "lavender",
+      "name": "달빛 양 모찌",
+      "level": 8,
+      "price": 450
+    },
+    {
+      "id": "mint",
+      "name": "새잎 거북 모찌",
+      "level": 12,
+      "price": 600
+    },
+    {
+      "id": "sky",
+      "name": "하루 펭귄 모찌",
+      "level": 1,
+      "price": 0,
+      "method": "quest"
+    }
   ],
   "outfits": [
-    {"id": "sky", "name": "하늘빛 맨투맨", "level": 1, "price": 120},
-    {"id": "berry", "name": "딸기 우유 티셔츠", "level": 1, "price": 180},
-    {"id": "leaf", "name": "새싹 산책복", "level": 3, "price": 220},
-    {"id": "star", "name": "별빛 잠옷", "level": 5, "price": 300}
+    {
+      "id": "sky",
+      "name": "하늘빛 맨투맨",
+      "level": 1,
+      "price": 120
+    },
+    {
+      "id": "berry",
+      "name": "딸기 우유 티셔츠",
+      "level": 1,
+      "price": 180
+    },
+    {
+      "id": "leaf",
+      "name": "새싹 산책복",
+      "level": 3,
+      "price": 220
+    },
+    {
+      "id": "star",
+      "name": "별빛 잠옷",
+      "level": 5,
+      "price": 300
+    }
+  ],
+  "decor_slots": {
+    "lamp": "전등",
+    "carpet": "카페트",
+    "frame": "액자",
+    "doll": "인형",
+    "scenery": "창밖 풍경"
+  },
+  "decor": [
+    {
+      "id": "lamp-moon",
+      "name": "달빛 전등",
+      "slot": "lamp",
+      "level": 1,
+      "price": 90
+    },
+    {
+      "id": "lamp-flower",
+      "name": "꽃잎 전등",
+      "slot": "lamp",
+      "level": 4,
+      "price": 180
+    },
+    {
+      "id": "carpet-peach",
+      "name": "복숭아 카페트",
+      "slot": "carpet",
+      "level": 1,
+      "price": 100
+    },
+    {
+      "id": "carpet-sea",
+      "name": "파도 카페트",
+      "slot": "carpet",
+      "level": 5,
+      "price": 220
+    },
+    {
+      "id": "frame-flower",
+      "name": "꽃밭 액자",
+      "slot": "frame",
+      "level": 2,
+      "price": 120
+    },
+    {
+      "id": "frame-night",
+      "name": "별밤 액자",
+      "slot": "frame",
+      "level": 6,
+      "price": 250
+    },
+    {
+      "id": "doll-bear",
+      "name": "포근 곰 인형",
+      "slot": "doll",
+      "level": 2,
+      "price": 140
+    },
+    {
+      "id": "doll-bunny",
+      "name": "낮잠 토끼 인형",
+      "slot": "doll",
+      "level": 7,
+      "price": 280
+    },
+    {
+      "id": "view-gangneung",
+      "name": "강릉 바다",
+      "slot": "scenery",
+      "level": 1,
+      "price": 150,
+      "landscape": "coast"
+    },
+    {
+      "id": "view-jeju",
+      "name": "제주도 유채밭",
+      "slot": "scenery",
+      "level": 3,
+      "price": 200,
+      "landscape": "jeju"
+    },
+    {
+      "id": "view-japan",
+      "name": "일본 벚꽃 거리",
+      "slot": "scenery",
+      "level": 4,
+      "price": 240,
+      "landscape": "sakura"
+    },
+    {
+      "id": "view-seorak",
+      "name": "설악산 단풍",
+      "slot": "scenery",
+      "level": 5,
+      "price": 280,
+      "landscape": "mountain"
+    },
+    {
+      "id": "view-guam",
+      "name": "괌 에메랄드 해변",
+      "slot": "scenery",
+      "level": 6,
+      "price": 320,
+      "landscape": "island"
+    },
+    {
+      "id": "view-hawaii",
+      "name": "하와이 노을",
+      "slot": "scenery",
+      "level": 8,
+      "price": 380,
+      "landscape": "sunset"
+    },
+    {
+      "id": "view-australia",
+      "name": "호주 시드니 항구",
+      "slot": "scenery",
+      "level": 10,
+      "price": 450,
+      "landscape": "harbour"
+    },
+    {
+      "id": "view-newyork",
+      "name": "뉴욕 야경",
+      "slot": "scenery",
+      "level": 12,
+      "price": 520,
+      "landscape": "city"
+    }
   ]
 }
