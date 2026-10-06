@@ -267,7 +267,7 @@ def test_level_up_after_enough_missions(client):
             saw_last_week = saw_last_week or m["id"] == "beat_last_week"
     level = client.get("/users/u1/level").json()
     assert leveled and saw_last_week
-    assert level == {"user_id": "u1", **ms.level_from_xp(total_xp)}   # 프론트와 같은 공식
+    assert level == {"user_id": "u1", **ms.level_from_xp(total_xp)}
     home = client.get("/users/u1/home", params={"date": "2026-10-09"}).json()
     assert home["level"] == {k: v for k, v in level.items() if k != "user_id"}
 
