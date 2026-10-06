@@ -5,4 +5,6 @@ fastapi
 uvicorn[standard]
 httpx
 python-multipart
+pillow
+pillow-heif
 pytest
