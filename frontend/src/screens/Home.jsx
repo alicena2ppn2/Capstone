@@ -1,11 +1,12 @@
 import Mochi from '../components/Mochi.jsx';
 import SeoulClock from '../components/SeoulClock.jsx';
 import HouseDecor from '../components/HouseDecor.jsx';
+import { QUESTS, levelFor } from '../utils/game.js';
 import { GearIcon, ShopIcon } from '../components/Icons.jsx';
 
-export function RoomBackdrop({ decor = {}, wallColor = '#D6EAF8', floorColor = '#EBCDA6' }) {
+export function RoomBackdrop({ decor = {}, wallColor = '#D6EAF8', floorColor = '#EBCDA6', homeScene = false }) {
   return (
-    <svg width="100%" height="100%" viewBox="0 0 368 838" preserveAspectRatio="none" aria-hidden="true" style={{ position: 'absolute', inset: 0 }}>
+    <svg width="100%" height="100%" viewBox={homeScene ? '0 55 368 500' : '0 0 368 838'} preserveAspectRatio={homeScene ? 'xMidYMid meet' : 'none'} aria-hidden="true" style={{ position: 'absolute', inset: 0 }}>
       <rect x="0" y="0" width="368" height="430" fill={wallColor} />
       <g stroke="#C7DFF2" strokeWidth="10">
         <line x1="20" y1="0" x2="20" y2="430" /><line x1="60" y1="0" x2="60" y2="430" /><line x1="100" y1="0" x2="100" y2="430" />
@@ -44,18 +45,13 @@ export function RoomBackdrop({ decor = {}, wallColor = '#D6EAF8', floorColor = '
   );
 }
 
-export default function Home({ petName = 'MOCHI', petColor, onQuest, onGuestbook, onVisit, onSettings, onShop, outfit, decor, active, reactionId, onReactionConsumed }) {
+export default function Home({ game, day, target, petName = 'MOCHI', petColor, onQuest, onGuestbook, onVisit, onSettings, onShop, outfit, decor, active, reactionId, onReactionConsumed }) {
   return <section className="home-screen" aria-label="내 집">
     <div className="home-room">
-      <RoomBackdrop decor={decor} />
-      <header className="home-room-heading">
-        <span>MY</span>
-        <button type="button" className="pb pet-name-title" onClick={onSettings} aria-label={`${petName}, 이름 바꾸기`}>{petName}</button>
-      </header>
+      <RoomBackdrop decor={decor} homeScene />
+      <button type="button" className="pb home-settings" onClick={onSettings} aria-label="설정" title="설정"><GearIcon size={22} /></button>
       <SeoulClock />
       <nav className="home-room-menus" aria-label="보조 메뉴">
-        <button type="button" className="pb" onClick={onSettings}><GearIcon size={22} />설정</button>
-        <button type="button" className="pb" onClick={onShop}><ShopIcon width={22} height={22} />상점</button>
         <button type="button" className="pb" onClick={onVisit}>
           <svg width="22" height="22" viewBox="0 0 24 24" aria-hidden="true"><path d="M3 11 L12 3 L21 11 M6 9 V21 H18 V9 M10 21 V14 H14 V21" fill="none" stroke="currentColor" strokeWidth="1.7" strokeLinejoin="round" /></svg>방문하기
         </button>
@@ -64,12 +60,20 @@ export default function Home({ petName = 'MOCHI', petColor, onQuest, onGuestbook
         </button>
       </nav>
       <div className="home-character">
-        <Mochi color={petColor} width={210} height={200} full asleep={false} label={petName} outfit={outfit} interactive active={active} reactionId={reactionId} onReactionConsumed={onReactionConsumed} />
+        <Mochi color={petColor} width="100%" height="100%" full asleep={false} label={petName} outfit={outfit} interactive active={active} reactionId={reactionId} onReactionConsumed={onReactionConsumed} />
+      </div>
+      <div className="home-identity">
+        <button type="button" className="pb pet-name-title home-nameplate" onClick={onSettings} aria-label={`${petName}, 이름 바꾸기`}>{petName}</button>
+        <div className="home-character-level"><strong>LV.{levelFor(game.xp)}</strong><progress value={game.xp % 100} max={100} aria-label="다음 레벨까지 경험치" /><span>{game.xp % 100} / 100 XP</span></div>
       </div>
     </div>
     <footer className="home-quest-actions">
-      <button type="button" className="pb home-quest-start" onClick={onQuest}>오늘의 도전</button>
-      <button type="button" className="pb home-decor-open" onClick={onShop}>꾸미기</button>
+      <button type="button" className="pb home-quest-start" onClick={onQuest}><svg width="24" height="24" viewBox="0 0 24 24" aria-hidden="true"><path d="M5 4 H19 V21 H5Z M9 2 H15 V6 H9Z M8 12 L10 14 L15 9 M8 18 H16" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinejoin="round" strokeLinecap="round" /></svg><span>오늘의 도전</span></button>
+      <button type="button" className="pb home-decor-open" onClick={onShop}><ShopIcon width={24} height={24} /><span>꾸미기</span></button>
     </footer>
+    <div className="home-progress-links">
+      {game.challengeDays?.[day]?.selected.map(id => <button type="button" className="pb" key={id} onClick={onQuest}>{QUESTS.find(q => q.id === id)?.name} · {game.completed.includes(`${day}:${id}`) ? '완료 ✓' : game.started?.includes(`${day}:${id}`) ? '도전 중' : '선택함'}</button>)}
+      {target && <button type="button" className="pb" onClick={onShop}>목표: {target.name} · {target.complete ? '획득 완료 ✓' : `코인 ${target.coinsNeeded ? `${target.coinsNeeded} 부족` : '충족'} · LV.${target.level} ${target.levelsNeeded ? `(${target.levelsNeeded}레벨 남음)` : '충족'}`}</button>}
+    </div>
   </section>;
 }
