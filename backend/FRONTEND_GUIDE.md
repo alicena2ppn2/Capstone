@@ -23,7 +23,8 @@ API를 직접 눌러 보려면 서버를 켜고 `http://localhost:8000/docs`.
 | 하루 펭귄 모찌 | 하루 퀘스트 아무거나 3개 | 매일 바뀌는 3개를 모두 완료 |
 | 시작 코인 | 540 | 0 |
 | 레벨 공식 | `1 + XP // 100` | 같음 |
-| 상점 상품·가격·레벨 조건 | `CHARACTERS`, `CLOTHES` | 같음 (`app/data/shop.json`) |
+| 상점 상품·가격·레벨 조건 | `CHARACTERS`, `CLOTHES`, `DECOR` | 같음 (`app/data/shop.json`) |
+| 집 꾸미기 보유·배치 | localStorage `ownedDecor`, `decor` | `GET /shop`의 `decor`·`placed`, `PUT /decor` |
 | 걸음 수 | 화면 안 가짜 값 | 만보기 값을 `POST /steps`로 올리고 `GET /home`의 `steps`를 표시 |
 | 방명록 | 샘플 8개, 화면을 떠나면 사라짐 | `GET·POST /guestbook` |
 
@@ -56,8 +57,10 @@ API를 직접 눌러 보려면 서버를 켜고 `http://localhost:8000/docs`.
 | 사진첩 | 월별 탭·달력 | `GET /users/{id}/album/months` |
 | 사진첩 | 사진 지우기 | `DELETE /users/{id}/photos/{photo_id}` |
 | 상점 | 목록·내 상태 | `GET /users/{id}/shop` |
-| 상점 | 구매 | `POST /users/{id}/shop/buy` `{type: "character"\|"outfit", item_id}` |
+| 상점 | 구매 | `POST /users/{id}/shop/buy` `{type: "character"\|"outfit"\|"decor", item_id}` |
 | 상점 | 장착 | `PUT /users/{id}/equipped` `{character_id}` 또는 `{outfit_id}` (`null`이면 기본 캐릭터 / 옷 벗기) |
+| 집 꾸미기 | 소품 놓기·빼기 | `PUT /users/{id}/decor` `{slot: "lamp", item_id: "lamp-moon"}` (`null`이면 비우기) → 방 모습 |
+| 홈·이웃 방문 | 방 그리기 | 내 방: `GET /home`의 `room` / 이웃 방: `GET /users/{이웃}/room` → `character`, `outfit`, `decor{slot: id}`, `scenery_landscape` |
 | 설정 | 닉네임 바꾸기 | `PATCH /users/{id}` `{nickname}` |
 | 설정 | 계정 삭제 | `DELETE /users/{id}` → localStorage `id`도 지우기 |
 
@@ -101,6 +104,19 @@ API를 직접 눌러 보려면 서버를 켜고 `http://localhost:8000/docs`.
 
 - 사진 파일을 **원본 그대로** 올린다 (리사이즈·캔버스 변환을 하면 서버 확인에 필요한 정보가 사라질 수 있음)
 - 서버가 사진을 확인하는 방법은 사용자에게 안내하지 않는다
+
+## 위기 표현 응답 (`care`)
+
+일기 저장(`PUT /diary`)과 글·목록 미션 완료 응답에 `care`가 들어온다.
+
+| `care.type` | 프론트 표시 |
+|---|---|
+| `support` | 다른 화면을 띄우지 말고 차분한 안내 카드: `message` + `contacts`(이름·번호·운영 시간). 번호는 누르면 바로 전화 (`tel:109`) |
+| `check_in` | 캐릭터 말풍선으로 `message` (경고처럼 보이지 않게) |
+| `null` | 아무것도 표시하지 않음 |
+
+- 어떤 단어가 걸렸는지, "위험도" 같은 말은 사용자에게 보여 주지 않는다
+- `support`가 와도 보상·레벨업 연출과 겹치지 않게, 안내 카드를 먼저 보여 준다
 
 ## 상점 상태 값
 
