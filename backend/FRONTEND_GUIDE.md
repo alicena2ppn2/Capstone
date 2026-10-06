@@ -41,7 +41,7 @@ API를 직접 눌러 보려면 서버를 켜고 `http://localhost:8000/docs`.
 | 홈 | 걸음·목표·코인·레벨·장착·말풍선 | `GET /users/{id}/home` |
 | 홈 | 만보기 걸음 올리기 (오늘 누적값, 덮어씀) | `POST /users/{id}/steps` `{date, steps}` |
 | 퀘스트 | 오늘 미션 목록 | `GET /users/{id}/missions/today` |
-| 퀘스트 | 사진 미션: 사진 올리고 → 완료 | `POST /users/{id}/photos` (multipart `file`) → `photo_id` → `POST …/missions/{mission_id}/complete` `{photos: [photo_id]}` |
+| 퀘스트 | 사진 미션: 사진 올리고 → 완료 | `POST /users/{id}/photos` (multipart `file`) → `photo_id` → `POST …/missions/{mission_id}/complete` `{photos: [photo_id]}`. 서버 확인에 걸리면 422 `detail` 문구를 그대로 보여 주면 됨 |
 | 퀘스트 | 찾아보기 미션 | `POST …/complete` `{items: [...], answer: "망원동"}` (`prompt`가 있으면 `answer` 필요) |
 | 퀘스트 | 걸음 미션 | `POST …/complete` `{}` (서버가 오늘 걸음으로 판정) |
 | 기록(일기) | 오늘의 주제 | `GET /users/{id}/diary/topic` |
@@ -52,6 +52,9 @@ API를 직접 눌러 보려면 서버를 켜고 `http://localhost:8000/docs`.
 | 이웃 방문 | 내 방에 온 친구 | `GET /users/{id}/visits` |
 | 방명록 | 목록 | `GET /users/{방주인}/guestbook?page=0&per_page=4` |
 | 방명록 | 쓰기 | `POST /users/{방주인}/guestbook` `{text, author_id: 내 id}` → 방명록 미션 자동 완료 (내 방은 제외) |
+| 사진첩 | 내 사진 (최신순, 미션 이름 표시) | `GET /users/{id}/album?page=0&per_page=30` → `photos[]`: `url`, `date`, `used_for.title` |
+| 사진첩 | 월별 탭·달력 | `GET /users/{id}/album/months` |
+| 사진첩 | 사진 지우기 | `DELETE /users/{id}/photos/{photo_id}` |
 | 상점 | 목록·내 상태 | `GET /users/{id}/shop` |
 | 상점 | 구매 | `POST /users/{id}/shop/buy` `{type: "character"\|"outfit", item_id}` |
 | 상점 | 장착 | `PUT /users/{id}/equipped` `{character_id}` 또는 `{outfit_id}` (`null`이면 기본 캐릭터 / 옷 벗기) |
@@ -93,6 +96,11 @@ API를 직접 눌러 보려면 서버를 켜고 `http://localhost:8000/docs`.
 - `earned`가 비어 있으면 이미 받은 보상 (중복 지급 없음)
 - `leveled_up` → 레벨업 연출, `new_items` → "새 캐릭터를 받았어요" 안내
 - 실패하면 `detail`에 사용자에게 보여 줄 수 있는 한국어 문장 (예: "아직 다른 친구 방에 놀러 가지 않았어요.")
+
+## 사진 올릴 때
+
+- 사진 파일을 **원본 그대로** 올린다 (리사이즈·캔버스 변환을 하면 서버 확인에 필요한 정보가 사라질 수 있음)
+- 서버가 사진을 확인하는 방법은 사용자에게 안내하지 않는다
 
 ## 상점 상태 값
 

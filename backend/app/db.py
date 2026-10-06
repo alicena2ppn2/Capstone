@@ -70,6 +70,9 @@ CREATE TABLE IF NOT EXISTS photos (
     user_id      TEXT NOT NULL,
     filename     TEXT NOT NULL,           -- 업로드 폴더 안 파일 이름
     content_type TEXT NOT NULL,
+    date         TEXT,                    -- 사진첩 날짜 (올린 날, 미션·일기에 쓰면 그날)
+    used_for     TEXT,                    -- 어디에 썼는지: 미션 id 또는 "diary". 아직 안 썼으면 NULL
+    taken_at     TEXT,                    -- 사진 파일의 촬영 일시 (EXIF). 없으면 NULL
     created_at   TEXT NOT NULL DEFAULT (datetime('now'))
 );
 CREATE TABLE IF NOT EXISTS diary (
@@ -115,6 +118,11 @@ def connect(path: str | os.PathLike | None = None) -> sqlite3.Connection:
     for col in ("author_id", "date"):
         if col not in cols:
             conn.execute(f"ALTER TABLE guestbook ADD COLUMN {col} TEXT")
+    # 사진첩용 날짜·용도가 없던 예전 사진 테이블이면 추가
+    cols = {r["name"] for r in conn.execute("PRAGMA table_info(photos)")}
+    for col in ("date", "used_for", "taken_at"):
+        if col not in cols:
+            conn.execute(f"ALTER TABLE photos ADD COLUMN {col} TEXT")
     conn.commit()
     return conn
 
@@ -325,12 +333,65 @@ def xp_total(conn, user_id: str) -> int:
 
 # --- 사진 ------------------------------------------------------------------------
 
-def add_photo(conn, photo_id: str, user_id: str, filename: str, content_type: str) -> None:
+def add_photo(conn, photo_id: str, user_id: str, filename: str, content_type: str,
+              date: str | None = None, taken_at: str | None = None) -> None:
     conn.execute(
-        "INSERT INTO photos (id, user_id, filename, content_type) VALUES (?, ?, ?, ?)",
-        (photo_id, user_id, filename, content_type),
+        "INSERT INTO photos (id, user_id, filename, content_type, date, taken_at) VALUES (?, ?, ?, ?, ?, ?)",
+        (photo_id, user_id, filename, content_type, date, taken_at),
     )
     conn.commit()
+
+
+def photo_taken_at(conn, photo_ids: list[str]) -> dict[str, str | None]:
+    if not photo_ids:
+        return {}
+    marks = ",".join("?" * len(photo_ids))
+    rows = conn.execute(f"SELECT id, taken_at FROM photos WHERE id IN ({marks})", tuple(photo_ids)).fetchall()
+    return {r["id"]: r["taken_at"] for r in rows}
+
+
+def tag_photos(conn, user_id: str, photo_ids: list[str], used_for: str, date: str) -> None:
+    """사진을 어디(미션 id 또는 "diary")에 언제 썼는지 기록한다. 사진첩에서 보여 줄 때 쓴다."""
+    conn.executemany(
+        "UPDATE photos SET used_for = ?, date = ? WHERE id = ? AND user_id = ?",
+        [(used_for, date, pid, user_id) for pid in photo_ids],
+    )
+    conn.commit()
+
+
+def album(conn, user_id: str, start: str | None, end: str | None, limit: int, offset: int) -> tuple[list[dict], int]:
+    """사진첩: 날짜 최신순. (사진 목록, 전체 개수)"""
+    where = "user_id = ? AND COALESCE(date, substr(created_at, 1, 10)) BETWEEN ? AND ?"
+    args = (user_id, start or "0000-00-00", end or "9999-99-99")
+    total = conn.execute(f"SELECT COUNT(*) AS n FROM photos WHERE {where}", args).fetchone()["n"]
+    rows = conn.execute(
+        f"SELECT id, COALESCE(date, substr(created_at, 1, 10)) AS date, used_for, taken_at, created_at FROM photos "
+        f"WHERE {where} ORDER BY date DESC, created_at DESC, id LIMIT ? OFFSET ?",
+        (*args, limit, offset),
+    ).fetchall()
+    return [dict(r) for r in rows], total
+
+
+def album_months(conn, user_id: str) -> list[dict]:
+    rows = conn.execute(
+        "SELECT substr(COALESCE(date, created_at), 1, 7) AS month, COUNT(*) AS count FROM photos "
+        "WHERE user_id = ? GROUP BY month ORDER BY month DESC",
+        (user_id,),
+    ).fetchall()
+    return [dict(r) for r in rows]
+
+
+def delete_photo(conn, user_id: str, photo_id: str) -> str | None:
+    """사진을 지우고 파일 이름을 돌려준다. 일기에 붙어 있던 것도 뗀다. 없거나 남의 사진이면 None."""
+    row = conn.execute("SELECT filename FROM photos WHERE id = ? AND user_id = ?", (photo_id, user_id)).fetchone()
+    if row is None:
+        return None
+    for d in conn.execute("SELECT date, photos FROM diary WHERE user_id = ? AND photos LIKE ?", (user_id, f"%{photo_id}%")).fetchall():
+        kept = [p for p in json.loads(d["photos"]) if p != photo_id]
+        conn.execute("UPDATE diary SET photos = ? WHERE user_id = ? AND date = ?", (json.dumps(kept), user_id, d["date"]))
+    conn.execute("DELETE FROM photos WHERE id = ?", (photo_id,))
+    conn.commit()
+    return row["filename"]
 
 
 def get_photo(conn, photo_id: str) -> dict | None:
