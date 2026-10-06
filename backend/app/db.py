@@ -30,10 +30,37 @@ CREATE TABLE IF NOT EXISTS inventory (
     acquired_at TEXT NOT NULL DEFAULT (datetime('now')),
     PRIMARY KEY (user_id, item_type, item_id)
 );
+CREATE TABLE IF NOT EXISTS decor_placement (
+    user_id TEXT NOT NULL,
+    slot    TEXT NOT NULL,                -- lamp | carpet | frame | doll | scenery
+    item_id TEXT NOT NULL,
+    PRIMARY KEY (user_id, slot)
+);
 CREATE TABLE IF NOT EXISTS equipped (
     user_id      TEXT PRIMARY KEY,
     character_id TEXT,
     outfit_id    TEXT
+);
+CREATE TABLE IF NOT EXISTS crisis_terms (     -- 위기 표현 목록 (app/data/crisis_lexicon.json을 서버 시작 때 그대로 옮김)
+    term     TEXT PRIMARY KEY,
+    category TEXT NOT NULL,
+    severity TEXT NOT NULL,                     -- high | medium | low
+    source   TEXT NOT NULL,
+    note     TEXT
+);
+CREATE TABLE IF NOT EXISTS crisis_signals (     -- 사용자 글에서 찾은 신호. 글 내용은 저장하지 않음
+    id         INTEGER PRIMARY KEY AUTOINCREMENT,
+    user_id    TEXT NOT NULL,
+    date       TEXT NOT NULL,
+    source     TEXT NOT NULL,                   -- diary | mission:<id>
+    level      TEXT NOT NULL,
+    categories TEXT NOT NULL,                   -- JSON
+    created_at TEXT NOT NULL DEFAULT (datetime('now'))
+);
+CREATE TABLE IF NOT EXISTS kote_comments (      -- KOTE 한국어 감정 댓글 (MIT). scripts/import_kote.py로 넣음
+    id     INTEGER PRIMARY KEY,
+    text   TEXT NOT NULL,
+    labels TEXT NOT NULL                        -- JSON 감정 이름 목록
 );
 CREATE TABLE IF NOT EXISTS steps (
     user_id TEXT NOT NULL,
@@ -124,7 +151,42 @@ def connect(path: str | os.PathLike | None = None) -> sqlite3.Connection:
         if col not in cols:
             conn.execute(f"ALTER TABLE photos ADD COLUMN {col} TEXT")
     conn.commit()
+    sync_crisis_terms(conn)
     return conn
+
+
+def sync_crisis_terms(conn) -> None:
+    """위기 표현 목록을 DB 표로 옮긴다 (JSON이 원본, 바꾸면 서버를 다시 켤 때 반영)."""
+    from .crisis import LEXICON
+    conn.execute("DELETE FROM crisis_terms")
+    conn.executemany(
+        "INSERT INTO crisis_terms (term, category, severity, source, note) VALUES (?, ?, ?, ?, ?)",
+        [(t["term"], t["category"], t["severity"], t["source"], t.get("note")) for t in LEXICON["terms"]],
+    )
+    conn.commit()
+
+
+def add_signal(conn, user_id: str, date: str, source: str, level: str, categories: list[str]) -> None:
+    conn.execute(
+        "INSERT INTO crisis_signals (user_id, date, source, level, categories) VALUES (?, ?, ?, ?, ?)",
+        (user_id, date, source, level, json.dumps(categories)),
+    )
+    conn.commit()
+
+
+def signals(conn, user_id: str, start: str, end: str) -> list[dict]:
+    rows = conn.execute(
+        "SELECT date, source, level, categories, created_at FROM crisis_signals "
+        "WHERE user_id = ? AND date BETWEEN ? AND ? ORDER BY date DESC, id DESC",
+        (user_id, start, end),
+    ).fetchall()
+    return [{**dict(r), "categories": json.loads(r["categories"])} for r in rows]
+
+
+def worst_signal(conn, user_id: str, date: str) -> str | None:
+    rows = conn.execute("SELECT DISTINCT level FROM crisis_signals WHERE user_id = ? AND date = ?", (user_id, date)).fetchall()
+    levels = {r["level"] for r in rows}
+    return next((lv for lv in ("high", "medium", "low") if lv in levels), None)
 
 
 # --- 사용자 ------------------------------------------------------------------------
@@ -191,6 +253,8 @@ def delete_user(conn, user_id: str) -> list[str]:
     conn.execute("DELETE FROM guestbook WHERE owner_id = ? OR author_id = ?", (user_id, user_id))
     conn.execute("DELETE FROM inventory WHERE user_id = ?", (user_id,))
     conn.execute("DELETE FROM equipped WHERE user_id = ?", (user_id,))
+    conn.execute("DELETE FROM decor_placement WHERE user_id = ?", (user_id,))
+    conn.execute("DELETE FROM crisis_signals WHERE user_id = ?", (user_id,))
     conn.execute("DELETE FROM users WHERE id = ?", (user_id,))
     conn.commit()
     return photos
@@ -225,6 +289,25 @@ def spend_coins(conn, user_id: str, date: str, item_key: str, coins: int) -> Non
         (user_id, date, item_key, -coins),
     )
     conn.commit()
+
+
+def get_decor(conn, user_id: str) -> dict[str, str]:
+    """자리별로 놓은 소품 {slot: item_id}. 비어 있는 자리는 없음."""
+    rows = conn.execute("SELECT slot, item_id FROM decor_placement WHERE user_id = ?", (user_id,)).fetchall()
+    return {r["slot"]: r["item_id"] for r in rows}
+
+
+def set_decor(conn, user_id: str, slot: str, item_id: str | None) -> dict[str, str]:
+    if item_id is None:
+        conn.execute("DELETE FROM decor_placement WHERE user_id = ? AND slot = ?", (user_id, slot))
+    else:
+        conn.execute(
+            "INSERT INTO decor_placement (user_id, slot, item_id) VALUES (?, ?, ?) "
+            "ON CONFLICT (user_id, slot) DO UPDATE SET item_id = excluded.item_id",
+            (user_id, slot, item_id),
+        )
+    conn.commit()
+    return get_decor(conn, user_id)
 
 
 def get_equipped(conn, user_id: str) -> dict:
