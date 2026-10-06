@@ -24,7 +24,7 @@ CREATE TABLE IF NOT EXISTS users (
 );
 CREATE TABLE IF NOT EXISTS inventory (
     user_id     TEXT NOT NULL,
-    item_type   TEXT NOT NULL,            -- character | outfit
+    item_type   TEXT NOT NULL,            -- character | outfit | decor
     item_id     TEXT NOT NULL,
     how         TEXT NOT NULL,            -- bought | starter | milestone | quest
     acquired_at TEXT NOT NULL DEFAULT (datetime('now')),
