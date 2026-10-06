@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useState } from 'react';
+import { useCallback, useEffect, useRef, useState } from 'react';
 import Home from './screens/Home.jsx';
 import Visit from './screens/Visit.jsx';
 import Quest from './screens/Quest.jsx';
@@ -48,15 +48,31 @@ export default function App() {
     return true;
   };
   const wear = (id) => setWardrobe((value) => id === null || ownedClothes.includes(id) ? { ...value, outfit: id } : value);
+  const observed = useRef({ quest: game.questReward?.sequence ?? 0, outfit: wardrobe.outfit });
+  const reactionSequence = useRef(0);
+  const [potatoReaction, setPotatoReaction] = useState(null);
+  useEffect(() => {
+    const quest = game.questReward?.sequence ?? 0;
+    const outfitChanged = wardrobe.outfit !== null && wardrobe.outfit !== observed.current.outfit;
+    if ((quest !== observed.current.quest || outfitChanged) && game.character === 'potato') {
+      setPotatoReaction(++reactionSequence.current);
+    }
+    observed.current = { quest, outfit: wardrobe.outfit };
+  }, [game.questReward?.sequence, wardrobe.outfit, game.character]);
+  const consumePotatoReaction = useCallback(id => setPotatoReaction(value => value === id ? null : value), []);
+  useEffect(() => {
+    if (screen === 'home' && game.character !== 'potato') setPotatoReaction(null);
+  }, [screen, game.character]);
 
   return (
     <CharacterContext.Provider value={game.character ?? 'potato'}>
     <div className="app">
-      <div className="phone-shell">
+      <div className={`phone-shell${screen === 'home' ? ' is-home' : ''}`}>
       <Attendance records={game.attendance} plans={game.attendancePlans ?? {}} onPrepare={prepareAttendance} onClaim={(date) => setGame(value => claimAttendance({ ...ensureAttendanceWeek(value, date), attendanceClothes: ownedClothes }, date))} />
       <div className="growth-bar"><strong>LV.{level}</strong><progress value={game.xp % 100} max="100" aria-label="다음 레벨까지 경험치" /><span>{game.xp % 100} / 100 XP</span><button type="button" className="pb" onClick={() => setScreen('quest')}>퀘스트 →</button></div>
+      {screen === 'home' && <div className="home-wallet" aria-label={`보유 코인 ${game.coins}`}><span aria-hidden="true">●</span><strong>{game.coins.toLocaleString('ko-KR')}</strong><span>코인</span></div>}
       <div className={`phone-content${screen === 'quest' ? ' is-quest' : ''}`}>
-      <div className="phone-page" hidden={screen !== 'home'}><Home level={level} petName={petName} petColor={petColor} onQuest={() => setScreen('quest')} onGuestbook={() => setScreen('guest')} onVisit={() => setScreen('visit')} onSettings={() => setScreen('settings')} onShop={() => setScreen('shop')} coins={game.coins} outfit={outfit} decor={game.decor ?? {}} onEarnCoins={() => setGame((value) => ({ ...value, coins: value.coins + 5 }))} /></div>
+      <div className="phone-page" hidden={screen !== 'home'}><Home active={screen === 'home'} reactionId={potatoReaction} onReactionConsumed={consumePotatoReaction} petName={petName} petColor={petColor} onQuest={() => setScreen('quest')} onGuestbook={() => setScreen('guest')} onVisit={() => setScreen('visit')} onSettings={() => setScreen('settings')} onShop={() => setScreen('shop')} coins={game.coins} outfit={outfit} decor={game.decor ?? {}} /></div>
       {screen === 'visit' && <Visit visitorName={petName} visitorVariant={game.character ?? 'potato'} onBack={() => setScreen('home')} />}
       {screen === 'quest' && <Quest game={game} onStart={id => setGame(value => startQuest(value, id))} onComplete={(id, answer) => setGame((value) => completeQuest(value, id, new Date(), answer))} petColor={petColor} onShop={() => setScreen('shop')} onSettings={() => setScreen('settings')} onHome={() => setScreen('home')} />}
       {screen === 'guest' && <Guestbook petName={petName} level={level} petColor={petColor} onShop={() => setScreen('shop')} onSettings={() => setScreen('settings')} onHome={() => setScreen('home')} />}

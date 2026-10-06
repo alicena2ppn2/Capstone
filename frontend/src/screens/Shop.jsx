@@ -50,7 +50,7 @@ export default function Shop({ game, level, onBuyCharacter, onEquipCharacter, on
         <button type="button" className="pb" aria-pressed={tab === 'all'} onClick={() => setTab('all')}>모든 옷</button>
         <button type="button" className="pb" aria-pressed={tab === 'owned'} onClick={() => setTab('owned')}>내 옷장 <span>{owned.length}</span></button>
       </div>
-      <p className="shop-hint">옷을 눌러 미리 입어보세요. 산책하면 코인도 모을 수 있어요!</p>
+      <p className="shop-hint">옷을 눌러 미리 입어보세요. 퀘스트로 모은 코인으로 꾸며요!</p>
       <div className="shop-grid">
         {items.map((item) => {
           const has = owned.includes(item.id);
