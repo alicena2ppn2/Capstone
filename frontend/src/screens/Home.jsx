@@ -52,10 +52,10 @@ export default function Home({ game, day, target, petName = 'MOCHI', petColor, o
       <button type="button" className="pb home-settings" onClick={onSettings} aria-label="설정" title="설정"><GearIcon size={22} /></button>
       <SeoulClock />
       <nav className="home-room-menus" aria-label="보조 메뉴">
-        <button type="button" className="pb" onClick={onVisit}>
+        <button type="button" className="pb home-visit-button" onClick={onVisit}>
           <svg width="22" height="22" viewBox="0 0 24 24" aria-hidden="true"><path d="M3 11 L12 3 L21 11 M6 9 V21 H18 V9 M10 21 V14 H14 V21" fill="none" stroke="currentColor" strokeWidth="1.7" strokeLinejoin="round" /></svg>방문하기
         </button>
-        <button type="button" className="pb" onClick={onGuestbook}>
+        <button type="button" className="pb home-guestbook-button" onClick={onGuestbook}>
           <svg width="22" height="22" viewBox="0 0 24 24" aria-hidden="true"><path d="M5 3 H19 V16 L14 21 H5Z M14 21 V16 H19 M8 8 H16 M8 12 H15" fill="none" stroke="currentColor" strokeWidth="1.7" strokeLinejoin="round" /></svg>방명록
         </button>
       </nav>
