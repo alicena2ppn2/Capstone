@@ -1,7 +1,5 @@
 # MOCHI — 앱 소개
 
-> **측정은 조용하게, 변화는 정확하게, 개입은 부드럽게.**
-
 모찌라는 캐릭터를 함께 키우면서, 매일 작은 미션으로 **밖에 한 발 나가고, 하루를 기록하고, 다른 사람과 가볍게 연결되도록** 돕는 생활 리듬 회복 앱입니다.
 
 최종 갱신: 2026-10-06 · 연구 배경과 설계 근거는 [README](README.md), 서버는 [backend/README](backend/README.md), 화면은 [frontend/README](frontend/README.md)
@@ -23,6 +21,27 @@
 - 재미있게, 매일 조금씩
 
 다시 밖으로, 다시 사람에게 이어지도록 돕는 것을 목표로 합니다.
+
+## 사전 조사: 게임은 실제로 사람을 밖으로 움직였다
+
+위치 기반 게임 **포켓몬고**는 포켓몬을 잡으려면 실제로 여러 장소를 걸어 다녀야 합니다. 출시(2016) 뒤 여러 연구에서 플레이어의 실제 걸음이 늘어난 것이 측정됐습니다.
+
+| 사례 | 연구 | 결과 |
+|---|---|---|
+| 포켓몬고 · 걸음 | Althoff 외 2016, *JMIR* — Microsoft Band 사용자 3만 2천 명의 걸음 기록 | 열심히 한 사용자는 30일 동안 하루 평균 **1,473보** 더 걸음 (이전보다 25% 이상). 기존 운동 앱이 잘 닿지 못하던 **활동이 적은 사람에게도 닿을 수 있다**고 결론 |
+| 포켓몬고 · 청년 | Howe 외 2016, *BMJ* — 미국 18~35세 1,182명 | 설치 첫 주 하루 **955보** 증가, 이후 줄어 **6주 뒤에는 원래 수준** |
+| 포켓몬고 · 종합 | Khamzina 외 2020, *American Journal of Preventive Medicine* — 연구 17편, 3만 3,108명 메타분석 | 하루 **1,446보** 증가, 앉아 있는 시간 감소. **처음의 신선함이 사라진 뒤에도 계속 참여하게 만드는 것**이 과제 |
+| 포켓몬고 · 마음 건강 | Watanabe 외 2017, *Scientific Reports* — 일본 직장인 3,915명 추적 | 계속 플레이한 사람이 하지 않은 사람보다 **심리적 고통이 더 많이 줄어듦** (효과 크기는 작음) |
+| 포켓몬고 · 은둔(히키코모리) | Tateno 외 2016, *Psychiatry Research* · Kato 외 2017, *Psychiatry and Clinical Neurosciences* | 정신의학자들이 **은둔 청년을 방 밖으로 이끌 가능성**을 제기 (수치 연구가 아닌 전문가 서신) |
+| SPARX · 우울 | Merry 외 2012, *BMJ* — 12~19세 187명 무작위 대조 시험 | 판타지 게임 형태의 인지행동치료가 **일반 치료보다 못하지 않음** |
+
+**MOCHI 설계에 가져온 것**
+
+1. **게임 목표가 실제 장소·이동과 연결되면 걸음이 는다** → 하늘·공원·동네 사진 미션, 걸음 목표
+2. **활동이 적은 사람에게도 닿을 수 있다** → 집 앞 5분처럼 아주 작은 미션부터 시작
+3. **효과는 몇 주 만에 줄어든다** → 매일 바뀌는 미션, 매일 다른 일기 주제, 캐릭터·소품 수집, 이웃과의 연결로 오래 이어 가게 설계
+
+은둔에 대한 직접적인 수치 근거는 아직 사례·의견 수준입니다. MOCHI는 걸음과 미션 기록으로 이 효과를 직접 확인하는 것을 목표로 합니다.
 
 ## 앱의 목적
 
@@ -101,7 +120,7 @@ MOCHI에서 게임 요소가 하는 일:
 |---|---|
 | 위기 표현 | 공식 자살 경고 신호 분류와 언어 연구를 바탕으로 만든 표현 목록과 일치 여부로 확인 (AI 판단은 아직 쓰지 않음). 직접적인 위험 표현이면 109 자살예방 상담전화, 1577-0199 정신건강 위기상담 안내 |
 | 일기 내용 | 위기 확인 기록에는 글 내용을 저장하지 않고 날짜·위험도·분류만 남김 |
-| 사진 | 본인이 올린 사진만 미션으로 인정. 촬영 일시는 서버에만 저장 |
+| 사진 | 본인이 올린 사진만 미션으로 인정. |
 | 계정 삭제 | 걸음·미션·코인·사진·일기·방문·방명록·상점 기록까지 모두 삭제 (App Store 필수 요건) |
 | 진단 아님 | 의료 진단이나 치료를 대신하지 않음 |
 
@@ -126,3 +145,13 @@ MOCHI에서 게임 요소가 하는 일:
 - 위기 표현은 단어 일치 방식이라 문맥(남 이야기, 반어)을 구분하지 못합니다.
 - 사진 촬영 일시는 조작할 수 있어 완벽한 부정 방지는 아닙니다.
 - 합성 데이터는 탐지 로직 검증용이며 실제 사용자 분포를 대표하지 않습니다.
+
+## 참고 문헌
+
+- Althoff T, White RW, Horvitz E. Influence of Pokémon Go on Physical Activity: Study and Implications. *J Med Internet Res*. 2016;18(12):e315. [doi:10.2196/jmir.6759](https://doi.org/10.2196/jmir.6759)
+- Howe KB, Suharlim C, Ueda P, Howe D, Kawachi I, Rimm EB. Gotta catch'em all! Pokémon GO and physical activity among young adults: difference in differences study. *BMJ*. 2016;355:i6270. [doi:10.1136/bmj.i6270](https://doi.org/10.1136/bmj.i6270)
+- Khamzina M, Parab KV, An R, Bullard T, Grigsby-Toussaint DS. Impact of Pokémon Go on Physical Activity: A Systematic Review and Meta-Analysis. *Am J Prev Med*. 2020;58(2):270-282. [doi:10.1016/j.amepre.2019.09.005](https://doi.org/10.1016/j.amepre.2019.09.005)
+- Watanabe K, Kawakami N, Imamura K, et al. Pokémon GO and psychological distress, physical complaints, and work performance among adult workers: a retrospective cohort study. *Sci Rep*. 2017;7:10758. [doi:10.1038/s41598-017-11176-2](https://doi.org/10.1038/s41598-017-11176-2)
+- Tateno M, Skokauskas N, Kato TA, Teo AR, Guerrero APS. New game software (Pokémon Go) may help youth with severe social withdrawal, hikikomori. *Psychiatry Res*. 2016;246:848-849. [doi:10.1016/j.psychres.2016.10.038](https://doi.org/10.1016/j.psychres.2016.10.038)
+- Kato TA, Teo AR, Tateno M, Watabe M, Kubo H, Kanba S. Can Pokémon GO rescue shut-ins (hikikomori) from their isolated world? *Psychiatry Clin Neurosci*. 2017;71(1):75-76. [doi:10.1111/pcn.12481](https://doi.org/10.1111/pcn.12481)
+- Merry SN, Stasiak K, Shepherd M, Frampton C, Fleming T, Lucassen MFG. The effectiveness of SPARX, a computerised self help intervention for adolescents seeking help for depression: randomised controlled non-inferiority trial. *BMJ*. 2012;344:e2598. [doi:10.1136/bmj.e2598](https://doi.org/10.1136/bmj.e2598)
