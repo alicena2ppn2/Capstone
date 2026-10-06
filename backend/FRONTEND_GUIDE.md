@@ -22,7 +22,7 @@ API를 직접 눌러 보려면 서버를 켜고 `http://localhost:8000/docs`.
 | 출석 보상 | 무작위 (코인 10·20·30 또는 XP 20·35·50) | 고정 10 코인 · 10 XP |
 | 하루 펭귄 모찌 | 하루 퀘스트 아무거나 3개 | 매일 바뀌는 3개를 모두 완료 |
 | 시작 코인 | 540 | 0 |
-| 레벨 공식 | `1 + XP // 100` | 같음 |
+| 레벨 공식 | `1 + XP // 100` (레벨마다 100) | 다음 레벨까지 100 + 150 × (레벨 − 1) → 100, 250, 400 … **프론트도 서버 `level` 값을 그대로 표시** |
 | 상점 상품·가격·레벨 조건 | `CHARACTERS`, `CLOTHES`, `DECOR` | 같음 (`app/data/shop.json`) |
 | 집 꾸미기 보유·배치 | localStorage `ownedDecor`, `decor` | `GET /shop`의 `decor`·`placed`, `PUT /decor` |
 | 걸음 수 | 화면 안 가짜 값 | 만보기 값을 `POST /steps`로 올리고 `GET /home`의 `steps`를 표시 |
@@ -91,12 +91,13 @@ API를 직접 눌러 보려면 서버를 켜고 `http://localhost:8000/docs`.
 
 ```json
 {"earned": [{"id": "sky_photo", "coins": 30, "xp": 100}], "earned_total": 30, "earned_xp": 100,
- "coins": 340, "level": {"level": 4, "xp": 310, "xp_in_level": 10, "xp_to_next": 90, "xp_for_level": 100},
+ "coins": 340, "level": {"level": 3, "xp": 410, "xp_in_level": 60, "xp_to_next": 340, "xp_for_level": 400},
  "leveled_up": true, "all_done": false,
  "new_items": [{"type": "character", "id": "pink", "name": "복숭아 토끼 모찌"}]}
 ```
 
 - `earned`가 비어 있으면 이미 받은 보상 (중복 지급 없음)
+- 레벨 진행 바: `xp_in_level` / `xp_for_level` (레벨마다 필요한 양이 다르므로 서버 값을 그대로 사용)
 - `leveled_up` → 레벨업 연출, `new_items` → "새 캐릭터를 받았어요" 안내
 - 실패하면 `detail`에 사용자에게 보여 줄 수 있는 한국어 문장 (예: "아직 다른 친구 방에 놀러 가지 않았어요.")
 

@@ -243,7 +243,8 @@ def test_all_done_does_not_need_attendance():
 
 
 @pytest.mark.parametrize("xp, level, in_level, to_next", [
-    (0, 1, 0, 100), (99, 1, 99, 1), (100, 2, 0, 100), (250, 3, 50, 50), (1100, 12, 0, 100),
+    (0, 1, 0, 100), (99, 1, 99, 1), (100, 2, 0, 250), (349, 2, 249, 1), (350, 3, 0, 400),
+    (1300, 5, 0, 700), (3850, 8, 0, 1150), (9350, 12, 0, 1750),
 ])
 def test_level_from_xp(xp, level, in_level, to_next):
     r = ms.level_from_xp(xp)
@@ -298,3 +299,12 @@ def test_last_week_daily_only_with_history():
     assert no_history[:5] == ["attendance", "walk", "diary", "visit", "guestbook"]
     assert "beat_last_week" not in no_history
     assert len(with_history) == len(no_history) + 1
+
+
+def test_levels_get_slower():
+    needs = [ms.xp_for_next(n) for n in range(1, 20)]
+    assert needs[0] == 100 and all(b > a for a, b in zip(needs, needs[1:]))   # 갈수록 더 많이 필요
+    assert [ms.xp_to_reach(n) for n in (2, 3, 5, 8, 12)] == [100, 350, 1300, 3850, 9350]
+    for n in range(1, 30):                                                    # 경계값이 정확히 그 레벨
+        assert ms.level_from_xp(ms.xp_to_reach(n))["level"] == n
+        assert ms.level_from_xp(ms.xp_to_reach(n) - 1)["level"] == max(1, n - 1)
