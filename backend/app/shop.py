@@ -1,4 +1,4 @@
-"""상점: 캐릭터·의상 목록과 지급 규칙.
+"""상점: 캐릭터·의상·집 꾸미기 소품 목록과 지급 규칙.
 
 상품 목록은 app/data/shop.json (프론트 game.js·Shop.jsx와 같은 값).
 - starter   : 처음부터 가지고 있음 (꼬질 감자 모찌)
@@ -13,14 +13,14 @@ import json
 from pathlib import Path
 
 CATALOG_PATH = Path(__file__).resolve().parent / "data" / "shop.json"
-TYPES = ("character", "outfit")
+TYPES = ("character", "outfit", "decor")
 DEFAULT_CHARACTER = "potato"
 
 
 def load_catalog(path: Path = CATALOG_PATH) -> dict[str, dict[str, dict]]:
     raw = json.loads(path.read_text(encoding="utf-8"))
     catalog: dict[str, dict[str, dict]] = {}
-    for kind, key in (("character", "characters"), ("outfit", "outfits")):
+    for kind, key in (("character", "characters"), ("outfit", "outfits"), ("decor", "decor")):
         items = {}
         for row in raw[key]:
             item = {"level": 1, "price": 0, "method": None, **row, "type": kind}
@@ -28,6 +28,8 @@ def load_catalog(path: Path = CATALOG_PATH) -> dict[str, dict[str, dict]]:
                 raise ValueError(f"상품 id 중복: {kind}/{item['id']}")
             if item["method"] not in (None, "starter", "milestone", "quest"):
                 raise ValueError(f"알 수 없는 획득 방법: {kind}/{item['id']} → {item['method']}")
+            if kind == "decor" and item.get("slot") not in raw["decor_slots"]:
+                raise ValueError(f"알 수 없는 소품 자리: {item['id']} → {item.get('slot')}")
             items[item["id"]] = item
         catalog[kind] = items
     if DEFAULT_CHARACTER not in catalog["character"]:
@@ -36,6 +38,7 @@ def load_catalog(path: Path = CATALOG_PATH) -> dict[str, dict[str, dict]]:
 
 
 CATALOG = load_catalog()
+DECOR_SLOTS: dict[str, str] = json.loads(CATALOG_PATH.read_text(encoding="utf-8"))["decor_slots"]   # 자리 id → 이름
 
 
 def free_grants(level: int, all_done: bool) -> list[tuple[str, str]]:
