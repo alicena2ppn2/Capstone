@@ -1,4 +1,6 @@
 import { useCallback, useEffect, useRef, useState } from 'react';
+import Diary from './screens/Diary.jsx';
+import { saveJournal, deleteJournal } from './utils/journal.js';
 import Home from './screens/Home.jsx';
 import Visit from './screens/Visit.jsx';
 import Quest from './screens/Quest.jsx';
@@ -80,7 +82,8 @@ export default function App() {
       {screen === 'home' && <div className="home-wallet" aria-label={`보유 코인 ${game.coins}`}><span aria-hidden="true">●</span><strong>{game.coins.toLocaleString('ko-KR')}</strong><span>코인</span></div>}
       </div>
       <div className={`phone-content${screen === 'quest' ? ' is-quest' : ''}`}>
-      <div className="phone-page" hidden={screen !== 'home'}><Home game={game} day={day} target={targetStatus(game, ownedClothes)} active={screen === 'home'} reactionId={potatoReaction} onReactionConsumed={consumePotatoReaction} petName={petName} petColor={petColor} onQuest={() => setScreen('quest')} onGuestbook={() => setScreen('guest')} onVisit={() => setScreen('visit')} onSettings={() => setScreen('settings')} onShop={() => setScreen('shop')} coins={game.coins} outfit={outfit} decor={game.decor ?? {}} /></div>
+      <div className="phone-page" hidden={screen !== 'home'}><Home game={game} day={day} target={targetStatus(game, ownedClothes)} active={screen === 'home'} reactionId={potatoReaction} onReactionConsumed={consumePotatoReaction} petName={petName} petColor={petColor} onQuest={() => setScreen('quest')} onDiary={() => setScreen('diary')} onGuestbook={() => setScreen('guest')} onVisit={() => setScreen('visit')} onSettings={() => setScreen('settings')} onShop={() => setScreen('shop')} coins={game.coins} outfit={outfit} decor={game.decor ?? {}} /></div>
+      {screen === 'diary' && <Diary game={game} day={day} onSave={(date, text) => setGame(value => saveJournal(value, date, text))} onDelete={date => setGame(value => deleteJournal(value, date))} onHome={() => setScreen('home')} />}
       {screen === 'visit' && <Visit visitorName={petName} visitorVariant={game.character ?? 'potato'} onBack={() => setScreen('home')} />}
       {screen === 'quest' && <Quest game={game}
         onPrepare={prepareChallenges}
@@ -89,7 +92,7 @@ export default function App() {
         onPause={(id, date, reason) => setGame(value => pauseChallenge(value, id, date, reason))}
         onFeedback={(key, response) => setGame(value => ({ ...value, feedback: { ...value.feedback, [key]: response } }))}
         onProfile={(field, text, key) => setGame(value => field === 'choice' ? ({ ...value, challengeChoices: { ...value.challengeChoices, [key]: text } }) : ({ ...value, preferences: { ...value.preferences, [field]: text.slice(0, 80) } }))}
-        onJournal={(date, text) => setGame(value => ({ ...value, journals: { ...value.journals, [date]: text } }))}
+        onJournal={(date, text) => setGame(value => saveJournal(value, date, text))}
         onGoal={id => setGame(value => claimGoal(value, id))} onStart={id => setGame(value => startQuest(value, id))} onComplete={(id, answer) => setGame((value) => completeQuest(value, id, new Date(), answer))} petColor={petColor} onShop={() => setScreen('shop')} onSettings={() => setScreen('settings')} onHome={() => setScreen('home')} />}
       {screen === 'guest' && <Guestbook petName={petName} level={level} petColor={petColor} onShop={() => setScreen('shop')} onSettings={() => setScreen('settings')} onHome={() => setScreen('home')} />}
       <div className="phone-page" hidden={screen !== 'settings'}><Settings key={game.character} petColor={petColor} petName={petName} onPetName={rename} onBack={() => setScreen('home')} /></div>
