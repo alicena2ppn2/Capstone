@@ -131,6 +131,121 @@ API를 직접 눌러 보려면 서버를 켜고 `http://localhost:8000/docs`.
 | `locked` | 레벨 부족 | 캐릭터는 `name: null` → `???` |
 | `hidden` | 조건 달성 전 비공개 (하루 펭귄) | `?` |
 
+## Expo(React Native) 앱에서 연결하기
+
+`mobile/`(Expo SDK 57, expo-router, AsyncStorage) 기준. 아래 코드는 **예시**이고, 앱 코드에 넣을 때는 프론트에서 구조에 맞게 옮긴다.
+
+### 1. 서버 주소와 요청 함수
+
+```js
+// 예: mobile/src/api.js
+const API_URL = process.env.EXPO_PUBLIC_API_URL;   // mobile/.env 에 EXPO_PUBLIC_API_URL=http://192.168.0.10:8000
+
+export async function api(path, { method = 'GET', body, token } = {}) {
+  const res = await fetch(`${API_URL}${path}`, {
+    method,
+    headers: {
+      ...(body && !(body instanceof FormData) ? { 'Content-Type': 'application/json' } : {}),
+      ...(token ? { Authorization: `Bearer ${token}` } : {}),   // Supabase 연결 후
+    },
+    body: body instanceof FormData ? body : body ? JSON.stringify(body) : undefined,
+  });
+  const data = await res.json().catch(() => null);
+  if (!res.ok) throw new Error(data?.detail ?? '잠시 후 다시 시도해 주세요.');   // detail은 사용자에게 보여 줘도 되는 문장
+  return data;
+}
+```
+
+- **휴대폰(Expo Go)에서는 `localhost`가 휴대폰 자신을 가리킨다.** 서버를 `uvicorn app.main:app --host 0.0.0.0 --port 8000`으로 켜고, 컴퓨터의 내부 IP(예: `192.168.0.10`)를 주소로 쓴다. 휴대폰과 컴퓨터가 같은 와이파이여야 하고, Windows 방화벽에서 8000 포트를 허용해야 할 수 있다
+- 네이티브 앱 요청에는 CORS가 필요 없다. Expo 웹(`npx expo start --web`)으로 볼 때만 서버의 `CORS_ORIGINS`에 그 주소를 추가
+- **`?date=`는 보내지 않는다** (서버가 서울 날짜로 판단). 시연할 때만 사용
+
+### 2. 앱을 열 때 (출석 + 홈)
+
+```js
+import { AppState } from 'react-native';
+
+async function onAppOpen(userId) {
+  await api(`/users/${userId}/attendance`, { method: 'POST' });   // 하루 한 번만 보상, 여러 번 불러도 됨
+  return api(`/users/${userId}/home`);
+}
+// 처음 실행 + 백그라운드에서 돌아올 때마다
+AppState.addEventListener('change', state => { if (state === 'active') onAppOpen(userId); });
+```
+
+### 3. 걸음 수 올리기 (`expo-sensors` Pedometer)
+
+```js
+import { Pedometer } from 'expo-sensors';
+
+async function uploadSteps(userId) {
+  if (!(await Pedometer.isAvailableAsync())) return;
+  const now = new Date();
+  const start = new Date(now); start.setHours(0, 0, 0, 0);            // 기기 시각 기준 오늘 0시
+  const yesterday = new Date(start); yesterday.setDate(start.getDate() - 1);
+
+  const today = await Pedometer.getStepCountAsync(start, now);
+  const prev = await Pedometer.getStepCountAsync(yesterday, start);  // 어제 걸음 → '안 나간 날' 판단에 쓰임
+  await api(`/users/${userId}/steps`, { method: 'POST', body: { date: ymd(yesterday), steps: prev.steps } });
+  await api(`/users/${userId}/steps`, { method: 'POST', body: { date: ymd(start), steps: today.steps } });
+}
+const ymd = d => `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}-${String(d.getDate()).padStart(2, '0')}`;
+```
+
+- 같은 날짜를 다시 올리면 **덮어쓴다** → 앱을 열 때, 걸음 미션을 확인하기 직전에 다시 올리면 된다
+- iOS는 최근 7일까지 조회 가능. **Android는 `getStepCountAsync`를 지원하지 않아** `Pedometer.watchStepCount`로 앱이 열려 있는 동안만 셀 수 있음 → Android는 Health Connect 연결이 별도로 필요
+- iOS 권한 문구: `app.json` 플러그인에 `["expo-sensors", { "motionPermission": "걸음 수로 오늘의 미션을 확인해요." }]`
+
+### 4. 사진 미션 (`expo-image-picker`)
+
+```js
+import * as ImagePicker from 'expo-image-picker';
+
+async function completePhotoMission(userId, missionId) {
+  const shot = await ImagePicker.launchCameraAsync({ quality: 1, allowsEditing: false });   // 앨범: launchImageLibraryAsync
+  if (shot.canceled) return;
+  const a = shot.assets[0];
+  const form = new FormData();
+  form.append('file', { uri: a.uri, name: a.fileName ?? 'photo.jpg', type: a.mimeType ?? 'image/jpeg' });
+  const { photo_id } = await api(`/users/${userId}/photos`, { method: 'POST', body: form });
+  return api(`/users/${userId}/missions/${missionId}/complete`, { method: 'POST', body: { photos: [photo_id] } });
+}
+```
+
+- **`quality: 1`, `allowsEditing: false`로 원본을 그대로** 올린다 (자르기·압축하면 서버 확인에 필요한 정보가 사라질 수 있음)
+- 422가 오면 `detail`("오늘 찍은 사진으로 다시 올려 주세요.")을 그대로 보여 준다
+- iOS 권한 문구: `["expo-image-picker", { "cameraPermission": "미션 사진을 찍어요.", "photosPermission": "미션 사진을 골라요." }]`
+
+### 5. 일기
+
+| 앱 동작 | API |
+|---|---|
+| 오늘 쓰기·고치기 | `PUT /users/{id}/diary/{YYYY-MM-DD}` `{text, mood, photos, use_topic}` → 응답의 `care`를 확인 (위 "위기 표현 응답") |
+| 날짜별 목록·스탬프 달력 | `GET /users/{id}/diary?from=2026-10-01&to=2026-10-31` → 일기가 있는 날짜에 스탬프 |
+| 하루 보기 | `GET /users/{id}/diary/{YYYY-MM-DD}` (없으면 404) |
+| 삭제 | **서버에 아직 없음 → 추가 예정** |
+
+### 6. 지금 AsyncStorage 키 → 서버
+
+| `mobile/src/storage.js` 키 | 서버로 바꿀 때 |
+|---|---|
+| `mochi.game.v1` (XP·코인·완료·캐릭터·출석) | `GET /home`, `/missions/today`, `/level`, `/shop` — 서버가 기준, 앱에는 저장하지 않음 |
+| `mochi.wardrobe.v1` (옷) | `GET /shop`, `PUT /equipped` |
+| `mochi.homeGuestbook.v1`, `mochi.homeGuestLikes.v1` | `GET·POST /users/{id}/guestbook` (좋아요는 서버에 아직 없음) |
+| `mochi.visitors.v1`, `mochi.visitNotes.v1`, `mochi.visitConnections.v1`, `mochi.visitLikes.v1` | `GET /rooms/recommended`, `POST /visits`, `GET /users/{이웃}/room`, `/guestbook` |
+| `mochi.petName` | 닉네임 `PATCH /users/{id}` (캐릭터 애칭과 닉네임을 나눌지는 결정 필요) |
+| `mochi.settings.v1` (소리·알림) | 앱에만 저장해도 됨 |
+| (새로) 사용자 `id`, Supabase 세션 | AsyncStorage (Supabase는 `@supabase/supabase-js`의 `auth.storage`에 AsyncStorage 지정) |
+
+### 7. Supabase 로그인 붙인 뒤
+
+```js
+const { data: { session } } = await supabase.auth.getSession();
+await api(`/users/${userId}/home`, { token: session?.access_token });
+```
+
+서버의 토큰 확인은 아직 없음 → [DATABASE.md](DATABASE.md) "로그인 연결 계획"
+
 ## 서버 주소
 
 - 개발: `http://localhost:8000` (프론트 `http://localhost:5173`에서 호출 허용됨)
