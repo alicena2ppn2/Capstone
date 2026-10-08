@@ -22,6 +22,40 @@
 
 다시 밖으로, 다시 사람에게 이어지도록 돕는 것을 목표로 합니다.
 
+## 근거: 덜 움직이고, 덜 나가고, 덜 만날수록 우울 위험이 높다
+
+MOCHI가 "작은 외출·작은 움직임·가벼운 연결"을 미션으로 주는 이유는 아래 연구들 때문입니다.
+
+| 근거 | 연구 | 핵심 결과 |
+|---|---|---|
+| **덜 움직이면 우울이 더 생긴다** | Schuch 외 2018, *American Journal of Psychiatry* — 전향적 코호트 49편, 26만 6,939명 메타분석 | 활동량이 많은 사람은 적은 사람보다 **우울증이 새로 생길 확률이 낮음** (조정 오즈비 0.83). 청소년·성인·노인 모두에서 같은 경향 |
+| **조금만 움직여도 효과** | Pearce 외 2022, *JAMA Psychiatry* — 15편, 19만 1,130명 | 권장 활동량의 **절반만 해도 우울 위험 18% 낮음**, 권장량이면 25% 낮음. 특히 **활동이 거의 없던 사람이 조금 늘릴 때 효과가 가장 큼** |
+| **걸음 수와 우울** | Bizzozero-Peroni 외 2024, *JAMA Network Open* — 33편, 9만 6,173명 | 하루 7,000보 이상이면 우울 위험 31% 낮음, **하루 1,000보 늘 때마다 9% 낮음** |
+| **움직임 → 우울 방향의 인과 근거** | Choi 외 2019, *JAMA Psychiatry* — 유전자 정보를 이용한 멘델 무작위 분석, 61만여 명 | 실제 측정한(가속도계) 활동량이 많을수록 주요우울장애 위험이 낮음. 반대 방향(우울 → 활동 감소)은 확인되지 않음 |
+| **외로움이 우울을 앞선다** | Cacioppo 외 2010, *Psychology and Aging* — 5년 추적 | **외로움이 이후의 우울 증상을 예측**했고, 반대 방향은 아님 |
+| **고립은 생명과도 연결** | Holt-Lunstad 외 2015, *Perspectives on Psychological Science* — 메타분석 | 사회적 고립 29%, 외로움 26%, 혼자 살기 32% **조기 사망 위험 증가**. 65세 미만에서 더 강하게 나타남 |
+| **밖에서 보내는 시간** | White 외 2019, *Scientific Reports* — 1만 9,806명 | 자연에서 **일주일 120분 이상** 보내면 건강·행복감이 좋다고 답할 확률이 높음. 한 번에 길게든 여러 번 짧게든 상관없음 |
+
+**한국 고립·은둔 청년 실태** (보건복지부·한국보건사회연구원, 2023년 고립·은둔 청년 실태조사, 19~39세 2만 1,360명 응답)
+
+- 고립·은둔 청년은 전국 약 **54만 명**으로 추정 (국무조정실 2022 청년 삶 실태조사 기준)
+- 응답자의 **75.4%가 자살을 생각**한 적 있음 (보고서는 일반 청년 2.3%와 비교)
+- **80.8%는 지금 상황에서 벗어나고 싶다**고 답했지만, 벗어나려 했던 사람 중 **45.6%는 다시 고립**됨
+- 10명 중 7명은 가족 등과 **함께 살면서도 고립** — 혼자 사는지만으로는 알아채기 어려움
+
+**그래서 MOCHI는**
+
+| 근거 | MOCHI의 설계 |
+|---|---|
+| 활동이 거의 없을 때 조금 늘리는 효과가 가장 큼 | "문밖 한 걸음", "집 앞 5분"처럼 **아주 작은 단계**부터 |
+| 걸음이 늘수록 우울 위험이 낮아짐 | 걸음 목표, 바깥 사진 미션 |
+| 외로움이 우울을 앞섬 | 이웃 방 방문, 방명록 같은 **부담 없는 연결** |
+| 밖에서 보내는 시간이 짧게 여러 번이어도 효과 | 매일 짧은 바깥 미션 |
+| 벗어나고 싶어 하지만 절반 가까이 다시 고립됨 | **매일 이어지게** 하는 출석·수집·캐릭터 성장, 실패해도 벌점 없음 |
+| 자살 생각 비율이 매우 높음 | 일기에서 위기 표현이 보이면 **109 상담전화 안내** |
+
+> 이 연구들은 대부분 **관련성**을 보여 줍니다. 활동이 우울을 줄인다는 방향은 멘델 무작위 연구가 일부 뒷받침하지만, MOCHI 자체의 효과는 사용 데이터로 따로 확인해야 합니다. MOCHI는 진단·치료 앱이 아닙니다.
+
 ## 사전 조사: 게임은 실제로 사람을 밖으로 움직였다
 
 위치 기반 게임 **포켓몬고**는 포켓몬을 잡으려면 실제로 여러 장소를 걸어 다녀야 합니다. 출시(2016) 뒤 여러 연구에서 플레이어의 실제 걸음이 늘어난 것이 측정됐습니다.
@@ -194,6 +228,17 @@ MOCHI에서 게임 요소가 하는 일:
 - Tateno M, Skokauskas N, Kato TA, Teo AR, Guerrero APS. New game software (Pokémon Go) may help youth with severe social withdrawal, hikikomori. *Psychiatry Res*. 2016;246:848-849. [doi:10.1016/j.psychres.2016.10.038](https://doi.org/10.1016/j.psychres.2016.10.038)
 - Kato TA, Teo AR, Tateno M, Watabe M, Kubo H, Kanba S. Can Pokémon GO rescue shut-ins (hikikomori) from their isolated world? *Psychiatry Clin Neurosci*. 2017;71(1):75-76. [doi:10.1111/pcn.12481](https://doi.org/10.1111/pcn.12481)
 - Merry SN, Stasiak K, Shepherd M, Frampton C, Fleming T, Lucassen MFG. The effectiveness of SPARX, a computerised self help intervention for adolescents seeking help for depression: randomised controlled non-inferiority trial. *BMJ*. 2012;344:e2598. [doi:10.1136/bmj.e2598](https://doi.org/10.1136/bmj.e2598)
+
+### 근거 (활동량·고립·우울)
+
+- Schuch FB, Vancampfort D, Firth J, et al. Physical Activity and Incident Depression: A Meta-Analysis of Prospective Cohort Studies. *Am J Psychiatry*. 2018;175(7):631-648. [doi:10.1176/appi.ajp.2018.17111194](https://doi.org/10.1176/appi.ajp.2018.17111194)
+- Pearce M, Garcia L, Abbas A, et al. Association Between Physical Activity and Risk of Depression: A Systematic Review and Meta-analysis. *JAMA Psychiatry*. 2022;79(6):550-559. [doi:10.1001/jamapsychiatry.2022.0609](https://doi.org/10.1001/jamapsychiatry.2022.0609)
+- Bizzozero-Peroni B, Díaz-Goñi V, Jiménez-López E, et al. Daily Step Count and Depression in Adults: A Systematic Review and Meta-Analysis. *JAMA Netw Open*. 2024;7(12):e2451208. [doi:10.1001/jamanetworkopen.2024.51208](https://doi.org/10.1001/jamanetworkopen.2024.51208)
+- Choi KW, Chen CY, Stein MB, et al. Assessment of Bidirectional Relationships Between Physical Activity and Depression Among Adults: A 2-Sample Mendelian Randomization Study. *JAMA Psychiatry*. 2019;76(4):399-408. [doi:10.1001/jamapsychiatry.2018.4175](https://doi.org/10.1001/jamapsychiatry.2018.4175)
+- Cacioppo JT, Hawkley LC, Thisted RA. Perceived social isolation makes me sad: 5-year cross-lagged analyses of loneliness and depressive symptomatology in the Chicago Health, Aging, and Social Relations Study. *Psychol Aging*. 2010;25(2):453-463. [doi:10.1037/a0017216](https://doi.org/10.1037/a0017216)
+- Holt-Lunstad J, Smith TB, Baker M, Harris T, Stephenson D. Loneliness and social isolation as risk factors for mortality: a meta-analytic review. *Perspect Psychol Sci*. 2015;10(2):227-237. [doi:10.1177/1745691614568352](https://doi.org/10.1177/1745691614568352)
+- White MP, Alcock I, Grellier J, et al. Spending at least 120 minutes a week in nature is associated with good health and wellbeing. *Sci Rep*. 2019;9:7730. [doi:10.1038/s41598-019-44097-3](https://doi.org/10.1038/s41598-019-44097-3)
+- 보건복지부·한국보건사회연구원, 2023년 고립·은둔 청년 실태조사 (2023-12-13 발표) — [경향신문 보도](https://www.khan.co.kr/article/202312131643001), [MBC 보도](https://imnews.imbc.com/news/2023/society/article/6552839_36126.html)
 
 ### 비슷한 앱·서비스
 
