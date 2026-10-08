@@ -97,7 +97,10 @@ python scripts/seed_demo.py --date 2026-10-22 --days 21
 | `GET /users/{id}/guestbook?viewer_id=` | 방명록 목록 (`{id}` = 방 주인). 신고 2명 이상·차단 관계인 사람의 글은 빠짐 |
 | `DELETE /users/{id}/guestbook/{entry_id}?by=` | 방명록 글 지우기 (방 주인 또는 쓴 사람) |
 | `POST /users/{id}/guestbook` | 방명록 남기기. `author_id`(쓴 사람)를 넣으면 쓴 사람의 방명록 미션 자동 완료. 욕설 필터, 차단 관계면 403 |
-| `POST /users/{id}/blocks` · `DELETE /users/{id}/blocks/{target}` · `GET /users/{id}/blocks` | 차단하기·풀기·목록 |
+| `POST /users/{id}/friends` `{nickname}` | 친구 추가 — 닉네임으로 요청 (상대가 먼저 요청했으면 바로 친구) |
+| `GET /users/{id}/friends` | 친구 목록 + 받은 요청 + 보낸 요청 (닉네임·레벨·마지막 접속일·오늘 놀러 갔는지) |
+| `POST /users/{id}/friends/{friend_id}/accept` · `DELETE /users/{id}/friends/{friend_id}` | 요청 수락 / 친구 끊기·요청 취소·거절 |
+| `POST /users/{id}/blocks` · `DELETE /users/{id}/blocks/{target}` · `GET /users/{id}/blocks` | 차단하기·풀기·목록 (차단하면 친구도 끊김) |
 | `POST /reports` | 신고하기 (방명록 글·사람). 신고한 사람에게는 바로 숨김, `block: true`면 차단도 함께 |
 | `POST·GET·DELETE /users/{id}/rest` | 쉬어 가기 시작(`{days}` 1~30)·상태·끝내기. 쉬는 기간은 오래 쉰 날로 치지 않음 |
 
