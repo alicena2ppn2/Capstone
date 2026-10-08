@@ -1,3 +1,4 @@
+import ScreenHeader from '../components/ScreenHeader.jsx';
 import { useState } from 'react';
 import Mochi from '../components/Mochi.jsx';
 import { CHARACTERS } from '../utils/game.js';
@@ -19,11 +20,7 @@ export default function Shop({ game, level, onTarget, onBuyCharacter, onEquipCha
 
   return (
     <section className="shop-screen" aria-labelledby="shop-title">
-      <header className="shop-header">
-        <button type="button" className="pb settings-back" onClick={onBack} aria-label="홈으로 돌아가기">←</button>
-        <h1 id="shop-title">모찌 상점</h1>
-        <span className="shop-wallet" aria-label={`보유 코인 ${coins}`}><span aria-hidden="true">●</span> {coins.toLocaleString('ko-KR')}</span>
-      </header>
+      <ScreenHeader title="모찌 상점" titleId="shop-title" onBack={onBack}><span className="shop-wallet" aria-label={`보유 코인 ${coins}`}><span aria-hidden="true">●</span> {coins.toLocaleString('ko-KR')}</span></ScreenHeader>
       <div className="shop-tabs"><button type="button" className="pb" aria-pressed={section === 'characters'} onClick={() => setSection('characters')}>캐릭터</button><button type="button" className="pb" aria-pressed={section === 'clothes'} onClick={() => setSection('clothes')}>의상</button><button type="button" className="pb" aria-pressed={section === 'decor'} onClick={() => setSection('decor')}>집 꾸미기</button></div>
       {section === 'characters' ? <>
         <div className="character-current"><Mochi color={petColor} full width={130} height={130} /><div><span>현재 함께하는 캐릭터</span><strong>{CHARACTERS.find((item) => item.id === game.character)?.name ?? '꼬질 감자 모찌'}</strong></div></div>
@@ -39,7 +36,7 @@ export default function Shop({ game, level, onTarget, onBuyCharacter, onEquipCha
               <strong className="character-name">{item.name}</strong><span className="shop-price">{has ? active ? '현재 장착 중' : '보유 중' : `LV.${item.level} · ${item.price} 코인`}</span>
               <details className="ui-disclosure"><summary>친구 소개</summary><p>{FRIEND_INTROS[item.id].introduction}</p></details>
               {!item.method && <TargetButton game={game} kind="character" item={item} onTarget={onTarget} />}
-              {has ? <button type="button" className="pb shop-buy" disabled={active && item.id === 'potato'} onClick={() => { onEquipCharacter(active ? 'potato' : item.id); setMessage(active ? '기본 캐릭터로 돌아왔어요.' : `${item.name}을 장착했어요.`); }}>{active ? item.id === 'potato' ? '기본 캐릭터 장착 중' : '장착 해제' : '장착하기'}</button> : <button type="button" className="pb shop-buy" disabled={locked || coins < item.price || !!item.method} onClick={() => { onBuyCharacter(item.id); setMessage(`${item.name}을 컬렉션에 추가했어요. 원할 때 장착해보세요!`); }}>{locked ? `LV.${item.level} 해금` : coins < item.price ? '코인이 부족해요' : '구매하기'}</button>}
+              {has ? <button type="button" className={`pb shop-buy${active ? item.id === 'potato' ? ' is-equipped' : ' is-release' : ''}`} disabled={active && item.id === 'potato'} onClick={() => { onEquipCharacter(active ? 'potato' : item.id); setMessage(active ? '기본 캐릭터로 돌아왔어요.' : `${item.name}을 장착했어요.`); }}>{active ? item.id === 'potato' ? '기본 캐릭터 장착 중' : '장착 해제' : '장착하기'}</button> : <button type="button" className="pb shop-buy" disabled={locked || coins < item.price || !!item.method} onClick={() => { onBuyCharacter(item.id); setMessage(`${item.name}을 컬렉션에 추가했어요. 원할 때 장착해보세요!`); }}>{locked ? `LV.${item.level} 해금` : coins < item.price ? '코인이 부족해요' : '구매하기'}</button>}
             </>}
           </article>;
         })}</div>
@@ -69,7 +66,7 @@ export default function Shop({ game, level, onTarget, onBuyCharacter, onEquipCha
               </button>
               <span className="shop-price">{has ? (wearing ? '지금 입고 있어요' : '구매한 옷이에요') : `LV.${item.level ?? 1} · ${item.price} 코인`}</span>
               <TargetButton game={game} kind="clothes" item={item} onTarget={onTarget} />
-              <button type="button" className="pb shop-buy" disabled={wearing || insufficient || locked} onClick={() => {
+              <button type="button" className={`pb shop-buy${wearing ? ' is-equipped' : ''}`} disabled={wearing || insufficient || locked} onClick={() => {
                 setPreview(item.id);
                 if (has) { onWear(item.id); setMessage(`${item.name}을 입었어요!`); }
                 else if (onBuy(item)) { setMessage(`${item.name} 구매 완료! 옷장에서 입어보세요.`); }

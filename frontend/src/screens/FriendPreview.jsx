@@ -1,41 +1,24 @@
-import { useCallback, useState } from 'react';
-import Mochi from '../components/Mochi.jsx';
-import { CharacterContext } from '../components/CharacterContext.jsx';
-import Home from './Home.jsx';
+import { useState } from 'react';
+import Baseline from '../components/PrototypeFriendBaseline.jsx';
 import { CLOTHES } from '../utils/clothes.js';
+import Mochi from '../components/Mochi.jsx';
+import { RoomBackdrop } from './Home.jsx';
 import { PROTOTYPE_FRIENDS } from '../utils/prototypeFriends.js';
-
+const FRIENDS = [{ id: 'mochi', name: '구름 모찌' }, { id: 'lavender', name: '달빛 양 모찌' }, ...PROTOTYPE_FRIENDS];
 export default function FriendPreview() {
-  const [selected, setSelected] = useState(PROTOTYPE_FRIENDS[0].id);
-  const [outfitId, setOutfitId] = useState(null);
-  const [reaction, setReaction] = useState(null);
-  const [sequence, setSequence] = useState(0);
-  const [notice, setNotice] = useState('');
-  const [roomWidth, setRoomWidth] = useState(390);
-  const consume = useCallback(id => setReaction(value => value === id ? null : value), []);
-  const celebrate = () => { setSequence(value => value + 1); setReaction(sequence + 1); };
-  const friend = PROTOTYPE_FRIENDS.find(item => item.id === selected);
+  const [size, setSize] = useState(200);
+  const [outfitId, setOutfitId] = useState('');
+  const [reactionId, setReactionId] = useState(null);
   const outfit = CLOTHES.find(item => item.id === outfitId);
-  const chooseOutfit = id => { if (id !== outfitId && id !== null) celebrate(); setOutfitId(id); };
-  const inspect = () => setNotice('이 화면은 디자인 미리보기예요. 실제 메뉴와 게임 데이터는 변경하지 않아요.');
-  return <main className="friend-preview">
-    <h1>새 친구 디자인 미리보기</h1><p>해금 레벨·가격 미정 · 실제 지급·구매·저장 없음</p><a href="/">게임으로 돌아가기</a>
-    <h2>기본 모습 · 터치해서 인사하기</h2>
-    <div className="friend-preview-grid">{PROTOTYPE_FRIENDS.map(item => <article key={item.id} className="friend-preview-card">
-      <Mochi variant={item.id} width={200} height={210} full label={item.name} interactive active />
-      <h3>{item.name}</h3><p>{item.introduction}</p><p>{item.personality}<br />좋아하는 것: {item.likes}<br />작은 습관: {item.habit}</p>
-      <button className="pb" aria-pressed={selected === item.id} onClick={() => { setSelected(item.id); setReaction(null); }}>방에서 보기</button>
-    </article>)}</div>
-    <h2>기존 의상 4종 비교</h2>
-    {PROTOTYPE_FRIENDS.map(item => <section key={item.id}><h3>{item.name}</h3><div className="friend-preview-outfits">{CLOTHES.map(clothing => <figure key={clothing.id}><Mochi variant={item.id} full width={160} height={168} outfit={clothing} label={`${item.name}, ${clothing.name}`} /><figcaption>{clothing.name}</figcaption></figure>)}</div></section>)}
-    <h2>홈 크기 · 상점 카드 · 작은 프로필</h2>
-    <div className="friend-preview-controls"><label>화면 폭 <select value={roomWidth} onChange={event => setRoomWidth(Number(event.target.value))}>{[360,390,430].map(size => <option key={size} value={size}>{size}px</option>)}</select></label><label>의상 <select value={outfitId ?? ''} onChange={event => chooseOutfit(event.target.value || null)}><option value="">기본 모습</option>{CLOTHES.map(item => <option key={item.id} value={item.id}>{item.name}</option>)}</select></label><button className="pb" onClick={celebrate}>완료 성공 반응 시연</button></div>
-    <p role="status">{notice}</p>
-    <div className="friend-preview-comparison">
-      <div className="friend-preview-room home-preview-frame" style={{ width: roomWidth, maxWidth: '100%' }}>
-        <CharacterContext.Provider value={selected}><Home game={{ xp: 0, completed: [], started: [] }} petName={friend.name} petColor={friend.color} outfit={outfit} active reactionId={reaction} onReactionConsumed={consume} onQuest={celebrate} onShop={inspect} onSettings={inspect} onVisit={inspect} onGuestbook={inspect} onDiary={inspect} /></CharacterContext.Provider>
-      </div>
-      <div className="shop-screen"><article className="shop-item friend-preview-shop"><div className="shop-item-art"><Mochi variant={selected} full width={110} height={110} outfit={outfit} label={friend.name} /></div><strong className="character-name">{friend.name}</strong><span className="shop-price">레벨·가격 미정</span><details className="ui-disclosure"><summary>친구 소개</summary><p>{friend.introduction}</p></details><button className="pb" disabled>디자인 검토 중</button></article><p>작은 프로필 40 / 64px</p><Mochi variant={selected} width={40} height={42} label={friend.name} /><Mochi variant={selected} width={64} height={67} label={friend.name} /></div>
-    </div>
+  const consume = () => setReactionId(null);
+  return <main className="friend-preview friend-review">
+    <h1>새 친구 의상·반응 비교</h1><p>승인된 기본 외형과 의상·반응을 비교합니다. 구매·지급·해금과 저장 데이터는 변경하지 않습니다.</p><a href="/">게임으로 돌아가기</a>
+    <div className="friend-preview-controls"><label>표시 크기 <select value={size} onChange={event => setSize(Number(event.target.value))}>{[[200,'확대 200px'],[110,'상점 110px'],[64,'프로필 64px'],[40,'프로필 40px']].map(([value,label]) => <option key={value} value={value}>{label}</option>)}</select></label></div>
+    <div className="friend-preview-controls"><label>의상 <select aria-label="미리보기 의상" value={outfitId} onChange={event => { setOutfitId(event.target.value); setReactionId(Date.now()); }}><option value="">기본 모습</option>{CLOTHES.map(item => <option key={item.id} value={item.id}>{item.name}</option>)}</select></label><button className="pb" onClick={() => setReactionId(Date.now())}>축하 반응</button><span>캐릭터 클릭 또는 Enter·Space로 터치 반응</span></div>
+    <h2>같은 배경 · 같은 표시 크기</h2><div className="friend-review-grid">{FRIENDS.map(item => <article key={item.id} className="friend-preview-card"><div className="friend-review-stage"><Mochi variant={item.id} outfit={outfit} interactive active reactionId={reactionId} onReactionConsumed={consume} full width={size} height={size * 1.05} label={item.name} /></div><h3>{item.name}</h3><p>{item.introduction ?? '기존 그림체 기준'}</p></article>)}</div>
+    <h2>홈 크기의 방 배치</h2><div className="friend-review-grid">{FRIENDS.map(item => <article className="friend-preview-card" key={item.id}><div className="friend-review-room"><RoomBackdrop homeScene /><div className="friend-review-pet"><Mochi variant={item.id} outfit={outfit} full width="100%" height="100%" label={item.name} /></div></div><h3>{item.name}</h3></article>)}</div>
+    <h2>상점 · 작은 프로필</h2><div className="friend-review-grid">{FRIENDS.map(item => <article key={item.id} className="friend-preview-card"><Mochi variant={item.id} outfit={outfit} full width={110} height={115.5} label={`${item.name}, 상점 크기`} /><h3>{item.name}</h3><div className="friend-review-small"><Mochi variant={item.id} outfit={outfit} full width={64} height={67.2} label={`${item.name}, 64px`} /><Mochi variant={item.id} outfit={outfit} full width={40} height={42} label={`${item.name}, 40px`} /></div></article>)}</div>
+    <h2>승인된 기본 모습 / 현재 기본 모습</h2><div className="friend-review-grid">{PROTOTYPE_FRIENDS.map(item => <article className="friend-preview-card" key={item.id}><h3>{item.name}</h3><div className="friend-review-small"><figure><svg width="140" height="147" viewBox="0 0 200 210" data-baseline={item.id}><Baseline variant={item.id} /></svg><figcaption>승인된 기본</figcaption></figure><figure><Mochi variant={item.id} full width={140} height={147} /><figcaption>현재 기본</figcaption></figure></div></article>)}</div>
+    <h2>모든 의상 · 체형별 비교</h2><div className="friend-review-grid">{PROTOTYPE_FRIENDS.map(item => <article className="friend-preview-card" key={item.id}><h3>{item.name}</h3><div className="friend-preview-outfits">{CLOTHES.map(clothes => <figure key={clothes.id}><Mochi variant={item.id} outfit={clothes} full width={140} height={147} /><figcaption>{clothes.name}</figcaption></figure>)}</div></article>)}</div>
   </main>;
 }

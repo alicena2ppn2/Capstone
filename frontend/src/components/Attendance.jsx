@@ -19,6 +19,7 @@ function RewardIcon({ reward }) {
 export default function Attendance({ records, plans, onPrepare, onClaim }) {
   const [now, setNow] = useState(() => new Date());
   const [open, setOpen] = useState(false);
+  const [error,setError]=useState('');
   const lastPrompt = useRef(null);
   const dialog = useRef(null);
   const today = seoulDateKey(now);
@@ -70,8 +71,10 @@ export default function Attendance({ records, plans, onPrepare, onClaim }) {
       <button type="button" className="pb attendance-claim" disabled={!!receipt} onClick={() => {
         const current = new Date();
         setNow(current);
-        onClaim(seoulDateKey(current));
+        const result=onClaim(seoulDateKey(current));
+        setError(result?.ok===false?'출석을 저장하지 못했어요. 다시 시도해 주세요.':'');
       }}>{receipt ? '출석 완료 ✓' : '출석하기'}</button>
+      {error&&<p role="alert">{error}</p>}
       <button type="button" className="pb attendance-later" onClick={() => setOpen(false)}>닫기</button>
     </dialog>
   </>;
