@@ -43,6 +43,45 @@
 
 은둔에 대한 직접적인 수치 근거는 아직 사례·의견 수준입니다. MOCHI는 걸음과 미션 기록으로 이 효과를 직접 확인하는 것을 목표로 합니다.
 
+## 비슷한 앱 조사
+
+"캐릭터 키우기 + 일상 행동", "걷기 게임", "정신건강 앱", "공공 지원" 네 갈래로 비슷한 서비스를 찾아봤습니다 (2026-10 기준).
+
+| 서비스 | 갈래 | 하는 일 | 규모·특징 | MOCHI와 다른 점 |
+|---|---|---|---|---|
+| **Finch** (미국) | 캐릭터 + 자기돌봄 | 물 마시기·일기·호흡 같은 자기돌봄 목표를 체크하면 새 캐릭터가 자라고, 보상으로 옷·집을 꾸밈 | App Store 평점 4.9 (미국, 평가 76만 개), 무료 + 구독 | **가장 비슷한 앱.** 다만 일반 자기돌봄 체크리스트라 **밖으로 나가게 하는 데 초점이 없고**, 완료는 스스로 체크. 한국어·이웃 교류 없음 |
+| **피크민 블룸** (Niantic·닌텐도, 2021) | 걷기 게임 | 걸으면 피크민을 모으고 꽃을 심음. 친구에게 엽서, 하루 기록·주간 돌아보기, 함께 걷는 주간 챌린지 | 포켓몬고 제작사의 후속작 | **걸음 수 자체가 목표**인 게임. 이미 걷는 사람이 더 즐기는 구조라, 거의 나가지 않는 사람을 위한 작은 단계나 위기 대응은 없음 |
+| **포켓몬고** | 위치 기반 게임 | 실제 장소를 다니며 포켓몬 수집 | 걸음 증가 연구 다수 (위 사전 조사) | 게임이 목적이라 효과가 몇 주 만에 줄어듦. 고립된 사람을 위한 설계는 아님 |
+| **캐시워크** (한국, 2017) | 걷기 보상 | 걸음 수만큼 포인트(현금성) 지급 | 누적 가입자 2,000만 명 이상 (회사 발표) | **돈이 동기.** 걷기만 보상하고 기록·교류·마음 돌봄은 없음 |
+| **Habitica** | 습관 RPG | 할 일을 하면 경험치·골드, 못 하면 캐릭터가 피해를 입음 | 오픈소스 RPG형 습관 앱 | **실패하면 벌을 받는 구조.** MOCHI는 벌점 없이 작은 성공만 보상 |
+| **Wysa**·Woebot | 정신건강 AI 챗봇 | 인지행동치료(CBT) 기반 대화로 우울·불안 관리 | Woebot은 일반 사용자용 앱을 접고 기업 협력으로 전환 | 대화로 마음을 다루는 앱. **몸을 움직여 밖으로 나가는 행동**은 다루지 않음 |
+| **트로스트**·**마인드카페** (한국) | 심리상담·커뮤니티 | 전문 상담사와 익명 비대면 상담, 마음 건강 커뮤니티 | 마인드카페 "400만 명 경험" (앱 소개) | **이미 도움을 찾는 사람**이 대상. 상담을 신청할 힘이 없는 단계는 닿기 어려움 |
+| **서울시 고립·은둔 청년 지원** | 공공 서비스 | 서울청년기지개센터(2024), 심리상담·일상 회복·관계 형성·취업 준비 프로그램, 온·오프라인 맞춤 프로그램 | 발굴 → 진단 → 지원 → 사회 진입 → 사후 관리 | **신청해야 시작**되는 서비스. 보건복지부도 자가진단·온라인 도움 창구 운영 |
+
+**MOCHI가 채우는 빈자리**
+
+```text
+            재미·게임 중심
+                 │
+   피크민 블룸 · 포켓몬고    Finch
+   캐시워크 (걸음·보상)       (자기돌봄 체크)
+                 │
+ 몸을 움직이는 ──┼── 마음을 다루는
+   행동 유도      │      대화·상담
+                 │
+         MOCHI ◀ 여기       Wysa · 트로스트 · 마인드카페
+   (작은 외출 + 확인 + 연결    공공 고립·은둔 지원
+    + 위기 시 상담 연결)        (신청 후 시작)
+                 │
+            돌봄·지원 중심
+```
+
+1. **아주 작은 외출부터 단계적으로** — 걷기 게임은 걸음 수가 목표라 이미 걷는 사람에게 유리하지만, MOCHI는 "문밖 한 걸음", "하늘 사진 한 장"처럼 거의 나가지 않는 사람의 첫걸음을 목표로 함
+2. **확인할 수 있는 행동에 보상** — Finch·Habitica처럼 스스로 체크하는 대신, 사진(오늘 찍은 사진)·걸음·직접 찾아 적기로 실제 행동을 확인
+3. **벌점 없는 보상** — Habitica와 달리 실패해도 잃는 것이 없음
+4. **가벼운 사람 연결** — 이웃 방 놀러 가기·방명록처럼 부담 없는 크기의 교류
+5. **상담 앱과 공공 지원의 앞 단계** — 상담을 신청할 힘이 없는 시기에 일상 속에서 먼저 닿고, 위험한 표현이 보이면 109 상담전화와 지원 정보로 연결
+
 ## 앱의 목적
 
 | 목적 | 앱에서 하는 일 |
@@ -155,3 +194,14 @@ MOCHI에서 게임 요소가 하는 일:
 - Tateno M, Skokauskas N, Kato TA, Teo AR, Guerrero APS. New game software (Pokémon Go) may help youth with severe social withdrawal, hikikomori. *Psychiatry Res*. 2016;246:848-849. [doi:10.1016/j.psychres.2016.10.038](https://doi.org/10.1016/j.psychres.2016.10.038)
 - Kato TA, Teo AR, Tateno M, Watabe M, Kubo H, Kanba S. Can Pokémon GO rescue shut-ins (hikikomori) from their isolated world? *Psychiatry Clin Neurosci*. 2017;71(1):75-76. [doi:10.1111/pcn.12481](https://doi.org/10.1111/pcn.12481)
 - Merry SN, Stasiak K, Shepherd M, Frampton C, Fleming T, Lucassen MFG. The effectiveness of SPARX, a computerised self help intervention for adolescents seeking help for depression: randomised controlled non-inferiority trial. *BMJ*. 2012;344:e2598. [doi:10.1136/bmj.e2598](https://doi.org/10.1136/bmj.e2598)
+
+### 비슷한 앱·서비스
+
+- Finch: Self-Care Pet — [App Store](https://apps.apple.com/us/app/finch-self-care-pet/id1528595748), [소개](https://finchcare.com/about-finch)
+- Pikmin Bloom — [Niantic·닌텐도 출시 발표 (2021)](https://pikminbloom.com/en/news/blog-2021-1026), [Pikipedia](https://www.pikminwiki.com/Pikmin_mobile_app)
+- 캐시워크 — [공식 사이트](https://cashwalk.com/), [누적 다운로드 1,400만 건 보도 (2021)](https://platum.kr/archives/158122)
+- Habitica — [Google Play](https://play.google.com/store/apps/details?id=com.habitrpg.android.habitica)
+- Wysa·Woebot — [Chatbot-based mental health apps overview (PMC)](https://pmc.ncbi.nlm.nih.gov/articles/PMC10242473/)
+- 트로스트 — [App Store](https://apps.apple.com/kr/app/%ED%8A%B8%EB%A1%9C%EC%8A%A4%ED%8A%B8/id1034957818) · 마인드카페 — [App Store](https://apps.apple.com/kr/app/%EB%A7%88%EC%9D%B8%EB%93%9C%EC%B9%B4%ED%8E%98-24%EC%8B%9C%EA%B0%84-%EB%A9%98%ED%83%88%EC%BC%80%EC%96%B4-%EC%8B%AC%EB%A6%AC%EC%83%81%EB%8B%B4-%EC%BD%94%EC%B9%AD/id1441402766)
+- 서울시 고립은둔청년 지원 종합 대책 — [서울 정책 아카이브](https://www.seoul.go.kr/policy/view.do?id=68&lan=KO), [서울형 고립·은둔 청년 지원 5대 혁신](https://futurechosun.com/archives/87259)
+- 보건복지부 고립·은둔 청년 지원 — [보도자료](https://www.mohw.go.kr/board.es?mid=a10503000000&bid=0027&list_no=1479278&act=view)
