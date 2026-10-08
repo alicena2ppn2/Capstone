@@ -98,7 +98,7 @@ python scripts/seed_demo.py --date 2026-10-22 --days 21
 | `DELETE /users/{id}/guestbook/{entry_id}?by=` | 방명록 글 지우기 (방 주인 또는 쓴 사람) |
 | `POST /users/{id}/guestbook` | 방명록 남기기. `author_id`(쓴 사람)를 넣으면 쓴 사람의 방명록 미션 자동 완료. 욕설 필터, 차단 관계면 403 |
 | `POST /users/{id}/friends` `{nickname}` | 친구 추가 — 닉네임으로 요청 (상대가 먼저 요청했으면 바로 친구) |
-| `GET /users/{id}/friends` | 친구 목록 + 받은 요청 + 보낸 요청 (닉네임·레벨·마지막 접속일·오늘 놀러 갔는지) |
+| `GET /users/{id}/friends` | 친구 목록 + 받은 요청 + 보낸 요청 (닉네임·레벨·마지막 접속일·오늘 놀러 갔는지·**친밀도**) |
 | `POST /users/{id}/friends/{friend_id}/accept` · `DELETE /users/{id}/friends/{friend_id}` | 요청 수락 / 친구 끊기·요청 취소·거절 |
 | `POST /users/{id}/blocks` · `DELETE /users/{id}/blocks/{target}` · `GET /users/{id}/blocks` | 차단하기·풀기·목록 (차단하면 친구도 끊김) |
 | `POST /reports` | 신고하기 (방명록 글·사람). 신고한 사람에게는 바로 숨김, `block: true`면 차단도 함께 |
@@ -187,6 +187,23 @@ python scripts/seed_demo.py --date 2026-10-22 --days 21
 - 집 꾸미기: 전등·카페트·액자·인형·창밖 풍경 다섯 자리에 하나씩. 구매는 캐릭터·옷과 같은 `POST /shop/buy` (`type: "decor"`), 사도 자동 배치 안 함, 빼도 보유는 그대로. 잠긴 소품은 이름·레벨을 숨김
 
 **일기 주제**: 사용자마다 순서를 섞어 하루 하나. 50일 동안 같은 주제가 다시 나오지 않음
+
+### 친밀도 (`app/friendship.py`)
+
+친구에게 방명록·방문을 할수록 관계 레벨이 오르고, **오를 때 두 사람 모두 코인**을 받는다.
+
+| 레벨 | 이름 | 누적 점수 | 오를 때 코인 (두 사람 각각) |
+|---|---|---:|---:|
+| 1 | 새 친구 | 0 | — |
+| 2 | 아는 사이 | 4 | 20 |
+| 3 | 친한 친구 | 12 | 40 |
+| 4 | 단짝 | 24 | 60 |
+| 5 | 베스트 프렌드 | 40 | 100 |
+
+- 점수: 방명록 +2, 방문 +1. **같은 사람이 같은 친구에게 하루에 종류마다 한 번만** (반복으로 코인 모으기 방지)
+- 두 사람이 서로 한 활동이 한 점수로 합쳐짐 → 서로 오가면 빨리 오름 (하루 최대 6점)
+- 친구(수락된 사이)일 때만 쌓임. 레벨 보상은 관계마다 한 번 (끊었다 다시 맺어도 다시 안 줌, 점수는 남음)
+- 방명록·방문 응답의 `friendship` `{level, name, points, points_to_next, gained, leveled_up, earned_coins}`
 
 ### 신고·차단·필터 (App Store 심사 1.2)
 

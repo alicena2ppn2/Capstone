@@ -100,6 +100,15 @@ CREATE TABLE IF NOT EXISTS friends (          -- 친구: 요청한 사람 → �
     accepted_at TEXT,
     PRIMARY KEY (user_id, friend_id)
 );
+CREATE TABLE IF NOT EXISTS friendship_points (  -- 친밀도: 친구끼리 한 활동. 사람·친구·날짜·종류마다 한 번
+    user_a     TEXT NOT NULL,            -- 두 사람 id 중 작은 쪽
+    user_b     TEXT NOT NULL,            -- 큰 쪽
+    actor_id   TEXT NOT NULL,            -- 활동한 사람
+    date       TEXT NOT NULL,
+    kind       TEXT NOT NULL,            -- guestbook | visit
+    points     INTEGER NOT NULL,
+    PRIMARY KEY (user_a, user_b, actor_id, date, kind)
+);
 CREATE TABLE IF NOT EXISTS blocks (           -- 차단: user_id가 blocked_id를 차단
     user_id     TEXT NOT NULL,
     blocked_id  TEXT NOT NULL,
@@ -301,6 +310,7 @@ def delete_user(conn, user_id: str) -> list[str]:
         conn.execute(sql, (user_id,))
     conn.execute("DELETE FROM blocks WHERE user_id = ? OR blocked_id = ?", (user_id, user_id))
     conn.execute("DELETE FROM friends WHERE user_id = ? OR friend_id = ?", (user_id, user_id))
+    conn.execute("DELETE FROM friendship_points WHERE user_a = ? OR user_b = ?", (user_id, user_id))
     conn.execute("DELETE FROM visits WHERE owner_id = ? OR visitor_id = ?", (user_id, user_id))
     conn.execute("DELETE FROM guestbook WHERE owner_id = ? OR author_id = ?", (user_id, user_id))
     conn.execute("DELETE FROM inventory WHERE user_id = ?", (user_id,))
@@ -776,6 +786,42 @@ def visited_owners(conn, visitor_id: str, date: str) -> list[str]:
     """그날 visitor_id가 놀러 간 방 주인."""
     rows = conn.execute("SELECT owner_id FROM visits WHERE visitor_id = ? AND date = ?", (visitor_id, date)).fetchall()
     return [r["owner_id"] for r in rows]
+
+
+def _pair(a: str, b: str) -> tuple[str, str]:
+    return (a, b) if a < b else (b, a)
+
+
+def add_friendship_points(conn, actor_id: str, friend_id: str, date: str, kind: str, points: int) -> bool:
+    """친밀도 점수 기록. 그날 같은 종류를 이미 했으면 False (점수 안 늘어남)."""
+    a, b = _pair(actor_id, friend_id)
+    cur = conn.execute(
+        "INSERT OR IGNORE INTO friendship_points (user_a, user_b, actor_id, date, kind, points) VALUES (?, ?, ?, ?, ?, ?)",
+        (a, b, actor_id, date, kind, points),
+    )
+    conn.commit()
+    return cur.rowcount == 1
+
+
+def friendship_points(conn, user_id: str, friend_ids: list[str]) -> dict[str, int]:
+    """나와 친구들 사이의 누적 친밀도 점수."""
+    out = {f: 0 for f in friend_ids}
+    if not friend_ids:
+        return out
+    marks = ",".join("?" * len(friend_ids))
+    rows = conn.execute(
+        f"SELECT CASE WHEN user_a = ? THEN user_b ELSE user_a END AS other, SUM(points) AS p FROM friendship_points "
+        f"WHERE (user_a = ? AND user_b IN ({marks})) OR (user_b = ? AND user_a IN ({marks})) GROUP BY other",
+        (user_id, user_id, *friend_ids, user_id, *friend_ids),
+    ).fetchall()
+    out.update({r["other"]: int(r["p"]) for r in rows})
+    return out
+
+
+def paid_ever(conn, user_id: str, item_id: str) -> bool:
+    """이 항목으로 보상을 받은 적이 있는지 (날짜 상관없이)."""
+    row = conn.execute("SELECT 1 FROM coin_ledger WHERE user_id = ? AND item_id = ? LIMIT 1", (user_id, item_id)).fetchone()
+    return row is not None
 
 
 def last_active(conn, user_ids: list[str]) -> dict[str, str]:
