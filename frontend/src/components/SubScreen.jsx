@@ -34,7 +34,12 @@ const chip = (bg) => ({
   display: 'flex', alignItems: 'center', justifyContent: 'center', boxSizing: 'border-box',
 });
 
-function TopBar({ moon = 200, level = 1, onHome }) {
+function TopBar({ moon = 200, level = 1, onHome, backOnly = false }) {
+  if (backOnly) return <div style={{ display: 'flex', alignItems: 'center', height: 48 }}>
+    <button type="button" className="pb" aria-label="홈 화면으로 돌아가기" onClick={onHome} style={{ width: 44, height: 44, display: 'grid', placeItems: 'center', border: '1px solid #B9D7E8', borderRadius: 14, background: '#FFF9EE', color: '#596777' }}>
+      <svg width="24" height="24" viewBox="0 0 24 24" aria-hidden="true"><path d="M15 5 L8 12 L15 19" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" /></svg>
+    </button>
+  </div>;
   return (
     <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', height: 48 }}>
       <div style={{ display: 'flex', alignItems: 'center', gap: 2 }}>
@@ -84,12 +89,12 @@ function BottomBar({ petColor, onShop, onSettings }) {
   );
 }
 
-export default function SubScreen({ title, petColor, children, onShop, onSettings, onHome, level = 1, plainTitle = false }) {
+export default function SubScreen({ title, petColor, children, onShop, onSettings, onHome, level = 1, plainTitle = false, backOnly = false }) {
   return (
     <div className="sub-screen" style={{ position: 'relative', width: 390, height: 844, overflow: 'hidden', background: '#D6EAF8' }}>
       <RoomBackdrop />
       <div className="sub-screen-content" style={{ position: 'relative', zIndex: 2, padding: '14px 14px 0', boxSizing: 'border-box' }}>
-        <TopBar level={level} onHome={onHome} />
+        <TopBar level={level} onHome={onHome} backOnly={backOnly} />
         <CloudTitle plain={plainTitle}>{title}</CloudTitle>
         {children}
       </div>
