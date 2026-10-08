@@ -55,6 +55,10 @@ API를 직접 눌러 보려면 서버를 켜고 `http://localhost:8000/docs`.
 | 방명록 | 목록 | `GET /users/{방주인}/guestbook?page=0&per_page=4&viewer_id={내 id}` (내가 신고한 글·차단 관계인 사람 글은 빠짐) |
 | 방명록 | 지우기 | `DELETE /users/{방주인}/guestbook/{글 id}?by={내 id}` (내 방 글 또는 내가 쓴 글) |
 | 방명록·이웃 | 신고 | 글 길게 누르기 → `POST /reports` `{reporter_id, target_type: "guestbook", target_id: "글 id", reason, block}`. 이유: spam·abuse·sexual·hate·self_harm·other |
+| 친구 | 추가 | `POST /users/{내 id}/friends` `{nickname}` → `status: pending`(요청 보냄) 또는 `accepted`(상대가 먼저 요청해서 바로 친구). 404면 "찾지 못했어요" 그대로 |
+| 친구 | 목록 | `GET /users/{내 id}/friends` → `{friends, received, sent}` 각 `[{id, nickname, level, last_active, visited_today, since}]`. 친구를 누르면 `GET /users/{친구}/room`으로 방 놀러 가기 |
+| 친구 | 수락·끊기 | `POST /users/{내 id}/friends/{상대}/accept` / `DELETE /users/{내 id}/friends/{상대}` (끊기·취소·거절 공통) |
+| 이웃 | 추천 방의 친구 표시 | `GET /rooms/recommended`의 `is_friend` |
 | 이웃 | 차단 | `POST /users/{내 id}/blocks` `{target_id}` / 설정 화면 목록 `GET /users/{내 id}/blocks`, 풀기 `DELETE /users/{내 id}/blocks/{id}` |
 | 설정·홈 | 쉬어 가기 | `POST /users/{id}/rest` `{days: 1~30}` → `{resting, start, until, message}` / 상태 `GET` / 끝내기 `DELETE`. 쉬는 동안 홈에 "쉬는 중" 표시 |
 | 기록(일기) | 내보내기 | `GET /users/{id}/diary/export?from=…&to=…` → .txt 파일. Expo는 `expo-file-system`으로 저장 후 `expo-sharing`으로 공유 시트 |

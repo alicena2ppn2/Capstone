@@ -5,6 +5,19 @@
 
 ---
 
+## 2026-10-08 — 친구: 닉네임으로 추가, 친구 목록
+
+**브랜치** `backend-neighbor-level` · 흐름은 게임 서버 [Nakama](https://github.com/heroiclabs/nakama)처럼 요청 → 수락
+
+- `POST /users/{id}/friends` `{nickname}`: 닉네임으로 친구 요청 (대소문자·띄어쓰기 무시). 상대가 먼저 요청했으면 바로 친구
+- `GET /users/{id}/friends`: 친구·받은 요청·보낸 요청. 각 항목에 닉네임, 레벨, 마지막 접속일, 오늘 놀러 갔는지
+- `POST /friends/{friend_id}/accept` 수락, `DELETE /friends/{friend_id}` 끊기·취소·거절
+- 차단하면 친구·요청도 끊김. 차단 관계면 닉네임으로 찾을 수 없음 (누가 차단했는지 알리지 않음)
+- 추천 방에 `is_friend`, 친구는 최대 100명 (요청 포함)
+- DB: `friends` 표 (계정 삭제 시 함께 삭제). 테스트 7개 추가 (전체 189개 통과)
+
+---
+
 ## 2026-10-08 — Habitica 참고: 신고 기준 2건, 새 계정 신고 미반영, 혐오 표현 정지, 쉬어 가기
 
 **브랜치** `backend-neighbor-level` · 참고: [HabitRPG/habitica](https://github.com/HabitRPG/habitica) (코드는 가져오지 않고 방식만)
