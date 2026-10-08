@@ -40,6 +40,7 @@ backend/uploads/     사진 파일 (파일 이름 = photo_id, 주인은 photos �
 | | `equipped` | 회원 1명 | `user_id` | 장착한 캐릭터·옷 |
 | | `decor_placement` | 회원·자리 | `user_id` | 자리(전등·카페트·액자·인형·창밖 풍경)마다 놓은 소품 |
 | 친구 | `friends` | 요청 1건 | `user_id`(요청한 사람), `friend_id`(받은 사람) | `pending`(요청) → `accepted`(친구). 관계 하나에 한 줄 |
+| | `friendship_points` | 사람·친구·날짜·종류 | `user_a`·`user_b`(두 사람), `actor_id` | 친밀도 점수 기록 (방명록 2·방문 1). 합계 = 친밀도. 보상은 `coin_ledger` 항목 `friend:<친구 id>:lv<n>` |
 | 신고·차단 | `blocks` | 회원·차단한 사람 | `user_id`, `blocked_id` | 차단 관계 (서로에게 안 보이게) |
 | | `reports` | 신고 1건 | `reporter_id` | 대상(방명록 글 id·user id), 이유, 처리 상태, 숨김 횟수에 세는지(`counted`, 가입 3일 미만이면 0). 같은 사람이 같은 대상은 한 번만 |
 | | `guestbook_bans` | 회원 1명 | `user_id` | 방명록 쓰기 정지 마지막 날, 이유(혐오 표현) |
@@ -63,7 +64,7 @@ backend/uploads/     사진 파일 (파일 이름 = photo_id, 주인은 photos �
 
 `DELETE /users/{id}` 하면 위 표에서 그 회원 id가 붙은 줄을 모두 지우고 `uploads/`의 사진 파일도 지운다.
 
-- 두 사람이 관련된 `visits`, `guestbook`, `blocks`, `friends`는 그 회원이 **어느 쪽이든** 지운다. `reports`는 그 회원이 한 신고를 지운다
+- 두 사람이 관련된 `visits`, `guestbook`, `blocks`, `friends`, `friendship_points`는 그 회원이 **어느 쪽이든** 지운다. `reports`는 그 회원이 한 신고를 지운다
 - 공용 표(`crisis_terms`, `kote_comments`)는 회원 데이터가 아니라 그대로 둔다
 
 ## 한계와 출시 전 할 일
