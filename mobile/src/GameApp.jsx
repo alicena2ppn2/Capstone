@@ -17,10 +17,9 @@ import Quests from './screens/Quests';
 import Shop from './screens/Shop';
 import Settings, { Backup } from './screens/Settings';
 import Visit, { Guestbook } from './screens/Visit';
-import { CHARACTERS, levelFor, ensureAttendanceWeek, claimAttendance } from '../../frontend/src/utils/game.js';
+import { CHARACTERS, buyCharacter, levelFor, ensureAttendanceWeek, claimAttendance } from '../../frontend/src/utils/game.js';
 import { CLOTHES } from '../../frontend/src/utils/clothes.js';
 import { DECOR } from '../../frontend/src/utils/decor.js';
-import { targetStatus } from '../../frontend/src/utils/catalog.js';
 import { seoulDateKey, attendanceWeek } from '../../frontend/src/utils/seoulDate.js';
 import { dailyVisitors } from '../../frontend/src/utils/visitors.js';
 import { ensureDailyMissions, replaceDailyMission, recordRoutine, saveDiaryMission, deleteDiaryMission } from '../../frontend/src/utils/dailyMissions.js';
@@ -47,7 +46,7 @@ function GameApp({ children }) {
   useEffect(()=>{stateRef.current=state;},[state]);
   const commitState=transform=>{
     const job=saveQueue.current.catch(()=>{}).then(async()=>{
-      try { const next=transform(stateRef.current); await saveStorage(AsyncStorage,next); stateRef.current=next; setState(next); return {ok:true}; }
+      try { const previous=stateRef.current; const next=transform(previous); await saveStorage(AsyncStorage,next); stateRef.current=next; setState(next); return {ok:true,changed:next!==previous}; }
       catch { return {ok:false,message:'저장하지 못했어요. 작성한 글은 유지돼요. 다시 시도해 주세요.'}; }
     }); saveQueue.current=job; return job;
   };
@@ -86,8 +85,9 @@ function GameApp({ children }) {
   const { game, wardrobe } = state, level = levelFor(state.game.xp);
   const name = game.nicknames?.[game.character] || CHARACTERS.find(item => item.id === game.character)?.name;
   const ownedClothes = [...new Set([...wardrobe.owned, ...(game.attendanceClothes ?? [])])];
-  const outfit = CLOTHES.find(item => item.id === wardrobe.outfit), target = targetStatus(game, ownedClothes);
+  const outfit = CLOTHES.find(item => item.id === wardrobe.outfit);
   const updateGame = transform => setState(old => ({ ...old, game: transform(old.game) }));
+  const buyFriend = id => commitState(old => { const next = buyCharacter(old.game, id); return next === old.game ? old : { ...old, game: next }; });
   const buyClothes = item => setState(old => buyOutfit(old, item));
   const wear = id => setState(old => wearOutfit(old, id));
   const go = destination => { setSheet(null); router.replace(destination === 'home' ? '/' : `/${destination}`); };
@@ -114,8 +114,8 @@ function GameApp({ children }) {
           <View style={styles.friendPosition}><Character variant={game.character} outfit={outfit} size={Math.min(roomWidth * .66, 248)} label={name} interactive reactionId={reaction} onConsumed={consumeReaction} /></View>
           <View style={styles.identity}><Button textStyle={{ fontFamily: 'A2z-600' }} onPress={() => go('settings')} style={styles.nameButton}>{name}</Button><View style={styles.level}><Label style={styles.small}>LV.{level}</Label><View style={{ width: 60 }}><Progress value={game.xp % 100} /></View><Label style={styles.small}>{game.xp % 100} / 100 XP</Label></View></View>
         </View><View style={styles.row}><Button primary onPress={() => { setQuestFocus(null); go('quest'); }} style={styles.flex}>☑ 오늘의 도전</Button><Button onPress={() => go('shop')} style={styles.flex}>👕 꾸미기</Button></View>
-        <HomeSummary game={game} day={day} target={target} onQuest={id => { setQuestFocus(id ?? null); go('quest'); }} onShop={() => go('shop')} />
-      </> : screen === 'diary' ? <Diary onBack={() => go('home')} game={game} day={day} initialDate={diaryDate} onDraft={saveDraft} onSave={saveDiary} onDelete={deleteDiary} scrollTop={() => scrollRef.current?.scrollTo({ y: 0, animated: false })} /> : screen === 'quest' ? <Quests onBack={() => go('home')} onDiary={openDiary} onVisit={() => go('visit')} onAttendance={() => setSheet({kind:'attendance'})} focusId={questFocus} scrollTo={y => scrollRef.current?.scrollTo({ y, animated: false })} game={game} day={day} update={updateGame} openSheet={setSheet} /> : screen === 'shop' ? <Shop onBack={() => go('home')} game={game} level={level} ownedClothes={ownedClothes} outfit={wardrobe.outfit} update={updateGame} buyClothes={buyClothes} wear={wear} /> : screen === 'settings' ? <Settings onBack={() => go('home')} state={state} name={name} update={updateGame} setState={setState} openSheet={setSheet} /> : screen === 'visit' ? <Visit onBack={() => go('home')} commitState={commitState} state={state} setState={setState} name={name} day={day} /> : <Guestbook onBack={() => go('home')} state={state} setState={setState} name={name} day={day} />}
+        <HomeSummary game={game} day={day} onQuest={id => { setQuestFocus(id ?? null); go('quest'); }} />
+      </> : screen === 'diary' ? <Diary onBack={() => go('home')} game={game} day={day} initialDate={diaryDate} onDraft={saveDraft} onSave={saveDiary} onDelete={deleteDiary} scrollTop={() => scrollRef.current?.scrollTo({ y: 0, animated: false })} /> : screen === 'quest' ? <Quests onBack={() => go('home')} onDiary={openDiary} onVisit={() => go('visit')} onAttendance={() => setSheet({kind:'attendance'})} focusId={questFocus} scrollTo={y => scrollRef.current?.scrollTo({ y, animated: false })} game={game} day={day} update={updateGame} openSheet={setSheet} /> : screen === 'shop' ? <Shop onBuyCharacter={buyFriend} onBack={() => go('home')} game={game} level={level} ownedClothes={ownedClothes} outfit={wardrobe.outfit} update={updateGame} buyClothes={buyClothes} wear={wear} /> : screen === 'settings' ? <Settings onBack={() => go('home')} state={state} name={name} update={updateGame} setState={setState} openSheet={setSheet} /> : screen === 'visit' ? <Visit onBack={() => go('home')} commitState={commitState} state={state} setState={setState} name={name} day={day} /> : <Guestbook onBack={() => go('home')} state={state} setState={setState} name={name} day={day} />}
     </ScrollView>
     {toast && <View pointerEvents="none" style={styles.toast} accessibilityLiveRegion="polite"><Label>{toast}</Label></View>}
     {sheet && <Sheet title={sheet.kind === 'attendance' ? '이번 주의 출석표' : sheet.kind === 'swap' ? '어떤 도전으로 바꿀까요?' : sheet.title ?? '안내'} close={() => setSheet(null)}>
