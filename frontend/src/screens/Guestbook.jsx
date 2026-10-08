@@ -86,14 +86,14 @@ export default function Guestbook({ level, petColor, onShop, onSettings, onHome,
               </span>
               <div style={{ display: 'flex', flexDirection: 'column', gap: 4, minWidth: 0, flexGrow: 1 }}>
                 <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'baseline', gap: 8 }}>
-                  <span style={{ fontSize: 15, fontWeight: 700 }}>{e.name}</span>
+                  <span style={{ fontSize: 15, fontWeight: 600 }}>{e.name}</span>
                   <span style={{ fontSize: 11, color: '#6B7085' }}>{e.date}</span>
                 </div>
                 <span style={{ fontSize: 13, lineHeight: 1.45 }}>{e.text}</span>
                 <div style={{ display: 'flex', justifyContent: 'flex-end', alignItems: 'center', gap: 6 }}>
                   <button type="button" className="pb" aria-pressed={on} aria-label={`좋아요 ${likes}개`}
                     onClick={() => setLiked((l) => ({ ...l, [e.id]: !l[e.id] }))}
-                    style={{ border: 0, background: 'transparent', minHeight: 32, minWidth: 44, display: 'flex', alignItems: 'center', gap: 4, fontSize: 12, fontWeight: 700, color: '#3A3A55' }}>
+                    style={{ border: 0, background: 'transparent', minHeight: 32, minWidth: 44, display: 'flex', alignItems: 'center', gap: 4, fontSize: 12, fontWeight: 500, color: '#3A3A55' }}>
                     <HeartIcon fill={on ? '#F27BA0' : '#FFFFFF'} stroke="#D9587E" />{likes}
                   </button>
                   <button type="button" className="pb" aria-label="답글" style={{ border: 0, background: 'transparent', minHeight: 32, minWidth: 36, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>

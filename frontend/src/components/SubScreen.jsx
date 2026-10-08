@@ -1,6 +1,5 @@
 import Mochi from './Mochi.jsx';
 import { GearIcon, ShopIcon, StarIcon } from './Icons.jsx';
-import { outline } from '../utils/color.js';
 
 // 퀘스트·방명록 화면 공통 틀: 방 배경 + 상단 바 + 구름 제목 + 하단 바
 
@@ -47,7 +46,7 @@ function TopBar({ moon = 200, level = 1, onHome, backOnly = false }) {
           <path d="M24 4 C13 5 6 13 6 22 C6 31 13 37 22 37 C29 37 34 33 36 28 C30 30 22 28 18 22 C14 16 16 9 24 4Z" fill="#F7D35C" stroke="#C49A1E" strokeWidth="2.5" strokeLinejoin="round" />
           <path d="M30 6 V16 M25 11 H35" stroke="#3D7CC0" strokeWidth="3.5" strokeLinecap="round" />
         </svg>
-        <span className="jua" style={{ fontSize: 18, color: '#FFFFFF', textShadow: outline('#3A3A55', 1.5, 2) }}>{moon}</span>
+        <span className="jua" style={{ fontSize: 18, color: '#FFFFFF', fontWeight: 500 }}>{moon}</span>
       </div>
       <div style={{ display: 'flex', gap: 6 }}>
         <button type="button" className="pb" aria-label="내 집으로 돌아가기" onClick={onHome} style={chip('#F6D365')}>
@@ -67,14 +66,14 @@ function CloudTitle({ children, plain = false }) {
       </svg>
       <StarIcon style={{ position: 'absolute', left: 70, top: 14 }} />
       <StarIcon style={{ position: 'absolute', right: 70, top: 14 }} />
-      <h1 className="jua" style={{ position: 'relative', margin: 0, fontSize: plain ? 22 : 32, fontWeight: plain ? 700 : 400, color: plain ? '#2F6FB3' : '#8CCBF7', textShadow: plain ? 'none' : outline('#2F6FB3', 2.5, 4) }}>{children}</h1>
+      <h1 className="jua" style={{ position: 'relative', margin: 0, fontSize: plain ? 22 : 32, fontWeight: 600, color: '#2F6FB3', textShadow: 'none' }}>{children}</h1>
     </div>
   );
 }
 
 export const bottomBtn = {
   border: 0, background: 'transparent', display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 2,
-  minWidth: 52, minHeight: 52, fontSize: 12, fontWeight: 700, color: '#2E2A3A',
+  minWidth: 52, minHeight: 52, fontSize: 12, fontWeight: 500, color: '#2E2A3A',
 };
 
 function BottomBar({ petColor, onShop, onSettings }) {
