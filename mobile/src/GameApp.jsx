@@ -10,7 +10,7 @@ import MenuIcon from './MenuIcon';
 import RoomBackdrop from './art/RoomBackdrop';
 import { loadStorage, saveStorage } from './storage';
 import { buyOutfit, wearOutfit, eventSnapshot, reactionEvent } from './actions';
-import { Label, Button, Progress, Sheet, styles } from './ui';
+import { Label, Button, Progress, Sheet, styles, FontReadyContext } from './ui';
 import Diary from './screens/Diary';
 import Quests from './screens/Quests';
 import Shop from './screens/Shop';
@@ -32,7 +32,7 @@ function GameApp({ children }) {
   const router = useRouter(), pathname = usePathname();
   const scrollRef = useRef(null);
   const screen = ['quest', 'shop', 'settings', 'visit', 'guest', 'diary'].includes(pathname.slice(1)) ? pathname.slice(1) : 'home';
-  const [fontsLoaded, fontError] = useFonts({ Pretendard: require('../assets/fonts/Pretendard-Regular.otf'), 'Pretendard-Bold': require('../assets/fonts/Pretendard-Bold.otf') });
+  const [fontsLoaded, fontError] = useFonts({ 'A2z-400': require('../assets/fonts/A2z-400.ttf'), 'A2z-500': require('../assets/fonts/A2z-500.ttf'), 'A2z-600': require('../assets/fonts/A2z-600.ttf') });
   const [state, setState] = useState(null), [error, setError] = useState('');
   const [now, setNow] = useState(new Date()), [sheet, setSheet] = useState(null), [toast, setToast] = useState(''), [reaction, setReaction] = useState(null);
   const reactionSerial = useRef(0), observed = useRef(null), saveQueue = useRef(Promise.resolve());
@@ -85,7 +85,7 @@ function GameApp({ children }) {
     setState({ ...loaded, game: ensureAttendanceWeek(ensureChallenges(loaded.game, day), day), visitors: dailyVisitors(day, loaded.visitors) });
   };
   const roomWidth = Math.min(width - 24, 430);
-  return <SafeAreaView style={styles.safe} edges={['top', 'left', 'right', 'bottom']}>{children}<StatusBar style="dark" /><KeyboardAvoidingView style={styles.flex} behavior={Platform.OS === 'ios' ? 'padding' : undefined}>
+  return <FontReadyContext.Provider value={fontsLoaded}><SafeAreaView style={styles.safe} edges={['top', 'left', 'right', 'bottom']}>{children}<StatusBar style="dark" /><KeyboardAvoidingView style={styles.flex} behavior={Platform.OS === 'ios' ? 'padding' : undefined}>
     <View style={styles.header}>{screen !== 'home' && <Button onPress={() => go('home')} accessibilityLabel="홈 화면으로 돌아가기">{screen === 'quest' ? '<' : '⌂ 홈'}</Button>}<Label style={styles.coin}>🪙 {game.coins.toLocaleString('ko-KR')}</Label><Button onPress={() => setSheet({ kind: 'attendance' })}>출석표</Button></View>
     {screen !== 'home' && <View style={[styles.level, { paddingHorizontal: 16, paddingBottom: 4 }]}><Label style={styles.small}>LV.{level}</Label><View style={{ width: 80 }}><Progress value={game.xp % 100} /></View><Label style={styles.small}>{game.xp % 100} / 100 XP</Label></View>}
     {error ? <Label accessibilityRole="alert" style={styles.error}>{error}</Label> : null}
@@ -94,9 +94,9 @@ function GameApp({ children }) {
         <View style={[styles.room, { width: roomWidth, height: roomWidth * 500 / 368 }]}><View style={StyleSheet.absoluteFill}><RoomBackdrop decor={game.decor ?? {}} homeScene /></View>
           <View style={styles.settingsCorner}><Button onPress={() => go('settings')} accessibilityLabel="설정">⚙</Button></View>
           <Label style={styles.clock}>{new Intl.DateTimeFormat('ko-KR', { timeZone: 'Asia/Seoul', hour: 'numeric', minute: '2-digit', hour12: true }).format(now)} · {new Intl.DateTimeFormat('ko-KR', { timeZone: 'Asia/Seoul', month: 'long', day: 'numeric' }).format(now)}</Label>
-          <View style={styles.roomMenus}><Button textStyle={{ fontSize: 12 }} style={{ paddingHorizontal: 7 }} onPress={() => go('visit')} icon={<MenuIcon kind="visit" />}>방문하기</Button><Button textStyle={{ fontSize: 12 }} style={{ paddingHorizontal: 7 }} onPress={() => go('guest')} icon={<MenuIcon kind="guest" />}>방명록</Button><Button textStyle={{ fontSize: 12 }} style={{ paddingHorizontal: 7 }} onPress={() => go('diary')} icon={<MenuIcon kind="diary" />}>일기</Button></View>
+          <View style={styles.roomMenus}><Button textStyle={{ fontSize: 13 }} style={{ paddingHorizontal: 7 }} onPress={() => go('visit')} icon={<MenuIcon kind="visit" />}>방문하기</Button><Button textStyle={{ fontSize: 13 }} style={{ paddingHorizontal: 7 }} onPress={() => go('guest')} icon={<MenuIcon kind="guest" />}>방명록</Button><Button textStyle={{ fontSize: 13 }} style={{ paddingHorizontal: 7 }} onPress={() => go('diary')} icon={<MenuIcon kind="diary" />}>일기</Button></View>
           <View style={styles.friendPosition}><Character variant={game.character} outfit={outfit} size={Math.min(roomWidth * .66, 248)} label={name} interactive reactionId={reaction} onConsumed={consumeReaction} /></View>
-          <View style={styles.identity}><Button onPress={() => go('settings')} style={styles.nameButton}>{name}</Button><View style={styles.level}><Label style={styles.small}>LV.{level}</Label><View style={{ width: 60 }}><Progress value={game.xp % 100} /></View><Label style={styles.small}>{game.xp % 100} / 100 XP</Label></View></View>
+          <View style={styles.identity}><Button textStyle={{ fontFamily: 'A2z-600' }} onPress={() => go('settings')} style={styles.nameButton}>{name}</Button><View style={styles.level}><Label style={styles.small}>LV.{level}</Label><View style={{ width: 60 }}><Progress value={game.xp % 100} /></View><Label style={styles.small}>{game.xp % 100} / 100 XP</Label></View></View>
         </View><View style={styles.row}><Button primary onPress={() => go('quest')} style={styles.flex}>☑ 오늘의 도전</Button><Button onPress={() => go('shop')} style={styles.flex}>👕 꾸미기</Button></View>
         {game.challengeDays?.[day]?.selected.map(id => <Button key={id} onPress={() => go('quest')}>{QUESTS.find(q => q.id === id)?.name} · {game.completed.includes(`${day}:${id}`) ? '완료 ✓' : game.started.includes(`${day}:${id}`) ? '도전 중' : '선택함'}</Button>)}
         {target && <Button onPress={() => go('shop')}>목표: {target.name} · {target.complete ? '획득 완료 ✓' : `${target.coinsNeeded} 코인 남음 · LV.${target.level}${target.levelsNeeded ? ` (${target.levelsNeeded}레벨 남음)` : ' 충족'}`}</Button>}
@@ -109,5 +109,5 @@ function GameApp({ children }) {
       : sheet.kind === 'feedback' ? ['편했어요', '적당했어요', '버거웠어요'].map((text, index) => <Button key={text} selected={game.feedback?.[sheet.key] === ['easy', 'okay', 'hard'][index]} onPress={() => { updateGame(value => ({ ...value, feedback: { ...value.feedback, [sheet.key]: ['easy', 'okay', 'hard'][index] } })); setSheet(null); }}>{text}</Button>)
       : sheet.kind === 'backup' ? <Backup state={state} onRestore={restore} close={() => setSheet(null)} /> : <Label style={styles.body}>{sheet.text}</Label>}
     </Sheet>}
-  </KeyboardAvoidingView></SafeAreaView>;
+  </KeyboardAvoidingView></SafeAreaView></FontReadyContext.Provider>;
 }
