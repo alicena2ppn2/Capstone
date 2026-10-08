@@ -31,8 +31,8 @@ try {
  await send('Page.navigate',{url:'http://127.0.0.1:5180/'});await delay(1500);
  assert.equal(await evalPage("document.querySelectorAll('.home-summary-row').length"),6);
  assert.equal(await evalPage("document.querySelector('.home-summary-row .ui-state').textContent"),'도전 중');
- assert(await evalPage("document.querySelector('.home-target-summary').textContent.includes('코인 330 / 300')"));
- assert(await evalPage("document.querySelector('.home-target-summary').textContent.includes('레벨 1 / 5')"));
+ assert.equal(await evalPage("document.querySelectorAll('.home-target-summary,.home-no-target,.target-button').length"),0);
+
  for(const width of [360,390,430]){await send('Emulation.setDeviceMetricsOverride',{width,height:600,deviceScaleFactor:1,mobile:true});await fits();}
  await send('Emulation.setDeviceMetricsOverride',{width:390,height:600,deviceScaleFactor:1,mobile:true});await screenshot('home-390-short');
  await click('.home-summary-row');
@@ -78,12 +78,12 @@ try {
  assert(await evalPage("JSON.parse(localStorage.getItem('mochi.wardrobe.v1')).outfit!==null"));
  // Empty/no-goal fixture only in this newly created profile.
  await evalPage(`(()=>{const g=JSON.parse(localStorage.getItem('mochi.game.v1'));g.targetItem=null;g.challengeDays[${JSON.stringify(day)}].selected=[];localStorage.setItem('mochi.game.v1',JSON.stringify(g));})()`);await send('Page.reload');await delay(900);
- assert(await evalPage("!!document.querySelector('.home-no-target')"));assert.equal(await evalPage("document.querySelectorAll('.home-summary-row').length"),6);await fits();
+ assert.equal(await evalPage("document.querySelectorAll('.home-target-summary,.home-no-target').length"),0);assert.equal(await evalPage("document.querySelectorAll('.home-summary-row').length"),6);await fits();
  const beforePreview=await evalPage('JSON.stringify(localStorage)');
  await send('Emulation.setDeviceMetricsOverride',{width:1280,height:1000,deviceScaleFactor:1,mobile:false});
  await send('Page.navigate',{url:'http://127.0.0.1:5180/?preview=friends'});await delay(800);await screenshot('friends-comparison');await fits();
  assert.equal(await evalPage('JSON.stringify(localStorage)'),beforePreview);
- assert.equal(await evalPage("document.querySelectorAll('.friend-review-grid')[0].querySelectorAll('article').length"),5);
+ assert.equal(await evalPage("document.querySelectorAll('.friend-review-grid')[0].querySelectorAll('article').length"),8);
  assert.equal(await evalPage("(()=>{const ids=[...document.querySelectorAll('[id]')].map(e=>e.id);return ids.length-new Set(ids).size})()"),0);
  await send('Emulation.setDeviceMetricsOverride',{width:390,height:844,deviceScaleFactor:1,mobile:true});await fits();await screenshot('friends-mobile');
  // New-user fixture and attendance success/dedup, in this isolated profile only.
@@ -91,5 +91,5 @@ try {
  const paidAttendance=await evalPage(`JSON.stringify((()=>{const g=JSON.parse(localStorage.getItem('mochi.game.v1'));return {xp:g.xp,coins:g.coins,receipt:g.attendance[${JSON.stringify(day)}]}})())`);
  assert(await evalPage(`JSON.parse(localStorage.getItem('mochi.game.v1')).completed.includes(${JSON.stringify(day+':day-attendance')})`));assert(await evalPage("document.querySelector('.attendance-claim').disabled"));await click('.attendance-claim');await click('.attendance-close');await click('.attendance-open');await click('.attendance-claim');
  assert.equal(await evalPage(`JSON.stringify((()=>{const g=JSON.parse(localStorage.getItem('mochi.game.v1'));return {xp:g.xp,coins:g.coins,receipt:g.attendance[${JSON.stringify(day)}]}})())`),paidAttendance);
- console.log('PASS: 360/390/430 + short heights; six missions; summary/focus/conditions; tabs and single-scroll last card; swap cancel/focus/scroll lock; purchase/wear/refresh; diary drafts, optional mood, failure/retry and delete/rewrite dedup; guestbook failure/success; old/new users, attendance dedup; static preview no storage writes and unique SVG IDs. Isolated profile only.');
+ console.log('PASS: 360/390/430 + short heights; six missions; summary/focus, removed item goal UI; tabs and single-scroll last card; swap cancel/focus/scroll lock; purchase/wear/refresh; diary drafts, optional mood, failure/retry and delete/rewrite dedup; guestbook failure/success; old/new users, attendance dedup; static preview no storage writes and unique SVG IDs. Isolated profile only.');
 } finally {if(socket?.readyState===1){try{await Promise.race([send('Browser.close'),delay(1000)]);}catch{}}socket?.close();browser.kill();}

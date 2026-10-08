@@ -2,6 +2,7 @@ import { seoulDateKey, attendanceWeek } from './seoulDate.js';
 import { CLOTHES } from './clothes.js';
 import { DECOR } from './decor.js';
 import { deletedJournal, saveJournal } from './journal.js';
+import { FINAL_FRIENDS } from './finalFriends.js';
 import { CHALLENGES, migrateChallenges, ensureChallenges, previewReward, goalProgress } from './challenges.js';
 export { selectChallenge, pauseChallenge, replaceChallenge, ensureChallenges, goalProgress, previewReward } from './challenges.js';
 
@@ -13,7 +14,8 @@ export const CHARACTERS = [
   { id: 'lavender', name: '달빛 양 모찌', level: 8, price: 450, color: '#F3EDFF' },
   { id: 'mint', name: '새잎 거북 모찌', level: 12, price: 600, color: '#D9EDBC' },
   { id: 'sky', name: '하루 펭귄 모찌', level: 1, price: 0, color: '#D9EAF5', method: 'quest' },
-];
+  ...FINAL_FRIENDS,
+].sort((a, b) => a.level - b.level);
 // Keep retired weekly/monthly IDs only for one-time compatibility migration.
 const LEGACY_QUESTS = [
   ...['week-walk', 'week-wake', 'week-diary'].map(id => ({ id, period: 'week' })),
