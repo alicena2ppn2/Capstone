@@ -87,6 +87,20 @@ API를 직접 눌러 보려면 서버를 켜고 `http://localhost:8000/docs`.
 - `category: "daily"` = 매일 고정 미션, 나머지 3개 = 매일 바뀌는 미션
 - `done: true`면 완료 표시
 
+## 주간 미션
+
+`GET /users/{id}/weekly` → `{week_start, week_end, quests: [...]}` (월~일)
+
+```json
+{"id": "nature_walk", "title": "이번 주 자연 속 산책 2번", "goal_days": 2,
+ "progress": 1, "done_days": ["2026-10-06"], "done_today": false, "completed": false,
+ "coins": 100, "xp": 200}
+```
+
+- 미션 탭에 "이번 주" 칸으로 `progress / goal_days` (예: 1/2) 표시
+- 사진 올리기: 사진 미션처럼 `POST /photos`로 올린 뒤 `POST /users/{id}/weekly/nature_walk/complete` `{photos: [photo_id]}`
+- `done_today: true`면 오늘은 버튼 잠금 (같은 날 두 번째는 409). 다 채우면 응답 `earned_total`·`earned_xp`로 보상 표시
+
 ## 보상 응답 (미션 완료 · 출석 · 일기 · 방문 · 방명록 공통)
 
 ```json

@@ -419,6 +419,70 @@ def complete_mission(user_id: str, mission_id: str, body: CompleteIn, date: str 
     return {"mission_id": mission_id, **rewards(conn, user_id, settle), "care": care}
 
 
+# --- 주간 미션 ---------------------------------------------------------------------
+
+def weekly_status(conn, user_id: str, today: Date, quest: dict) -> dict:
+    start = ms.week_start(today)
+    days = db.weekly_days(conn, user_id, start.isoformat(), quest["id"])
+    return {
+        **quest,
+        "done_days": days,
+        "progress": min(len(days), quest["goal_days"]),
+        "completed": len(days) >= quest["goal_days"],
+        "done_today": today.isoformat() in days,
+    }
+
+
+@app.get("/users/{user_id}/weekly", summary="이번 주 주간 미션 (월~일)")
+def get_weekly(user_id: str, date: str | None = DateQuery, conn=Depends(get_conn)):
+    today = day(date)
+    start = ms.week_start(today)
+    return {
+        "week_start": start.isoformat(),
+        "week_end": (start + timedelta(days=6)).isoformat(),
+        "quests": [weekly_status(conn, user_id, today, q) for q in ms.WEEKLY_QUESTS.values()],
+    }
+
+
+@app.post("/users/{user_id}/weekly/{quest_id}/complete",
+          summary="주간 미션 하루 채우기 (사진). 서로 다른 날 목표 횟수를 채우면 보상")
+def complete_weekly(user_id: str, quest_id: str, body: CompleteIn, date: str | None = DateQuery, conn=Depends(get_conn)):
+    today = day(date)
+    quest = ms.WEEKLY_QUESTS.get(quest_id)
+    if quest is None:
+        raise HTTPException(404, f"주간 미션이 아닙니다: {quest_id}")
+    start = ms.week_start(today).isoformat()
+    if today.isoformat() in db.weekly_days(conn, user_id, start, quest_id):
+        raise HTTPException(409, "오늘은 이미 채웠어요. 다른 날 한 번 더 해 봐요.")
+
+    photos = check_photos(conn, user_id, body.photos)
+    if not photos:
+        raise HTTPException(422, "사진을 한 장 이상 올려 주세요.")
+    check_taken_today(conn, photos, today)
+    db.save_weekly(conn, user_id, start, quest_id, today.isoformat(), {"photos": photos})
+    db.tag_photos(conn, user_id, photos, f"weekly:{quest_id}", today.isoformat())   # 사진첩에 주간 미션 이름으로
+
+    before = ms.level_from_xp(db.xp_total(conn, user_id))["level"]
+    status = weekly_status(conn, user_id, today, quest)
+    earned = []
+    item_id = f"weekly:{quest_id}"
+    if status["completed"] and item_id not in db.paid_ids(conn, user_id, start):
+        # 주간 보상은 그 주 월요일 날짜로 한 번만 기록한다
+        earned = [{"id": item_id, "coins": quest["coins"], "xp": quest["xp"]}]
+        db.add_coins(conn, user_id, start, earned)
+    level = ms.level_from_xp(db.xp_total(conn, user_id))
+    return {
+        "quest": status,
+        "earned": earned,
+        "earned_total": sum(e["coins"] for e in earned),
+        "earned_xp": sum(e["xp"] for e in earned),
+        "coins": db.coin_balance(conn, user_id),
+        "level": level,
+        "leveled_up": level["level"] > before,
+        "new_items": grant_free_items(conn, user_id),
+    }
+
+
 @app.post("/users/{user_id}/attendance", summary="출석하기 (앱을 열 때 호출)")
 def check_in(user_id: str, date: str | None = DateQuery, conn=Depends(get_conn)):
     today = day(date)
@@ -458,6 +522,9 @@ def album_label(used_for: str | None) -> dict | None:
         return None
     if used_for == "diary":
         return {"type": "diary", "id": "diary", "title": "일기"}
+    if used_for.startswith("weekly:"):
+        q = ms.WEEKLY_QUESTS.get(used_for.removeprefix("weekly:"))
+        return {"type": "weekly", "id": used_for, "title": q["title"] if q else used_for}
     m = ms.CATALOG.get(used_for)
     return {"type": "mission", "id": used_for, "title": m.title if m else used_for}
 

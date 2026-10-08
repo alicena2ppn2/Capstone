@@ -20,6 +20,7 @@ import json
 import math
 import random
 from dataclasses import asdict, dataclass
+from datetime import date as Date, timedelta
 from pathlib import Path
 
 from . import diary
@@ -31,6 +32,7 @@ STAY_HOME_STEPS = 1_000          # 이 걸음 미만이면 "안 나간 날"
 STAY_HOME_RATIO = 0.5            # 또는 평소 걸음 중앙값의 50% 미만
 LAST_WEEK_MIN_DAYS = 4            # '지난주보다' 미션은 지난 7일 중 기록이 4일 이상일 때만
 DAILY_STEP_GOAL = 8_000          # 하루 걸음 목표 (권장 걸음). 홈 화면 걸음 바와 '오늘 걸음 채우기' 미션에 쓴다
+STEP_INCREASE = 1_000            # '지난주보다 많이 걷기': 지난주 하루 평균 + 1,000보 (하루 1,000보 늘 때마다 우울 위험 9%↓, Bizzozero-Peroni 2024)
 
 # 보상: (코인, 경험치). 코인은 상점에서 쓰면 줄고, 경험치는 계속 쌓여 레벨이 된다.
 # 수치는 프론트 frontend/src/utils/game.js 의 '오늘' 퀘스트와 맞춘다 (100 XP, 30 코인, 기록 40 코인).
@@ -134,6 +136,33 @@ def beat_goal(prev: float) -> int:
     return int(math.floor(prev / 100) * 100 + 100)
 
 
+# --- 주간 미션 ---------------------------------------------------------------------
+# 매일 미션과 따로, 월요일~일요일 한 주 동안 채우는 미션.
+# 자연 속 산책: 자연에서 주 120분 이상 보내면 건강·행복감이 좋음, 짧게 여러 번이어도 됨 (White 2019)
+WEEKLY_QUESTS = {
+    "nature_walk": {
+        "id": "nature_walk",
+        "title": "이번 주 자연 속 산책 2번",
+        "desc": "공원·산책로·하천·숲처럼 자연이 있는 곳을 걷고 사진을 남겨요. 서로 다른 날 2번이면 완료!",
+        "kind": "photo",
+        "outdoor": True,
+        "goal_days": 2,
+        "coins": 100,
+        "xp": 200,
+    },
+}
+
+
+def week_start(d: Date) -> Date:
+    """그 주 월요일."""
+    return d - timedelta(days=d.weekday())
+
+
+def plus_goal(prev: float, plus: int = STEP_INCREASE) -> int:
+    """기준 + plus보 이상: 100보 단위로 올림. 예: 2,500 → 3,500, 2,643 → 3,700"""
+    return int(math.ceil((prev + plus) / 100) * 100)
+
+
 def step_baselines(steps: float | None, last_week_steps: list[float] | None) -> dict[str, float]:
     """기록 기반 걸음 미션에 쓸 기준값. 기록이 부족한 규칙은 빠진다."""
     out = {}
@@ -151,7 +180,7 @@ def personalize(mission: dict, baselines: dict[str, float]) -> dict:
     if rule == "fixed":
         return mission
     prev = baselines[rule]
-    goal = beat_goal(prev)
+    goal = plus_goal(prev) if rule == "last_week" else beat_goal(prev)
     return {**mission, "min_count": goal, "desc": mission["desc"].format(prev=f"{round(prev):,}", goal=f"{goal:,}")}
 
 
@@ -194,7 +223,13 @@ def pick_missions(
     topic = diary.topic_for(user_id, date)
     missions = [with_topic(personalize(CATALOG[m].to_dict(), baselines), topic) for m in picked[:MISSIONS_PER_DAY]]
     # 매일 고정 미션(출석·걸음·지난주보다·일기·방문·방명록)을 맨 앞에. 기준 기록이 없는 걸음 미션은 빠진다.
-    daily = [m for m in BY_CATEGORY["daily"] if CATALOG[m].goal_rule == "fixed" or CATALOG[m].goal_rule in baselines]
+    # 어제 권장 걸음(8,000보)을 채웠으면 '지난주보다 많이 걷기'는 주지 않는다 (이미 충분히 걷는 사람에게 목표를 더 올리지 않게)
+    walked_enough = _valid(steps) and steps >= DAILY_STEP_GOAL
+    daily = [
+        m for m in BY_CATEGORY["daily"]
+        if (CATALOG[m].goal_rule == "fixed" or CATALOG[m].goal_rule in baselines)
+        and not (CATALOG[m].goal_rule == "last_week" and walked_enough)
+    ]
     missions = [with_topic(personalize(CATALOG[m].to_dict(), baselines), topic) for m in daily] + missions
 
     return {
