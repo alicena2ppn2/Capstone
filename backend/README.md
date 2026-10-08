@@ -90,7 +90,7 @@ python scripts/seed_demo.py --date 2026-10-22 --days 21
 | `GET /users/{id}/level` | 레벨·경험치 |
 | `POST /users/{id}/visits` | 친구 방 놀러 가기 (`{id}` = 방 주인, body에 `visitor_id`). 방문한 사람의 방문 미션 자동 완료 |
 | `GET /users/{id}/visits` | 오늘 내 방에 놀러 온 친구 |
-| `GET /users/{id}/rooms/recommended` | 놀러 갈 만한 친구 방 (최근 7일 안에 앱을 쓴 사람) |
+| `GET /users/{id}/rooms/recommended` | 놀러 갈 만한 친구 방 — 최근 7일 안에 앱을 쓴 사람 중 **내 레벨과 가까운 순** (각 방에 `level`, `level_diff`, `similar`) |
 | `GET /users/{id}/guestbook` | 방명록 목록 (`{id}` = 방 주인) |
 | `POST /users/{id}/guestbook` | 방명록 남기기. `author_id`(쓴 사람)를 넣으면 쓴 사람의 방명록 미션 자동 완료 |
 
