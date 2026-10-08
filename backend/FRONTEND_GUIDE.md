@@ -40,6 +40,7 @@ API를 직접 눌러 보려면 서버를 켜고 `http://localhost:8000/docs`.
 | 화면 | 할 일 | API |
 |---|---|---|
 | 홈 | 걸음·목표·코인·레벨·장착·말풍선 | `GET /users/{id}/home` |
+| 홈 | 다시 온 날 안내 | `GET /home`의 `welcome_back` `{days_away, level_reset, xp_reset, message}` — 있으면 반가움 팝업 (14일 이상 쉬면 `level_reset: true`, 지금 레벨의 처음부터) |
 | 홈 | 만보기 걸음 올리기 (오늘 누적값, 덮어씀) | `POST /users/{id}/steps` `{date, steps}` |
 | 퀘스트 | 오늘 미션 목록 | `GET /users/{id}/missions/today` |
 | 퀘스트 | 사진 미션: 사진 올리고 → 완료 | `POST /users/{id}/photos` (multipart `file`) → `photo_id` → `POST …/missions/{mission_id}/complete` `{photos: [photo_id]}`. 서버 확인에 걸리면 422 `detail` 문구를 그대로 보여 주면 됨 |
@@ -51,8 +52,13 @@ API를 직접 눌러 보려면 서버를 켜고 `http://localhost:8000/docs`.
 | 이웃 방문 | 놀러 갈 방 추천 (내 레벨과 가까운 순) | `GET /users/{id}/rooms/recommended` → `{my_level, rooms: [{id, nickname, level, level_diff, similar}]}`. `similar`(레벨 차이 2 이내)면 "나와 비슷한 레벨" 표시 |
 | 이웃 방문 | 놀러 가기 | `POST /users/{방주인}/visits` `{visitor_id: 내 id}` → 방문 미션 자동 완료 |
 | 이웃 방문 | 내 방에 온 친구 | `GET /users/{id}/visits` |
-| 방명록 | 목록 | `GET /users/{방주인}/guestbook?page=0&per_page=4` |
-| 방명록 | 쓰기 | `POST /users/{방주인}/guestbook` `{text, author_id: 내 id}` → 방명록 미션 자동 완료 (내 방은 제외) |
+| 방명록 | 목록 | `GET /users/{방주인}/guestbook?page=0&per_page=4&viewer_id={내 id}` (내가 신고한 글·차단 관계인 사람 글은 빠짐) |
+| 방명록 | 지우기 | `DELETE /users/{방주인}/guestbook/{글 id}?by={내 id}` (내 방 글 또는 내가 쓴 글) |
+| 방명록·이웃 | 신고 | 글 길게 누르기 → `POST /reports` `{reporter_id, target_type: "guestbook", target_id: "글 id", reason, block}`. 이유: spam·abuse·sexual·hate·self_harm·other |
+| 이웃 | 차단 | `POST /users/{내 id}/blocks` `{target_id}` / 설정 화면 목록 `GET /users/{내 id}/blocks`, 풀기 `DELETE /users/{내 id}/blocks/{id}` |
+| 설정·홈 | 쉬어 가기 | `POST /users/{id}/rest` `{days: 1~30}` → `{resting, start, until, message}` / 상태 `GET` / 끝내기 `DELETE`. 쉬는 동안 홈에 "쉬는 중" 표시 |
+| 기록(일기) | 내보내기 | `GET /users/{id}/diary/export?from=…&to=…` → .txt 파일. Expo는 `expo-file-system`으로 저장 후 `expo-sharing`으로 공유 시트 |
+| 방명록 | 쓰기 | `POST /users/{방주인}/guestbook` `{text, author_id: 내 id}` → 방명록 미션 자동 완료 (내 방은 제외). 422면 `detail` 문구 그대로 보여 주기(욕설 필터), 403이면 `detail` 그대로 (차단 관계, 또는 혐오 표현으로 방명록 쓰기 정지 중) |
 | 사진첩 | 내 사진 (최신순, 미션 이름 표시) | `GET /users/{id}/album?page=0&per_page=30` → `photos[]`: `url`, `date`, `used_for.title` |
 | 사진첩 | 월별 탭·달력 | `GET /users/{id}/album/months` |
 | 사진첩 | 사진 지우기 | `DELETE /users/{id}/photos/{photo_id}` |
