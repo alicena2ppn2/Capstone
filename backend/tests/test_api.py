@@ -390,7 +390,7 @@ def test_names_shown_for_visits_and_rooms(client):
     visitors = client.get(f"/users/{b['id']}/visits", params={"date": DAY}).json()["visitors"]
     assert visitors == [{"id": a["id"], "nickname": "놀러감"}]
     rooms = client.get(f"/users/{a['id']}/rooms/recommended", params={"date": DAY}).json()["rooms"]
-    assert {"id": b["id"], "nickname": "방주인"} in rooms
+    assert any(r["id"] == b["id"] and r["nickname"] == "방주인" for r in rooms)
 
 
 def test_guestbook_uses_nickname_when_author_missing(client):
@@ -436,3 +436,26 @@ def test_default_date_is_seoul(client, monkeypatch):
     from app import main
     monkeypatch.setattr(main, "seoul_today", lambda: date(2026, 12, 25))
     assert client.get("/users/u1/missions/today").json()["date"] == "2026-12-25"
+
+
+def test_recommended_rooms_prefer_similar_level(client):
+    from tests.test_shop import give
+    # 나: LV.5 / 이웃: LV.1, LV.4, LV.5, LV.6, LV.12
+    give(client, "me", xp=ms.xp_to_reach(5))
+    for u, lv in [("lv1", 1), ("lv4", 4), ("lv5", 5), ("lv6", 6), ("lv12", 12)]:
+        if lv > 1:
+            give(client, u, xp=ms.xp_to_reach(lv))
+        client.get(f"/users/{u}/missions/today", params={"date": DAY})
+    r = client.get("/users/me/rooms/recommended", params={"date": DAY, "limit": 5}).json()
+    assert r["my_level"] == 5
+    ids = [x["id"] for x in r["rooms"]]
+    assert ids[0] == "lv5"                                  # 같은 레벨이 먼저
+    assert set(ids[1:3]) == {"lv4", "lv6"}                  # 그다음 ±1
+    assert ids[3:] == ["lv1", "lv12"]                       # 멀수록 뒤 (부족하면 채움)
+    lv12 = next(x for x in r["rooms"] if x["id"] == "lv12")
+    assert (lv12["level"], lv12["level_diff"], lv12["similar"]) == (12, 7, False)
+    assert next(x for x in r["rooms"] if x["id"] == "lv6")["similar"] is True
+
+    # 개수 제한이면 가까운 레벨만
+    near = client.get("/users/me/rooms/recommended", params={"date": DAY, "limit": 3}).json()["rooms"]
+    assert {x["id"] for x in near} == {"lv5", "lv4", "lv6"}

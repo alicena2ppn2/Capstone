@@ -414,6 +414,19 @@ def xp_total(conn, user_id: str) -> int:
     return int(row["total"])
 
 
+def xp_totals(conn, user_ids: list[str]) -> dict[str, int]:
+    """여러 사용자의 누적 경험치. 기록이 없으면 0."""
+    if not user_ids:
+        return {}
+    marks = ",".join("?" * len(user_ids))
+    rows = conn.execute(
+        f"SELECT user_id, COALESCE(SUM(xp), 0) AS total FROM coin_ledger WHERE user_id IN ({marks}) GROUP BY user_id",
+        tuple(user_ids),
+    ).fetchall()
+    totals = {r["user_id"]: int(r["total"]) for r in rows}
+    return {u: totals.get(u, 0) for u in user_ids}
+
+
 # --- 사진 ------------------------------------------------------------------------
 
 def add_photo(conn, photo_id: str, user_id: str, filename: str, content_type: str,
