@@ -39,6 +39,8 @@ backend/uploads/     사진 파일 (파일 이름 = photo_id, 주인은 photos �
 | 상점 | `inventory` | 회원·상품 | `user_id` | 가진 캐릭터·옷·집 소품, 어떻게 얻었는지(구매·처음 지급·레벨·미션) |
 | | `equipped` | 회원 1명 | `user_id` | 장착한 캐릭터·옷 |
 | | `decor_placement` | 회원·자리 | `user_id` | 자리(전등·카페트·액자·인형·창밖 풍경)마다 놓은 소품 |
+| 방명록 | `guestbook_likes` | 글·누른 사람 | `user_id` | 좋아요 (한 사람이 한 글에 한 번) |
+| 일기 | `diary_deleted` | 회원·날짜 | `user_id` | 지운 일기 날짜 → 그날은 다시 쓸 수 없음 |
 | 친구 | `friends` | 요청 1건 | `user_id`(요청한 사람), `friend_id`(받은 사람) | `pending`(요청) → `accepted`(친구). 관계 하나에 한 줄 |
 | | `friendship_points` | 사람·친구·날짜·종류 | `user_a`·`user_b`(두 사람), `actor_id` | 친밀도 점수 기록 (방명록 2·방문 1). 합계 = 친밀도. 보상은 `coin_ledger` 항목 `friend:<친구 id>:lv<n>` |
 | 신고·차단 | `blocks` | 회원·차단한 사람 | `user_id`, `blocked_id` | 차단 관계 (서로에게 안 보이게) |
