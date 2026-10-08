@@ -5,6 +5,20 @@
 
 ---
 
+## 2026-10-07 — 프론트 연결 가이드에 Expo(React Native) 예시
+
+**브랜치** `backend-expo-guide`
+
+- 프론트가 Expo(React Native)로 옮겨 가는 중(PR #19, `mobile/`)이라, 연결 가이드에 Expo 기준 예시 추가
+  - 서버 주소·요청 함수(휴대폰에서는 `localhost` 대신 컴퓨터 내부 IP, `--host 0.0.0.0`)
+  - 앱을 열 때 출석·홈, 걸음 올리기(`expo-sensors` Pedometer — iOS만 기간 조회 가능, Android는 Health Connect 필요), 사진 미션(`expo-image-picker`, 원본 그대로), 일기·스탬프 달력
+  - 앱의 AsyncStorage 키별로 어떤 서버 API로 바꾸면 되는지, Supabase 토큰 붙이는 방법
+- 앱 코드(`mobile/`)는 고치지 않음 — 예시는 가이드 안에만
+
+**남은 것** 앱에는 일기 삭제가 있는데 서버에는 삭제 API가 없음 → 추가 필요. 방명록 좋아요도 서버에 없음
+
+---
+
 ## 2026-10-06 — DB 구조 문서
 
 - `DATABASE.md`: 회원별 DB를 따로 두지 않고 SQLite 파일 하나를 모든 회원이 같이 쓰며 `user_id`로 구분한다는 구조, 표 15개 설명, 저장하지 않고 계산하는 값(코인 잔액·레벨), 계정 삭제 범위, 한계와 출시 전 할 일(로그인 토큰, PostgreSQL, 배포 저장 공간, 백업)
