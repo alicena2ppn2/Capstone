@@ -24,7 +24,8 @@ def test_request_accept_and_list(client):
         assert [x["id"] for x in view["friends"]] == [other["id"]]
         assert view["received"] == [] and view["sent"] == []
     card = client.get(f"/users/{a['id']}/friends").json()["friends"][0]
-    assert set(card) == {"id", "nickname", "level", "last_active", "visited_today", "since"}
+    assert set(card) == {"id", "nickname", "level", "last_active", "visited_today", "since", "friendship"}
+    assert (card["friendship"]["level"], card["friendship"]["name"], card["friendship"]["points"]) == (1, "새 친구", 0)
     assert card["level"] == 1 and card["visited_today"] is False
 
 
@@ -88,3 +89,75 @@ def test_delete_account_removes_friendships(client):
     client.post(f"/users/{b['id']}/friends/{a['id']}/accept")
     client.delete(f"/users/{a['id']}")
     assert client.get(f"/users/{b['id']}/friends").json()["friends"] == []
+
+
+# --- 친밀도 ------------------------------------------------------------------------
+
+def make_friends(client, n1, n2):
+    a, b = signup(client, n1), signup(client, n2)
+    add(client, a["id"], n2)
+    client.post(f"/users/{b['id']}/friends/{a['id']}/accept")
+    return a["id"], b["id"]
+
+
+def write(client, author, owner, date):
+    r = client.post(f"/users/{owner}/guestbook", params={"date": date}, json={"author_id": author, "text": "놀러 왔어"})
+    assert r.status_code == 200, r.text
+    return r.json()["friendship"]
+
+
+def coins(client, user):
+    return client.get(f"/users/{user}/coins").json()["coins"]
+
+
+def test_guestbook_grows_friendship_and_pays_both(client):
+    a, b = make_friends(client, "방명록왕", "받는이")
+    first = write(client, a, b, "2026-10-01")
+    assert (first["gained"], first["points"], first["level"], first["leveled_up"]) == (2, 2, 1, False)
+    assert write(client, a, b, "2026-10-01")["gained"] == 0            # 같은 날 두 번째는 안 셈
+    second = write(client, a, b, "2026-10-02")                         # 4점 → LV.2 아는 사이
+    assert (second["level"], second["name"], second["leveled_up"], second["earned_coins"]) == (2, "아는 사이", True, 20)
+    # 두 사람 모두 20코인 (방명록 미션 보상과 별개로 장부 항목 friend:*:lv2)
+    for me, other in ((a, b), (b, a)):
+        from app.main import app
+        row = app.state.conn.execute("SELECT coins FROM coin_ledger WHERE user_id = ? AND item_id = ?",
+                                     (me, f"friend:{other}:lv2")).fetchone()
+        assert row["coins"] == 20
+    card = client.get(f"/users/{b}/friends").json()["friends"][0]["friendship"]
+    assert (card["level"], card["points"], card["next_level_at"], card["points_to_next"], card["next_reward"]) == (2, 4, 12, 8, 40)
+
+
+def test_both_sides_add_up_with_visits(client):
+    a, b = make_friends(client, "오가는", "사이좋")
+    client.get(f"/users/{a}/missions/today", params={"date": "2026-10-01"})
+    client.get(f"/users/{b}/missions/today", params={"date": "2026-10-01"})
+    v = client.post(f"/users/{b}/visits", params={"date": "2026-10-01"}, json={"visitor_id": a}).json()["friendship"]
+    assert (v["gained"], v["points"]) == (1, 1)
+    write(client, b, a, "2026-10-01")                                  # 상대가 쓴 것도 같은 점수에
+    r = client.post(f"/users/{a}/visits", params={"date": "2026-10-01"}, json={"visitor_id": b}).json()["friendship"]
+    assert (r["points"], r["level"]) == (4, 2)
+
+
+def test_not_friends_no_friendship(client):
+    a, b = signup(client, "모르는"), signup(client, "사이임")
+    assert write(client, a["id"], b["id"], "2026-10-01") is None
+
+
+def test_friendship_reward_only_once_after_refriend(client):
+    a, b = make_friends(client, "다시만", "남이야")
+    write(client, a, b, "2026-10-01")
+    write(client, a, b, "2026-10-02")                                  # LV.2 → 20코인씩
+    paid = coins(client, b)
+    client.delete(f"/users/{a}/friends/{b}")
+    add(client, a, "남이야")
+    client.post(f"/users/{b}/friends/{a}/accept")
+    r = write(client, a, b, "2026-10-03")
+    assert r["level"] >= 2 and r["earned_coins"] == 0                 # 점수는 남고 보상은 다시 안 줌
+    assert coins(client, b) == paid
+
+
+def test_friendship_levels_table():
+    from app import friendship as fs
+    assert [fs.level_from_points(p)["level"] for p in (0, 3, 4, 11, 12, 24, 39, 40, 999)] == [1, 1, 2, 2, 3, 4, 4, 5, 5]
+    top = fs.level_from_points(40)
+    assert (top["name"], top["next_level_at"], top["points_to_next"]) == ("베스트 프렌드", None, 0)

@@ -25,6 +25,7 @@ from pydantic import BaseModel, Field
 from . import crisis
 from . import db
 from . import diary as dy
+from . import friendship as fs
 from . import missions as ms
 from . import moderation
 from . import photo_meta
@@ -828,7 +829,9 @@ def post_visit(user_id: str, body: VisitIn, date: str | None = DateQuery, conn=D
         raise HTTPException(403, "방문할 수 없는 방이에요.")
     new = db.add_visit(conn, user_id, body.visitor_id, today.isoformat())
     result = auto_complete(conn, body.visitor_id, today, "visit", {"visited": True})
-    return {"owner_id": user_id, "visitor_id": body.visitor_id, "date": today.isoformat(), "first_visit_today": new, **result}
+    bond = grow_friendship(conn, body.visitor_id, user_id, today, "visit")
+    return {"owner_id": user_id, "visitor_id": body.visitor_id, "date": today.isoformat(), "first_visit_today": new,
+            **result, "friendship": bond}
 
 
 @app.get("/users/{user_id}/visits", summary="오늘 내 방에 놀러 온 친구")
@@ -907,9 +910,10 @@ def post_guestbook(user_id: str, body: GuestbookIn, date: str | None = DateQuery
         raise HTTPException(422, moderation.FILTER_MESSAGE)
     entry = db.add_guestbook(conn, user_id, author, body.text.strip(), body.author_id, today.isoformat())
     if not body.author_id or body.author_id == user_id:
-        return {"entry": entry, "completed_missions": [], "earned": []}
+        return {"entry": entry, "completed_missions": [], "earned": [], "friendship": None}
     result = auto_complete(conn, body.author_id, today, "guestbook", {"written": True})
-    return {"entry": entry, **result}
+    bond = grow_friendship(conn, body.author_id, user_id, today, "guestbook")
+    return {"entry": entry, **result, "friendship": bond}
 
 
 # --- 차단·신고 ---------------------------------------------------------------------
@@ -1036,6 +1040,7 @@ def friend_cards(conn, user_id: str, entries: list[dict], today: Date) -> list[d
     xps = db.xp_totals(conn, ids)
     last = db.last_active(conn, ids)
     visited = set(db.visited_owners(conn, user_id, today.isoformat()))
+    points = db.friendship_points(conn, user_id, ids)
     return [{
         "id": e["id"],
         "nickname": names.get(e["id"]),
@@ -1043,7 +1048,35 @@ def friend_cards(conn, user_id: str, entries: list[dict], today: Date) -> list[d
         "last_active": last.get(e["id"]),
         "visited_today": e["id"] in visited,
         "since": e["since"],
+        "friendship": fs.level_from_points(points[e["id"]]),
     } for e in entries]
+
+
+def grow_friendship(conn, actor_id: str, friend_id: str, today: Date, kind: str) -> dict | None:
+    """친구에게 방명록·방문을 하면 친밀도를 올리고, 레벨이 오르면 두 사람 모두에게 코인을 준다.
+    친구가 아니면 None. 그날 같은 활동을 이미 했으면 점수는 그대로."""
+    if friend_id not in db.friend_ids(conn, actor_id):
+        return None
+    before = fs.level_from_points(db.friendship_points(conn, actor_id, [friend_id])[friend_id])
+    counted = db.add_friendship_points(conn, actor_id, friend_id, today.isoformat(), kind, fs.POINTS[kind])
+    after = fs.level_from_points(db.friendship_points(conn, actor_id, [friend_id])[friend_id])
+
+    earned = 0
+    for level in range(before["level"] + 1, after["level"] + 1):
+        coins = fs.reward_for(level)
+        for me, other in ((actor_id, friend_id), (friend_id, actor_id)):
+            item = fs.reward_item(other, level)
+            if not db.paid_ever(conn, me, item):                 # 끊었다 다시 맺어도 한 번만
+                db.add_coins(conn, me, today.isoformat(), [{"id": item, "coins": coins, "xp": 0}])
+                if me == actor_id:
+                    earned += coins
+    return {
+        "friend_id": friend_id,
+        **after,
+        "gained": fs.POINTS[kind] if counted else 0,
+        "leveled_up": after["level"] > before["level"],
+        "earned_coins": earned,
+    }
 
 
 @app.post("/users/{user_id}/friends", status_code=201,

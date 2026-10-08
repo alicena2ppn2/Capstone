@@ -58,6 +58,7 @@ API를 직접 눌러 보려면 서버를 켜고 `http://localhost:8000/docs`.
 | 친구 | 추가 | `POST /users/{내 id}/friends` `{nickname}` → `status: pending`(요청 보냄) 또는 `accepted`(상대가 먼저 요청해서 바로 친구). 404면 "찾지 못했어요" 그대로 |
 | 친구 | 목록 | `GET /users/{내 id}/friends` → `{friends, received, sent}` 각 `[{id, nickname, level, last_active, visited_today, since}]`. 친구를 누르면 `GET /users/{친구}/room`으로 방 놀러 가기 |
 | 친구 | 수락·끊기 | `POST /users/{내 id}/friends/{상대}/accept` / `DELETE /users/{내 id}/friends/{상대}` (끊기·취소·거절 공통) |
+| 친구 | 친밀도 | 친구 목록 각 항목의 `friendship` `{level, name, points, next_level_at, points_to_next, next_reward}` → 하트 게이지·"단짝까지 8점" 표시. 방명록·방문 응답의 `friendship.leveled_up`이 true면 "○○님과 '아는 사이'가 됐어요! +20코인" 팝업 (`earned_coins`) |
 | 이웃 | 추천 방의 친구 표시 | `GET /rooms/recommended`의 `is_friend` |
 | 이웃 | 차단 | `POST /users/{내 id}/blocks` `{target_id}` / 설정 화면 목록 `GET /users/{내 id}/blocks`, 풀기 `DELETE /users/{내 id}/blocks/{id}` |
 | 설정·홈 | 쉬어 가기 | `POST /users/{id}/rest` `{days: 1~30}` → `{resting, start, until, message}` / 상태 `GET` / 끝내기 `DELETE`. 쉬는 동안 홈에 "쉬는 중" 표시 |
