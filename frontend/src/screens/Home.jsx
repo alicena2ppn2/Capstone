@@ -1,7 +1,8 @@
+import HomeSummary from '../components/HomeSummary.jsx';
 import Mochi from '../components/Mochi.jsx';
 import SeoulClock from '../components/SeoulClock.jsx';
 import HouseDecor from '../components/HouseDecor.jsx';
-import { QUESTS, levelFor } from '../utils/game.js';
+import { levelFor } from '../utils/game.js';
 import { GearIcon, ShopIcon } from '../components/Icons.jsx';
 
 export function RoomBackdrop({ decor = {}, wallColor = '#D6EAF8', floorColor = '#EBCDA6', homeScene = false }) {
@@ -72,9 +73,6 @@ export default function Home({ game, day, target, petName = 'MOCHI', petColor, o
       <button type="button" className="pb home-quest-start" onClick={onQuest}><svg width="24" height="24" viewBox="0 0 24 24" aria-hidden="true"><path d="M5 4 H19 V21 H5Z M9 2 H15 V6 H9Z M8 12 L10 14 L15 9 M8 18 H16" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinejoin="round" strokeLinecap="round" /></svg><span>오늘의 도전</span></button>
       <button type="button" className="pb home-decor-open" onClick={onShop}><ShopIcon width={24} height={24} /><span>꾸미기</span></button>
     </footer>
-    <div className="home-progress-links">
-      {game.challengeDays?.[day]?.selected.map(id => <button type="button" className="pb" key={id} onClick={onQuest}>{QUESTS.find(q => q.id === id)?.name} · {game.completed.includes(`${day}:${id}`) ? '완료 ✓' : game.started?.includes(`${day}:${id}`) ? '도전 중' : '선택함'}</button>)}
-      {target && <button type="button" className="pb" onClick={onShop}>목표: {target.name} · {target.complete ? '획득 완료 ✓' : `코인 ${target.coinsNeeded ? `${target.coinsNeeded} 부족` : '충족'} · LV.${target.level} ${target.levelsNeeded ? `(${target.levelsNeeded}레벨 남음)` : '충족'}`}</button>}
-    </div>
+    <HomeSummary game={game} day={day} target={target} onQuest={onQuest} onShop={onShop} />
   </section>;
 }

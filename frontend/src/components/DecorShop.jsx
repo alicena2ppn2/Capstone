@@ -30,7 +30,7 @@ export default function DecorShop({ game, level, onTarget, onBuy, onEquip }) {
           </button>
           <span className="shop-price">{has ? active ? '배치 중' : '보유 중' : `LV.${item.level} · ${item.price} 코인`}</span>
           <TargetButton game={game} kind="decor" item={item} onTarget={onTarget} />
-          <button type="button" className="pb shop-buy" disabled={locked || (!has && game.coins < item.price)} onClick={() => {
+          <button type="button" className={`pb shop-buy${active ? ' is-release' : ''}`} disabled={locked || (!has && game.coins < item.price)} onClick={() => {
             if (has) { onEquip(item.slot, active ? null : item.id); setPreview(null); setMessage(active ? '기본 모습으로 돌아왔어요.' : `${item.name}을 배치했어요.`); }
             else { onBuy(item.id); setMessage(`${item.name}을 소품함에 추가했어요. 직접 배치해보세요!`); }
           }}>{locked ? `LV.${item.level} 해금` : has ? active ? '배치 해제' : '배치하기' : game.coins < item.price ? '코인이 부족해요' : '구매하기'}</button>
