@@ -680,11 +680,28 @@ def get_visits(user_id: str, date: str | None = DateQuery, conn=Depends(get_conn
     return {"owner_id": user_id, "date": today.isoformat(), "visitors": with_names(conn, db.visitors(conn, user_id, today.isoformat()))}
 
 
-@app.get("/users/{user_id}/rooms/recommended", summary="놀러 갈 만한 친구 방 (최근 7일 안에 앱을 쓴 사람)")
+RECOMMEND_CANDIDATES = 200   # 레벨을 비교할 최근 활동 사용자 수 (많아지면 이 안에서만 고름)
+SIMILAR_LEVEL_RANGE = 2      # 레벨 차이가 이 안이면 "비슷한 레벨"
+
+
+@app.get("/users/{user_id}/rooms/recommended",
+         summary="놀러 갈 만한 친구 방 — 최근 7일 안에 앱을 쓴 사람 중 내 레벨과 가까운 순")
 def recommended_rooms(user_id: str, date: str | None = DateQuery, limit: int = Query(5, ge=1, le=20), conn=Depends(get_conn)):
     today = day(date)
     since = (today - timedelta(days=7)).isoformat()
-    return {"rooms": with_names(conn, db.active_users(conn, since, user_id, limit))}
+    my_level = ms.level_from_xp(db.xp_total(conn, user_id))["level"]
+
+    # 최근에 활동한 순서(active_users)를 같은 레벨 차이 안에서의 순서로 쓴다
+    candidates = db.active_users(conn, since, user_id, RECOMMEND_CANDIDATES)
+    xps = db.xp_totals(conn, candidates)
+    levels = {u: ms.level_from_xp(xps[u])["level"] for u in candidates}
+    ranked = sorted(candidates, key=lambda u: (abs(levels[u] - my_level), candidates.index(u)))[:limit]
+
+    rooms = []
+    for room in with_names(conn, ranked):
+        diff = levels[room["id"]] - my_level
+        rooms.append({**room, "level": levels[room["id"]], "level_diff": diff, "similar": abs(diff) <= SIMILAR_LEVEL_RANGE})
+    return {"my_level": my_level, "rooms": rooms}
 
 
 @app.get("/users/{user_id}/guestbook", summary="방명록 목록")

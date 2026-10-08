@@ -48,7 +48,7 @@ API를 직접 눌러 보려면 서버를 켜고 `http://localhost:8000/docs`.
 | 기록(일기) | 오늘의 주제 | `GET /users/{id}/diary/topic` |
 | 기록(일기) | 쓰기·고치기 | `PUT /users/{id}/diary/{YYYY-MM-DD}` `{text, use_topic, mood, photos}` → 일기 미션 자동 완료 |
 | 기록(일기) | 목록 | `GET /users/{id}/diary?from=…&to=…` |
-| 이웃 방문 | 놀러 갈 방 추천 | `GET /users/{id}/rooms/recommended` → `[{id, nickname}]` |
+| 이웃 방문 | 놀러 갈 방 추천 (내 레벨과 가까운 순) | `GET /users/{id}/rooms/recommended` → `{my_level, rooms: [{id, nickname, level, level_diff, similar}]}`. `similar`(레벨 차이 2 이내)면 "나와 비슷한 레벨" 표시 |
 | 이웃 방문 | 놀러 가기 | `POST /users/{방주인}/visits` `{visitor_id: 내 id}` → 방문 미션 자동 완료 |
 | 이웃 방문 | 내 방에 온 친구 | `GET /users/{id}/visits` |
 | 방명록 | 목록 | `GET /users/{방주인}/guestbook?page=0&per_page=4` |

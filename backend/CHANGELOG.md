@@ -5,6 +5,18 @@
 
 ---
 
+## 2026-10-08 — 이웃 추천: 나와 비슷한 레벨부터
+
+**브랜치** `backend-neighbor-level`
+
+- `GET /rooms/recommended`가 최근 7일 안에 앱을 쓴 사람 중 **내 레벨과 차이가 작은 순**으로 추천 (같은 차이면 최근에 활동한 사람 먼저)
+- 응답에 `my_level`, 각 방의 `level`·`level_diff`(이웃 − 나)·`similar`(차이 2 이내) 추가 → 화면에서 "나와 비슷한 레벨" 표시 가능
+- 비슷한 레벨이 부족하면 그다음으로 가까운 레벨로 채움 (목록이 비지 않게)
+- 왜: 비슷한 단계의 사람끼리 만나면 부담이 적고, 레벨 차이가 크면 비교·위축될 수 있음
+- 응답 모양이 `{rooms: [{id, nickname}]}` → `{my_level, rooms: [{id, nickname, level, level_diff, similar}]}`로 바뀜 (기존 칸은 그대로라 호환)
+
+---
+
 ## 2026-10-07 — 프론트 연결 가이드에 Expo(React Native) 예시
 
 **브랜치** `backend-expo-guide`
