@@ -153,6 +153,37 @@ WEEKLY_QUESTS = {
 }
 
 
+# --- 월간 목표 ---------------------------------------------------------------------
+# 따로 제출하지 않고 이번 달 기록으로 자동 집계한다. 다 채우면 받기(claim)로 보상 (앱 '이번 달' 목표와 같은 기준)
+MONTHLY_GOALS = {
+    "month_outdoor": {
+        "id": "month_outdoor",
+        "title": "이번 달 바깥 발견 8번",
+        "desc": "밖에 나가는 미션을 이번 달 8번 해 봐요.",
+        "count": "outdoor_missions",     # 이번 달 완료한 바깥 미션 수 (주간 산책 포함)
+        "target": 8,
+        "coins": 150,
+        "xp": 300,
+    },
+    "month_diary": {
+        "id": "month_diary",
+        "title": "이번 달 하루 기록 10일",
+        "desc": "서로 다른 날 일기를 10일 써 봐요.",
+        "count": "diary_days",           # 이번 달 일기를 쓴 날 수
+        "target": 10,
+        "coins": 150,
+        "xp": 300,
+    },
+}
+
+
+def month_range(d: Date) -> tuple[Date, Date]:
+    """그 달 1일과 마지막 날."""
+    first = d.replace(day=1)
+    nxt = (first + timedelta(days=32)).replace(day=1)
+    return first, nxt - timedelta(days=1)
+
+
 def week_start(d: Date) -> Date:
     """그 주 월요일."""
     return d - timedelta(days=d.weekday())

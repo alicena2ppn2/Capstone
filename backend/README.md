@@ -73,6 +73,8 @@ python scripts/seed_demo.py --date 2026-10-22 --days 21
 | `POST /users/{id}/attendance` | 출석하기 (앱을 열 때 호출, 하루 한 번 보상) |
 | `GET /users/{id}/weekly` | 이번 주(월~일) 주간 미션과 진행도 |
 | `POST /users/{id}/weekly/{quest_id}/complete` | 주간 미션 하루 채우기 (사진). 서로 다른 날 목표 횟수를 채우면 보상 한 번 |
+| `GET /users/{id}/monthly` | 이번 달 목표와 진행도 (기록으로 자동 집계) |
+| `POST /users/{id}/monthly/{goal_id}/claim` | 월간 목표 보상 받기 (다 채웠을 때 달마다 한 번) |
 | `POST /users/{id}/photos` | 사진 업로드 → `photo_id` (jpeg·png·webp·heic, 10MB 이하). 촬영 일시는 서버에만 저장 |
 | `GET /photos/{photo_id}` | 사진 보기 |
 | `GET /users/{id}/album?from=&to=&page=&per_page=` | 사진첩: 내가 올린 사진, 날짜 최신순, 어떤 미션·일기에 올렸는지 |
@@ -81,6 +83,7 @@ python scripts/seed_demo.py --date 2026-10-22 --days 21
 | `GET /users/{id}/diary/topic` | 오늘의 일기 주제 |
 | `PUT /users/{id}/diary/{date}` | 일기 쓰기·고치기 (글·기분·사진, 오늘의 주제 사용 여부). 일기 미션이 있으면 자동 완료 |
 | `GET /users/{id}/diary/{date}` | 하루 일기 보기 |
+| `DELETE /users/{id}/diary/{date}` | 일기 지우기 — **지운 날은 다시 쓸 수 없음** (앱과 같은 규칙), 받은 보상은 그대로 |
 | `GET /users/{id}/diary/export?from=&to=` | 일기 내보내기 — 텍스트 파일(.txt) 내려받기. 기관 연동 없이 사용자가 직접 보관·공유 |
 | `GET /users/{id}/diary?from=&to=` | 일기 목록 (기록 탭) |
 | `GET /users/{id}/coins` | 코인 잔액 |
@@ -96,6 +99,7 @@ python scripts/seed_demo.py --date 2026-10-22 --days 21
 | `GET /users/{id}/rooms/recommended` | 놀러 갈 만한 친구 방 — 최근 7일 안에 앱을 쓴 사람 중 **내 레벨과 가까운 순** (각 방에 `level`, `level_diff`, `similar`) |
 | `GET /users/{id}/guestbook?viewer_id=` | 방명록 목록 (`{id}` = 방 주인). 신고 2명 이상·차단 관계인 사람의 글은 빠짐 |
 | `DELETE /users/{id}/guestbook/{entry_id}?by=` | 방명록 글 지우기 (방 주인 또는 쓴 사람) |
+| `POST /users/{id}/guestbook/{entry_id}/like` `{user_id}` · `DELETE …/like?by=` | 방명록 좋아요·취소 (한 사람이 한 번). 목록의 각 글에 `likes`, `liked` |
 | `POST /users/{id}/guestbook` | 방명록 남기기. `author_id`(쓴 사람)를 넣으면 쓴 사람의 방명록 미션 자동 완료. 욕설 필터, 차단 관계면 403 |
 | `POST /users/{id}/friends` `{nickname}` | 친구 추가 — 닉네임으로 요청 (상대가 먼저 요청했으면 바로 친구) |
 | `GET /users/{id}/friends` | 친구 목록 + 받은 요청 + 보낸 요청 (닉네임·레벨·마지막 접속일·오늘 놀러 갔는지·**친밀도**) |
@@ -119,6 +123,10 @@ python scripts/seed_demo.py --date 2026-10-22 --days 21
 - 이번 주 자연 속 산책 2번: 공원·산책로·하천 사진을 **서로 다른 날 2번** → 100코인 · 200XP (한 주에 한 번)
 - 하루에 한 번만 셈(같은 날 두 번째는 409), 오늘 찍은 내 사진만 인정, 사진첩에 "이번 주 자연 속 산책 2번"으로 표시
 - 근거: 자연에서 주 120분, 짧게 여러 번이어도 효과 (White 2019)
+
+**월간 목표** (그 달 1일~말일, 제출 없이 기록으로 집계 · `MONTHLY_GOALS`) — 다 채우면 `claim`으로 150코인 · 300XP
+- 이번 달 바깥 발견 8번: 완료한 바깥 미션(`outdoor: true`) + 주간 산책 사진
+- 이번 달 하루 기록 10일: 일기를 쓴 날 수 (지운 일기는 빠짐)
 
 **매일 고정 6개** (`category: daily`)
 - 출석하기: 앱을 열 때 `POST /attendance`
