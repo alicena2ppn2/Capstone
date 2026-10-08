@@ -92,6 +92,15 @@ CREATE TABLE IF NOT EXISTS coin_ledger (
     created_at TEXT NOT NULL DEFAULT (datetime('now')),
     PRIMARY KEY (user_id, date, item_id)
 );
+CREATE TABLE IF NOT EXISTS weekly_progress (  -- 주간 미션: 하루에 한 번씩 채운 기록
+    user_id     TEXT NOT NULL,
+    week_start  TEXT NOT NULL,           -- 그 주 월요일
+    quest_id    TEXT NOT NULL,
+    date        TEXT NOT NULL,
+    submission  TEXT NOT NULL,           -- JSON
+    created_at  TEXT NOT NULL DEFAULT (datetime('now')),
+    PRIMARY KEY (user_id, week_start, quest_id, date)
+);
 CREATE TABLE IF NOT EXISTS photos (
     id           TEXT PRIMARY KEY,        -- uuid
     user_id      TEXT NOT NULL,
@@ -244,6 +253,7 @@ def delete_user(conn, user_id: str) -> list[str]:
         "DELETE FROM steps WHERE user_id = ?",
         "DELETE FROM mission_days WHERE user_id = ?",
         "DELETE FROM completions WHERE user_id = ?",
+        "DELETE FROM weekly_progress WHERE user_id = ?",
         "DELETE FROM coin_ledger WHERE user_id = ?",
         "DELETE FROM photos WHERE user_id = ?",
         "DELETE FROM diary WHERE user_id = ?",
@@ -387,6 +397,23 @@ def save_completion(conn, user_id: str, date: str, mission_id: str, submission: 
 def completed_ids(conn, user_id: str, date: str) -> set[str]:
     rows = conn.execute("SELECT mission_id FROM completions WHERE user_id = ? AND date = ?", (user_id, date)).fetchall()
     return {r["mission_id"] for r in rows}
+
+
+def weekly_days(conn, user_id: str, week_start: str, quest_id: str) -> list[str]:
+    """이번 주에 이 주간 미션을 채운 날짜."""
+    rows = conn.execute(
+        "SELECT date FROM weekly_progress WHERE user_id = ? AND week_start = ? AND quest_id = ? ORDER BY date",
+        (user_id, week_start, quest_id),
+    ).fetchall()
+    return [r["date"] for r in rows]
+
+
+def save_weekly(conn, user_id: str, week_start: str, quest_id: str, date: str, submission: dict) -> None:
+    conn.execute(
+        "INSERT INTO weekly_progress (user_id, week_start, quest_id, date, submission) VALUES (?, ?, ?, ?, ?)",
+        (user_id, week_start, quest_id, date, json.dumps(submission, ensure_ascii=False)),
+    )
+    conn.commit()
 
 
 # --- 코인 ------------------------------------------------------------------------

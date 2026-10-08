@@ -184,8 +184,22 @@ def test_beat_last_week_goal_and_text():
     m = out["missions"][2]                       # 매일 고정: 출석·걸음 다음
     assert m["id"] == "beat_last_week"
     assert m["category"] == "daily"
-    assert m["min_count"] == 2600
-    assert "2,500보" in m["desc"] and "2,600보" in m["desc"]
+    assert m["min_count"] == 3500                 # 평균 2,500 + 1,000
+    assert "2,500보" in m["desc"] and "3,500보" in m["desc"]
+
+
+def test_plus_goal_rounds_up_to_100():
+    assert ms.plus_goal(2500) == 3500
+    assert ms.plus_goal(2643) == 3700
+    assert ms.plus_goal(0) == 1000
+
+
+def test_last_week_skipped_when_walked_enough_yesterday():
+    week = [5000] * 7
+    ids = lambda steps: [m["id"] for m in ms.pick_missions("u1", "2026-10-01", steps=steps, last_week_steps=week)["missions"]]
+    assert "beat_last_week" in ids(7999)
+    assert "beat_last_week" not in ids(8000)                       # 어제 8,000보 이상 → 없음
+    assert ids(8000)[:5] == ["attendance", "walk", "diary", "visit", "guestbook"]
 
 
 def test_relative_missions_skipped_without_history():
