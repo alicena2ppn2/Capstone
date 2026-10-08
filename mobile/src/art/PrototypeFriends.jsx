@@ -1,6 +1,6 @@
 import React, { useEffect, useState } from 'react';
 import Svg, { G, Path, Ellipse, Circle, Defs, ClipPath } from 'react-native-svg';
-import PrototypeFriendDrawing from '../../../frontend/src/components/PrototypeFriendDrawing.jsx';
+import PrototypeFriendDrawing from '../../../frontend/src/components/FinalPrototypeFriendDrawing.jsx';
 import useFriendReaction from './useFriendReaction.js';
 import FriendEffects from './FriendEffects.jsx';
 const elements = { G, Path, Ellipse, Circle, Defs, ClipPath };

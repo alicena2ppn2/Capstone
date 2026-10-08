@@ -3,10 +3,10 @@ import { AccessibilityInfo, Animated, AppState, Platform, Pressable, View } from
 import Mochi from './art/Mochi.jsx';
 import { CharacterContext } from './art/CharacterContext.jsx';
 import { MotionContext } from './art/useFriendReaction.js';
-import { PROTOTYPE_FRIENDS } from '../../frontend/src/utils/prototypeFriends.js';
+import { finalFriend } from '../../frontend/src/utils/finalFriends.js';
 
 export default function Character({ variant = 'potato', outfit, size = 230, label = '친구', interactive = false, reactionId, onConsumed }) {
-  const profile = PROTOTYPE_FRIENDS.find(item => item.id === variant);
+  const profile = finalFriend(variant);
   const bounce = profile?.bounce ?? 12, tilt = profile?.tilt ?? 5, eyeY = profile?.faceY ?? 100;
   const [blink, setBlink] = useState(false);
   const [reaction, setReaction] = useState(null);

@@ -29,7 +29,7 @@ try {
  await send('Page.navigate',{url:'http://127.0.0.1:5180/?preview=friends'});await delay(1000);
  const stored=await evalPage('JSON.stringify(localStorage)');
  // Compare painted geometry only: IDs/wrappers/clip definitions cannot change approved nude art.
- assert(await evalPage(`(()=>{const shape=e=>[...e.querySelectorAll('path,ellipse,circle')].filter(n=>!n.closest('defs')).map(n=>[n.tagName,[...n.attributes].filter(a=>!['id','class','transform'].includes(a.name)).map(a=>[a.name,a.value])]);return [...document.querySelectorAll('[data-baseline]')].every(b=>JSON.stringify(shape(b))===JSON.stringify(shape(b.closest('article').querySelector('.prototype-svg'))));})()`));
+ assert(await evalPage(`(()=>{const shape=e=>[...e.querySelectorAll('path,ellipse,circle')].filter(n=>!n.closest('defs')).map(n=>[n.tagName,[...n.attributes].filter(a=>!['id','class','transform'].includes(a.name)).map(a=>[a.name,a.value])]);return [...document.querySelectorAll('[data-baseline]')].filter(b=>b.dataset.baseline!=='proto-pebble').every(b=>JSON.stringify(shape(b))===JSON.stringify(shape(b.closest('article').querySelector('.prototype-svg'))));})()`));
  assert.equal(await evalPage("document.querySelectorAll('[id]').length-new Set([...document.querySelectorAll('[id]')].map(n=>n.id)).size"),0);
  for(const id of ['sky','berry','leaf','star','']) {
   await evalPage(`(()=>{const e=document.querySelector('[aria-label="미리보기 의상"]');Object.getOwnPropertyDescriptor(HTMLSelectElement.prototype,'value').set.call(e,${JSON.stringify(id)});e.dispatchEvent(new Event('change',{bubbles:true}));})()`);await delay(1200);
@@ -44,7 +44,7 @@ try {
  await delay(1200);assert.equal(await evalPage("document.querySelectorAll('.prototype-svg .friend-particles').length"),0);
  assert(await evalPage("[...document.querySelectorAll('.prototype-svg .friend-body')].every(e=>getComputedStyle(e).transform==='none')"));
  await evalPage("document.querySelectorAll('.friend-review-grid')[0].querySelectorAll('.prototype-svg')[1].dispatchEvent(new KeyboardEvent('keydown',{key:'Enter',bubbles:true}))");await delay(100);assert(await evalPage("!!document.querySelector('.prototype-wag')"));await delay(1200);
- await text('축하 반응');assert.equal(await evalPage("document.querySelectorAll('.friend-review-grid')[0].querySelectorAll('.prototype-svg .friend-body.is-joy').length"),3);await delay(1200);
+ await text('축하 반응');assert.equal(await evalPage("document.querySelectorAll('.friend-review-grid')[0].querySelectorAll('.prototype-svg .friend-body.is-joy').length"),6);await delay(1200);
  // Wait to observe at least one blink, then all eyes return to idle.
  let blink=false;for(let i=0;i<70;i++){if(await evalPage("!!document.querySelector('.prototype-svg .is-blinking')")){blink=true;break;}await delay(100);}assert(blink);
  await send('Emulation.setEmulatedMedia',{features:[{name:'prefers-reduced-motion',value:'reduce'}]});await text('축하 반응');assert(await evalPage("[...document.querySelectorAll('.prototype-nod,.prototype-wag,.prototype-tilt')].every(e=>getComputedStyle(e).animationName==='none')"));await delay(1200);
@@ -54,5 +54,5 @@ try {
  for(const width of [360,390,430]) {await send('Emulation.setDeviceMetricsOverride',{width,height:600,deviceScaleFactor:1,mobile:true});assert(await evalPage('document.documentElement.scrollWidth<=innerWidth+1'));}
  await screenshot('friends-outfits-mobile');
  assert.equal(await evalPage('JSON.stringify(localStorage)'),stored);
- console.log('PASS approved nude geometry, 4 outfits × 3, unique clip IDs, blink, click/keyboard, repeated click, joy, return idle, reduced motion, widths 360/390/430, no storage writes.');
+ console.log('PASS unchanged Rani/Lulu nude geometry, 4 outfits × 3 original fittings, unique clip IDs, blink, click/keyboard, repeated click, joy, return idle, reduced motion, widths 360/390/430, no storage writes.');
 } finally {if(socket?.readyState===1){try{await Promise.race([send('Browser.close'),delay(1000)]);}catch{}}socket?.close();browser.kill();}

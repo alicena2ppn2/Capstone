@@ -46,7 +46,7 @@ export function RoomBackdrop({ decor = {}, wallColor = '#D6EAF8', floorColor = '
   );
 }
 
-export default function Home({ game, day, target, petName = 'MOCHI', petColor, onQuest, onDiary, onGuestbook, onVisit, onSettings, onShop, outfit, decor, active, reactionId, onReactionConsumed }) {
+export default function Home({ game, day, petName = 'MOCHI', petColor, onQuest, onDiary, onGuestbook, onVisit, onSettings, onShop, outfit, decor, active, reactionId, onReactionConsumed }) {
   return <section className="home-screen" aria-label="내 집">
     <div className="home-room">
       <RoomBackdrop decor={decor} homeScene />
@@ -73,6 +73,6 @@ export default function Home({ game, day, target, petName = 'MOCHI', petColor, o
       <button type="button" className="pb home-quest-start" onClick={onQuest}><svg width="24" height="24" viewBox="0 0 24 24" aria-hidden="true"><path d="M5 4 H19 V21 H5Z M9 2 H15 V6 H9Z M8 12 L10 14 L15 9 M8 18 H16" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinejoin="round" strokeLinecap="round" /></svg><span>오늘의 도전</span></button>
       <button type="button" className="pb home-decor-open" onClick={onShop}><ShopIcon width={24} height={24} /><span>꾸미기</span></button>
     </footer>
-    <HomeSummary game={game} day={day} target={target} onQuest={onQuest} onShop={onShop} />
+    <HomeSummary game={game} day={day} onQuest={onQuest} />
   </section>;
 }
