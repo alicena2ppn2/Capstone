@@ -3,6 +3,7 @@ import QuestSheet from '../components/QuestSheet.jsx';
 import SubScreen from '../components/SubScreen.jsx';
 import { QUESTS, levelFor, questCompletionKey, previewReward, goalProgress, replaceChallenge } from '../utils/game.js';
 import { CATEGORIES } from '../utils/challenges.js';
+import { deletedJournal } from '../utils/journal.js';
 import { seoulDateKey } from '../utils/seoulDate.js';
 
 // Presentation copy only: preserve the quest's action and completion conditions.
@@ -13,10 +14,10 @@ const CARD_COPY = {
   'day-invite': '지인이나 커뮤니티에 함께할 활동을 제안해요. 약속 성사는 필요 없어요.',
 };
 
-function JournalEditor({ date, text, onSave }) {
+function JournalEditor({ date, text, onSave, editable }) {
   const [draft, setDraft] = useState(text);
   const [saved, setSaved] = useState(false);
-  return <label className="profile-field">{date}<textarea maxLength={80} value={draft} onChange={event => { setDraft(event.target.value); setSaved(false); }} /><button type="button" className="pb ui-secondary" disabled={!draft.trim() || draft.trim() === text} onClick={() => { onSave(date, draft.trim()); setSaved(true); }}>기록 수정 저장</button>{saved && <small role="status">수정했어요.</small>}</label>;
+  return <label className="profile-field">{date}<textarea readOnly={!editable} maxLength={2000} value={draft} onChange={event => { setDraft(event.target.value); setSaved(false); }} /><button type="button" className="pb ui-secondary" disabled={!editable || !draft.trim() || draft.trim() === text} onClick={() => { onSave(date, draft.trim()); setSaved(true); }}>기록 수정 저장</button>{saved && <small role="status">수정했어요.</small>}</label>;
 }
 
 export default function Quest({ game, onStart, onComplete, onPrepare, onSelect, onPause, onReplace, onFeedback, onProfile, onJournal, onGoal, petColor, onShop, onSettings, onHome }) {
@@ -56,8 +57,9 @@ export default function Quest({ game, onStart, onComplete, onPrepare, onSelect, 
         <p>{CARD_COPY[quest.id] ?? quest.description}</p>
         <div className="quest-card-reward"><small>{reward.xp ? `${reward.xp} XP · ${reward.coins} 코인` : '추가 보상 없음 · 완료하면 기록만 남아요'}</small>{candidate && <button type="button" className="pb quest-info" aria-label="추천 이유" onClick={event => openSheet(event, { kind: 'info', reason: `${candidate.role} · ${candidate.reason}` })}>i</button>}</div>
         {selected && quest.choices && <label>내 목표 <select value={game.challengeChoices?.[key] ?? ''} onChange={event => onProfile('choice', event.target.value, key)}><option value="">선택하기</option>{quest.choices.map(value => <option key={value}>{value}</option>)}</select></label>}
+        {selected && quest.input && deletedJournal(game, today) && <small>오늘 일기는 삭제했어요. 내일 다시 쓸 수 있어요.</small>}
         {selected && quest.input && <input className="inp quest-answer" maxLength={80} aria-label={quest.name} value={drafts[key] ?? ''} onChange={event => setDrafts(value => ({ ...value, [key]: event.target.value }))} />}
-        <div className="quest-card-actions"><button type="button" className="pb shop-buy" disabled={selected ? (quest.input && !drafts[key]?.trim()) || (quest.choices && !game.challengeChoices?.[key]) : plan?.selected.length >= 3} onClick={() => {
+        <div className="quest-card-actions"><button type="button" className="pb shop-buy" disabled={selected ? (quest.input && (!drafts[key]?.trim() || deletedJournal(game, today))) || (quest.choices && !game.challengeChoices?.[key]) : plan?.selected.length >= 3} onClick={() => {
           if (!selected) onSelect(quest.id, today);
           else if (quest.input || started) onComplete(quest.id, drafts[key]);
           else onStart(quest.id);
@@ -67,7 +69,7 @@ export default function Quest({ game, onStart, onComplete, onPrepare, onSelect, 
       {done && selected && <button type="button" className="pb quest-feedback-link" onClick={event => openSheet(event, { kind: 'feedback', key })}>어땠나요? (선택)</button>}
     </article>;
   };
-  return <SubScreen title="오늘의 도전" plainTitle level={levelFor(game.xp)} petColor={petColor} onShop={onShop} onSettings={onSettings} onHome={onHome}>
+  return <SubScreen backOnly title="오늘의 도전" plainTitle level={levelFor(game.xp)} petColor={petColor} onShop={onShop} onSettings={onSettings} onHome={onHome}>
     <div className="quest-ui">
     <div className="shop-tabs">{[['day', '오늘'], ['week', '이번 주'], ['month', '이번 달'], ['records', '기록·취향']].map(([id, label]) => <button type="button" className="pb" key={id} aria-pressed={tab === id} onClick={() => setTab(id)}>{label}</button>)}</div>
     {tab === 'day' ? <>
@@ -78,7 +80,7 @@ export default function Quest({ game, onStart, onComplete, onPrepare, onSelect, 
       <details className="ui-disclosure"><summary>다른 도전 찾아보기</summary>{Object.entries(CATEGORIES).map(([id, label]) => <section key={id}><h3>{label}</h3><div className="growth-quests">{QUESTS.filter(q => q.period === 'day' && q.category === id && !plan?.selected.includes(q.id)).map(q => card(q))}</div></section>)}</details>
     </> : tab === 'records' ? <>
       <h2>취향 프로필</h2>{[['music', '좋아하는 음악'], ['food', '좋아하는 음식']].map(([id, label]) => <label className="profile-field" key={id}>{label}<input className="inp" maxLength={80} value={game.preferences?.[id] ?? ''} onChange={event => onProfile(id, event.target.value)} /></label>)}
-      <h2>하루 기록</h2>{Object.entries(game.journals ?? {}).sort(([a], [b]) => b.localeCompare(a)).map(([date, text]) => <JournalEditor key={date} date={date} text={text} onSave={onJournal} />)}
+      <h2>하루 기록</h2>{Object.entries(game.journals ?? {}).sort(([a], [b]) => b.localeCompare(a)).map(([date, text]) => <JournalEditor key={date} date={date} text={text} onSave={onJournal} editable={date === today} />)}
       <h2>활동 기록</h2>{Object.entries(CATEGORIES).map(([id, label]) => <details className="ui-disclosure" key={id}><summary>{label}</summary>{Object.values(game.activityRecords ?? {}).filter(r => r.category === id).sort((a, b) => b.day.localeCompare(a.day)).map(r => <p key={`${r.day}:${r.id}`}>{r.day} · {QUESTS.find(q => q.id === r.id)?.name ?? r.id}</p>)}</details>)}
     </> : <div className="growth-quests">{QUESTS.filter(q => q.period === tab).map(q => { const count = goalProgress(game, q, today); const done = game.completed.includes(questCompletionKey(q, today)); return <article className="growth-quest" key={q.id}><strong>{q.name}</strong><p>{q.description} · 사용자 확인 기록 집계</p><progress value={Math.min(count, q.target)} max={q.target} aria-label={q.name} /><small>{count} / {q.target} · {q.xp} XP · {q.coins} 코인</small><button type="button" className="pb shop-buy" disabled={done || count < q.target} onClick={() => onGoal(q.id)}>{done ? '보상 받음 ✓' : '집계 보상 받기'}</button></article>; })}</div>}
     <div className="quest-toast-region" role="status" aria-live="polite">{message && <div className="quest-reward-toast"><strong>{message.xp ? '보상을 받았어요!' : '활동을 기록했어요!'}</strong>{message.xp > 0 && <span>+{message.xp} XP · +{message.coins} 코인</span>}</div>}</div>

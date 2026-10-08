@@ -1,6 +1,7 @@
 import { useState } from 'react';
 import Mochi from '../components/Mochi.jsx';
 import { GearIcon } from '../components/Icons.jsx';
+import BackupExport from '../components/BackupExport.jsx';
 
 export default function Settings({ petColor, petName, onPetName, onBack }) {
   const [nameDraft, setNameDraft] = useState(petName);
@@ -69,6 +70,8 @@ export default function Settings({ petColor, petName, onPetName, onBack }) {
       <div className="settings-note"><span aria-hidden="true">✦</span> 작은 변화로 더 포근한 하루를 만들어요.</div>
       <button type="button" className="pb jua settings-save" onClick={() => setSaved(true)}>설정 저장하기</button>
       <p className="settings-status" role="status">{saved ? '설정을 저장했어요! (미리보기 동안 유지돼요)' : '미리보기용 설정이에요. 실제 소리와 알림은 연결 예정이에요.'}</p>
+      <BackupExport />
+      <section className="settings-card"><h2>계정 삭제</h2><p>현재는 로그인 계정과 서버가 연결되어 있지 않아 계정을 삭제할 수 없어요.</p><button type="button" className="pb ui-secondary" onClick={() => window.alert('계정 삭제는 로그인·서버 연결 후 사용할 수 있어요. 현재 저장된 기록은 삭제하지 않았어요.')}>계정 삭제 안내</button></section>
       <footer className="settings-footer jua">MY MOCHI <span>v0.1.0</span></footer>
     </section>
   );

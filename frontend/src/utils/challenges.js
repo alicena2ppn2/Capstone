@@ -1,4 +1,5 @@
 import { seoulDateKey, attendanceWeek } from './seoulDate.js';
+import { journalDates } from './journal.js';
 
 export const CATEGORIES = { prepare: '오늘의 준비', outside: '바깥 발견', connect: '작은 연결' };
 const action = (id, category, name, description, effort = 1, minutes = 5, extra = {}) => ({ id, period: 'day', category, name, description, effort, minutes, xp: 15, coins: 25, ...extra });
@@ -88,7 +89,7 @@ export function pauseChallenge(state, id, day = seoulDateKey(), reason = '') {
 export function goalProgress(state, goal, day = seoulDateKey()) {
   const start = goal.period === 'week' ? attendanceWeek(day)[0] : `${day.slice(0, 7)}-01`;
   const end = goal.period === 'week' ? attendanceWeek(day)[6] : `${day.slice(0, 7)}-31`;
-  if (goal.journal) return Object.keys(state.journals ?? {}).filter(date => date >= start && date <= end && typeof state.journals[date] === 'string' && state.journals[date].trim()).length;
+  if (goal.journal) return journalDates(state).filter(date => date >= start && date <= end).length;
   return Object.values(state.activityRecords ?? {}).filter(record => record.day >= start && record.day <= end && record.category === goal.category && !record.input).length;
 }
 export function replaceChallenge(state, id, day = seoulDateKey(), reason = '') {
