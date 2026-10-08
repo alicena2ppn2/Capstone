@@ -151,6 +151,7 @@ def usual_steps(conn, user_id: str, today: Date) -> float | None:
     return float(statistics.median(values)) if values else None
 
 
+DIARY_DELETED_MESSAGE = "지운 날의 일기는 다시 쓸 수 없어요."
 WELCOME_BACK_DAYS = 3     # 이만큼 이상 안 들어왔다가 오면 "다시 와 줘서 반가워"
 RESET_AFTER_DAYS = 14     # 이만큼 이상 안 들어왔다가 오면 지금 레벨의 처음부터 (레벨은 내려가지 않음)
 
@@ -462,6 +463,8 @@ def complete_mission(user_id: str, mission_id: str, body: CompleteIn, date: str 
             raise HTTPException(422, "아직 다른 친구 방에 방명록을 남기지 않았어요.")
     if mission["kind"] == "diary":
         # 일기 미션은 기록 탭 일기로 저장한다. 미션 화면에서 썼으면 오늘의 추천 주제로 쓴 것으로 본다.
+        if db.diary_deleted(conn, user_id, today.isoformat()):
+            raise HTTPException(409, DIARY_DELETED_MESSAGE)
         submission["topic_id"] = mission.get("suggested_topic_id")
     if mission.get("prompt") and not body.answer:
         raise HTTPException(422, f"먼저 답해 주세요: {mission['prompt']}")
@@ -537,6 +540,63 @@ def complete_weekly(user_id: str, quest_id: str, body: CompleteIn, date: str | N
         "earned": earned,
         "earned_total": sum(e["coins"] for e in earned),
         "earned_xp": sum(e["xp"] for e in earned),
+        "coins": db.coin_balance(conn, user_id),
+        "level": level,
+        "leveled_up": level["level"] > before,
+        "new_items": grant_free_items(conn, user_id),
+    }
+
+
+# --- 월간 목표 ---------------------------------------------------------------------
+
+def monthly_progress(conn, user_id: str, goal: dict, start: Date, end: Date) -> int:
+    s, e = start.isoformat(), end.isoformat()
+    if goal["count"] == "diary_days":
+        return db.diary_days(conn, user_id, s, e)
+    if goal["count"] == "outdoor_missions":
+        missions = [m for m in db.completions_between(conn, user_id, s, e) if m in ms.CATALOG and ms.CATALOG[m].outdoor]
+        walks = db.weekly_count_between(conn, user_id, "nature_walk", s, e)
+        return len(missions) + walks
+    raise ValueError(goal["count"])
+
+
+def monthly_status(conn, user_id: str, today: Date, goal: dict) -> dict:
+    start, end = ms.month_range(today)
+    progress = monthly_progress(conn, user_id, goal, start, end)
+    claimed = db.paid_ever(conn, user_id, f"monthly:{goal['id']}:{start.isoformat()[:7]}")
+    return {**{k: v for k, v in goal.items() if k != "count"}, "progress": min(progress, goal["target"]),
+            "done": progress >= goal["target"], "claimed": claimed}
+
+
+@app.get("/users/{user_id}/monthly", summary="이번 달 목표 (바깥 미션 8번, 일기 10일) — 기록으로 자동 집계")
+def get_monthly(user_id: str, date: str | None = DateQuery, conn=Depends(get_conn)):
+    today = day(date)
+    start, end = ms.month_range(today)
+    return {"month": start.isoformat()[:7], "month_start": start.isoformat(), "month_end": end.isoformat(),
+            "goals": [monthly_status(conn, user_id, today, g) for g in ms.MONTHLY_GOALS.values()]}
+
+
+@app.post("/users/{user_id}/monthly/{goal_id}/claim", summary="월간 목표 보상 받기 (다 채웠을 때 한 번)")
+def claim_monthly(user_id: str, goal_id: str, date: str | None = DateQuery, conn=Depends(get_conn)):
+    today = day(date)
+    goal = ms.MONTHLY_GOALS.get(goal_id)
+    if goal is None:
+        raise HTTPException(404, f"월간 목표가 아닙니다: {goal_id}")
+    status = monthly_status(conn, user_id, today, goal)
+    if status["claimed"]:
+        raise HTTPException(409, "이번 달 보상은 이미 받았어요.")
+    if not status["done"]:
+        raise HTTPException(422, f"아직이에요. {status['progress']}/{goal['target']}")
+    start = ms.month_range(today)[0].isoformat()
+    before = ms.level_from_xp(db.xp_total(conn, user_id))["level"]
+    earned = [{"id": f"monthly:{goal_id}:{start[:7]}", "coins": goal["coins"], "xp": goal["xp"]}]
+    db.add_coins(conn, user_id, start, earned)                  # 그 달 1일 날짜로 기록
+    level = ms.level_from_xp(db.xp_total(conn, user_id))
+    return {
+        "goal": monthly_status(conn, user_id, today, goal),
+        "earned": earned,
+        "earned_total": goal["coins"],
+        "earned_xp": goal["xp"],
         "coins": db.coin_balance(conn, user_id),
         "level": level,
         "leveled_up": level["level"] > before,
@@ -661,6 +721,8 @@ def get_diary_topic(user_id: str, date: str | None = DateQuery):
 @app.put("/users/{user_id}/diary/{entry_date}", summary="일기 쓰기·고치기 (일기 미션이 있으면 자동 완료)")
 def put_diary(user_id: str, entry_date: str, body: DiaryIn, conn=Depends(get_conn)):
     today = day(entry_date)
+    if db.diary_deleted(conn, user_id, today.isoformat()):
+        raise HTTPException(409, DIARY_DELETED_MESSAGE)
     topic = dy.topic_for(user_id, today.isoformat()) if body.use_topic else None
     photos = check_photos(conn, user_id, body.photos)
     entry = db.save_diary(conn, user_id, today.isoformat(), body.text.strip(), topic and topic["id"], body.mood, photos)
@@ -670,6 +732,14 @@ def put_diary(user_id: str, entry_date: str, body: DiaryIn, conn=Depends(get_con
     # 오늘의 미션에 일기 미션이 있으면 같이 완료 처리
     result = auto_complete(conn, user_id, today, "diary", {"text": entry["text"], "topic_id": entry["topic_id"]})
     return {"entry": {**entry, "topic": topic}, **result, "care": care}
+
+
+@app.delete("/users/{user_id}/diary/{entry_date}", summary="일기 지우기 — 지운 날은 다시 쓸 수 없음, 받은 보상은 그대로")
+def delete_diary(user_id: str, entry_date: str, conn=Depends(get_conn)):
+    date = day(entry_date).isoformat()
+    if not db.delete_diary(conn, user_id, date):
+        raise HTTPException(404, "그날 일기가 없습니다.")
+    return {"deleted": date}
 
 
 @app.get("/users/{user_id}/diary/{entry_date}", summary="하루 일기 보기")
@@ -874,7 +944,36 @@ def get_guestbook(user_id: str, page: int = Query(0, ge=0), per_page: int = Quer
                   viewer_id: str | None = Query(None, description="보는 사람 user id. 넣으면 그 사람이 신고한 글·차단 관계인 사람 글도 빠짐"),
                   conn=Depends(get_conn)):
     entries = db.list_guestbook(conn, user_id, per_page, page * per_page, viewer_id, moderation.REPORT_HIDE_COUNT)
-    return {"entries": entries}
+    likes = db.like_counts(conn, [e["id"] for e in entries], viewer_id)
+    return {"entries": [{**e, **likes[e["id"]]} for e in entries]}
+
+
+class LikeIn(BaseModel):
+    user_id: str = Field(..., min_length=1, description="좋아요 누르는 사람 user id")
+
+
+def guestbook_entry_or_404(conn, owner_id: str, entry_id: int) -> dict:
+    entry = db.get_guestbook_entry(conn, entry_id)
+    if entry is None or entry["owner_id"] != owner_id:
+        raise HTTPException(404, "방명록 글이 없습니다.")
+    return entry
+
+
+@app.post("/users/{user_id}/guestbook/{entry_id}/like", summary="방명록 글 좋아요 (한 사람이 한 번)")
+def like_guestbook(user_id: str, entry_id: int, body: LikeIn, conn=Depends(get_conn)):
+    entry = guestbook_entry_or_404(conn, user_id, entry_id)
+    if entry["author_id"] and entry["author_id"] in db.block_related(conn, body.user_id):
+        raise HTTPException(404, "방명록 글이 없습니다.")
+    db.like_entry(conn, entry_id, body.user_id)
+    return {"entry_id": entry_id, **db.like_counts(conn, [entry_id], body.user_id)[entry_id]}
+
+
+@app.delete("/users/{user_id}/guestbook/{entry_id}/like", summary="방명록 글 좋아요 취소")
+def unlike_guestbook(user_id: str, entry_id: int, by: str = Query(..., description="좋아요를 취소하는 사람 user id"),
+                     conn=Depends(get_conn)):
+    guestbook_entry_or_404(conn, user_id, entry_id)
+    db.unlike_entry(conn, entry_id, by)
+    return {"entry_id": entry_id, **db.like_counts(conn, [entry_id], by)[entry_id]}
 
 
 @app.delete("/users/{user_id}/guestbook/{entry_id}", summary="방명록 글 지우기 (방 주인 또는 쓴 사람)")

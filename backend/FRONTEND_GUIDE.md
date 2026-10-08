@@ -18,7 +18,7 @@ API를 직접 눌러 보려면 서버를 켜고 `http://localhost:8000/docs`.
 |---|---|---|
 | 퀘스트 목록 | `game.js` `QUESTS` 고정 목록 (오늘 8 · 주간 3 · 월간 3) | `GET /missions/today` 가 주는 목록 그대로. 매일 고정 6개 + 매일 바뀌는 3개 |
 | 퀘스트 완료 | 버튼 누르면 완료 | 서버가 확인 (사진 업로드, 목록 입력, 걸음, 일기·방문·방명록 기록) |
-| 주간·월간 퀘스트 | 있음 | **없음** (서버에 생기면 추가) |
+| 주간·월간 퀘스트 | 주간 3 · 월간 2 | 주간 `GET /weekly` (자연 속 산책 2번) · 월간 `GET /monthly` (바깥 8번, 일기 10일) → 받기 `POST /monthly/{id}/claim` |
 | 출석 보상 | 무작위 (코인 10·20·30 또는 XP 20·35·50) | 고정 10 코인 · 10 XP |
 | 하루 펭귄 모찌 | 하루 퀘스트 아무거나 3개 | 매일 바뀌는 3개를 모두 완료 |
 | 시작 코인 | 540 | 0 |
@@ -49,6 +49,7 @@ API를 직접 눌러 보려면 서버를 켜고 `http://localhost:8000/docs`.
 | 기록(일기) | 오늘의 주제 | `GET /users/{id}/diary/topic` |
 | 기록(일기) | 쓰기·고치기 | `PUT /users/{id}/diary/{YYYY-MM-DD}` `{text, use_topic, mood, photos}` → 일기 미션 자동 완료 |
 | 기록(일기) | 목록 | `GET /users/{id}/diary?from=…&to=…` |
+| 기록(일기) | 지우기 | `DELETE /users/{id}/diary/{YYYY-MM-DD}` — 지운 날에 다시 쓰면 409 "지운 날의 일기는 다시 쓸 수 없어요." (앱 `deletedJournal`과 같음) |
 | 이웃 방문 | 놀러 갈 방 추천 (내 레벨과 가까운 순) | `GET /users/{id}/rooms/recommended` → `{my_level, rooms: [{id, nickname, level, level_diff, similar}]}`. `similar`(레벨 차이 2 이내)면 "나와 비슷한 레벨" 표시 |
 | 이웃 방문 | 놀러 가기 | `POST /users/{방주인}/visits` `{visitor_id: 내 id}` → 방문 미션 자동 완료 |
 | 이웃 방문 | 내 방에 온 친구 | `GET /users/{id}/visits` |
@@ -256,7 +257,7 @@ async function completePhotoMission(userId, missionId) {
 |---|---|
 | `mochi.game.v1` (XP·코인·완료·캐릭터·출석) | `GET /home`, `/missions/today`, `/level`, `/shop` — 서버가 기준, 앱에는 저장하지 않음 |
 | `mochi.wardrobe.v1` (옷) | `GET /shop`, `PUT /equipped` |
-| `mochi.homeGuestbook.v1`, `mochi.homeGuestLikes.v1` | `GET·POST /users/{id}/guestbook` (좋아요는 서버에 아직 없음) |
+| `mochi.homeGuestbook.v1`, `mochi.homeGuestLikes.v1` | `GET·POST /users/{id}/guestbook`, 좋아요 `POST·DELETE /users/{id}/guestbook/{글 id}/like` |
 | `mochi.visitors.v1`, `mochi.visitNotes.v1`, `mochi.visitConnections.v1`, `mochi.visitLikes.v1` | `GET /rooms/recommended`, `POST /visits`, `GET /users/{이웃}/room`, `/guestbook` |
 | `mochi.petName` | 닉네임 `PATCH /users/{id}` (캐릭터 애칭과 닉네임을 나눌지는 결정 필요) |
 | `mochi.settings.v1` (소리·알림) | 앱에만 저장해도 됨 |
@@ -281,4 +282,4 @@ await api(`/users/${userId}/home`, { token: session?.access_token });
 ## 아직 없는 것
 
 - 로그인: **Supabase Auth로 프론트에서** 처리하기로 함. 백엔드 연결 후에는 요청마다 `Authorization: Bearer <Supabase 토큰>`을 보내야 함 (지금은 `id`만으로 동작)
-- 주간·월간 퀘스트, 방명록 좋아요·답글, 캐릭터 말풍선 AI
+- 방명록 답글, 캐릭터 말풍선 AI

@@ -5,6 +5,17 @@
 
 ---
 
+## 2026-10-08 — 월간 목표, 방명록 좋아요, 일기 삭제 (앱에 있던 기능을 서버에)
+
+**브랜치** `backend-neighbor-level`
+
+- **월간 목표** `GET /users/{id}/monthly`, `POST /monthly/{goal_id}/claim`: 이번 달 바깥 발견 8번(바깥 미션 + 주간 산책), 하루 기록 10일. 기록으로 자동 집계, 다 채우면 받기 → 150코인 · 300XP, 달마다 한 번 (앱 `GOALS`의 월간 2개와 같은 기준, 보상만 서버 기준)
+- **방명록 좋아요** `POST·DELETE /users/{id}/guestbook/{entry_id}/like`: 한 사람이 한 번, 목록 각 글에 `likes`·`liked`(`viewer_id` 기준). 차단 관계인 사람 글은 못 누름, 글을 지우면 좋아요도 지움
+- **일기 삭제** `DELETE /users/{id}/diary/{date}`: 지운 날은 다시 쓸 수 없음(일기 화면·일기 미션 모두 409) — 앱 `deletedJournal` 규칙과 같음. 받은 보상은 그대로, 내보내기·월간 집계에서 빠짐
+- DB: `guestbook_likes`, `diary_deleted` 표 (계정 삭제 시 함께 삭제). 테스트 7개 추가 (전체 201개 통과)
+
+---
+
 ## 2026-10-08 — 친밀도: 친구끼리 방명록·방문하면 관계 레벨 ↑, 오를 때 두 사람 모두 코인
 
 **브랜치** `backend-neighbor-level`
