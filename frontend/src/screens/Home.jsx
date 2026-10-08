@@ -45,7 +45,7 @@ export function RoomBackdrop({ decor = {}, wallColor = '#D6EAF8', floorColor = '
   );
 }
 
-export default function Home({ game, day, target, petName = 'MOCHI', petColor, onQuest, onGuestbook, onVisit, onSettings, onShop, outfit, decor, active, reactionId, onReactionConsumed }) {
+export default function Home({ game, day, target, petName = 'MOCHI', petColor, onQuest, onDiary, onGuestbook, onVisit, onSettings, onShop, outfit, decor, active, reactionId, onReactionConsumed }) {
   return <section className="home-screen" aria-label="내 집">
     <div className="home-room">
       <RoomBackdrop decor={decor} homeScene />
@@ -58,6 +58,7 @@ export default function Home({ game, day, target, petName = 'MOCHI', petColor, o
         <button type="button" className="pb home-guestbook-button" onClick={onGuestbook}>
           <svg width="22" height="22" viewBox="0 0 24 24" aria-hidden="true"><path d="M5 3 H19 V16 L14 21 H5Z M14 21 V16 H19 M8 8 H16 M8 12 H15" fill="none" stroke="currentColor" strokeWidth="1.7" strokeLinejoin="round" /></svg>방명록
         </button>
+        <button type="button" className="pb home-diary-button" onClick={onDiary}><svg width="22" height="22" viewBox="0 0 24 24" aria-hidden="true"><path d="M6 3 H20 V21 H6Z M3 6 H8 M3 11 H8 M3 16 H8 M11 8 H17 M11 12 H17" fill="#E5DFF8" stroke="#9480BB" strokeWidth="1.7" strokeLinejoin="round" /></svg>일기</button>
       </nav>
       <div className="home-character">
         <Mochi color={petColor} width="100%" height="100%" full asleep={false} label={petName} outfit={outfit} interactive active={active} reactionId={reactionId} onReactionConsumed={onReactionConsumed} />

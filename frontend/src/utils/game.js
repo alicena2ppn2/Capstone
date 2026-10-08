@@ -1,6 +1,7 @@
 import { seoulDateKey, attendanceWeek } from './seoulDate.js';
 import { CLOTHES } from './clothes.js';
 import { DECOR } from './decor.js';
+import { deletedJournal, saveJournal } from './journal.js';
 import { CHALLENGES, migrateChallenges, ensureChallenges, previewReward, goalProgress } from './challenges.js';
 export { selectChallenge, pauseChallenge, replaceChallenge, ensureChallenges, goalProgress, previewReward } from './challenges.js';
 
@@ -52,6 +53,7 @@ export function completeQuest(state, id, now = new Date(), answer = '') {
   const quest = QUESTS.find((item) => item.id === id);
   if (!quest || quest.period !== 'day') return state;
   const dayKey = seoulDateKey(now);
+  if (quest.input && deletedJournal(state, dayKey)) return state;
   const key = questCompletionKey(quest, dayKey);
   const text = typeof answer === 'string' ? answer.trim().slice(0, 80) : '';
   if (state.completed.includes(key) || (quest.input ? !text : !state.started?.includes(key))) return state;
@@ -62,7 +64,11 @@ export function completeQuest(state, id, now = new Date(), answer = '') {
   const next = { ...state, xp: state.xp + reward.xp, coins: state.coins + reward.coins, completed: [...state.completed, key], questReward: { key, ...reward, sequence: (state.questReward?.sequence ?? 0) + 1 }, questAnswers: { ...state.questAnswers, ...(quest.input ? { [key]: text } : {}) } };
   next.activityRecords = { ...state.activityRecords, [key]: { id, day: dayKey, category: quest.category, input: !!quest.input, rewarded: reward.xp > 0 } };
   next.rewardDays = { ...state.rewardDays, [dayKey]: Math.max(state.rewardDays[dayKey] ?? 0, Object.values(state.activityRecords).filter(record => record.day === dayKey && record.rewarded).length) + (reward.xp > 0 ? 1 : 0) };
-  if (quest.input) next.journals = { ...state.journals, [dayKey]: text };
+  if (quest.input) {
+    const written = saveJournal(next, dayKey, text, now);
+    next.journals = written.journals;
+    next.journalDates = written.journalDates;
+  }
   if (Object.values(next.activityRecords).filter(record => !record.input && record.category !== undefined).length >= 10 && !next.characters.includes('sky')) next.characters = [...next.characters, 'sky'];
   return grantMilestone(next);
 }
