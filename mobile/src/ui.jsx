@@ -10,10 +10,13 @@ export function Label({ children, style, ...props }) {
   return <Text {...props} style={[styles.text, style, { fontFamily: ready ? `A2z-${weight}` : undefined, fontWeight: ready ? 'normal' : String(weight), flexShrink: 1 }]}>{children}</Text>;
 }
 export function Button({ children, icon, onPress, primary, disabled, selected, style, textStyle, accessibilityLabel }) {
-  return <Pressable accessibilityRole="button" accessibilityLabel={accessibilityLabel} accessibilityState={{ disabled: !!disabled, selected: !!selected }} disabled={disabled} onPress={onPress} style={({ pressed, focused }) => [styles.button, primary && styles.primary, selected && styles.selected, disabled && styles.disabled, pressed && styles.pressed, focused && styles.focused, style]}><View style={{ flexDirection: 'row', alignItems: 'center', justifyContent: 'center', flexShrink: 1, gap: 6 }}>{icon}<Label style={[styles.buttonText, primary && { color: '#FFFFFF' }, textStyle]}>{children}</Label></View></Pressable>;
+  return <Pressable accessibilityRole="button" accessibilityLabel={accessibilityLabel} accessibilityState={{ disabled: !!disabled, selected: !!selected }} disabled={disabled} onPress={onPress} style={({ pressed, focused }) => [styles.button, primary && styles.primary, selected && styles.selected, disabled && styles.disabled, pressed && styles.pressed, focused && styles.focused, style]}><View style={{ flexDirection: 'row', alignItems: 'center', justifyContent: 'center', flexShrink: 1, gap: 6 }}>{icon}<Label style={[styles.buttonText, primary && { color: '#FFFFFF' }, selected && { color: '#584274' }, disabled && { color: '#77717D' }, textStyle]}>{children}</Label></View></Pressable>;
 }
 export function Input(props) { const ready = useContext(FontReadyContext); return <TextInput {...props} placeholderTextColor="#73727D" style={[styles.input, props.multiline && styles.multiline, props.style, { fontFamily: ready ? 'A2z-400' : undefined, fontWeight: '400' }]} />; }
-export function Card({ children }) { return <View style={styles.card}>{children}</View>; }
+export function Card({ children, style, ...props }) { return <View {...props} style={[styles.card, style]}>{children}</View>; }
+export function ScreenHeader({ title, onBack, backLabel = '홈 화면으로 돌아가기', decorated = false }) {
+  return <View style={styles.screenHeader}><Button onPress={onBack} accessibilityLabel={backLabel} style={styles.backButton}>{'‹'}</Button><Label accessibilityRole="header" style={[styles.heading, styles.flex]}>{title}{decorated ? ' ☁' : ''}</Label></View>;
+}
 export function Progress({ value, max = 100 }) { return <View accessible accessibilityRole="progressbar" accessibilityValue={{ min: 0, max, now: Math.min(max, value) }} style={styles.track}><View style={[styles.fill, { width: `${Math.min(100, Math.max(0, value / max * 100))}%` }]} /></View>; }
 export function Sheet({ title, close, children }) {
   return <Modal visible transparent animationType="slide" onRequestClose={close}><KeyboardAvoidingView style={styles.overlay} behavior={Platform.OS === 'ios' ? 'padding' : undefined}><Pressable accessibilityLabel="창 닫기" onPress={close} style={StyleSheet.absoluteFill} /><SafeAreaView edges={['bottom']} style={styles.sheet} accessibilityViewIsModal><View style={styles.row}><Label accessibilityRole="header" style={[styles.heading, styles.flex]}>{title}</Label><Button onPress={close} accessibilityLabel="창 닫기">닫기</Button></View><ScrollView keyboardShouldPersistTaps="handled" contentContainerStyle={{ gap: 10 }}>{children}</ScrollView></SafeAreaView></KeyboardAvoidingView></Modal>;
@@ -28,7 +31,12 @@ export const styles = StyleSheet.create({
   content: { padding: 12, paddingBottom: 36, gap: 10, width: '100%', maxWidth: 480, alignSelf: 'center' },
   row: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', gap: 8 }, wrap: { flexDirection: 'row', flexWrap: 'wrap', gap: 6 }, center: { alignItems: 'center' },
   button: { minHeight: 44, paddingHorizontal: 12, paddingVertical: 10, backgroundColor: '#FFF9EE', borderColor: '#DDD0BE', borderWidth: 1, borderRadius: 14, justifyContent: 'center', alignItems: 'center' },
-  primary: { backgroundColor: '#83B4D3', borderColor: '#6F9FBE' }, selected: { backgroundColor: '#E2EFF8', borderColor: '#75A8CC' }, buttonText: { fontFamily: 'A2z-500', fontSize: 14, textAlign: 'center' }, disabled: { opacity: .45 }, pressed: { opacity: .75 }, focused: { borderColor: '#496FA0', borderWidth: 2 },
+  primary: { backgroundColor: '#83B4D3', borderColor: '#6F9FBE' }, selected: { backgroundColor: '#E8DDF7', borderColor: '#AB92CD' }, buttonText: { fontFamily: 'A2z-500', fontSize: 14, textAlign: 'center' }, disabled: { backgroundColor: '#EEEBF0', borderColor: '#D5CDD9', opacity: .65 }, pressed: { opacity: .75 }, focused: { borderColor: '#496FA0', borderWidth: 2 },
+  screenHeader: { flexDirection: 'row', alignItems: 'center', gap: 10, minHeight: 44, marginBottom: 2 },
+  backButton: { width: 44, height: 44, padding: 0 },
+  state: { fontSize: 12, lineHeight: 18, color: '#776D85', backgroundColor: '#F0EBF5', borderRadius: 8, paddingVertical: 3, paddingHorizontal: 7 },
+  started: { backgroundColor: '#E1EDF6', color: '#436981' }, done: { backgroundColor: '#E7EFE5', color: '#526A4E' },
+  reward: { backgroundColor: '#FFF0BC', borderRadius: 8, paddingVertical: 4, paddingHorizontal: 7, color: '#725B2C' },
   card: { borderRadius: 18, padding: 14, backgroundColor: '#FFFCF5', borderWidth: 1, borderColor: '#E4D9C8', gap: 8 },
   input: { fontFamily: 'A2z-400', fontSize: 16, color: '#494654', minHeight: 44, borderWidth: 1, borderColor: '#C5D9E6', borderRadius: 12, padding: 10, backgroundColor: '#FFFFFF' }, multiline: { minHeight: 88, textAlignVertical: 'top' },
   track: { height: 7, backgroundColor: '#E5E4DF', borderRadius: 6, overflow: 'hidden' }, fill: { height: '100%', backgroundColor: '#83B4D3', borderRadius: 6 },

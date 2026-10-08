@@ -2,6 +2,8 @@ import { useEffect, useState } from 'react';
 import Mochi from '../components/Mochi.jsx';
 import SubScreen from '../components/SubScreen.jsx';
 import { HeartIcon } from '../components/Icons.jsx';
+import { useGuestModeration, SafetyPanel, ModerationActions, writingMessage } from '../components/GuestbookSafety.jsx';
+import { SELF_AUTHOR, visibleNote, violation, suspensionUntil } from '../utils/guestModeration.js';
 
 const PER_PAGE = 4;
 
@@ -32,6 +34,8 @@ function today() {
 const pageBtn = { border: 0, background: 'transparent', width: 40, height: 36, display: 'flex', alignItems: 'center', justifyContent: 'center' };
 
 export default function Guestbook({ level, petColor, onShop, onSettings, onHome, petName }) {
+  const safety = useGuestModeration();
+  const suspended = !!suspensionUntil(safety.state, SELF_AUTHOR, safety.now);
   const [entries, setEntries] = useState(() => {
     try { const value = JSON.parse(localStorage.getItem('mochi.homeGuestbook.v1')); if (Array.isArray(value)) return value; } catch { /* 샘플 글 제공 */ }
     return SEED.map((entry, index) => ({ ...entry, variant: ['pink', 'sky', 'mint', 'lavender', 'mochi', 'potato'][index % 6] }));
@@ -46,30 +50,35 @@ export default function Guestbook({ level, petColor, onShop, onSettings, onHome,
   }, [entries, liked]);
   const [page, setPage] = useState(0);
 
-  const pages = Math.max(1, Math.ceil(entries.length / PER_PAGE));
+  const visible = entries.filter(entry => visibleNote(safety.state, 'home', entry));
+  const pages = Math.max(1, Math.ceil(visible.length / PER_PAGE));
   const cur = Math.min(page, pages - 1);
-  const shown = entries.slice(cur * PER_PAGE, cur * PER_PAGE + PER_PAGE);
+  const shown = visible.slice(cur * PER_PAGE, cur * PER_PAGE + PER_PAGE);
 
   const submit = () => {
     const text = draft.trim();
     if (!text) return;
-    setEntries((list) => [{ id: `m${Date.now()}`, name: petName || '나', date: today(), text, likes: 0, color: petColor, tone: 'blue' }, ...list]);
+    const error = safety.validate(text);
+    if (error) { safety.setMessage(writingMessage(error)); return; }
+    setEntries((list) => [{ id: `m${Date.now()}`, authorId: SELF_AUTHOR, source: 'local', name: petName || '나', date: today(), text, likes: 0, color: petColor, tone: 'blue' }, ...list]);
+    safety.setMessage('이 브라우저에 방명록을 기록했어요.');
     setDraft('');
     setPage(0);
   };
 
   return (
     <SubScreen title="방명록" plainTitle petColor={petColor} onShop={onShop} onSettings={onSettings} onHome={onHome} level={level}>
+      <SafetyPanel safety={safety} />
       <div style={{ marginTop: 4, background: 'rgba(255,255,255,0.88)', border: '3px solid #8DBDE6', borderRadius: 22, padding: 12, display: 'flex', flexDirection: 'column', gap: 10 }}>
         <div style={{ display: 'flex', alignItems: 'center', gap: 8, padding: 8, borderRadius: 16, background: '#EAF4FC', border: '2px solid #B9D7F0' }}>
           <span style={{ position: 'relative', flexShrink: 0, width: 52, height: 50, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
             <Mochi color={petColor} width={50} height={48} />
             <HeartIcon width={20} height={18} fill="#F59AB5" stroke="#B4506E" strokeWidth={1.4} style={{ position: 'absolute', right: -6, top: -4 }} />
           </span>
-          <input className="inp" type="text" maxLength={60} aria-label="방명록 내용" placeholder="방명록을 남겨보세요!"
+          <input className="inp" type="text" maxLength={60} disabled={suspended} aria-label="방명록 내용" placeholder="방명록을 남겨보세요!"
             value={draft} onChange={(e) => setDraft(e.target.value)} onKeyDown={(e) => e.key === 'Enter' && submit()}
             style={{ flex: '1 1 0', minWidth: 0, height: 44, boxSizing: 'border-box', borderRadius: 12, border: '2px solid #9CC7EC', background: '#FFFFFF', padding: '0 12px', font: 'inherit', fontSize: 14, color: '#2E2A3A' }} />
-          <button type="button" className="pb jua" onClick={submit}
+          <button type="button" className="pb jua" onClick={submit} disabled={suspended || !draft.trim()}
             style={{ flexShrink: 0, height: 44, padding: '0 14px', borderRadius: 999, background: '#6FA9DA', color: '#FFFFFF', border: '2.5px solid #3F7DB3', fontSize: 15 }}>
             등록하기
           </button>
@@ -80,7 +89,7 @@ export default function Guestbook({ level, petColor, onShop, onSettings, onHome,
           const on = !!liked[e.id];
           const likes = e.likes + (on ? 1 : 0);
           return (
-            <div key={e.id} style={{ display: 'flex', gap: 10, padding: '10px 12px', borderRadius: 16, background: t[0], border: `2px solid ${t[1]}` }}>
+            <div key={e.id} data-note-id={e.id} className="guestbook-entry" style={{ display: 'flex', gap: 10, padding: '10px 12px', borderRadius: 16, background: t[0], border: `2px solid ${t[1]}` }}>
               <span style={{ flexShrink: 0, width: 54, height: 54, borderRadius: '50%', background: t[2], display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
                 <Mochi variant={e.variant} color={e.color} width={44} height={42} />
               </span>
@@ -89,8 +98,9 @@ export default function Guestbook({ level, petColor, onShop, onSettings, onHome,
                   <span style={{ fontSize: 15, fontWeight: 600 }}>{e.name}</span>
                   <span style={{ fontSize: 11, color: '#6B7085' }}>{e.date}</span>
                 </div>
-                <span style={{ fontSize: 13, lineHeight: 1.45 }}>{e.text}</span>
-                <div style={{ display: 'flex', justifyContent: 'flex-end', alignItems: 'center', gap: 6 }}>
+                <span style={{ fontSize: 13, lineHeight: 1.45 }}>{violation(e.text) ? '혐오·욕설 필터로 내용을 가렸어요.' : e.text}</span>
+                <div style={{ display: 'flex', flexWrap: 'wrap', justifyContent: 'flex-end', alignItems: 'center', gap: 6 }}>
+                  <ModerationActions entry={e} scope="home" safety={safety} onRemove={id => setEntries(list => list.filter(entry => entry.id !== id))} />
                   <button type="button" className="pb" aria-pressed={on} aria-label={`좋아요 ${likes}개`}
                     onClick={() => setLiked((l) => ({ ...l, [e.id]: !l[e.id] }))}
                     style={{ border: 0, background: 'transparent', minHeight: 32, minWidth: 44, display: 'flex', alignItems: 'center', gap: 4, fontSize: 12, fontWeight: 500, color: '#3A3A55' }}>
@@ -107,6 +117,7 @@ export default function Guestbook({ level, petColor, onShop, onSettings, onHome,
             </div>
           );
         })}
+        {!shown.length && <p className="guest-safety-empty">표시할 방명록이 없어요.</p>}
 
         <div style={{ display: 'flex', justifyContent: 'center' }}>
           <div style={{ display: 'flex', alignItems: 'center', gap: 4, background: '#EAF4FC', border: '2px solid #B9D7F0', borderRadius: 999, padding: '2px 6px' }}>

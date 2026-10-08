@@ -1,6 +1,6 @@
 import { useCallback, useEffect, useRef, useState } from 'react';
 import Diary from './screens/Diary.jsx';
-import { saveJournal, deleteJournal } from './utils/journal.js';
+import { ensureDailyMissions, startDailyMission, finishDailyMission, pauseDailyMission, replaceDailyMission, saveDiaryMission, deleteDiaryMission, recordRoutine } from './utils/dailyMissions.js';
 import Home from './screens/Home.jsx';
 import Visit from './screens/Visit.jsx';
 import Quest from './screens/Quest.jsx';
@@ -8,7 +8,7 @@ import Guestbook from './screens/Guestbook.jsx';
 import Settings from './screens/Settings.jsx';
 import Shop, { CLOTHES } from './screens/Shop.jsx';
 import { CharacterContext } from './components/CharacterContext.jsx';
-import { CHARACTERS, initialGame, levelFor, completeQuest, startQuest, migrateQuestProgress, buyCharacter, equipCharacter, claimAttendance, ensureAttendanceWeek, buyDecor, equipDecor, ensureChallenges, selectChallenge, pauseChallenge, replaceChallenge, claimGoal } from './utils/game.js';
+import { CHARACTERS, initialGame, levelFor, migrateQuestProgress, buyCharacter, equipCharacter, claimAttendance, ensureAttendanceWeek, buyDecor, equipDecor, claimGoal } from './utils/game.js';
 import Attendance from './components/Attendance.jsx';
 import IPhoneChrome from './components/IPhoneChrome.jsx';
 import { targetStatus, restoreNicknames } from './utils/catalog.js';
@@ -16,6 +16,10 @@ import { seoulDateKey } from './utils/seoulDate.js';
 
 export default function App() {
   const [screen, setScreen] = useState('home');
+  const [questFocus, setQuestFocus] = useState(null);
+  const [diaryDate, setDiaryDate] = useState(null);
+  const openDiary = date => { setDiaryDate(date ?? null); setScreen('diary'); };
+  const openQuest = id => { setQuestFocus(id ?? null); setScreen('quest'); };
   const [game, setGame] = useState(() => {
     try {
       const saved = JSON.parse(localStorage.getItem('mochi.game.v1'));
@@ -31,12 +35,29 @@ export default function App() {
     const fresh = initialGame();
     try { const name = localStorage.getItem('mochi.petName')?.trim().slice(0, 12); return restoreNicknames(fresh, name); } catch { return fresh; }
   });
-  const prepareChallenges = useCallback(day => setGame(value => ensureChallenges(value, day)), []);
+  const prepareChallenges = useCallback(day => setGame(value => {
+    let notes; try { notes = JSON.parse(localStorage.getItem('mochi.visitNotes.v1')); } catch { /* no valid saved posts */ }
+    return ensureDailyMissions(value, day, notes);
+  }), []);
   const [day, setDay] = useState(seoulDateKey);
   useEffect(() => { const refresh = () => setDay(seoulDateKey()); const timer = setInterval(refresh, 1000); document.addEventListener('visibilitychange', refresh); return () => { clearInterval(timer); document.removeEventListener('visibilitychange', refresh); }; }, []);
   useEffect(() => prepareChallenges(day), [day, prepareChallenges]);
   const prepareAttendance = useCallback(date => setGame(value => ensureAttendanceWeek(value, date)), []);
   const level = levelFor(game.xp);
+  const gameRef = useRef(game); gameRef.current = game;
+  const commitGame = transform => {
+    try {
+      const next = transform(gameRef.current);
+      localStorage.setItem('mochi.game.v1', JSON.stringify(next));
+      gameRef.current = next; setGame(next); return { ok: true };
+    } catch { return { ok: false, message: '저장하지 못했어요. 작성한 글은 유지돼요. 다시 시도해 주세요.' }; }
+  };
+  const saveDiary = async (date, text, emotion) => {
+    if (date !== seoulDateKey() || !text.trim()) return { ok:false, message:'당일의 공백 아닌 일기만 저장할 수 있어요.' };
+    return commitGame(value => saveDiaryMission(value, date, text, new Date(), emotion));
+  };
+  const deleteDiary = async date => date !== seoulDateKey() ? { ok:false, message:'당일의 일기만 삭제할 수 있어요.' } : commitGame(value => deleteDiaryMission(value,date));
+  const saveDraft = (date, draft) => commitGame(value => ({ ...value, journalDrafts: { ...value.journalDrafts, [date]:draft } }));
   const [wardrobe, setWardrobe] = useState(() => {
     try { const saved = JSON.parse(localStorage.getItem('mochi.wardrobe.v1')); if (saved && Array.isArray(saved.owned)) return saved; } catch { /* 기본 옷장 */ }
     return { owned: [], outfit: null };
@@ -77,23 +98,24 @@ export default function App() {
       <div className={`phone-shell${screen === 'home' ? ' is-home' : screen === 'shop' ? ' is-shop' : screen === 'quest' ? ' is-quest' : ''}`}>
       <IPhoneChrome />
       <div className="status-header">
-      <Attendance records={game.attendance} plans={game.attendancePlans ?? {}} onPrepare={prepareAttendance} onClaim={(date) => setGame(value => claimAttendance({ ...ensureAttendanceWeek(value, date), attendanceClothes: ownedClothes }, date))} />
+      <Attendance records={game.attendance} plans={game.attendancePlans ?? {}} onPrepare={prepareAttendance} onClaim={date => commitGame(value => {
+        if(date !== seoulDateKey()) return value;
+        return recordRoutine(claimAttendance({ ...ensureAttendanceWeek(value, date), attendanceClothes: ownedClothes }, date), 'day-attendance', date);
+      })} />
       {screen !== 'home' && <div className="growth-bar"><strong>LV.{level}</strong><progress value={game.xp % 100} max="100" aria-label="다음 레벨까지 경험치" /><span>{game.xp % 100} / 100 XP</span><button type="button" className="pb" onClick={() => setScreen('quest')}>퀘스트 →</button></div>}
       {screen === 'home' && <div className="home-wallet" aria-label={`보유 코인 ${game.coins}`}><span aria-hidden="true">●</span><strong>{game.coins.toLocaleString('ko-KR')}</strong><span>코인</span></div>}
       </div>
       <div className={`phone-content${screen === 'quest' ? ' is-quest' : ''}`}>
-      <div className="phone-page" hidden={screen !== 'home'}><Home game={game} day={day} target={targetStatus(game, ownedClothes)} active={screen === 'home'} reactionId={potatoReaction} onReactionConsumed={consumePotatoReaction} petName={petName} petColor={petColor} onQuest={() => setScreen('quest')} onDiary={() => setScreen('diary')} onGuestbook={() => setScreen('guest')} onVisit={() => setScreen('visit')} onSettings={() => setScreen('settings')} onShop={() => setScreen('shop')} coins={game.coins} outfit={outfit} decor={game.decor ?? {}} /></div>
-      {screen === 'diary' && <Diary game={game} day={day} onSave={(date, text) => setGame(value => saveJournal(value, date, text))} onDelete={date => setGame(value => deleteJournal(value, date))} onHome={() => setScreen('home')} />}
-      {screen === 'visit' && <Visit visitorName={petName} visitorVariant={game.character ?? 'potato'} onBack={() => setScreen('home')} />}
-      {screen === 'quest' && <Quest game={game}
+      <div className="phone-page" hidden={screen !== 'home'}><Home game={game} day={day} target={targetStatus(game, ownedClothes)} active={screen === 'home'} reactionId={potatoReaction} onReactionConsumed={consumePotatoReaction} petName={petName} petColor={petColor} onQuest={openQuest} onDiary={() => openDiary()} onGuestbook={() => setScreen('guest')} onVisit={() => setScreen('visit')} onSettings={() => setScreen('settings')} onShop={() => setScreen('shop')} coins={game.coins} outfit={outfit} decor={game.decor ?? {}} /></div>
+      {screen === 'diary' && <Diary game={game} day={day} initialDate={diaryDate} onSave={saveDiary} onDelete={deleteDiary} onDraft={saveDraft} onHome={() => setScreen('home')} />}
+      {screen === 'visit' && <Visit onPosted={date => commitGame(value => recordRoutine(value, 'day-guestbook', date))} visitorName={petName} visitorVariant={game.character ?? 'potato'} onBack={() => setScreen('home')} />}
+      {screen === 'quest' && <Quest game={game} focusId={questFocus} onDiary={openDiary} onVisit={() => setScreen('visit')} onAttendance={() => document.querySelector('.attendance-open')?.click()}
         onPrepare={prepareChallenges}
-        onSelect={(id, date) => setGame(value => selectChallenge(value, id, date))}
-        onReplace={(id, date, reason) => setGame(value => replaceChallenge(value, id, date, reason))}
-        onPause={(id, date, reason) => setGame(value => pauseChallenge(value, id, date, reason))}
+        onReplace={(id, date, reason) => setGame(value => replaceDailyMission(value, id, date, reason))}
+        onPause={(id, date, reason) => setGame(value => pauseDailyMission(value, id, date, reason))}
         onFeedback={(key, response) => setGame(value => ({ ...value, feedback: { ...value.feedback, [key]: response } }))}
         onProfile={(field, text, key) => setGame(value => field === 'choice' ? ({ ...value, challengeChoices: { ...value.challengeChoices, [key]: text } }) : ({ ...value, preferences: { ...value.preferences, [field]: text.slice(0, 80) } }))}
-        onJournal={(date, text) => setGame(value => saveJournal(value, date, text))}
-        onGoal={id => setGame(value => claimGoal(value, id))} onStart={id => setGame(value => startQuest(value, id))} onComplete={(id, answer) => setGame((value) => completeQuest(value, id, new Date(), answer))} petColor={petColor} onShop={() => setScreen('shop')} onSettings={() => setScreen('settings')} onHome={() => setScreen('home')} />}
+        onGoal={id => setGame(value => claimGoal(value, id))} onStart={id => setGame(value => startDailyMission(value, id))} onComplete={(id, answer) => setGame((value) => finishDailyMission(value, id, new Date()))} petColor={petColor} onShop={() => setScreen('shop')} onSettings={() => setScreen('settings')} onHome={() => setScreen('home')} />}
       {screen === 'guest' && <Guestbook petName={petName} level={level} petColor={petColor} onShop={() => setScreen('shop')} onSettings={() => setScreen('settings')} onHome={() => setScreen('home')} />}
       <div className="phone-page" hidden={screen !== 'settings'}><Settings key={game.character} petColor={petColor} petName={petName} onPetName={rename} onBack={() => setScreen('home')} /></div>
       {screen === 'shop' && <Shop onTarget={targetItem => setGame(value => ({ ...value, targetItem }))} onBuyDecor={id => setGame(value => buyDecor(value, id))} onEquipDecor={(slot, id) => setGame(value => equipDecor(value, slot, id))} game={game} level={level} onBuyCharacter={(id) => setGame((value) => buyCharacter(value, id))} onEquipCharacter={(id) => setGame((value) => equipCharacter(value, id))} petColor={petColor} coins={game.coins} owned={ownedClothes} outfit={wardrobe.outfit} onBuy={buy} onWear={wear} onBack={() => setScreen('home')} />}

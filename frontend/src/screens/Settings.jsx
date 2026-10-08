@@ -1,6 +1,7 @@
+import ScreenHeader from '../components/ScreenHeader.jsx';
 import { useState } from 'react';
 import Mochi from '../components/Mochi.jsx';
-import { GearIcon } from '../components/Icons.jsx';
+
 import BackupExport from '../components/BackupExport.jsx';
 
 export default function Settings({ petColor, petName, onPetName, onBack }) {
@@ -16,11 +17,7 @@ export default function Settings({ petColor, petName, onPetName, onBack }) {
 
   return (
     <section className="settings-screen" aria-labelledby="settings-title">
-      <header className="settings-header">
-        <button type="button" className="pb settings-back" onClick={onBack} aria-label="홈으로 돌아가기">←</button>
-        <h1 id="settings-title" className="jua"><GearIcon size={26} /> 설정</h1>
-        <span className="settings-header-spacer" />
-      </header>
+      <ScreenHeader title="설정" titleId="settings-title" onBack={onBack} />
       <div className="settings-intro">
         <div className="settings-avatar"><Mochi color={petColor} width={100} height={94} /></div>
         <h2 className="jua">나에게 맞는 모찌 생활</h2>
