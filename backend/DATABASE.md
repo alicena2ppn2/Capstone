@@ -30,7 +30,8 @@ backend/uploads/     사진 파일 (파일 이름 = photo_id, 주인은 photos �
 | 활동 기록 | `steps` | 회원·날짜 | `user_id` | 그날 걸음 수 (덮어씀) |
 | | `mission_days` | 회원·날짜 | `user_id` | 그날 받은 미션 목록(JSON). 처음 부를 때 정해지고 하루 동안 고정 |
 | | `completions` | 회원·날짜·미션 | `user_id` | 미션 완료 기록과 제출 내용(JSON) |
-| | `coin_ledger` | 회원·날짜·항목 | `user_id` | 코인·경험치 장부. 보상은 +, 상점 구매는 − |
+| | `weekly_progress` | 회원·주·주간 미션·날짜 | `user_id` | 주간 미션을 채운 날과 제출 사진. 주(`week_start`)는 그 주 월요일 |
+| | `coin_ledger` | 회원·날짜·항목 | `user_id` | 코인·경험치 장부. 보상은 +, 상점 구매는 −. 주간 미션 보상은 그 주 월요일 날짜, 항목 `weekly:<id>` |
 | | `diary` | 회원·날짜 | `user_id` | 일기 글, 기분, 사진 id 목록, 오늘의 주제 id |
 | | `photos` | 사진 1장 | `user_id` | 파일 이름, 사진첩 날짜, 어디에 썼는지(미션 id·diary), 촬영 일시(서버 확인용) |
 | 이웃 | `visits` | 방문 1번 | `owner_id`(방 주인), `visitor_id`(방문자) | 같은 날 같은 방은 한 번만 |
