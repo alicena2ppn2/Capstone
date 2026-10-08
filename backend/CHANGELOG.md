@@ -5,6 +5,43 @@
 
 ---
 
+## 2026-10-08 — Habitica 참고: 신고 기준 2건, 새 계정 신고 미반영, 혐오 표현 정지, 쉬어 가기
+
+**브랜치** `backend-neighbor-level` · 참고: [HabitRPG/habitica](https://github.com/HabitRPG/habitica) (코드는 가져오지 않고 방식만)
+
+- 신고 숨김 기준 3명 → **2명** (Habitica `CHAT_FLAG_LIMIT_FOR_HIDING = 2`)
+- **가입 3일 미만 계정·가입 기록 없는 id의 신고는 숨김 횟수에 안 셈** (`reports.counted`). 신고한 본인에게는 그대로 숨김 (Habitica `USER_AGE_FOR_FLAGGING = 3`)
+- 욕설과 **혐오 표현(slurs) 목록 분리**: 혐오 표현을 방명록에 쓰면 글을 막고 **방명록 쓰기 7일 정지** (`guestbook_bans`). 일반 욕설은 글만 막음 (Habitica: 혐오 표현 시 채팅 정지)
+- **쉬어 가기** `POST·GET·DELETE /users/{id}/rest` (최대 30일): 그 기간은 오래 쉰 날로 치지 않아 14일 경험치 초기화가 안 됨. 돌아오면 "푹 쉬었어? 다시 와 줘서 반가워!" (Habitica "여관에서 쉬기")
+- 14일 이상 쉬다 온 날 문구를 "오랜만이야! 다시 와 줘서 정말 반가워."로 줄임
+- `POST /reports`에 `?date=` (시연용) 추가, 응답에 `counted`
+- 테스트 4개 추가·신고 테스트 갱신 (전체 182개 통과)
+
+---
+
+## 2026-10-08 — 신고·차단·필터, 오래 쉬다 돌아온 사용자, 일기 내보내기, 외출 미션 코인 ↑
+
+**브랜치** `backend-neighbor-level`
+
+**신고·차단·필터** (App Store 심사 1.2 — 사용자끼리 글을 남기는 앱은 필수)
+- 필터 `app/moderation.py` + `app/data/profanity.json`: 방명록 글·보이는 이름·닉네임의 욕설·비하·성적 표현을 막음. 띄어쓰기·숫자 끼워 넣기도 잡고, 일상 표현과 겹치는 말(꺼져·졸라·뒤져, 시발점)은 뺌
+- 차단 `POST/DELETE/GET /users/{id}/blocks`: 서로의 추천·방문·방명록·방문자 목록에서 사라짐 (방문·방명록 403)
+- 신고 `POST /reports` (방명록 글·사람): 신고한 사람에게 바로 숨김, 서로 다른 3명이면 모두에게 숨김, `block: true`로 차단도 함께
+- 방명록 글 지우기 `DELETE /users/{id}/guestbook/{entry_id}?by=` (방 주인·쓴 사람)
+- DB: `blocks`, `reports` 표 (계정 삭제 시 함께 삭제)
+
+**오래 쉬었다 돌아온 사용자** (2023 실태조사: 벗어나려 한 청년의 45.6%가 다시 고립)
+- 3일 이상 쉬면 홈 `welcome_back` + 말풍선 "다시 와 줘서 반가워!"
+- 14일 이상 쉬면 **지금 레벨의 처음부터** (레벨 안 경험치만 0, 레벨·코인·아이템 유지). 장부 `comeback_reset`, 하루 한 번
+
+**일기 내보내기** `GET /users/{id}/diary/export?from=&to=` → .txt (날짜·기분·주제·글·사진 장수). 기관 연동 없이 사용자가 직접 보관·공유
+
+**밖에 나가는 미션 코인 30 → 50** (`outdoor: true`, 걸음 미션 포함). 경험치는 그대로 100
+
+- 테스트 `tests/test_moderation.py` 11개 추가 (전체 178개 통과)
+
+---
+
 ## 2026-10-08 — 주간 미션: 이번 주 자연 속 산책 2번
 
 **브랜치** `backend-neighbor-level`

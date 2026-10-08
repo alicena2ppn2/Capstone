@@ -36,7 +36,7 @@ STEP_INCREASE = 1_000            # '지난주보다 많이 걷기': 지난주 �
 
 # 보상: (코인, 경험치). 코인은 상점에서 쓰면 줄고, 경험치는 계속 쌓여 레벨이 된다.
 # 수치는 프론트 frontend/src/utils/game.js 의 '오늘' 퀘스트와 맞춘다 (100 XP, 30 코인, 기록 40 코인).
-COINS_OUTDOOR, XP_OUTDOOR = 30, 100       # 밖에 나가야 하는 미션
+COINS_OUTDOOR, XP_OUTDOOR = 50, 100       # 밖에 나가야 하는 미션 — 집 미션보다 코인을 더 줘서 외출을 이끈다
 COINS_HOME, XP_HOME = 30, 100             # 집에서 할 수 있는 미션
 COINS_DIARY = 40                          # 일기 미션 (프론트 '오늘의 하루 기록하기')
 COINS_DAILY, XP_DAILY = 10, 10            # 출석하기 (프론트에는 아직 없음)

@@ -39,6 +39,10 @@ backend/uploads/     사진 파일 (파일 이름 = photo_id, 주인은 photos �
 | 상점 | `inventory` | 회원·상품 | `user_id` | 가진 캐릭터·옷·집 소품, 어떻게 얻었는지(구매·처음 지급·레벨·미션) |
 | | `equipped` | 회원 1명 | `user_id` | 장착한 캐릭터·옷 |
 | | `decor_placement` | 회원·자리 | `user_id` | 자리(전등·카페트·액자·인형·창밖 풍경)마다 놓은 소품 |
+| 신고·차단 | `blocks` | 회원·차단한 사람 | `user_id`, `blocked_id` | 차단 관계 (서로에게 안 보이게) |
+| | `reports` | 신고 1건 | `reporter_id` | 대상(방명록 글 id·user id), 이유, 처리 상태, 숨김 횟수에 세는지(`counted`, 가입 3일 미만이면 0). 같은 사람이 같은 대상은 한 번만 |
+| | `guestbook_bans` | 회원 1명 | `user_id` | 방명록 쓰기 정지 마지막 날, 이유(혐오 표현) |
+| 쉬어 가기 | `rests` | 회원 1명 | `user_id` | 쉬는 기간(시작·끝). 이 기간은 오래 쉰 날로 치지 않음 |
 | 위기 | `crisis_signals` | 신호 1개 | `user_id` | 날짜, 어디서(일기·미션), 위험도, 분류. **글 내용은 저장하지 않음** |
 | 공용 | `crisis_terms` | 표현 1개 | — | 위기 표현 목록. `app/data/crisis_lexicon.json`을 서버 시작 때 옮김 |
 | | `kote_comments` | 댓글 1개 | — | KOTE 한국어 감정 댓글 5만 개 (위기 표현 점검용, `scripts/import_kote.py`) |
@@ -58,7 +62,7 @@ backend/uploads/     사진 파일 (파일 이름 = photo_id, 주인은 photos �
 
 `DELETE /users/{id}` 하면 위 표에서 그 회원 id가 붙은 줄을 모두 지우고 `uploads/`의 사진 파일도 지운다.
 
-- 두 사람이 관련된 `visits`, `guestbook`은 그 회원이 **방 주인인 기록과 쓴 기록 모두** 지운다
+- 두 사람이 관련된 `visits`, `guestbook`, `blocks`는 그 회원이 **어느 쪽이든** 지운다. `reports`는 그 회원이 한 신고를 지운다
 - 공용 표(`crisis_terms`, `kote_comments`)는 회원 데이터가 아니라 그대로 둔다
 
 ## 한계와 출시 전 할 일

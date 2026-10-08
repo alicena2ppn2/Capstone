@@ -110,11 +110,12 @@ def test_is_complete(mid, submission, done):
 
 def test_rewards_match_frontend_day_quests():
     # frontend/src/utils/game.js: 오늘 퀘스트 100 XP · 30 코인, 기록하기 40 코인
-    assert (ms.CATALOG["drink_run"].coins, ms.CATALOG["drink_run"].xp) == (30, 100)
+    # 밖에 나가는 미션은 코인 50 (외출을 이끌기 위해 집 미션보다 많이)
+    assert (ms.CATALOG["drink_run"].coins, ms.CATALOG["drink_run"].xp) == (50, 100)
     assert (ms.CATALOG["meal_photo"].coins, ms.CATALOG["meal_photo"].xp) == (30, 100)
     assert (ms.CATALOG["diary"].coins, ms.CATALOG["diary"].xp) == (40, 100)
     assert (ms.CATALOG["guestbook"].coins, ms.CATALOG["guestbook"].xp) == (30, 100)
-    assert ms.CATALOG["walk"].to_dict()["coins"] == 30
+    assert ms.CATALOG["walk"].to_dict()["coins"] == 50
 
 
 def today_missions():
@@ -123,14 +124,14 @@ def today_missions():
 
 def test_settle_partial():
     r = ms.settle_coins(today_missions(), {"drink_run"})
-    assert r == {"items": [{"id": "drink_run", "coins": 30, "xp": 100}], "total": 30, "xp": 100, "all_done": False}
+    assert r == {"items": [{"id": "drink_run", "coins": 50, "xp": 100}], "total": 50, "xp": 100, "all_done": False}
 
 
 def test_settle_all_done_has_no_coin_bonus():
     # 3개 완료 보상은 코인이 아니라 특별 캐릭터 (상점 기능에서 지급)
     r = ms.settle_coins(today_missions(), {"drink_run", "meal_photo", "movies"})
     assert r["all_done"]
-    assert r["total"] == 30 + 30 + 30
+    assert r["total"] == 50 + 30 + 30                 # 밖(음료수) 50 + 집 30 + 집 30
     assert [i["id"] for i in r["items"]] == ["drink_run", "meal_photo", "movies"]
 
 

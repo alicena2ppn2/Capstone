@@ -18,7 +18,7 @@ from datetime import date as Date, datetime, timedelta, timezone
 from pathlib import Path
 
 from fastapi import Depends, FastAPI, File, Header, HTTPException, Query, Request, UploadFile
-from fastapi.responses import FileResponse
+from fastapi.responses import FileResponse, PlainTextResponse
 from fastapi.middleware.cors import CORSMiddleware
 from pydantic import BaseModel, Field
 
@@ -26,6 +26,7 @@ from . import crisis
 from . import db
 from . import diary as dy
 from . import missions as ms
+from . import moderation
 from . import photo_meta
 from . import shop
 
@@ -149,11 +150,64 @@ def usual_steps(conn, user_id: str, today: Date) -> float | None:
     return float(statistics.median(values)) if values else None
 
 
+WELCOME_BACK_DAYS = 3     # 이만큼 이상 안 들어왔다가 오면 "다시 와 줘서 반가워"
+RESET_AFTER_DAYS = 14     # 이만큼 이상 안 들어왔다가 오면 지금 레벨의 처음부터 (레벨은 내려가지 않음)
+
+
+REST_MAX_DAYS = 30        # 쉬어 가기는 한 번에 최대 이만큼
+
+
+def days_away(conn, user_id: str, today: Date) -> int | None:
+    """마지막으로 앱을 쓴 날과 오늘 사이에 안 들어온 날 수. 처음 쓰는 사람이면 None."""
+    last = db.last_active_before(conn, user_id, today.isoformat())
+    return None if last is None else (today - Date.fromisoformat(last)).days - 1
+
+
+def rest_days_in_gap(conn, user_id: str, today: Date, away: int) -> int:
+    """안 들어온 날 중 쉬어 가기 기간에 들어간 날 수."""
+    rest = db.get_rest(conn, user_id)
+    if not rest or away <= 0:
+        return 0
+    gap_start, gap_end = today - timedelta(days=away), today - timedelta(days=1)
+    start = max(gap_start, Date.fromisoformat(rest["start"]))
+    end = min(gap_end, Date.fromisoformat(rest["until"]))
+    return max(0, (end - start).days + 1)
+
+
+def comeback_reset(conn, user_id: str, today: Date) -> None:
+    """오래 쉬었다 돌아오면 지금 레벨 안에서 쌓은 경험치를 0으로 (레벨은 그대로, 코인도 그대로).
+    오늘 처음 미션을 받을 때 한 번만 부른다. 장부에 'comeback_reset'(경험치 −)으로 남긴다."""
+    away = days_away(conn, user_id, today)
+    if away is None or away - rest_days_in_gap(conn, user_id, today, away) < RESET_AFTER_DAYS:
+        return                                  # 쉬어 가기 기간은 쉰 날로 치지 않는다
+    lose = ms.level_from_xp(db.xp_total(conn, user_id))["xp_in_level"]
+    if lose > 0:
+        db.add_coins(conn, user_id, today.isoformat(), [{"id": "comeback_reset", "coins": 0, "xp": -lose}])
+
+
+def welcome_back(conn, user_id: str, today: Date) -> dict | None:
+    """홈 화면용: 오래 쉬었다 돌아온 날이면 안내. 벌점처럼 느껴지지 않게 반가움을 먼저."""
+    away = days_away(conn, user_id, today)
+    if away is None or away < WELCOME_BACK_DAYS:
+        return None
+    reset = db.ledger_item(conn, user_id, today.isoformat(), "comeback_reset")
+    rested = rest_days_in_gap(conn, user_id, today, away)
+    if rested:
+        message = "푹 쉬었어? 다시 와 줘서 반가워!"
+    elif away >= RESET_AFTER_DAYS:
+        message = "오랜만이야! 다시 와 줘서 정말 반가워."
+    else:
+        message = "다시 와 줘서 반가워! 오늘은 가볍게 하나만 해 볼까?"
+    return {"days_away": away, "rest_days": rested, "level_reset": reset is not None,
+            "xp_reset": -reset["xp"] if reset else 0, "message": message}
+
+
 def todays_missions(conn, user_id: str, today: Date) -> dict:
     """오늘의 미션. 처음 부르면 어제 걸음으로 골라 저장하고, 이후엔 저장된 걸 돌려준다."""
     saved = db.get_mission_day(conn, user_id, today.isoformat())
     if saved:
         return saved
+    comeback_reset(conn, user_id, today)        # 오늘의 미션을 저장하기 전에 (저장하면 '마지막으로 쓴 날'이 오늘이 됨)
     yesterday = (today - timedelta(days=1)).isoformat()
     picked = ms.pick_missions(
         user_id,
@@ -269,6 +323,8 @@ def clean_nickname(conn, nickname: str, except_id: str | None = None) -> str:
     name = " ".join(nickname.split())
     if not NICKNAME_MIN <= len(name) <= NICKNAME_MAX:
         raise HTTPException(422, f"닉네임은 {NICKNAME_MIN}~{NICKNAME_MAX}자로 지어 주세요.")
+    if not moderation.is_clean(name):
+        raise HTTPException(422, "다른 닉네임으로 지어 줄래요?")
     if db.nickname_taken(conn, name, except_id):
         raise HTTPException(409, "이미 쓰고 있는 닉네임이에요.")
     return name
@@ -344,8 +400,11 @@ def get_home(user_id: str, date: str | None = DateQuery, conn=Depends(get_conn))
     today = day(date)
     missions = with_status(conn, user_id, todays_missions(conn, user_id, today))
     steps = db.get_steps(conn, user_id, today.isoformat()) or 0
+    back = welcome_back(conn, user_id, today)
     if db.worst_signal(conn, user_id, today.isoformat()) in ("high", "medium"):
         bubble = crisis.CHECK_IN_MESSAGE                     # 오늘 힘든 글을 썼으면 미션 독려 대신 안부
+    elif back:
+        bubble = back["message"]
     elif missions["done_count"] == len(missions["missions"]):
         bubble = "오늘 미션 다 했다! 최고야!"
     elif missions["stayed_home"]:
@@ -366,6 +425,7 @@ def get_home(user_id: str, date: str | None = DateQuery, conn=Depends(get_conn))
         "missions_done": missions["done_count"],
         "missions_total": len(missions["missions"]),
         "bubble": bubble,
+        "welcome_back": back,
     }
 
 
@@ -563,6 +623,34 @@ def get_photo(photo_id: str, conn=Depends(get_conn)):
     return FileResponse(upload_dir() / photo["filename"], media_type=photo["content_type"])
 
 
+def diary_text(entries: list[dict], nickname: str | None, start: str, end: str) -> str:
+    """일기를 사람이 읽기 좋은 글로. 날짜 오래된 순."""
+    lines = [f"MOCHI 일기 — {nickname or '나'}", f"기간: {start} ~ {end} · {len(entries)}편", ""]
+    for e in sorted(entries, key=lambda e: e["date"]):
+        lines.append(f"■ {e['date']}" + (f" · 기분: {e['mood']}" if e.get("mood") else ""))
+        topic = dy.TOPICS_BY_ID.get(e["topic_id"])
+        if topic:
+            lines.append(f"오늘의 주제: {topic['text']}")
+        lines.append(e["text"])
+        if e["photos"]:
+            lines.append(f"(사진 {len(e['photos'])}장)")
+        lines.append("")
+    return "\n".join(lines)
+
+
+@app.get("/users/{user_id}/diary/export", summary="일기 내보내기 — 텍스트 파일(.txt)로 내려받기 (공유·보관용)",
+         response_class=PlainTextResponse)
+def export_diary(user_id: str, start: str = Query(..., alias="from"), end: str = Query(..., alias="to"), conn=Depends(get_conn)):
+    s, e = day(start).isoformat(), day(end).isoformat()
+    if s > e:
+        raise HTTPException(422, "시작 날짜가 끝 날짜보다 뒤예요.")
+    entries = db.list_diary(conn, user_id, s, e)
+    user = db.get_user(conn, user_id)
+    text = diary_text(entries, user["nickname"] if user else None, s, e)
+    filename = f"mochi-diary-{s}-{e}.txt"
+    return PlainTextResponse(text, headers={"Content-Disposition": f'attachment; filename="{filename}"'})
+
+
 @app.get("/users/{user_id}/diary/topic", summary="오늘의 일기 주제")
 def get_diary_topic(user_id: str, date: str | None = DateQuery):
     today = day(date)
@@ -736,6 +824,8 @@ def post_visit(user_id: str, body: VisitIn, date: str | None = DateQuery, conn=D
     today = day(date)
     if body.visitor_id == user_id:
         raise HTTPException(422, "내 방은 방문으로 치지 않아요.")
+    if user_id in db.block_related(conn, body.visitor_id):
+        raise HTTPException(403, "방문할 수 없는 방이에요.")
     new = db.add_visit(conn, user_id, body.visitor_id, today.isoformat())
     result = auto_complete(conn, body.visitor_id, today, "visit", {"visited": True})
     return {"owner_id": user_id, "visitor_id": body.visitor_id, "date": today.isoformat(), "first_visit_today": new, **result}
@@ -744,7 +834,9 @@ def post_visit(user_id: str, body: VisitIn, date: str | None = DateQuery, conn=D
 @app.get("/users/{user_id}/visits", summary="오늘 내 방에 놀러 온 친구")
 def get_visits(user_id: str, date: str | None = DateQuery, conn=Depends(get_conn)):
     today = day(date)
-    return {"owner_id": user_id, "date": today.isoformat(), "visitors": with_names(conn, db.visitors(conn, user_id, today.isoformat()))}
+    blocked = db.block_related(conn, user_id)
+    visitors = [v for v in db.visitors(conn, user_id, today.isoformat()) if v not in blocked]
+    return {"owner_id": user_id, "date": today.isoformat(), "visitors": with_names(conn, visitors)}
 
 
 RECOMMEND_CANDIDATES = 200   # 레벨을 비교할 최근 활동 사용자 수 (많아지면 이 안에서만 고름)
@@ -759,7 +851,8 @@ def recommended_rooms(user_id: str, date: str | None = DateQuery, limit: int = Q
     my_level = ms.level_from_xp(db.xp_total(conn, user_id))["level"]
 
     # 최근에 활동한 순서(active_users)를 같은 레벨 차이 안에서의 순서로 쓴다
-    candidates = db.active_users(conn, since, user_id, RECOMMEND_CANDIDATES)
+    blocked = db.block_related(conn, user_id)
+    candidates = [u for u in db.active_users(conn, since, user_id, RECOMMEND_CANDIDATES) if u not in blocked]
     xps = db.xp_totals(conn, candidates)
     levels = {u: ms.level_from_xp(xps[u])["level"] for u in candidates}
     ranked = sorted(candidates, key=lambda u: (abs(levels[u] - my_level), candidates.index(u)))[:limit]
@@ -771,9 +864,23 @@ def recommended_rooms(user_id: str, date: str | None = DateQuery, limit: int = Q
     return {"my_level": my_level, "rooms": rooms}
 
 
-@app.get("/users/{user_id}/guestbook", summary="방명록 목록")
-def get_guestbook(user_id: str, page: int = Query(0, ge=0), per_page: int = Query(4, ge=1, le=50), conn=Depends(get_conn)):
-    return {"entries": db.list_guestbook(conn, user_id, per_page, page * per_page)}
+@app.get("/users/{user_id}/guestbook", summary="방명록 목록 (신고가 쌓인 글·차단한 사람 글은 빠짐)")
+def get_guestbook(user_id: str, page: int = Query(0, ge=0), per_page: int = Query(4, ge=1, le=50),
+                  viewer_id: str | None = Query(None, description="보는 사람 user id. 넣으면 그 사람이 신고한 글·차단 관계인 사람 글도 빠짐"),
+                  conn=Depends(get_conn)):
+    entries = db.list_guestbook(conn, user_id, per_page, page * per_page, viewer_id, moderation.REPORT_HIDE_COUNT)
+    return {"entries": entries}
+
+
+@app.delete("/users/{user_id}/guestbook/{entry_id}", summary="방명록 글 지우기 (방 주인 또는 쓴 사람)")
+def delete_guestbook(user_id: str, entry_id: int, by: str = Query(..., description="지우는 사람 user id"), conn=Depends(get_conn)):
+    entry = db.get_guestbook_entry(conn, entry_id)
+    if entry is None or entry["owner_id"] != user_id:
+        raise HTTPException(404, "방명록 글이 없습니다.")
+    if by not in (entry["owner_id"], entry["author_id"]):
+        raise HTTPException(403, "방 주인이나 쓴 사람만 지울 수 있어요.")
+    db.delete_guestbook_entry(conn, entry_id)
+    return {"deleted": entry_id}
 
 
 @app.post("/users/{user_id}/guestbook", summary="방명록 남기기 (user_id = 방 주인). author_id를 넣으면 쓴 사람의 방명록 미션 자동 완료")
@@ -784,8 +891,128 @@ def post_guestbook(user_id: str, body: GuestbookIn, date: str | None = DateQuery
         author = (db.get_user(conn, body.author_id) or {}).get("nickname") or ""
     if not author:
         raise HTTPException(422, "보이는 이름(author)이 필요해요. 가입한 사용자면 author_id만 넣어도 돼요.")
+    if body.author_id and user_id in db.block_related(conn, body.author_id):
+        raise HTTPException(403, "방명록을 남길 수 없는 방이에요.")
+    if body.author_id and (until := db.guestbook_ban_until(conn, body.author_id, today.isoformat())):
+        raise HTTPException(403, f"지금은 방명록을 쓸 수 없어요. ({until}까지)")
+    found = {moderation.check(body.text), moderation.check(author)} - {None}
+    if "slur" in found and body.author_id:
+        # 혐오 표현: 글을 막고 방명록 쓰기 정지 (Habitica 방식). 정지 기록은 운영자가 확인
+        until = (today + timedelta(days=moderation.SLUR_BAN_DAYS - 1)).isoformat()
+        db.ban_guestbook(conn, body.author_id, until, "slur")
+        raise HTTPException(403, f"다른 사람을 깎아내리는 말은 쓸 수 없어요. {until}까지 방명록을 쓸 수 없어요.")
+    if found:
+        raise HTTPException(422, moderation.FILTER_MESSAGE)
     entry = db.add_guestbook(conn, user_id, author, body.text.strip(), body.author_id, today.isoformat())
     if not body.author_id or body.author_id == user_id:
         return {"entry": entry, "completed_missions": [], "earned": []}
     result = auto_complete(conn, body.author_id, today, "guestbook", {"written": True})
     return {"entry": entry, **result}
+
+
+# --- 차단·신고 ---------------------------------------------------------------------
+
+class BlockIn(BaseModel):
+    target_id: str = Field(..., min_length=1, description="차단할 사람 user id")
+
+
+class ReportIn(BaseModel):
+    reporter_id: str = Field(..., min_length=1)
+    target_type: str = Field(..., description="guestbook(방명록 글) | user(사람)")
+    target_id: str = Field(..., min_length=1, description="방명록 글 id 또는 user id")
+    reason: str = Field(..., description="spam | abuse | sexual | hate | self_harm | other")
+    detail: str | None = Field(None, max_length=200)
+    block: bool = Field(False, description="true면 신고하면서 그 사람을 차단도 함")
+
+
+@app.post("/users/{user_id}/blocks", status_code=201, summary="차단하기 — 서로의 방 추천·방문·방명록에서 사라짐")
+def block_user(user_id: str, body: BlockIn, conn=Depends(get_conn)):
+    if body.target_id == user_id:
+        raise HTTPException(422, "나를 차단할 수는 없어요.")
+    db.add_block(conn, user_id, body.target_id)
+    return {"user_id": user_id, "blocked_id": body.target_id}
+
+
+@app.delete("/users/{user_id}/blocks/{target_id}", summary="차단 풀기")
+def unblock_user(user_id: str, target_id: str, conn=Depends(get_conn)):
+    if not db.remove_block(conn, user_id, target_id):
+        raise HTTPException(404, "차단한 사람이 아니에요.")
+    return {"user_id": user_id, "unblocked_id": target_id}
+
+
+@app.get("/users/{user_id}/blocks", summary="내가 차단한 사람 (설정 화면용)")
+def list_blocks(user_id: str, conn=Depends(get_conn)):
+    return {"blocked": with_names(conn, db.my_blocks(conn, user_id))}
+
+
+def counts_for_hiding(conn, reporter_id: str, today: Date) -> bool:
+    """가입한 지 NEW_ACCOUNT_DAYS일이 지난 계정의 신고만 숨김 횟수에 센다. 가입 기록이 없는 id도 세지 않는다."""
+    user = db.get_user(conn, reporter_id)
+    if user is None:
+        return False
+    joined = Date.fromisoformat(user["created_at"][:10])
+    return (today - joined).days >= moderation.NEW_ACCOUNT_DAYS
+
+
+@app.post("/reports", status_code=201, summary="신고하기 — 신고한 사람에게는 바로 숨기고, 여러 명이 신고하면 모두에게 숨김")
+def report(body: ReportIn, date: str | None = DateQuery, conn=Depends(get_conn)):
+    today = day(date)
+    if body.target_type not in moderation.REPORT_TARGETS:
+        raise HTTPException(422, f"신고 대상은 {', '.join(moderation.REPORT_TARGETS)} 중 하나예요.")
+    if body.reason not in moderation.REPORT_REASONS:
+        raise HTTPException(422, f"신고 이유는 {', '.join(moderation.REPORT_REASONS)} 중 하나예요.")
+
+    offender = body.target_id
+    if body.target_type == "guestbook":
+        entry = db.get_guestbook_entry(conn, int(body.target_id)) if body.target_id.isdigit() else None
+        if entry is None:
+            raise HTTPException(404, "방명록 글이 없습니다.")
+        offender = entry["author_id"]
+    if offender == body.reporter_id:
+        raise HTTPException(422, "내가 쓴 글이나 나를 신고할 수는 없어요.")
+
+    counted = counts_for_hiding(conn, body.reporter_id, today)
+    new = db.add_report(conn, body.reporter_id, body.target_type, body.target_id, body.reason, body.detail, counted)
+    if body.block and offender:
+        db.add_block(conn, body.reporter_id, offender)
+    count = db.report_count(conn, body.target_type, body.target_id)
+    hidden = body.target_type == "guestbook" and count >= moderation.REPORT_HIDE_COUNT
+    return {
+        "reported": True,
+        "first_report_by_you": new,
+        "blocked": bool(body.block and offender),
+        "hidden_for_everyone": hidden,
+        "counted": counted,
+        "message": "신고해 줘서 고마워요. 확인할게요.",
+    }
+
+
+# --- 쉬어 가기 ---------------------------------------------------------------------
+
+class RestIn(BaseModel):
+    days: int = Field(..., ge=1, le=REST_MAX_DAYS, description=f"오늘부터 며칠 쉴지 (1~{REST_MAX_DAYS})")
+
+
+def rest_view(conn, user_id: str, today: Date) -> dict:
+    rest = db.get_rest(conn, user_id)
+    active = bool(rest) and rest["start"] <= today.isoformat() <= rest["until"]
+    return {"resting": active, "start": rest["start"] if active else None, "until": rest["until"] if active else None}
+
+
+@app.post("/users/{user_id}/rest", summary="쉬어 가기 — 이 기간은 오래 쉰 날로 치지 않아 경험치가 초기화되지 않음")
+def start_rest(user_id: str, body: RestIn, date: str | None = DateQuery, conn=Depends(get_conn)):
+    today = day(date)
+    db.set_rest(conn, user_id, today.isoformat(), (today + timedelta(days=body.days - 1)).isoformat())
+    return {**rest_view(conn, user_id, today), "message": "잘 쉬고 와. 기다리고 있을게."}
+
+
+@app.get("/users/{user_id}/rest", summary="쉬어 가기 상태")
+def get_rest(user_id: str, date: str | None = DateQuery, conn=Depends(get_conn)):
+    return rest_view(conn, user_id, day(date))
+
+
+@app.delete("/users/{user_id}/rest", summary="쉬어 가기 끝내기 (어제까지로)")
+def stop_rest(user_id: str, date: str | None = DateQuery, conn=Depends(get_conn)):
+    today = day(date)
+    db.end_rest(conn, user_id, (today - timedelta(days=1)).isoformat())
+    return rest_view(conn, user_id, today)

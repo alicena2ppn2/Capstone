@@ -92,6 +92,35 @@ CREATE TABLE IF NOT EXISTS coin_ledger (
     created_at TEXT NOT NULL DEFAULT (datetime('now')),
     PRIMARY KEY (user_id, date, item_id)
 );
+CREATE TABLE IF NOT EXISTS blocks (           -- 차단: user_id가 blocked_id를 차단
+    user_id     TEXT NOT NULL,
+    blocked_id  TEXT NOT NULL,
+    created_at  TEXT NOT NULL DEFAULT (datetime('now')),
+    PRIMARY KEY (user_id, blocked_id)
+);
+CREATE TABLE IF NOT EXISTS reports (          -- 신고: 같은 사람이 같은 대상을 두 번 신고해도 한 번
+    id          INTEGER PRIMARY KEY AUTOINCREMENT,
+    reporter_id TEXT NOT NULL,
+    target_type TEXT NOT NULL,           -- guestbook | user
+    target_id   TEXT NOT NULL,           -- 방명록 글 id 또는 user id
+    reason      TEXT NOT NULL,           -- spam | abuse | sexual | hate | self_harm | other
+    detail      TEXT,
+    counted     INTEGER NOT NULL DEFAULT 1,    -- 숨김 횟수에 세는지 (가입 3일 미만 계정이면 0)
+    status      TEXT NOT NULL DEFAULT 'open',   -- open | done (운영자가 확인)
+    created_at  TEXT NOT NULL DEFAULT (datetime('now')),
+    UNIQUE (reporter_id, target_type, target_id)
+);
+CREATE TABLE IF NOT EXISTS guestbook_bans (   -- 방명록 쓰기 정지 (혐오 표현 사용 등)
+    user_id     TEXT PRIMARY KEY,
+    until       TEXT NOT NULL,           -- 이 날짜까지 정지 (YYYY-MM-DD)
+    reason      TEXT NOT NULL,           -- slur
+    created_at  TEXT NOT NULL DEFAULT (datetime('now'))
+);
+CREATE TABLE IF NOT EXISTS rests (            -- 쉬어 가기: 이 기간은 오래 쉰 날로 치지 않음
+    user_id     TEXT PRIMARY KEY,
+    start       TEXT NOT NULL,
+    until       TEXT NOT NULL
+);
 CREATE TABLE IF NOT EXISTS weekly_progress (  -- 주간 미션: 하루에 한 번씩 채운 기록
     user_id     TEXT NOT NULL,
     week_start  TEXT NOT NULL,           -- 그 주 월요일
@@ -254,11 +283,15 @@ def delete_user(conn, user_id: str) -> list[str]:
         "DELETE FROM mission_days WHERE user_id = ?",
         "DELETE FROM completions WHERE user_id = ?",
         "DELETE FROM weekly_progress WHERE user_id = ?",
+        "DELETE FROM reports WHERE reporter_id = ?",
+        "DELETE FROM guestbook_bans WHERE user_id = ?",
+        "DELETE FROM rests WHERE user_id = ?",
         "DELETE FROM coin_ledger WHERE user_id = ?",
         "DELETE FROM photos WHERE user_id = ?",
         "DELETE FROM diary WHERE user_id = ?",
     ):
         conn.execute(sql, (user_id,))
+    conn.execute("DELETE FROM blocks WHERE user_id = ? OR blocked_id = ?", (user_id, user_id))
     conn.execute("DELETE FROM visits WHERE owner_id = ? OR visitor_id = ?", (user_id, user_id))
     conn.execute("DELETE FROM guestbook WHERE owner_id = ? OR author_id = ?", (user_id, user_id))
     conn.execute("DELETE FROM inventory WHERE user_id = ?", (user_id,))
@@ -621,9 +654,138 @@ def wrote_guestbook(conn, author_id: str, date: str) -> bool:
     return row is not None
 
 
-def list_guestbook(conn, owner_id: str, limit: int = 20, offset: int = 0) -> list[dict]:
-    rows = conn.execute(
-        "SELECT * FROM guestbook WHERE owner_id = ? ORDER BY id DESC LIMIT ? OFFSET ?",
-        (owner_id, limit, offset),
-    ).fetchall()
+def list_guestbook(conn, owner_id: str, limit: int = 20, offset: int = 0,
+                   viewer_id: str | None = None, hide_count: int = 2) -> list[dict]:
+    """방명록 목록. 빠지는 글:
+    - 서로 다른 hide_count명 이상이 신고한 글 (모두에게, 숨김 횟수에 세는 신고만)
+    - 방 주인과 차단 관계인 사람이 쓴 글 (모두에게)
+    - viewer_id가 있으면: 그 사람이 신고한 글, 그 사람과 차단 관계인 사람이 쓴 글
+    """
+    sql = (
+        "SELECT * FROM guestbook g WHERE owner_id = ? "
+        "AND CAST(g.id AS TEXT) NOT IN (SELECT target_id FROM reports WHERE target_type = 'guestbook' AND counted = 1 "
+        "  GROUP BY target_id HAVING COUNT(DISTINCT reporter_id) >= ?) "
+        "AND (g.author_id IS NULL OR g.author_id NOT IN ("
+        "  SELECT blocked_id FROM blocks WHERE user_id = ? UNION SELECT user_id FROM blocks WHERE blocked_id = ?)) "
+    )
+    params: list = [owner_id, hide_count, owner_id, owner_id]
+    if viewer_id:
+        sql += (
+            "AND CAST(g.id AS TEXT) NOT IN (SELECT target_id FROM reports WHERE target_type = 'guestbook' AND reporter_id = ?) "
+            "AND (g.author_id IS NULL OR g.author_id NOT IN ("
+            "  SELECT blocked_id FROM blocks WHERE user_id = ? UNION SELECT user_id FROM blocks WHERE blocked_id = ?)) "
+        )
+        params += [viewer_id, viewer_id, viewer_id]
+    sql += "ORDER BY g.id DESC LIMIT ? OFFSET ?"
+    rows = conn.execute(sql, (*params, limit, offset)).fetchall()
     return [dict(r) for r in rows]
+
+
+def get_guestbook_entry(conn, entry_id: int) -> dict | None:
+    row = conn.execute("SELECT * FROM guestbook WHERE id = ?", (entry_id,)).fetchone()
+    return dict(row) if row else None
+
+
+def delete_guestbook_entry(conn, entry_id: int) -> None:
+    conn.execute("DELETE FROM guestbook WHERE id = ?", (entry_id,))
+    conn.execute("DELETE FROM reports WHERE target_type = 'guestbook' AND target_id = ?", (str(entry_id),))
+    conn.commit()
+
+
+# --- 차단·신고 --------------------------------------------------------------------
+
+def add_block(conn, user_id: str, blocked_id: str) -> None:
+    conn.execute("INSERT OR IGNORE INTO blocks (user_id, blocked_id) VALUES (?, ?)", (user_id, blocked_id))
+    conn.commit()
+
+
+def remove_block(conn, user_id: str, blocked_id: str) -> bool:
+    cur = conn.execute("DELETE FROM blocks WHERE user_id = ? AND blocked_id = ?", (user_id, blocked_id))
+    conn.commit()
+    return cur.rowcount == 1
+
+
+def my_blocks(conn, user_id: str) -> list[str]:
+    """내가 차단한 사람 (최근 순)."""
+    rows = conn.execute("SELECT blocked_id FROM blocks WHERE user_id = ? ORDER BY created_at DESC", (user_id,)).fetchall()
+    return [r["blocked_id"] for r in rows]
+
+
+def block_related(conn, user_id: str) -> set[str]:
+    """차단 관계인 사람: 내가 차단했거나 나를 차단한 사람."""
+    rows = conn.execute(
+        "SELECT blocked_id AS id FROM blocks WHERE user_id = ? UNION SELECT user_id AS id FROM blocks WHERE blocked_id = ?",
+        (user_id, user_id),
+    ).fetchall()
+    return {r["id"] for r in rows}
+
+
+def add_report(conn, reporter_id: str, target_type: str, target_id: str, reason: str, detail: str | None,
+               counted: bool = True) -> bool:
+    """신고 저장. 처음 신고면 True (같은 사람이 같은 대상을 다시 신고하면 False)."""
+    cur = conn.execute(
+        "INSERT OR IGNORE INTO reports (reporter_id, target_type, target_id, reason, detail, counted) VALUES (?, ?, ?, ?, ?, ?)",
+        (reporter_id, target_type, target_id, reason, detail, int(counted)),
+    )
+    conn.commit()
+    return cur.rowcount == 1
+
+
+def report_count(conn, target_type: str, target_id: str) -> int:
+    row = conn.execute(
+        "SELECT COUNT(DISTINCT reporter_id) AS n FROM reports WHERE target_type = ? AND target_id = ? AND counted = 1",
+        (target_type, target_id),
+    ).fetchone()
+    return int(row["n"])
+
+
+def ban_guestbook(conn, user_id: str, until: str, reason: str) -> None:
+    conn.execute(
+        "INSERT INTO guestbook_bans (user_id, until, reason) VALUES (?, ?, ?) "
+        "ON CONFLICT(user_id) DO UPDATE SET until = MAX(until, excluded.until), reason = excluded.reason",
+        (user_id, until, reason),
+    )
+    conn.commit()
+
+
+def guestbook_ban_until(conn, user_id: str, date: str) -> str | None:
+    """date에 방명록 쓰기가 정지돼 있으면 정지 마지막 날."""
+    row = conn.execute("SELECT until FROM guestbook_bans WHERE user_id = ? AND until >= ?", (user_id, date)).fetchone()
+    return row["until"] if row else None
+
+
+# --- 쉬어 가기 ----------------------------------------------------------------------
+
+def set_rest(conn, user_id: str, start: str, until: str) -> None:
+    conn.execute(
+        "INSERT INTO rests (user_id, start, until) VALUES (?, ?, ?) "
+        "ON CONFLICT(user_id) DO UPDATE SET start = excluded.start, until = excluded.until",
+        (user_id, start, until),
+    )
+    conn.commit()
+
+
+def get_rest(conn, user_id: str) -> dict | None:
+    row = conn.execute("SELECT start, until FROM rests WHERE user_id = ?", (user_id,)).fetchone()
+    return dict(row) if row else None
+
+
+def end_rest(conn, user_id: str, last_day: str) -> None:
+    """쉬어 가기를 last_day까지로 줄인다 (일찍 끝내기)."""
+    conn.execute("UPDATE rests SET until = MIN(until, ?) WHERE user_id = ?", (last_day, user_id))
+    conn.commit()
+
+
+# --- 다시 돌아온 사용자 ------------------------------------------------------------
+
+def last_active_before(conn, user_id: str, date: str) -> str | None:
+    """date 전에 마지막으로 앱을 쓴 날 (미션을 받은 날)."""
+    row = conn.execute("SELECT MAX(date) AS d FROM mission_days WHERE user_id = ? AND date < ?", (user_id, date)).fetchone()
+    return row["d"]
+
+
+def ledger_item(conn, user_id: str, date: str, item_id: str) -> dict | None:
+    row = conn.execute(
+        "SELECT coins, xp FROM coin_ledger WHERE user_id = ? AND date = ? AND item_id = ?", (user_id, date, item_id)
+    ).fetchone()
+    return dict(row) if row else None
