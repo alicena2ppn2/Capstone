@@ -857,10 +857,12 @@ def recommended_rooms(user_id: str, date: str | None = DateQuery, limit: int = Q
     levels = {u: ms.level_from_xp(xps[u])["level"] for u in candidates}
     ranked = sorted(candidates, key=lambda u: (abs(levels[u] - my_level), candidates.index(u)))[:limit]
 
+    friends = db.friend_ids(conn, user_id)
     rooms = []
     for room in with_names(conn, ranked):
         diff = levels[room["id"]] - my_level
-        rooms.append({**room, "level": levels[room["id"]], "level_diff": diff, "similar": abs(diff) <= SIMILAR_LEVEL_RANGE})
+        rooms.append({**room, "level": levels[room["id"]], "level_diff": diff,
+                      "similar": abs(diff) <= SIMILAR_LEVEL_RANGE, "is_friend": room["id"] in friends})
     return {"my_level": my_level, "rooms": rooms}
 
 
@@ -1016,3 +1018,80 @@ def stop_rest(user_id: str, date: str | None = DateQuery, conn=Depends(get_conn)
     today = day(date)
     db.end_rest(conn, user_id, (today - timedelta(days=1)).isoformat())
     return rest_view(conn, user_id, today)
+
+
+# --- 친구 ---------------------------------------------------------------------------
+
+FRIEND_LIMIT = 100        # 친구 최대 수 (받은·보낸 요청 포함)
+
+
+class FriendIn(BaseModel):
+    nickname: str = Field(..., min_length=1, description="친구로 추가할 사람의 닉네임 (대소문자·띄어쓰기 무시)")
+
+
+def friend_cards(conn, user_id: str, entries: list[dict], today: Date) -> list[dict]:
+    """친구 목록 한 줄: 닉네임, 레벨, 마지막으로 앱을 쓴 날, 오늘 내가 놀러 갔는지."""
+    ids = [e["id"] for e in entries]
+    names = db.nicknames(conn, ids)
+    xps = db.xp_totals(conn, ids)
+    last = db.last_active(conn, ids)
+    visited = set(db.visited_owners(conn, user_id, today.isoformat()))
+    return [{
+        "id": e["id"],
+        "nickname": names.get(e["id"]),
+        "level": ms.level_from_xp(xps[e["id"]])["level"],
+        "last_active": last.get(e["id"]),
+        "visited_today": e["id"] in visited,
+        "since": e["since"],
+    } for e in entries]
+
+
+@app.post("/users/{user_id}/friends", status_code=201,
+          summary="친구 추가 (닉네임으로 요청). 상대가 이미 나에게 요청했으면 바로 친구")
+def add_friend(user_id: str, body: FriendIn, date: str | None = DateQuery, conn=Depends(get_conn)):
+    target = db.find_user_by_nickname(conn, body.nickname)
+    if target is None:
+        raise HTTPException(404, "그 닉네임을 쓰는 친구를 찾지 못했어요.")
+    other = target["id"]
+    if other == user_id:
+        raise HTTPException(422, "나는 친구로 추가할 수 없어요.")
+    if other in db.block_related(conn, user_id):
+        # 누가 차단했는지는 알리지 않는다
+        raise HTTPException(404, "그 닉네임을 쓰는 친구를 찾지 못했어요.")
+
+    edge = db.friend_edge(conn, user_id, other)
+    if edge and edge["status"] == "accepted":
+        raise HTTPException(409, "이미 친구예요.")
+    if edge and edge["user_id"] == user_id:
+        raise HTTPException(409, "이미 친구 요청을 보냈어요.")
+    if edge:                                   # 상대가 먼저 보낸 요청이 있으면 수락으로
+        db.accept_friend(conn, other, user_id)
+        return {"status": "accepted", "friend": target, "message": f"{target['nickname']}님과 친구가 됐어요!"}
+
+    if sum(len(v) for v in db.friend_lists(conn, user_id).values()) >= FRIEND_LIMIT:
+        raise HTTPException(422, f"친구는 {FRIEND_LIMIT}명까지예요.")
+    db.request_friend(conn, user_id, other)
+    return {"status": "pending", "friend": target, "message": f"{target['nickname']}님에게 친구 요청을 보냈어요."}
+
+
+@app.get("/users/{user_id}/friends", summary="친구 목록 + 받은 요청 + 보낸 요청")
+def list_friends(user_id: str, date: str | None = DateQuery, conn=Depends(get_conn)):
+    today = day(date)
+    lists = db.friend_lists(conn, user_id)
+    blocked = db.block_related(conn, user_id)
+    return {key: friend_cards(conn, user_id, [e for e in entries if e["id"] not in blocked], today)
+            for key, entries in lists.items()}
+
+
+@app.post("/users/{user_id}/friends/{friend_id}/accept", summary="받은 친구 요청 수락")
+def accept_friend(user_id: str, friend_id: str, conn=Depends(get_conn)):
+    if not db.accept_friend(conn, friend_id, user_id):
+        raise HTTPException(404, "받은 친구 요청이 없어요.")
+    return {"status": "accepted", "friend": with_names(conn, [friend_id])[0]}
+
+
+@app.delete("/users/{user_id}/friends/{friend_id}", summary="친구 끊기 · 보낸 요청 취소 · 받은 요청 거절")
+def remove_friend(user_id: str, friend_id: str, conn=Depends(get_conn)):
+    if not db.remove_friend(conn, user_id, friend_id):
+        raise HTTPException(404, "친구나 친구 요청이 없어요.")
+    return {"removed": friend_id}
