@@ -19,10 +19,16 @@ def convert(text):
         text = re.sub(r'(<\/?)' + old + r'(?=[\s>])', r'\1' + new, text)
     return header + text
 
-for name in ['Mochi', 'MochiFriends', 'HouseDecor', 'FriendEffects']:
+for name in ['Mochi', 'MochiFriends', 'PrototypeFriends', 'HouseDecor', 'FriendEffects']:
     text = (root / f'frontend/src/components/{name}.jsx').read_text(encoding='utf-8')
     text = text.replace("../utils/decor.js", "../../../frontend/src/utils/decor.js")
+    text = text.replace("../utils/prototypeFriends.js", "../../../frontend/src/utils/prototypeFriends.js")
+    text = text.replace(" style={{ '--friend-bounce': `${friend.bounce}px`, '--friend-tilt': `${friend.tilt}deg` }}", '')
     text = text.replace("const a11y = label ? { role: 'img', 'aria-label': label } : { 'aria-hidden': true };", 'const a11y = { accessible: false };')
+    if name == 'PrototypeFriends':
+        # The outer Character View/Pressable owns accessibility. Avoid forwarding
+        # native-only boolean `accessible` to an SVG DOM element on Expo web.
+        text = text.replace('const a11y = { accessible: false };', 'const a11y = {};')
     (out / f'{name}.jsx').write_text(convert(text), encoding='utf-8')
 
 text = (root / 'frontend/src/components/Potato.jsx').read_text(encoding='utf-8')
@@ -39,5 +45,5 @@ end = home.index('export default function Home')
 text = "import HouseDecor from './HouseDecor.jsx';\n" + home[start:end]
 text = text.replace("export function RoomBackdrop", "export default function RoomBackdrop")
 text = text.replace("style={{ position: 'absolute', inset: 0 }}", '')
-(out / 'RoomBackdrop.jsx').write_text(convert(text), encoding='utf-8')
+(out / 'RoomBackdrop.jsx').write_text(convert(text).rstrip() + '\n', encoding='utf-8')
 (out / 'CharacterContext.jsx').write_text("import { createContext } from 'react';\nexport const CharacterContext = createContext('potato');\n", encoding='utf-8')

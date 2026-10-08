@@ -3,8 +3,11 @@ import { AccessibilityInfo, Animated, AppState, Platform, Pressable, View } from
 import Mochi from './art/Mochi.jsx';
 import { CharacterContext } from './art/CharacterContext.jsx';
 import { MotionContext } from './art/useFriendReaction.js';
+import { PROTOTYPE_FRIENDS } from '../../frontend/src/utils/prototypeFriends.js';
 
 export default function Character({ variant = 'potato', outfit, size = 230, label = '친구', interactive = false, reactionId, onConsumed }) {
+  const profile = PROTOTYPE_FRIENDS.find(item => item.id === variant);
+  const bounce = profile?.bounce ?? 12, tilt = profile?.tilt ?? 5, eyeY = profile?.faceY ?? 100;
   const [blink, setBlink] = useState(false);
   const [reaction, setReaction] = useState(null);
   const [reduced, setReduced] = useState(false);
@@ -32,10 +35,10 @@ export default function Character({ variant = 'potato', outfit, size = 230, labe
   }, [interactive, active]);
   useEffect(() => {
     const listener = value.addListener(({ value: amount }) => {
-      setTransform(reduced ? '' : `translate(0 ${-12 * Math.sin(amount * Math.PI * 2) ** 2}) rotate(${reaction?.kind === 'joy' ? 5 * Math.sin(amount * Math.PI * 2) : 0} 100 190)`);
+      setTransform(reduced ? '' : `translate(0 ${-bounce * Math.sin(amount * Math.PI * 2) ** 2}) rotate(${reaction?.kind === 'joy' ? tilt * Math.sin(amount * Math.PI * 2) : 0} 100 190)`);
     });
     return () => value.removeListener(listener);
-  }, [value, reduced, reaction?.kind]);
+  }, [value, reduced, reaction?.kind, bounce, tilt]);
   const respond = useCallback(kind => {
     if (!interactive || !active || busy.current) return false;
     busy.current = true;
@@ -54,6 +57,6 @@ export default function Character({ variant = 'potato', outfit, size = 230, labe
     }
   }, [reactionId, active, respond, onConsumed, value]);
   useEffect(() => () => { value.stopAnimation(); busy.current = false; }, [value]);
-  const art = <CharacterContext.Provider value={variant}><MotionContext.Provider value={{ reaction, blink, eyeTransform: blink ? 'translate(0 100) scale(1 0.08) translate(0 -100)' : '', bodyTransform: transform, props: {} }}><Mochi variant={variant} full asleep={false} width={size} height={size * 1.05} outfit={outfit} /></MotionContext.Provider></CharacterContext.Provider>;
+  const art = <CharacterContext.Provider value={variant}><MotionContext.Provider value={{ reaction, blink, eyeTransform: blink ? `translate(0 ${eyeY}) scale(1 0.08) translate(0 ${-eyeY})` : '', bodyTransform: transform, props: {} }}><Mochi variant={variant} full asleep={false} width={size} height={size * 1.05} outfit={outfit} /></MotionContext.Provider></CharacterContext.Provider>;
   return interactive ? <Pressable accessibilityRole="button" accessibilityLabel={`${label}, 반응 보기`} onPress={() => respond('tap')} {...(Platform.OS === 'web' ? { onKeyDown: event => { if (event.key === 'Enter' || event.key === ' ') { event.preventDefault(); respond('tap'); } } } : {})} style={({ focused }) => ({ width: size, overflow: 'visible', borderWidth: focused ? 2 : 0, borderColor: '#496FA0', borderRadius: 20 })}>{art}</Pressable> : <View accessible accessibilityLabel={label}>{art}</View>;
 }
