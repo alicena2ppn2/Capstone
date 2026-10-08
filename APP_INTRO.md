@@ -22,6 +22,40 @@
 
 다시 밖으로, 다시 사람에게 이어지도록 돕는 것을 목표로 합니다.
 
+## 근거: 덜 움직이고, 덜 나가고, 덜 만날수록 우울 위험이 높다
+
+MOCHI가 "작은 외출·작은 움직임·가벼운 연결"을 미션으로 주는 이유는 아래 연구들 때문입니다.
+
+| 근거 | 연구 | 핵심 결과 |
+|---|---|---|
+| **덜 움직이면 우울이 더 생긴다** | Schuch 외 2018, *American Journal of Psychiatry* — 전향적 코호트 49편, 26만 6,939명 메타분석 | 활동량이 많은 사람은 적은 사람보다 **우울증이 새로 생길 확률이 낮음** (조정 오즈비 0.83). 청소년·성인·노인 모두에서 같은 경향 |
+| **조금만 움직여도 효과** | Pearce 외 2022, *JAMA Psychiatry* — 15편, 19만 1,130명 | 권장 활동량의 **절반만 해도 우울 위험 18% 낮음**, 권장량이면 25% 낮음. 특히 **활동이 거의 없던 사람이 조금 늘릴 때 효과가 가장 큼** |
+| **걸음 수와 우울** | Bizzozero-Peroni 외 2024, *JAMA Network Open* — 33편, 9만 6,173명 | 하루 7,000보 이상이면 우울 위험 31% 낮음, **하루 1,000보 늘 때마다 9% 낮음** |
+| **움직임 → 우울 방향의 인과 근거** | Choi 외 2019, *JAMA Psychiatry* — 유전자 정보를 이용한 멘델 무작위 분석, 61만여 명 | 실제 측정한(가속도계) 활동량이 많을수록 주요우울장애 위험이 낮음. 반대 방향(우울 → 활동 감소)은 확인되지 않음 |
+| **외로움이 우울을 앞선다** | Cacioppo 외 2010, *Psychology and Aging* — 5년 추적 | **외로움이 이후의 우울 증상을 예측**했고, 반대 방향은 아님 |
+| **고립은 생명과도 연결** | Holt-Lunstad 외 2015, *Perspectives on Psychological Science* — 메타분석 | 사회적 고립 29%, 외로움 26%, 혼자 살기 32% **조기 사망 위험 증가**. 65세 미만에서 더 강하게 나타남 |
+| **밖에서 보내는 시간** | White 외 2019, *Scientific Reports* — 1만 9,806명 | 자연에서 **일주일 120분 이상** 보내면 건강·행복감이 좋다고 답할 확률이 높음. 한 번에 길게든 여러 번 짧게든 상관없음 |
+
+**한국 고립·은둔 청년 실태** (보건복지부·한국보건사회연구원, 2023년 고립·은둔 청년 실태조사, 19~39세 2만 1,360명 응답)
+
+- 고립·은둔 청년은 전국 약 **54만 명**으로 추정 (국무조정실 2022 청년 삶 실태조사 기준)
+- 응답자의 **75.4%가 자살을 생각**한 적 있음 (보고서는 일반 청년 2.3%와 비교)
+- **80.8%는 지금 상황에서 벗어나고 싶다**고 답했지만, 벗어나려 했던 사람 중 **45.6%는 다시 고립**됨
+- 10명 중 7명은 가족 등과 **함께 살면서도 고립** — 혼자 사는지만으로는 알아채기 어려움
+
+**그래서 MOCHI는**
+
+| 근거 | MOCHI의 설계 |
+|---|---|
+| 활동이 거의 없을 때 조금 늘리는 효과가 가장 큼 | "문밖 한 걸음", "집 앞 5분"처럼 **아주 작은 단계**부터 |
+| 걸음이 늘수록 우울 위험이 낮아짐 | 걸음 목표, 바깥 사진 미션 |
+| 외로움이 우울을 앞섬 | 이웃 방 방문, 방명록 같은 **부담 없는 연결** |
+| 밖에서 보내는 시간이 짧게 여러 번이어도 효과 | 매일 짧은 바깥 미션 |
+| 벗어나고 싶어 하지만 절반 가까이 다시 고립됨 | **매일 이어지게** 하는 출석·수집·캐릭터 성장, 실패해도 벌점 없음 |
+| 자살 생각 비율이 매우 높음 | 일기에서 위기 표현이 보이면 **109 상담전화 안내** |
+
+> 이 연구들은 대부분 **관련성**을 보여 줍니다. 활동이 우울을 줄인다는 방향은 멘델 무작위 연구가 일부 뒷받침하지만, MOCHI 자체의 효과는 사용 데이터로 따로 확인해야 합니다. MOCHI는 진단·치료 앱이 아닙니다.
+
 ## 사전 조사: 게임은 실제로 사람을 밖으로 움직였다
 
 위치 기반 게임 **포켓몬고**는 포켓몬을 잡으려면 실제로 여러 장소를 걸어 다녀야 합니다. 출시(2016) 뒤 여러 연구에서 플레이어의 실제 걸음이 늘어난 것이 측정됐습니다.
@@ -42,6 +76,45 @@
 3. **효과는 몇 주 만에 줄어든다** → 매일 바뀌는 미션, 매일 다른 일기 주제, 캐릭터·소품 수집, 이웃과의 연결로 오래 이어 가게 설계
 
 은둔에 대한 직접적인 수치 근거는 아직 사례·의견 수준입니다. MOCHI는 걸음과 미션 기록으로 이 효과를 직접 확인하는 것을 목표로 합니다.
+
+## 비슷한 앱 조사
+
+"캐릭터 키우기 + 일상 행동", "걷기 게임", "정신건강 앱", "공공 지원" 네 갈래로 비슷한 서비스를 찾아봤습니다 (2026-10 기준).
+
+| 서비스 | 갈래 | 하는 일 | 규모·특징 | MOCHI와 다른 점 |
+|---|---|---|---|---|
+| **Finch** (미국) | 캐릭터 + 자기돌봄 | 물 마시기·일기·호흡 같은 자기돌봄 목표를 체크하면 새 캐릭터가 자라고, 보상으로 옷·집을 꾸밈 | App Store 평점 4.9 (미국, 평가 76만 개), 무료 + 구독 | **가장 비슷한 앱.** 다만 일반 자기돌봄 체크리스트라 **밖으로 나가게 하는 데 초점이 없고**, 완료는 스스로 체크. 한국어·이웃 교류 없음 |
+| **피크민 블룸** (Niantic·닌텐도, 2021) | 걷기 게임 | 걸으면 피크민을 모으고 꽃을 심음. 친구에게 엽서, 하루 기록·주간 돌아보기, 함께 걷는 주간 챌린지 | 포켓몬고 제작사의 후속작 | **걸음 수 자체가 목표**인 게임. 이미 걷는 사람이 더 즐기는 구조라, 거의 나가지 않는 사람을 위한 작은 단계나 위기 대응은 없음 |
+| **포켓몬고** | 위치 기반 게임 | 실제 장소를 다니며 포켓몬 수집 | 걸음 증가 연구 다수 (위 사전 조사) | 게임이 목적이라 효과가 몇 주 만에 줄어듦. 고립된 사람을 위한 설계는 아님 |
+| **캐시워크** (한국, 2017) | 걷기 보상 | 걸음 수만큼 포인트(현금성) 지급 | 누적 가입자 2,000만 명 이상 (회사 발표) | **돈이 동기.** 걷기만 보상하고 기록·교류·마음 돌봄은 없음 |
+| **Habitica** | 습관 RPG | 할 일을 하면 경험치·골드, 못 하면 캐릭터가 피해를 입음 | 오픈소스 RPG형 습관 앱 | **실패하면 벌을 받는 구조.** MOCHI는 벌점 없이 작은 성공만 보상 |
+| **Wysa**·Woebot | 정신건강 AI 챗봇 | 인지행동치료(CBT) 기반 대화로 우울·불안 관리 | Woebot은 일반 사용자용 앱을 접고 기업 협력으로 전환 | 대화로 마음을 다루는 앱. **몸을 움직여 밖으로 나가는 행동**은 다루지 않음 |
+| **트로스트**·**마인드카페** (한국) | 심리상담·커뮤니티 | 전문 상담사와 익명 비대면 상담, 마음 건강 커뮤니티 | 마인드카페 "400만 명 경험" (앱 소개) | **이미 도움을 찾는 사람**이 대상. 상담을 신청할 힘이 없는 단계는 닿기 어려움 |
+| **서울시 고립·은둔 청년 지원** | 공공 서비스 | 서울청년기지개센터(2024), 심리상담·일상 회복·관계 형성·취업 준비 프로그램, 온·오프라인 맞춤 프로그램 | 발굴 → 진단 → 지원 → 사회 진입 → 사후 관리 | **신청해야 시작**되는 서비스. 보건복지부도 자가진단·온라인 도움 창구 운영 |
+
+**MOCHI가 채우는 빈자리**
+
+```text
+            재미·게임 중심
+                 │
+   피크민 블룸 · 포켓몬고    Finch
+   캐시워크 (걸음·보상)       (자기돌봄 체크)
+                 │
+ 몸을 움직이는 ──┼── 마음을 다루는
+   행동 유도      │      대화·상담
+                 │
+         MOCHI ◀ 여기       Wysa · 트로스트 · 마인드카페
+   (작은 외출 + 확인 + 연결    공공 고립·은둔 지원
+    + 위기 시 상담 연결)        (신청 후 시작)
+                 │
+            돌봄·지원 중심
+```
+
+1. **아주 작은 외출부터 단계적으로** — 걷기 게임은 걸음 수가 목표라 이미 걷는 사람에게 유리하지만, MOCHI는 "문밖 한 걸음", "하늘 사진 한 장"처럼 거의 나가지 않는 사람의 첫걸음을 목표로 함
+2. **확인할 수 있는 행동에 보상** — Finch·Habitica처럼 스스로 체크하는 대신, 사진(오늘 찍은 사진)·걸음·직접 찾아 적기로 실제 행동을 확인
+3. **벌점 없는 보상** — Habitica와 달리 실패해도 잃는 것이 없음
+4. **가벼운 사람 연결** — 이웃 방 놀러 가기·방명록처럼 부담 없는 크기의 교류
+5. **상담 앱과 공공 지원의 앞 단계** — 상담을 신청할 힘이 없는 시기에 일상 속에서 먼저 닿고, 위험한 표현이 보이면 109 상담전화와 지원 정보로 연결
 
 ## 앱의 목적
 
@@ -155,3 +228,25 @@ MOCHI에서 게임 요소가 하는 일:
 - Tateno M, Skokauskas N, Kato TA, Teo AR, Guerrero APS. New game software (Pokémon Go) may help youth with severe social withdrawal, hikikomori. *Psychiatry Res*. 2016;246:848-849. [doi:10.1016/j.psychres.2016.10.038](https://doi.org/10.1016/j.psychres.2016.10.038)
 - Kato TA, Teo AR, Tateno M, Watabe M, Kubo H, Kanba S. Can Pokémon GO rescue shut-ins (hikikomori) from their isolated world? *Psychiatry Clin Neurosci*. 2017;71(1):75-76. [doi:10.1111/pcn.12481](https://doi.org/10.1111/pcn.12481)
 - Merry SN, Stasiak K, Shepherd M, Frampton C, Fleming T, Lucassen MFG. The effectiveness of SPARX, a computerised self help intervention for adolescents seeking help for depression: randomised controlled non-inferiority trial. *BMJ*. 2012;344:e2598. [doi:10.1136/bmj.e2598](https://doi.org/10.1136/bmj.e2598)
+
+### 근거 (활동량·고립·우울)
+
+- Schuch FB, Vancampfort D, Firth J, et al. Physical Activity and Incident Depression: A Meta-Analysis of Prospective Cohort Studies. *Am J Psychiatry*. 2018;175(7):631-648. [doi:10.1176/appi.ajp.2018.17111194](https://doi.org/10.1176/appi.ajp.2018.17111194)
+- Pearce M, Garcia L, Abbas A, et al. Association Between Physical Activity and Risk of Depression: A Systematic Review and Meta-analysis. *JAMA Psychiatry*. 2022;79(6):550-559. [doi:10.1001/jamapsychiatry.2022.0609](https://doi.org/10.1001/jamapsychiatry.2022.0609)
+- Bizzozero-Peroni B, Díaz-Goñi V, Jiménez-López E, et al. Daily Step Count and Depression in Adults: A Systematic Review and Meta-Analysis. *JAMA Netw Open*. 2024;7(12):e2451208. [doi:10.1001/jamanetworkopen.2024.51208](https://doi.org/10.1001/jamanetworkopen.2024.51208)
+- Choi KW, Chen CY, Stein MB, et al. Assessment of Bidirectional Relationships Between Physical Activity and Depression Among Adults: A 2-Sample Mendelian Randomization Study. *JAMA Psychiatry*. 2019;76(4):399-408. [doi:10.1001/jamapsychiatry.2018.4175](https://doi.org/10.1001/jamapsychiatry.2018.4175)
+- Cacioppo JT, Hawkley LC, Thisted RA. Perceived social isolation makes me sad: 5-year cross-lagged analyses of loneliness and depressive symptomatology in the Chicago Health, Aging, and Social Relations Study. *Psychol Aging*. 2010;25(2):453-463. [doi:10.1037/a0017216](https://doi.org/10.1037/a0017216)
+- Holt-Lunstad J, Smith TB, Baker M, Harris T, Stephenson D. Loneliness and social isolation as risk factors for mortality: a meta-analytic review. *Perspect Psychol Sci*. 2015;10(2):227-237. [doi:10.1177/1745691614568352](https://doi.org/10.1177/1745691614568352)
+- White MP, Alcock I, Grellier J, et al. Spending at least 120 minutes a week in nature is associated with good health and wellbeing. *Sci Rep*. 2019;9:7730. [doi:10.1038/s41598-019-44097-3](https://doi.org/10.1038/s41598-019-44097-3)
+- 보건복지부·한국보건사회연구원, 2023년 고립·은둔 청년 실태조사 (2023-12-13 발표) — [경향신문 보도](https://www.khan.co.kr/article/202312131643001), [MBC 보도](https://imnews.imbc.com/news/2023/society/article/6552839_36126.html)
+
+### 비슷한 앱·서비스
+
+- Finch: Self-Care Pet — [App Store](https://apps.apple.com/us/app/finch-self-care-pet/id1528595748), [소개](https://finchcare.com/about-finch)
+- Pikmin Bloom — [Niantic·닌텐도 출시 발표 (2021)](https://pikminbloom.com/en/news/blog-2021-1026), [Pikipedia](https://www.pikminwiki.com/Pikmin_mobile_app)
+- 캐시워크 — [공식 사이트](https://cashwalk.com/), [누적 다운로드 1,400만 건 보도 (2021)](https://platum.kr/archives/158122)
+- Habitica — [Google Play](https://play.google.com/store/apps/details?id=com.habitrpg.android.habitica)
+- Wysa·Woebot — [Chatbot-based mental health apps overview (PMC)](https://pmc.ncbi.nlm.nih.gov/articles/PMC10242473/)
+- 트로스트 — [App Store](https://apps.apple.com/kr/app/%ED%8A%B8%EB%A1%9C%EC%8A%A4%ED%8A%B8/id1034957818) · 마인드카페 — [App Store](https://apps.apple.com/kr/app/%EB%A7%88%EC%9D%B8%EB%93%9C%EC%B9%B4%ED%8E%98-24%EC%8B%9C%EA%B0%84-%EB%A9%98%ED%83%88%EC%BC%80%EC%96%B4-%EC%8B%AC%EB%A6%AC%EC%83%81%EB%8B%B4-%EC%BD%94%EC%B9%AD/id1441402766)
+- 서울시 고립은둔청년 지원 종합 대책 — [서울 정책 아카이브](https://www.seoul.go.kr/policy/view.do?id=68&lan=KO), [서울형 고립·은둔 청년 지원 5대 혁신](https://futurechosun.com/archives/87259)
+- 보건복지부 고립·은둔 청년 지원 — [보도자료](https://www.mohw.go.kr/board.es?mid=a10503000000&bid=0027&list_no=1479278&act=view)
