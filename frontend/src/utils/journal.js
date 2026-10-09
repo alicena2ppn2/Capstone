@@ -27,12 +27,24 @@ export function saveJournal(state, date, text, now = new Date(), emotion) {
   return { ...state, journals: { ...state.journals, [date]: value }, ...(emotion === undefined ? {} : { journalEmotions: { ...state.journalEmotions, [date]: emotion } }), journalDates: [...new Set([...journalDates(state), date])].sort() };
 }
 export function deleteJournal(state, date, now = new Date()) {
-  if (date !== seoulDateKey(now) || !validJournalDate(date) || !hasJournal(state, date)) return state;
+  if (!validJournalDate(date) || (!hasJournal(state, date) && !state.journalDrafts?.[date])) return state;
   const dates = journalDates(state), journals = { ...state.journals }, questAnswers = { ...state.questAnswers }, journalEmotions = { ...state.journalEmotions };
   delete journals[date];
   delete journalEmotions[date];
   delete questAnswers[`${date}:day-diary`];
-  return { ...state, journals, questAnswers, journalEmotions, journalDates: dates };
+  const journalDrafts={...state.journalDrafts};delete journalDrafts[date];
+  return { ...state, journals, questAnswers, journalEmotions, journalDrafts,journalDates: dates };
+}
+
+// Moving a draft never saves an entry or changes receipts/rewards.
+export function continueJournalDraft(state, source, target, incoming, choice) {
+  if(!validJournalDate(source)||!validJournalDate(target)||typeof incoming?.text!=='string'||!incoming.text.trim())return {ok:false,message:'이어 쓸 초안이 없어요.',game:state};
+  const existing=state.journalDrafts?.[target] ?? (hasJournal(state,target)?{text:state.journals[target],emotion:state.journalEmotions?.[target],prompt:0}:null);
+  if(existing?.text?.trim()&&!choice)return {ok:false,conflict:true,message:'오늘 일기나 초안이 있어요. 내용을 선택해 주세요.',game:state};
+  if(choice==='keep')return {ok:true,game:state,draft:existing};
+  const draft=choice==='merge'&&existing?.text?.trim()?{...incoming,text:`${existing.text}\n\n${incoming.text}`}:{...incoming};
+  if(draft.text.length>JOURNAL_LIMIT)return {ok:false,message:'합친 글이 2,000자를 넘어요. 두 초안은 그대로 보존했어요.',game:state};
+  return {ok:true,draft,game:{...state,journalDrafts:{...state.journalDrafts,[source]:incoming,[target]:draft}}};
 }
 export function calendarDays(month) {
   if (!/^\d{4}-(0[1-9]|1[0-2])$/.test(month)) return [];

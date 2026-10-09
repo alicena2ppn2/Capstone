@@ -1,3 +1,4 @@
+import useBriefFeedback from '../utils/useBriefFeedback.js';
 import ScreenHeader from '../components/ScreenHeader.jsx';
 import { useEffect, useState } from 'react';
 import Mochi from '../components/Mochi.jsx';
@@ -19,6 +20,15 @@ function loadNotes() {
 
 export default function Visit({ visitorName, visitorVariant, onBack, onPosted }) {
   const safety = useGuestModeration();
+  const [reactionFeedback, showReactionFeedback] = useBriefFeedback();
+  const react = label => {
+    if (connections.reactions?.[selected.id] === label) return;
+    const next = { ...connections, reactions: { ...connections.reactions, [selected.id]: label } };
+    try { localStorage.setItem('mochi.visitConnections.v1', JSON.stringify(next)); }
+    catch { showReactionFeedback('반응을 저장하지 못했어요. 다시 눌러 시도해 주세요.', true); return; }
+    setConnections(next);
+    showReactionFeedback(label === '응원해요' ? '응원을 남겼어요' : '고마움을 남겼어요');
+  };
   const suspended = !!suspensionUntil(safety.state, SELF_AUTHOR, safety.now);
   const [connections, setConnections] = useState(() => { try { const value = JSON.parse(localStorage.getItem('mochi.visitConnections.v1')); return { ...initialConnections(), ...value, recent: Array.isArray(value?.recent) ? value.recent : [], favorites: Array.isArray(value?.favorites) ? value.favorites : [] }; } catch { return initialConnections(); } });
   const [list, setList] = useState('recommended');
@@ -71,8 +81,9 @@ export default function Visit({ visitorName, visitorVariant, onBack, onPosted })
       <p className="visit-intro">{selected.icon} {selected.name} · {selected.nickname}</p>
       <div className="visit-neighbor-actions">
       <button type="button" className="pb ui-secondary" aria-label={connections.favorites.includes(selected.id) ? '저장한 이웃 해제' : '이웃 저장'} aria-pressed={connections.favorites.includes(selected.id)} onClick={() => setConnections(value => favoriteNeighbor(value, selected.id))}>{connections.favorites.includes(selected.id) ? '저장됨 ✓' : '이웃 저장'}</button>
-      {['응원해요', '고마워요'].map(label => <button type="button" className="pb ui-secondary" key={label} aria-pressed={connections.reactions?.[selected.id] === label} onClick={() => { setConnections(value => ({ ...value, reactions: { ...value.reactions, [selected.id]: label } })); setMessage('내 반응을 이 브라우저에 저장했어요.'); }}>{connections.reactions?.[selected.id] === label ? `${label === '응원해요' ? '응원' : '감사'} 선택됨 ✓` : label}</button>)}
+      {['응원해요', '고마워요'].map(label => <button type="button" className="pb ui-secondary" key={label} aria-pressed={connections.reactions?.[selected.id] === label} onClick={() => react(label)}>{connections.reactions?.[selected.id] === label ? `${label === '응원해요' ? '응원' : '감사'} 선택됨 ✓` : label}</button>)}
       </div>
+      {reactionFeedback && <p className={`neighbor-feedback${reactionFeedback.error ? " is-error" : ""}`} role="status">{reactionFeedback.text}</p>}
       <div className="visitor-room" style={{ '--wall': selected.wall, '--floor': selected.floor }}>
         <span className="visitor-room-theme">{selected.theme}</span>
         <RoomBackdrop decor={selected.decorItems} wallColor={selected.wall} floorColor={selected.floor} />
