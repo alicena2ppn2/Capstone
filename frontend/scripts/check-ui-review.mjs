@@ -28,7 +28,7 @@ try {
  await send('Page.enable');
  await send('Page.addScriptToEvaluateOnNewDocument',{source:`if(location.port==='5180'&&!localStorage.getItem('__ui_fixture')){localStorage.setItem('mochi.game.v1',${JSON.stringify(JSON.stringify(game))});localStorage.setItem('__ui_fixture','1')}`});
  await send('Emulation.setDeviceMetricsOverride',{width:390,height:844,deviceScaleFactor:1,mobile:true});
- await send('Page.navigate',{url:'http://127.0.0.1:5180/'});await delay(1500);
+ await send('Page.navigate',{url:'http://127.0.0.1:5180/?preview=game'});await delay(1500);
  assert.equal(await evalPage("document.querySelectorAll('.home-summary-row').length"),6);
  assert.equal(await evalPage("document.querySelector('.home-summary-row .ui-state').textContent"),'도전 중');
  assert.equal(await evalPage("document.querySelectorAll('.home-target-summary,.home-no-target,.target-button').length"),0);
@@ -68,7 +68,7 @@ try {
  assert(await evalPage(`JSON.parse(localStorage.getItem('mochi.game.v1')).completed.includes(${JSON.stringify(day+':day-diary')})`));
  await click('.diary-emotion');await input('#diary-text','수정한 일기');await text('수정 저장');assert.equal(await evalPage("JSON.parse(localStorage.getItem('mochi.game.v1')).coins"),diaryCoins);await screenshot('diary-emotion');
  await evalPage('window.confirm=()=>true');await text('일기 삭제');await text('오늘 일기 쓰기');assert.equal(await evalPage("document.querySelector('#diary-text').value"),'');await input('#diary-text','삭제 후 재작성');await text('일기 저장');assert.equal(await evalPage("JSON.parse(localStorage.getItem('mochi.game.v1')).coins"),diaryCoins);
- await text('목록으로');await evalPage("[...document.querySelectorAll('.diary-list-entry')].find(b=>b.textContent.includes('2026-10-01')).click()");await delay(150);assert.equal(await evalPage("!!document.querySelector('.diary-delete')"),false);
+ await text('목록으로');await evalPage("[...document.querySelectorAll('.diary-list-entry')].find(b=>b.textContent.includes('2026-10-01')).click()");await delay(150);assert.equal(await evalPage("!!document.querySelector('.diary-delete')"),true);assert.equal(await evalPage("!!document.querySelector('#diary-text')"),false);
  await click('.ui-back');await click('.home-settings');await fits();await click('.ui-back');await click('.home-visit-button');await click('.visit-card');await fits();
  await input('#visit-note','안녕하세요, 좋은 하루 보내세요.');await evalPage("Storage.prototype.setItem=function(k,v){if(k==='mochi.visitNotes.v1')throw Error('fixture post failure');return window.__originalSet.call(this,k,v)}");await text('남기기');
  assert.equal(await evalPage(`JSON.parse(localStorage.getItem('mochi.game.v1')).completed.includes(${JSON.stringify(day+':day-guestbook')})`),false);assert.equal(await evalPage("document.querySelector('#visit-note').value"),'안녕하세요, 좋은 하루 보내세요.');await evalPage('Storage.prototype.setItem=window.__originalSet');await text('남기기');
@@ -87,7 +87,7 @@ try {
  assert.equal(await evalPage("(()=>{const ids=[...document.querySelectorAll('[id]')].map(e=>e.id);return ids.length-new Set(ids).size})()"),0);
  await send('Emulation.setDeviceMetricsOverride',{width:390,height:844,deviceScaleFactor:1,mobile:true});await fits();await screenshot('friends-mobile');
  // New-user fixture and attendance success/dedup, in this isolated profile only.
- await evalPage(`localStorage.setItem('mochi.game.v1',${JSON.stringify(JSON.stringify(initialGame()))})`);await send('Page.navigate',{url:'http://127.0.0.1:5180/'});await delay(800);assert(await evalPage("document.querySelector('.attendance-dialog').open"));await click('.attendance-claim');
+ await evalPage(`localStorage.setItem('mochi.game.v1',${JSON.stringify(JSON.stringify(initialGame()))})`);await send('Page.navigate',{url:'http://127.0.0.1:5180/?preview=game'});await delay(800);assert(await evalPage("document.querySelector('.attendance-dialog').open"));await click('.attendance-claim');
  const paidAttendance=await evalPage(`JSON.stringify((()=>{const g=JSON.parse(localStorage.getItem('mochi.game.v1'));return {xp:g.xp,coins:g.coins,receipt:g.attendance[${JSON.stringify(day)}]}})())`);
  assert(await evalPage(`JSON.parse(localStorage.getItem('mochi.game.v1')).completed.includes(${JSON.stringify(day+':day-attendance')})`));assert(await evalPage("document.querySelector('.attendance-claim').disabled"));await click('.attendance-claim');await click('.attendance-close');await click('.attendance-open');await click('.attendance-claim');
  assert.equal(await evalPage(`JSON.stringify((()=>{const g=JSON.parse(localStorage.getItem('mochi.game.v1'));return {xp:g.xp,coins:g.coins,receipt:g.attendance[${JSON.stringify(day)}]}})())`),paidAttendance);
