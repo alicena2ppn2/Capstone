@@ -47,7 +47,7 @@ try {
  assert.equal(await evalPage('JSON.stringify(localStorage)'),stored);
  // A disposable profile only: actual shop, persistence, failure, quest and outfit flows.
  const day=seoulDateKey();let fixture={...initialGame(),xp:2400,coins:2000,attendance:{[day]:{type:'coins',amount:20}},nicknames:{potato:'내 감자'},custom:'keep',ownedDecor:['lamp-moon'],decor:{lamp:'lamp-moon'}};
- await nav('');await evalPage(`localStorage.setItem('mochi.game.v1',${JSON.stringify(JSON.stringify(fixture))});localStorage.setItem('mochi.wardrobe.v1',JSON.stringify({owned:['sky','berry','leaf','star'],outfit:null}));`);await nav('');
+ await nav('?preview=game');await evalPage(`localStorage.setItem('mochi.game.v1',${JSON.stringify(JSON.stringify(fixture))});localStorage.setItem('mochi.wardrobe.v1',JSON.stringify({owned:['sky','berry','leaf','star'],outfit:null}));`);await nav('?preview=game');
  const save=()=>evalPage("JSON.parse(localStorage.getItem('mochi.game.v1'))");
  await text('꾸미기');await evalPage("window.realSet=Storage.prototype.setItem;Storage.prototype.setItem=function(k,v){if(k==='mochi.game.v1')throw Error('test quota');return window.realSet.call(this,k,v)}");await click('[data-character="proto-pebble"] .shop-buy');assert(!await evalPage("!!document.querySelector('.character-welcome')"));assert(!(await save()).characters.includes('proto-pebble'));await evalPage('Storage.prototype.setItem=window.realSet');await click('.ui-back');
  for(const friend of FINAL_FRIENDS){
@@ -59,7 +59,7 @@ try {
    await evalPage(`document.querySelector(${JSON.stringify(tap)}).dispatchEvent(new KeyboardEvent('keydown',{key:'Enter',bubbles:true}))`);await delay(100);assert(await evalPage("!!document.querySelector('.home-screen .is-tap')"));
    await evalPage(`for(let i=0;i<20;i++)document.querySelector(${JSON.stringify(tap)}).dispatchEvent(new MouseEvent('click',{bubbles:true}))`);assert.equal(await evalPage("document.querySelectorAll('.home-screen .friend-particles').length"),1);await delay(1200);
    assert(await evalPage("[...document.querySelectorAll('.home-screen .friend-body')].every(e=>getComputedStyle(e).transform==='none')"));
-   await nav('');assert.equal((await save()).character,friend.id);assert.equal((await save()).custom,'keep');assert.equal((await save()).nicknames.potato,'내 감자');
+   await nav('?preview=game');assert.equal((await save()).character,friend.id);assert.equal((await save()).custom,'keep');assert.equal((await save()).nicknames.potato,'내 감자');
  }
  // Finish a real daily mission and return home: one joy then no replay on another visit.
  await text('오늘의 도전');

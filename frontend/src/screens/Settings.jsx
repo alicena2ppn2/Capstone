@@ -1,3 +1,4 @@
+import { useAuthActions } from '../auth/AuthContext.js';
 import ScreenHeader from '../components/ScreenHeader.jsx';
 import { useState } from 'react';
 import Mochi from '../components/Mochi.jsx';
@@ -5,6 +6,15 @@ import Mochi from '../components/Mochi.jsx';
 import BackupExport from '../components/BackupExport.jsx';
 
 export default function Settings({ petColor, petName, onPetName, onBack }) {
+  const auth = useAuthActions();
+  const [loggingOut, setLoggingOut] = useState(false), [logoutError, setLogoutError] = useState('');
+  async function logout() {
+    if (loggingOut || !auth) return;
+    setLoggingOut(true); setLogoutError('');
+    const result = await auth.logout();
+    if (!result.ok) { setLogoutError(result.message); setLoggingOut(false); }
+  }
+
   const [nameDraft, setNameDraft] = useState(petName);
   const [nameMessage, setNameMessage] = useState('');
   const [options, setOptions] = useState({ music: true, effects: true, reminders: false });
@@ -64,11 +74,11 @@ export default function Settings({ petColor, petName, onPetName, onBack }) {
           <button type="button" className="pb settings-toggle" role="switch" aria-checked={options.reminders} aria-labelledby="reminders-label" onClick={() => update('reminders')}><span /></button>
         </div>
       </div>
-      <div className="settings-note"><span aria-hidden="true">✦</span> 작은 변화로 더 포근한 하루를 만들어요.</div>
       <button type="button" className="pb jua settings-save" onClick={() => setSaved(true)}>설정 저장하기</button>
       <p className="settings-status" role="status">{saved ? '설정을 저장했어요! (미리보기 동안 유지돼요)' : '미리보기용 설정이에요. 실제 소리와 알림은 연결 예정이에요.'}</p>
       <BackupExport />
       <section className="settings-card settings-tools"><h2>계정 삭제</h2><p>현재는 로그인 계정과 서버가 연결되어 있지 않아 계정을 삭제할 수 없어요.</p><button type="button" className="pb ui-secondary" onClick={() => window.alert('계정 삭제는 로그인·서버 연결 후 사용할 수 있어요. 현재 저장된 기록은 삭제하지 않았어요.')}>계정 삭제 안내</button></section>
+      <section className="settings-card settings-tools"><h2>로그아웃</h2><p>로그인 화면으로 돌아가요. 저장된 기록은 유지돼요.</p><button type="button" className="pb ui-secondary" disabled={loggingOut || !auth} onClick={logout}>{loggingOut ? '로그아웃 중…' : '로그아웃'}</button>{logoutError && <p role="alert">{logoutError}</p>}</section>
       <footer className="settings-footer jua">MY MOCHI <span>v0.1.0</span></footer>
     </section>
   );

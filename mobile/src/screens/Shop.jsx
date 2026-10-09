@@ -1,3 +1,4 @@
+import { colors } from '../../../frontend/src/design/tokens.js';
 import React, { useState } from 'react';
 import { View } from 'react-native';
 import { Label, Button, Card, styles, ScreenHeader } from '../ui';
@@ -18,7 +19,7 @@ export default function Shop({ onBack, game, level, ownedClothes, outfit, update
     const equipped = tab === 'clothes' ? outfit === item.id : game.decor?.[item.slot] === item.id;
     const locked = level < (item.level ?? 1);
     const secret = item.method === 'quest' && !owned;
-    return <Card key={item.id}><View style={styles.center}>{tab === 'character' ? secret ? <Label style={styles.heading}>?</Label> : <Character variant={item.id} size={130} label={item.name} /> : tab === 'clothes' ? <Character variant={game.character} size={130} outfit={item} label={item.name} /> : <View style={{ width: '100%', aspectRatio: 368 / 500 }}><RoomBackdrop homeScene decor={{ ...game.decor, [item.slot]: item.id }} /></View>}</View><Label style={styles.cardTitle}>{secret ? '비밀 친구' : item.name}</Label><Label style={[styles.small, { fontFamily: 'A2z-500', fontSize: 14, lineHeight: 22, color: '#5D5060' }]}>{secret ? '누적 행동 도전 10회' : `${item.price} 코인 · LV.${item.level ?? 1}${locked ? ' · 잠금' : ''}`}</Label>
+    return <Card key={item.id}><View style={styles.center}>{tab === 'character' ? secret ? <Label style={styles.heading}>?</Label> : <Character variant={item.id} size={130} label={item.name} /> : tab === 'clothes' ? <Character variant={game.character} size={130} outfit={item} label={item.name} /> : <View style={{ width: '100%', aspectRatio: 368 / 500 }}><RoomBackdrop homeScene decor={{ ...game.decor, [item.slot]: item.id }} /></View>}</View><Label style={styles.cardTitle}>{secret ? '비밀 친구' : item.name}</Label><Label style={[styles.small, { fontFamily: 'A2z-500', fontSize: 14, lineHeight: 22, color: colors.muted }]}>{secret ? '누적 행동 도전 10회' : `${item.price} 코인 · LV.${item.level ?? 1}${locked ? ' · 잠금' : ''}`}</Label>
 
       {equipped && <Label style={[styles.state, styles.done]}>현재 장착 중 ✓</Label>}
       <Button primary={!equipped} disabled={tab === 'character' && equipped && item.id === 'potato' || !owned && (locked || game.coins < item.price)} onPress={() => {
