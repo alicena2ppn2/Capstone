@@ -1,3 +1,4 @@
+import UiIcon from '../components/UiIcon.jsx';
 import ScreenHeader from '../components/ScreenHeader.jsx';
 import { useState } from 'react';
 import Mochi from '../components/Mochi.jsx';
@@ -19,12 +20,11 @@ export default function Shop({ game, level, onBuyCharacter, onEquipCharacter, on
 
   return (
     <section className="shop-screen" aria-labelledby="shop-title">
-      <ScreenHeader title="모찌 상점" titleId="shop-title" onBack={onBack}><span className="shop-wallet" aria-label={`보유 코인 ${coins}`}><span aria-hidden="true">●</span> {coins.toLocaleString('ko-KR')}</span></ScreenHeader>
+      <ScreenHeader title="모찌 상점" titleId="shop-title" onBack={onBack}><span className="shop-wallet" aria-label={`보유 코인 ${coins}`}><UiIcon kind="coin" size={18} /> {coins.toLocaleString('ko-KR')}</span></ScreenHeader>
       <div className="shop-tabs"><button type="button" className="pb" aria-pressed={section === 'characters'} onClick={() => setSection('characters')}>캐릭터</button><button type="button" className="pb" aria-pressed={section === 'clothes'} onClick={() => setSection('clothes')}>의상</button><button type="button" className="pb" aria-pressed={section === 'decor'} onClick={() => setSection('decor')}>집 꾸미기</button></div>
       {section === 'characters' ? <>
         <div className="character-current"><Mochi color={petColor} full width={130} height={130} /><div><span>현재 함께하는 캐릭터</span><strong>{CHARACTERS.find((item) => item.id === game.character)?.name ?? '꼬질 감자 모찌'}</strong></div></div>
         <div className="shop-tabs"><button type="button" className="pb" aria-pressed={!collection} onClick={() => setCollection(false)}>모든 캐릭터</button><button type="button" className="pb" aria-pressed={collection} onClick={() => setCollection(true)}>내 컬렉션 {game.characters.length}</button></div>
-        <p className="shop-hint">레벨업은 새로운 선택지를 열어요. 구매해도 자동 장착되지 않아요.</p>
         <CharacterShop game={game} level={level} collection={collection} onBuy={onBuyCharacter} onEquip={onEquipCharacter} onMessage={setMessage} />
       </> : section === 'decor' ? <DecorShop game={game} level={level} onBuy={onBuyDecor} onEquip={onEquipDecor} /> : <>
       <div className="shop-preview">

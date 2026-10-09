@@ -1,3 +1,4 @@
+import UiIcon from '../components/UiIcon.jsx';
 import HomeSummary from '../components/HomeSummary.jsx';
 import Mochi from '../components/Mochi.jsx';
 import SeoulClock from '../components/SeoulClock.jsx';
@@ -57,9 +58,9 @@ export default function Home({ game, day, petName = 'MOCHI', petColor, onQuest, 
           <svg width="22" height="22" viewBox="0 0 24 24" aria-hidden="true"><path d="M3 11 L12 3 L21 11 M6 9 V21 H18 V9 M10 21 V14 H14 V21" fill="none" stroke="currentColor" strokeWidth="1.7" strokeLinejoin="round" /></svg>방문하기
         </button>
         <button type="button" className="pb home-guestbook-button" onClick={onGuestbook}>
-          <svg width="22" height="22" viewBox="0 0 24 24" aria-hidden="true"><path d="M5 3 H19 V16 L14 21 H5Z M14 21 V16 H19 M8 8 H16 M8 12 H15" fill="none" stroke="currentColor" strokeWidth="1.7" strokeLinejoin="round" /></svg>방명록
+          <UiIcon kind="envelope" size={22} />방명록
         </button>
-        <button type="button" className="pb home-diary-button" onClick={onDiary}><svg width="22" height="22" viewBox="0 0 24 24" aria-hidden="true"><path d="M6 3 H20 V21 H6Z M3 6 H8 M3 11 H8 M3 16 H8 M11 8 H17 M11 12 H17" fill="#E5DFF8" stroke="#9480BB" strokeWidth="1.7" strokeLinejoin="round" /></svg>일기</button>
+        <button type="button" className="pb home-diary-button" onClick={onDiary}><svg width="22" height="22" viewBox="0 0 24 24" aria-hidden="true"><path d="M6 3 H20 V21 H6Z M3 6 H8 M3 11 H8 M3 16 H8 M11 8 H17 M11 12 H17" fill="var(--color-surface)" stroke="var(--color-primary)" strokeWidth="1.7" strokeLinejoin="round" /></svg>일기</button>
       </nav>
       <div className="home-character">
         <Mochi color={petColor} width="100%" height="100%" full asleep={false} label={petName} outfit={outfit} interactive active={active} reactionId={reactionId} onReactionConsumed={onReactionConsumed} />

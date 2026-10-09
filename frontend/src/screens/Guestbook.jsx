@@ -1,3 +1,4 @@
+import { colors } from '../design/tokens.js';
 import { useEffect, useState } from 'react';
 import Mochi from '../components/Mochi.jsx';
 import SubScreen from '../components/SubScreen.jsx';
@@ -7,12 +8,7 @@ import { SELF_AUTHOR, visibleNote, violation, suspensionUntil } from '../utils/g
 
 const PER_PAGE = 4;
 
-const TONES = {
-  pink: ['#FDEEF3', '#F2BFD0', '#FADCE6'],
-  blue: ['#EAF4FC', '#B9D7F0', '#D9EAF8'],
-  yellow: ['#FFF8DE', '#F2D98A', '#FCEDB8'],
-  purple: ['#F2EDFB', '#CFC1EE', '#E5DCF8'],
-};
+const LETTER_SURFACE = [colors.surface, colors.border, colors.primarySoft];
 
 // TODO: 방명록 API 연결 전까지 쓰는 mock 데이터
 const SEED = [
@@ -31,7 +27,7 @@ function today() {
   return `${d.getFullYear()}.${String(d.getMonth() + 1).padStart(2, '0')}.${String(d.getDate()).padStart(2, '0')}`;
 }
 
-const pageBtn = { border: 0, background: 'transparent', width: 40, height: 36, display: 'flex', alignItems: 'center', justifyContent: 'center' };
+const pageBtn = { border: 0, background: 'transparent', width: 44, height: 44, display: 'flex', alignItems: 'center', justifyContent: 'center' };
 
 export default function Guestbook({ level, petColor, onShop, onSettings, onHome, petName }) {
   const safety = useGuestModeration();
@@ -69,47 +65,47 @@ export default function Guestbook({ level, petColor, onShop, onSettings, onHome,
   return (
     <SubScreen title="방명록" plainTitle petColor={petColor} onShop={onShop} onSettings={onSettings} onHome={onHome} level={level}>
       <SafetyPanel safety={safety} />
-      <div style={{ marginTop: 4, background: 'rgba(255,255,255,0.88)', border: '3px solid #8DBDE6', borderRadius: 22, padding: 12, display: 'flex', flexDirection: 'column', gap: 10 }}>
-        <div style={{ display: 'flex', alignItems: 'center', gap: 8, padding: 8, borderRadius: 16, background: '#EAF4FC', border: '2px solid #B9D7F0' }}>
+      <div style={{ marginTop: 4, background: colors.surface, border: `1px solid ${colors.inputBorder}`, borderRadius: 22, padding: 12, display: 'flex', flexDirection: 'column', gap: 10 }}>
+        <div style={{ display: 'flex', alignItems: 'center', gap: 8, padding: 8, borderRadius: 16, background: colors.primarySoft, border: `1px solid ${colors.border}` }}>
           <span style={{ position: 'relative', flexShrink: 0, width: 52, height: 50, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
             <Mochi color={petColor} width={50} height={48} />
-            <HeartIcon width={20} height={18} fill="#F59AB5" stroke="#B4506E" strokeWidth={1.4} style={{ position: 'absolute', right: -6, top: -4 }} />
+            <HeartIcon width={20} height={18} fill={colors.accent} stroke={colors.primary} strokeWidth={1.4} style={{ position: 'absolute', right: -6, top: -4 }} />
           </span>
           <input className="inp" type="text" maxLength={60} disabled={suspended} aria-label="방명록 내용" placeholder="방명록을 남겨보세요!"
             value={draft} onChange={(e) => setDraft(e.target.value)} onKeyDown={(e) => e.key === 'Enter' && submit()}
-            style={{ flex: '1 1 0', minWidth: 0, height: 44, boxSizing: 'border-box', borderRadius: 12, border: '2px solid #9CC7EC', background: '#FFFFFF', padding: '0 12px', font: 'inherit', fontSize: 14, color: '#2E2A3A' }} />
-          <button type="button" className="pb jua" onClick={submit} disabled={suspended || !draft.trim()}
-            style={{ flexShrink: 0, height: 44, padding: '0 14px', borderRadius: 999, background: '#6FA9DA', color: '#FFFFFF', border: '2.5px solid #3F7DB3', fontSize: 15 }}>
+            style={{ flex: '1 1 0', minWidth: 0, height: 44, boxSizing: 'border-box', borderRadius: 12, border: `1px solid ${colors.inputBorder}`, background: colors.surface, padding: '0 12px', font: 'inherit', fontSize: 14, color: colors.ink }} />
+          <button type="button" className="pb ui-primary" onClick={submit} disabled={suspended || !draft.trim()}
+            style={{ flexShrink: 0, height: 44, padding: '0 14px', borderRadius: 14, fontSize: 15 }}>
             등록하기
           </button>
         </div>
 
         {shown.map((e) => {
-          const t = TONES[e.tone] || TONES.blue;
+          const t = LETTER_SURFACE;
           const on = !!liked[e.id];
           const likes = e.likes + (on ? 1 : 0);
           return (
-            <div key={e.id} data-note-id={e.id} className="guestbook-entry" style={{ display: 'flex', gap: 10, padding: '10px 12px', borderRadius: 16, background: t[0], border: `2px solid ${t[1]}` }}>
+            <div key={e.id} data-note-id={e.id} className="guestbook-entry" style={{ display: 'flex', gap: 10, padding: '10px 12px', borderRadius: 16, background: t[0], border: `1px solid ${t[1]}` }}>
               <span style={{ flexShrink: 0, width: 54, height: 54, borderRadius: '50%', background: t[2], display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
                 <Mochi variant={e.variant} color={e.color} width={44} height={42} />
               </span>
               <div style={{ display: 'flex', flexDirection: 'column', gap: 4, minWidth: 0, flexGrow: 1 }}>
                 <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'baseline', gap: 8 }}>
                   <span style={{ fontSize: 15, fontWeight: 600 }}>{e.name}</span>
-                  <span style={{ fontSize: 11, color: '#6B7085' }}>{e.date}</span>
+                  <span style={{ fontSize: 13, color: colors.muted }}>{e.date}</span>
                 </div>
-                <span style={{ fontSize: 13, lineHeight: 1.45 }}>{violation(e.text) ? '혐오·욕설 필터로 내용을 가렸어요.' : e.text}</span>
+                <span style={{ fontSize: 14, lineHeight: 1.65 }}>{violation(e.text) ? '혐오·욕설 필터로 내용을 가렸어요.' : e.text}</span>
                 <div style={{ display: 'flex', flexWrap: 'wrap', justifyContent: 'flex-end', alignItems: 'center', gap: 6 }}>
                   <ModerationActions entry={e} scope="home" safety={safety} onRemove={id => setEntries(list => list.filter(entry => entry.id !== id))} />
                   <button type="button" className="pb" aria-pressed={on} aria-label={`좋아요 ${likes}개`}
                     onClick={() => setLiked((l) => ({ ...l, [e.id]: !l[e.id] }))}
-                    style={{ border: 0, background: 'transparent', minHeight: 32, minWidth: 44, display: 'flex', alignItems: 'center', gap: 4, fontSize: 12, fontWeight: 500, color: '#3A3A55' }}>
-                    <HeartIcon fill={on ? '#F27BA0' : '#FFFFFF'} stroke="#D9587E" />{likes}
+                    style={{ border: 0, background: 'transparent', minHeight: 44, minWidth: 44, display: 'flex', alignItems: 'center', gap: 4, fontSize: 12, fontWeight: 500, color: colors.ink }}>
+                    <HeartIcon fill={on ? colors.primary : colors.surface} stroke={colors.primary} />{likes}
                   </button>
-                  <button type="button" className="pb" aria-label="답글" style={{ border: 0, background: 'transparent', minHeight: 32, minWidth: 36, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+                  <button type="button" className="pb" aria-label="답글" style={{ border: 0, background: 'transparent', minHeight: 44, minWidth: 44, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
                     <svg width="20" height="18" viewBox="0 0 20 18" aria-hidden="true">
-                      <path d="M3 2 H17 C18 2 19 3 19 4 V11 C19 12 18 13 17 13 H8 L4 16 V13 H3 C2 13 1 12 1 11 V4 C1 3 2 2 3 2Z" fill="#FFFFFF" stroke="#6FA9DA" strokeWidth="1.8" strokeLinejoin="round" />
-                      <circle cx="6" cy="7.5" r="1" fill="#6FA9DA" /><circle cx="10" cy="7.5" r="1" fill="#6FA9DA" /><circle cx="14" cy="7.5" r="1" fill="#6FA9DA" />
+                      <path d="M3 2 H17 C18 2 19 3 19 4 V11 C19 12 18 13 17 13 H8 L4 16 V13 H3 C2 13 1 12 1 11 V4 C1 3 2 2 3 2Z" fill={colors.surface} stroke={colors.primary} strokeWidth="1.8" strokeLinejoin="round" />
+                      <circle cx="6" cy="7.5" r="1" fill={colors.primary} /><circle cx="10" cy="7.5" r="1" fill={colors.primary} /><circle cx="14" cy="7.5" r="1" fill={colors.primary} />
                     </svg>
                   </button>
                 </div>
@@ -120,13 +116,13 @@ export default function Guestbook({ level, petColor, onShop, onSettings, onHome,
         {!shown.length && <p className="guest-safety-empty">표시할 방명록이 없어요.</p>}
 
         <div style={{ display: 'flex', justifyContent: 'center' }}>
-          <div style={{ display: 'flex', alignItems: 'center', gap: 4, background: '#EAF4FC', border: '2px solid #B9D7F0', borderRadius: 999, padding: '2px 6px' }}>
+          <div style={{ display: 'flex', alignItems: 'center', gap: 4, background: colors.primarySoft, border: `1px solid ${colors.border}`, borderRadius: 14, padding: '2px 6px' }}>
             <button type="button" className="pb" aria-label="이전 페이지" disabled={cur === 0} onClick={() => setPage(cur - 1)} style={{ ...pageBtn, opacity: cur === 0 ? 0.35 : 1 }}>
-              <svg width="12" height="14" viewBox="0 0 12 14" aria-hidden="true"><path d="M9 2 L3 7 L9 12" fill="none" stroke="#2F6FB3" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round" /></svg>
+              <svg width="12" height="14" viewBox="0 0 12 14" aria-hidden="true"><path d="M9 2 L3 7 L9 12" fill="none" stroke={colors.primary} strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round" /></svg>
             </button>
             <span className="jua" style={{ fontSize: 15, minWidth: 44, textAlign: 'center' }}>{cur + 1} / {pages}</span>
             <button type="button" className="pb" aria-label="다음 페이지" disabled={cur >= pages - 1} onClick={() => setPage(cur + 1)} style={{ ...pageBtn, opacity: cur >= pages - 1 ? 0.35 : 1 }}>
-              <svg width="12" height="14" viewBox="0 0 12 14" aria-hidden="true"><path d="M3 2 L9 7 L3 12" fill="none" stroke="#2F6FB3" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round" /></svg>
+              <svg width="12" height="14" viewBox="0 0 12 14" aria-hidden="true"><path d="M3 2 L9 7 L3 12" fill="none" stroke={colors.primary} strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round" /></svg>
             </button>
           </div>
         </div>

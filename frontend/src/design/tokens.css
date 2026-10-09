@@ -1,0 +1,21 @@
+/* Generated from design/tokens.js by scripts/design-tokens.mjs. */
+:root {
+  --color-primary: #397D78;
+  --color-primary-soft: #E4F1EE;
+  --color-background: #FFF9F0;
+  --color-surface: #FFFEFA;
+  --color-accent: #F2B69D;
+  --color-ink: #354744;
+  --color-muted: #65736F;
+  --color-border: #D8E2DC;
+  --color-primary-hover: #326F6B;
+  --color-primary-pressed: #2E6662;
+  --color-accent-soft: #FCECE3;
+  --color-input-border: #80958F;
+  --color-disabled: #F5F6F1;
+  --color-error: #A13C3C;
+  --color-error-soft: #FFF0ED;
+  --color-warning: #785522;
+  --color-warning-soft: #FFF1D9;
+  --color-overlay: #35474466;
+}
