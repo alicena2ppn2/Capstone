@@ -73,6 +73,7 @@ export default function Attendance({ records, plans, onPrepare, onClaim }) {
         setNow(current);
         const result=onClaim(seoulDateKey(current));
         setError(result?.ok===false?'출석을 저장하지 못했어요. 다시 시도해 주세요.':'');
+        if (result?.ok && result.receipt) setOpen(false);
       }}>{receipt ? '출석 완료 ✓' : '출석하기'}</button>
       {error&&<p role="alert">{error}</p>}
       <button type="button" className="pb attendance-later" onClick={() => setOpen(false)}>닫기</button>

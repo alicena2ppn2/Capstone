@@ -9,6 +9,7 @@ export const ROUTINES = [
   { id: 'day-guestbook', name: '방명록 남기기', kind: 'guestbook', icon: '♡', action: '이웃 둘러보기' },
 ];
 const pool = DAILY_CHALLENGES.filter(q => !q.input);
+const groupFor=id=>pool.find(q=>q.id===id)?.activityGroup ?? id;
 const keyFor = (day, id) => `${day}:${id}`;
 export const routineDone = (game, id, day) => game.completed?.includes(keyFor(day, id)) || (id === 'day-attendance' && !!game.attendance?.[day]);
 
@@ -31,11 +32,16 @@ export function ensureDailyMissions(game, day = seoulDateKey(), savedVisitNotes)
   if (!game.dailyMissions?.[day]) {
     const old = game.challengeDays?.[day];
     const legacyPaid = Object.values(game.activityRecords ?? {}).filter(r => r.day === day && r.rewarded && !r.input);
-    const preferred = [...legacyPaid.map(r => r.id), ...(old?.selected ?? []), ...(old?.candidates ?? []).map(c => c.id)];
-    const ids = [...new Set(preferred)].filter(id => pool.some(q => q.id === id)).slice(0, 3);
+    // Preserve paid legacy activities. New suggestions avoid equivalent actions.
+    const ids = [...new Set(legacyPaid.map(r=>r.id))].filter(id=>pool.some(q=>q.id===id)).slice(0,3);
     const seed = [...day].reduce((sum, char) => sum * 31 + char.charCodeAt(0), 0) >>> 0;
-    const fallback = [...pool.slice(seed % pool.length), ...pool.slice(0, seed % pool.length)].filter(q => q.effort <= 1);
-    for (const quest of fallback) if (ids.length < 3 && !ids.includes(quest.id)) ids.push(quest.id);
+    const last=Object.values(game.activityRecords??{}).filter(r=>r.day<day&&!r.input).sort((a,b)=>b.day.localeCompare(a.day))[0];
+    const ceiling=last&&game.feedback?.[`${last.day}:${last.id}`]==='hard'?0:1;
+    const fallback = [...pool.slice(seed % pool.length), ...pool.slice(0, seed % pool.length)].filter(q => q.effort <= ceiling);
+    const recent=Object.entries(game.dailyMissions??{}).filter(([date])=>date<day).sort(([a],[b])=>b.localeCompare(a)).slice(0,3).flatMap(([,plan])=>plan.activities.map(q=>groupFor(q.id)));
+    const recentCount=q=>recent.filter(group=>group===q.activityGroup).length;
+    const candidates=[...fallback].sort((a,b)=>recentCount(a)-recentCount(b));
+    for (const quest of candidates) if (ids.length < 3 && !ids.some(id=>groupFor(id)===quest.activityGroup)) ids.push(quest.id);
     const activities = ids.map((id, slot) => ({ id, slot, reason: old?.candidates?.find(c => c.id === id)?.reason ?? '부담 적은 작은 행동을 권해요.' }));
     // Carry legacy payments to slot receipts without changing balances or records.
     const used = new Set();
@@ -84,8 +90,9 @@ export function pauseDailyMission(game,id,day=seoulDateKey()) {
 }
 export function replaceDailyMission(game,id,day=seoulDateKey(),reason='') {
   const plan=game.dailyMissions?.[day], current=dailyActivities(game,day).find(q=>q.id===id);
-  if(!current||game.completed.includes(keyFor(day,id)))return game;
-  const alternatives=pool.filter(q=>q.id!==id&&!plan.activities.some(a=>a.id===q.id)&&!game.completed.includes(keyFor(day,q.id))&&q.category===current.category);
+  if(!current||game.completed.includes(keyFor(day,id))||game.missionSlots?.[`${day}:slot:${current.slot}`])return game;
+  const excluded=new Set([...plan.activities.filter(a=>a.id!==id).map(a=>groupFor(a.id)),...Object.values(game.activityRecords??{}).filter(r=>r.day===day&&!r.input).map(r=>groupFor(r.id))]);
+  const alternatives=pool.filter(q=>q.id!==id&&!excluded.has(q.activityGroup)&&!game.completed.includes(keyFor(day,q.id))&&q.category===current.category&&q.effort<=current.effort);
   const next=alternatives.sort((a,b)=>reason==='time'?a.minutes-b.minutes:a.effort-b.effort||a.minutes-b.minutes).find(q=>reason==='hard'?q.effort<=current.effort&&q.minutes<=current.minutes:reason==='time'?q.minutes<current.minutes:true);
   if(!next)return game;
   return {...game,dailyMissions:{...game.dailyMissions,[day]:{...plan,activities:plan.activities.map(a=>a.id===id?{...a,id:next.id,reason:'같은 목적을 다른 작은 행동으로 시도해요.'}:a),paused:plan.paused.filter(q=>q!==id),replacements:[...plan.replacements,{id,replacement:next.id,reason}]}}};
