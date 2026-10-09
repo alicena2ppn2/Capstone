@@ -1,3 +1,4 @@
+import UiIcon from './components/UiIcon.jsx';
 import { continueJournalDraft } from './utils/journal.js';
 import RewardPanel from './components/RewardPanel.jsx';
 import { newAttendanceReward } from './utils/rewardFeedback.js';
@@ -110,7 +111,7 @@ export default function App() {
         return recordRoutine(claimAttendance({ ...ensureAttendanceWeek(value, date), attendanceClothes: ownedClothes }, date), 'day-attendance', date);
       }); const receipt = result.ok ? newAttendanceReward(previous, gameRef.current, date) : null; if (receipt) setAttendanceAward(receipt); return { ...result, receipt }; }} />
       {screen !== 'home' && <div className="growth-bar"><strong>LV.{level}</strong><progress value={game.xp % 100} max="100" aria-label="다음 레벨까지 경험치" /><span>{game.xp % 100} / 100 XP</span><button type="button" className="pb" onClick={() => setScreen('quest')}>퀘스트 →</button></div>}
-      {screen === 'home' && <div className="home-wallet" aria-label={`보유 코인 ${game.coins}`}><span aria-hidden="true">●</span><strong>{game.coins.toLocaleString('ko-KR')}</strong><span>코인</span></div>}
+      {screen === 'home' && <div className="home-wallet" aria-label={`보유 코인 ${game.coins}`}><UiIcon kind="coin" size={18} /><strong>{game.coins.toLocaleString('ko-KR')}</strong><span>코인</span></div>}
       </div>
       <div className={`phone-content${screen === 'quest' ? ' is-quest' : ''}`}>
       <div className="phone-page" hidden={screen !== 'home'}><Home game={game} day={day} active={screen === 'home'} reactionId={potatoReaction} onReactionConsumed={consumePotatoReaction} petName={petName} petColor={petColor} onQuest={openQuest} onDiary={() => openDiary()} onGuestbook={() => setScreen('guest')} onVisit={() => setScreen('visit')} onSettings={() => setScreen('settings')} onShop={() => setScreen('shop')} coins={game.coins} outfit={outfit} decor={game.decor ?? {}} /></div>
