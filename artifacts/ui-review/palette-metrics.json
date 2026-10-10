@@ -1,0 +1,149 @@
+[
+  {
+    "width": 360,
+    "screen": "home",
+    "pageWidth": 360,
+    "issues": [],
+    "fonts": true
+  },
+  {
+    "width": 360,
+    "screen": "missions",
+    "pageWidth": 360,
+    "issues": [],
+    "fonts": true
+  },
+  {
+    "width": 360,
+    "screen": "shop",
+    "pageWidth": 360,
+    "issues": [],
+    "fonts": true
+  },
+  {
+    "width": 360,
+    "screen": "diary",
+    "pageWidth": 360,
+    "issues": [],
+    "fonts": true
+  },
+  {
+    "width": 360,
+    "screen": "neighbors",
+    "pageWidth": 360,
+    "issues": [],
+    "fonts": true
+  },
+  {
+    "width": 360,
+    "screen": "guestbook",
+    "pageWidth": 360,
+    "issues": [],
+    "fonts": true
+  },
+  {
+    "width": 360,
+    "screen": "login",
+    "pageWidth": 360,
+    "issues": [],
+    "fonts": true
+  },
+  {
+    "width": 390,
+    "screen": "home",
+    "pageWidth": 390,
+    "issues": [],
+    "fonts": true
+  },
+  {
+    "width": 390,
+    "screen": "missions",
+    "pageWidth": 390,
+    "issues": [],
+    "fonts": true
+  },
+  {
+    "width": 390,
+    "screen": "shop",
+    "pageWidth": 390,
+    "issues": [],
+    "fonts": true
+  },
+  {
+    "width": 390,
+    "screen": "diary",
+    "pageWidth": 390,
+    "issues": [],
+    "fonts": true
+  },
+  {
+    "width": 390,
+    "screen": "neighbors",
+    "pageWidth": 390,
+    "issues": [],
+    "fonts": true
+  },
+  {
+    "width": 390,
+    "screen": "guestbook",
+    "pageWidth": 390,
+    "issues": [],
+    "fonts": true
+  },
+  {
+    "width": 390,
+    "screen": "login",
+    "pageWidth": 390,
+    "issues": [],
+    "fonts": true
+  },
+  {
+    "width": 430,
+    "screen": "home",
+    "pageWidth": 430,
+    "issues": [],
+    "fonts": true
+  },
+  {
+    "width": 430,
+    "screen": "missions",
+    "pageWidth": 430,
+    "issues": [],
+    "fonts": true
+  },
+  {
+    "width": 430,
+    "screen": "shop",
+    "pageWidth": 430,
+    "issues": [],
+    "fonts": true
+  },
+  {
+    "width": 430,
+    "screen": "diary",
+    "pageWidth": 430,
+    "issues": [],
+    "fonts": true
+  },
+  {
+    "width": 430,
+    "screen": "neighbors",
+    "pageWidth": 430,
+    "issues": [],
+    "fonts": true
+  },
+  {
+    "width": 430,
+    "screen": "guestbook",
+    "pageWidth": 430,
+    "issues": [],
+    "fonts": true
+  },
+  {
+    "width": 430,
+    "screen": "login",
+    "pageWidth": 430,
+    "issues": [],
+    "fonts": true
+  }
+]

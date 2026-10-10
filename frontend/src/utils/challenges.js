@@ -2,7 +2,8 @@ import { seoulDateKey, attendanceWeek } from './seoulDate.js';
 import { journalDates } from './journal.js';
 
 export const CATEGORIES = { prepare: '오늘의 준비', outside: '바깥 발견', connect: '작은 연결' };
-const action = (id, category, name, description, effort = 1, minutes = 5, extra = {}) => ({ id, period: 'day', category, name, description, effort, minutes, xp: 15, coins: 25, ...extra });
+const activityGroups = { 'day-wake':'start-day','day-water':'start-day','day-walk':'short-outing','day-door':'short-outing','day-more-steps':'walk-goal','day-drink':'neighborhood','day-place':'new-place','day-greet':'greeting','day-nod':'greeting','day-checkin':'checkin','day-thanks':'thanks','day-question':'question','day-invite':'invite','day-seasonal':'seasonal' };
+const action = (id, category, name, description, effort = 1, minutes = 5, extra = {}) => ({ id, activityGroup:activityGroups[id] ?? id, period: 'day', category, name, description, effort, minutes, xp: 15, coins: 25, ...extra });
 export const DAILY_CHALLENGES = [
   action('day-wake', 'prepare', '내 하루 시작하기', '정한 기상 시간 이후 커튼을 열거나 물 한 잔을 마시면 완료예요.'),
   action('day-diary', 'prepare', '오늘의 하루 기록하기', '오늘 있었던 일이나 기분을 한 줄 저장해요.', 1, 3, { input: true }),

@@ -1,7 +1,9 @@
+import UiIcon from '../components/UiIcon.jsx';
+import HomeSummary from '../components/HomeSummary.jsx';
 import Mochi from '../components/Mochi.jsx';
 import SeoulClock from '../components/SeoulClock.jsx';
 import HouseDecor from '../components/HouseDecor.jsx';
-import { QUESTS, levelFor } from '../utils/game.js';
+import { levelFor } from '../utils/game.js';
 import { GearIcon, ShopIcon } from '../components/Icons.jsx';
 
 export function RoomBackdrop({ decor = {}, wallColor = '#D6EAF8', floorColor = '#EBCDA6', homeScene = false }) {
@@ -45,7 +47,7 @@ export function RoomBackdrop({ decor = {}, wallColor = '#D6EAF8', floorColor = '
   );
 }
 
-export default function Home({ game, day, target, petName = 'MOCHI', petColor, onQuest, onDiary, onGuestbook, onVisit, onSettings, onShop, outfit, decor, active, reactionId, onReactionConsumed }) {
+export default function Home({ game, day, petName = 'MOCHI', petColor, onQuest, onDiary, onGuestbook, onVisit, onSettings, onShop, outfit, decor, active, reactionId, onReactionConsumed }) {
   return <section className="home-screen" aria-label="내 집">
     <div className="home-room">
       <RoomBackdrop decor={decor} homeScene />
@@ -56,9 +58,9 @@ export default function Home({ game, day, target, petName = 'MOCHI', petColor, o
           <svg width="22" height="22" viewBox="0 0 24 24" aria-hidden="true"><path d="M3 11 L12 3 L21 11 M6 9 V21 H18 V9 M10 21 V14 H14 V21" fill="none" stroke="currentColor" strokeWidth="1.7" strokeLinejoin="round" /></svg>방문하기
         </button>
         <button type="button" className="pb home-guestbook-button" onClick={onGuestbook}>
-          <svg width="22" height="22" viewBox="0 0 24 24" aria-hidden="true"><path d="M5 3 H19 V16 L14 21 H5Z M14 21 V16 H19 M8 8 H16 M8 12 H15" fill="none" stroke="currentColor" strokeWidth="1.7" strokeLinejoin="round" /></svg>방명록
+          <UiIcon kind="envelope" size={22} />방명록
         </button>
-        <button type="button" className="pb home-diary-button" onClick={onDiary}><svg width="22" height="22" viewBox="0 0 24 24" aria-hidden="true"><path d="M6 3 H20 V21 H6Z M3 6 H8 M3 11 H8 M3 16 H8 M11 8 H17 M11 12 H17" fill="#E5DFF8" stroke="#9480BB" strokeWidth="1.7" strokeLinejoin="round" /></svg>일기</button>
+        <button type="button" className="pb home-diary-button" onClick={onDiary}><svg width="22" height="22" viewBox="0 0 24 24" aria-hidden="true"><path d="M6 3 H20 V21 H6Z M3 6 H8 M3 11 H8 M3 16 H8 M11 8 H17 M11 12 H17" fill="var(--color-surface)" stroke="var(--color-primary)" strokeWidth="1.7" strokeLinejoin="round" /></svg>일기</button>
       </nav>
       <div className="home-character">
         <Mochi color={petColor} width="100%" height="100%" full asleep={false} label={petName} outfit={outfit} interactive active={active} reactionId={reactionId} onReactionConsumed={onReactionConsumed} />
@@ -72,9 +74,6 @@ export default function Home({ game, day, target, petName = 'MOCHI', petColor, o
       <button type="button" className="pb home-quest-start" onClick={onQuest}><svg width="24" height="24" viewBox="0 0 24 24" aria-hidden="true"><path d="M5 4 H19 V21 H5Z M9 2 H15 V6 H9Z M8 12 L10 14 L15 9 M8 18 H16" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinejoin="round" strokeLinecap="round" /></svg><span>오늘의 도전</span></button>
       <button type="button" className="pb home-decor-open" onClick={onShop}><ShopIcon width={24} height={24} /><span>꾸미기</span></button>
     </footer>
-    <div className="home-progress-links">
-      {game.challengeDays?.[day]?.selected.map(id => <button type="button" className="pb" key={id} onClick={onQuest}>{QUESTS.find(q => q.id === id)?.name} · {game.completed.includes(`${day}:${id}`) ? '완료 ✓' : game.started?.includes(`${day}:${id}`) ? '도전 중' : '선택함'}</button>)}
-      {target && <button type="button" className="pb" onClick={onShop}>목표: {target.name} · {target.complete ? '획득 완료 ✓' : `코인 ${target.coinsNeeded ? `${target.coinsNeeded} 부족` : '충족'} · LV.${target.level} ${target.levelsNeeded ? `(${target.levelsNeeded}레벨 남음)` : '충족'}`}</button>}
-    </div>
+    <HomeSummary game={game} day={day} onQuest={onQuest} />
   </section>;
 }
