@@ -30,7 +30,8 @@ backend/uploads/     사진 파일 (파일 이름 = photo_id, 주인은 photos �
 | 활동 기록 | `steps` | 회원·날짜 | `user_id` | 그날 걸음 수 (덮어씀) |
 | | `mission_days` | 회원·날짜 | `user_id` | 그날 받은 미션 목록(JSON). 처음 부를 때 정해지고 하루 동안 고정 |
 | | `completions` | 회원·날짜·미션 | `user_id` | 미션 완료 기록과 제출 내용(JSON) |
-| | `coin_ledger` | 회원·날짜·항목 | `user_id` | 코인·경험치 장부. 보상은 +, 상점 구매는 − |
+| | `weekly_progress` | 회원·주·주간 미션·날짜 | `user_id` | 주간 미션을 채운 날과 제출 사진. 주(`week_start`)는 그 주 월요일 |
+| | `coin_ledger` | 회원·날짜·항목 | `user_id` | 코인·경험치 장부. 보상은 +, 상점 구매는 −. 주간 미션 보상은 그 주 월요일 날짜, 항목 `weekly:<id>` |
 | | `diary` | 회원·날짜 | `user_id` | 일기 글, 기분, 사진 id 목록, 오늘의 주제 id |
 | | `photos` | 사진 1장 | `user_id` | 파일 이름, 사진첩 날짜, 어디에 썼는지(미션 id·diary), 촬영 일시(서버 확인용) |
 | 이웃 | `visits` | 방문 1번 | `owner_id`(방 주인), `visitor_id`(방문자) | 같은 날 같은 방은 한 번만 |
@@ -38,6 +39,14 @@ backend/uploads/     사진 파일 (파일 이름 = photo_id, 주인은 photos �
 | 상점 | `inventory` | 회원·상품 | `user_id` | 가진 캐릭터·옷·집 소품, 어떻게 얻었는지(구매·처음 지급·레벨·미션) |
 | | `equipped` | 회원 1명 | `user_id` | 장착한 캐릭터·옷 |
 | | `decor_placement` | 회원·자리 | `user_id` | 자리(전등·카페트·액자·인형·창밖 풍경)마다 놓은 소품 |
+| 방명록 | `guestbook_likes` | 글·누른 사람 | `user_id` | 좋아요 (한 사람이 한 글에 한 번) |
+| 일기 | `diary_deleted` | 회원·날짜 | `user_id` | 지운 일기 날짜 → 그날은 다시 쓸 수 없음 |
+| 친구 | `friends` | 요청 1건 | `user_id`(요청한 사람), `friend_id`(받은 사람) | `pending`(요청) → `accepted`(친구). 관계 하나에 한 줄 |
+| | `friendship_points` | 사람·친구·날짜·종류 | `user_a`·`user_b`(두 사람), `actor_id` | 친밀도 점수 기록 (방명록 2·방문 1). 합계 = 친밀도. 보상은 `coin_ledger` 항목 `friend:<친구 id>:lv<n>` |
+| 신고·차단 | `blocks` | 회원·차단한 사람 | `user_id`, `blocked_id` | 차단 관계 (서로에게 안 보이게) |
+| | `reports` | 신고 1건 | `reporter_id` | 대상(방명록 글 id·user id), 이유, 처리 상태, 숨김 횟수에 세는지(`counted`, 가입 3일 미만이면 0). 같은 사람이 같은 대상은 한 번만 |
+| | `guestbook_bans` | 회원 1명 | `user_id` | 방명록 쓰기 정지 마지막 날, 이유(혐오 표현) |
+| 쉬어 가기 | `rests` | 회원 1명 | `user_id` | 쉬는 기간(시작·끝). 이 기간은 오래 쉰 날로 치지 않음 |
 | 위기 | `crisis_signals` | 신호 1개 | `user_id` | 날짜, 어디서(일기·미션), 위험도, 분류. **글 내용은 저장하지 않음** |
 | 공용 | `crisis_terms` | 표현 1개 | — | 위기 표현 목록. `app/data/crisis_lexicon.json`을 서버 시작 때 옮김 |
 | | `kote_comments` | 댓글 1개 | — | KOTE 한국어 감정 댓글 5만 개 (위기 표현 점검용, `scripts/import_kote.py`) |
@@ -57,7 +66,7 @@ backend/uploads/     사진 파일 (파일 이름 = photo_id, 주인은 photos �
 
 `DELETE /users/{id}` 하면 위 표에서 그 회원 id가 붙은 줄을 모두 지우고 `uploads/`의 사진 파일도 지운다.
 
-- 두 사람이 관련된 `visits`, `guestbook`은 그 회원이 **방 주인인 기록과 쓴 기록 모두** 지운다
+- 두 사람이 관련된 `visits`, `guestbook`, `blocks`, `friends`, `friendship_points`는 그 회원이 **어느 쪽이든** 지운다. `reports`는 그 회원이 한 신고를 지운다
 - 공용 표(`crisis_terms`, `kote_comments`)는 회원 데이터가 아니라 그대로 둔다
 
 ## 한계와 출시 전 할 일

@@ -18,7 +18,7 @@ API를 직접 눌러 보려면 서버를 켜고 `http://localhost:8000/docs`.
 |---|---|---|
 | 퀘스트 목록 | `game.js` `QUESTS` 고정 목록 (오늘 8 · 주간 3 · 월간 3) | `GET /missions/today` 가 주는 목록 그대로. 매일 고정 6개 + 매일 바뀌는 3개 |
 | 퀘스트 완료 | 버튼 누르면 완료 | 서버가 확인 (사진 업로드, 목록 입력, 걸음, 일기·방문·방명록 기록) |
-| 주간·월간 퀘스트 | 있음 | **없음** (서버에 생기면 추가) |
+| 주간·월간 퀘스트 | 주간 3 · 월간 2 | 주간 `GET /weekly` (자연 속 산책 2번) · 월간 `GET /monthly` (바깥 8번, 일기 10일) → 받기 `POST /monthly/{id}/claim` |
 | 출석 보상 | 무작위 (코인 10·20·30 또는 XP 20·35·50) | 고정 10 코인 · 10 XP |
 | 하루 펭귄 모찌 | 하루 퀘스트 아무거나 3개 | 매일 바뀌는 3개를 모두 완료 |
 | 시작 코인 | 540 | 0 |
@@ -40,6 +40,7 @@ API를 직접 눌러 보려면 서버를 켜고 `http://localhost:8000/docs`.
 | 화면 | 할 일 | API |
 |---|---|---|
 | 홈 | 걸음·목표·코인·레벨·장착·말풍선 | `GET /users/{id}/home` |
+| 홈 | 다시 온 날 안내 | `GET /home`의 `welcome_back` `{days_away, level_reset, xp_reset, message}` — 있으면 반가움 팝업 (14일 이상 쉬면 `level_reset: true`, 지금 레벨의 처음부터) |
 | 홈 | 만보기 걸음 올리기 (오늘 누적값, 덮어씀) | `POST /users/{id}/steps` `{date, steps}` |
 | 퀘스트 | 오늘 미션 목록 | `GET /users/{id}/missions/today` |
 | 퀘스트 | 사진 미션: 사진 올리고 → 완료 | `POST /users/{id}/photos` (multipart `file`) → `photo_id` → `POST …/missions/{mission_id}/complete` `{photos: [photo_id]}`. 서버 확인에 걸리면 422 `detail` 문구를 그대로 보여 주면 됨 |
@@ -48,11 +49,22 @@ API를 직접 눌러 보려면 서버를 켜고 `http://localhost:8000/docs`.
 | 기록(일기) | 오늘의 주제 | `GET /users/{id}/diary/topic` |
 | 기록(일기) | 쓰기·고치기 | `PUT /users/{id}/diary/{YYYY-MM-DD}` `{text, use_topic, mood, photos}` → 일기 미션 자동 완료 |
 | 기록(일기) | 목록 | `GET /users/{id}/diary?from=…&to=…` |
-| 이웃 방문 | 놀러 갈 방 추천 | `GET /users/{id}/rooms/recommended` → `[{id, nickname}]` |
+| 기록(일기) | 지우기 | `DELETE /users/{id}/diary/{YYYY-MM-DD}` — 지운 날에 다시 쓰면 409 "지운 날의 일기는 다시 쓸 수 없어요." (앱 `deletedJournal`과 같음) |
+| 이웃 방문 | 놀러 갈 방 추천 (내 레벨과 가까운 순) | `GET /users/{id}/rooms/recommended` → `{my_level, rooms: [{id, nickname, level, level_diff, similar}]}`. `similar`(레벨 차이 2 이내)면 "나와 비슷한 레벨" 표시 |
 | 이웃 방문 | 놀러 가기 | `POST /users/{방주인}/visits` `{visitor_id: 내 id}` → 방문 미션 자동 완료 |
 | 이웃 방문 | 내 방에 온 친구 | `GET /users/{id}/visits` |
-| 방명록 | 목록 | `GET /users/{방주인}/guestbook?page=0&per_page=4` |
-| 방명록 | 쓰기 | `POST /users/{방주인}/guestbook` `{text, author_id: 내 id}` → 방명록 미션 자동 완료 (내 방은 제외) |
+| 방명록 | 목록 | `GET /users/{방주인}/guestbook?page=0&per_page=4&viewer_id={내 id}` (내가 신고한 글·차단 관계인 사람 글은 빠짐) |
+| 방명록 | 지우기 | `DELETE /users/{방주인}/guestbook/{글 id}?by={내 id}` (내 방 글 또는 내가 쓴 글) |
+| 방명록·이웃 | 신고 | 글 길게 누르기 → `POST /reports` `{reporter_id, target_type: "guestbook", target_id: "글 id", reason, block}`. 이유: spam·abuse·sexual·hate·self_harm·other |
+| 친구 | 추가 | `POST /users/{내 id}/friends` `{nickname}` → `status: pending`(요청 보냄) 또는 `accepted`(상대가 먼저 요청해서 바로 친구). 404면 "찾지 못했어요" 그대로 |
+| 친구 | 목록 | `GET /users/{내 id}/friends` → `{friends, received, sent}` 각 `[{id, nickname, level, last_active, visited_today, since}]`. 친구를 누르면 `GET /users/{친구}/room`으로 방 놀러 가기 |
+| 친구 | 수락·끊기 | `POST /users/{내 id}/friends/{상대}/accept` / `DELETE /users/{내 id}/friends/{상대}` (끊기·취소·거절 공통) |
+| 친구 | 친밀도 | 친구 목록 각 항목의 `friendship` `{level, name, points, next_level_at, points_to_next, next_reward}` → 하트 게이지·"단짝까지 8점" 표시. 방명록·방문 응답의 `friendship.leveled_up`이 true면 "○○님과 '아는 사이'가 됐어요! +20코인" 팝업 (`earned_coins`) |
+| 이웃 | 추천 방의 친구 표시 | `GET /rooms/recommended`의 `is_friend` |
+| 이웃 | 차단 | `POST /users/{내 id}/blocks` `{target_id}` / 설정 화면 목록 `GET /users/{내 id}/blocks`, 풀기 `DELETE /users/{내 id}/blocks/{id}` |
+| 설정·홈 | 쉬어 가기 | `POST /users/{id}/rest` `{days: 1~30}` → `{resting, start, until, message}` / 상태 `GET` / 끝내기 `DELETE`. 쉬는 동안 홈에 "쉬는 중" 표시 |
+| 기록(일기) | 내보내기 | `GET /users/{id}/diary/export?from=…&to=…` → .txt 파일. Expo는 `expo-file-system`으로 저장 후 `expo-sharing`으로 공유 시트 |
+| 방명록 | 쓰기 | `POST /users/{방주인}/guestbook` `{text, author_id: 내 id}` → 방명록 미션 자동 완료 (내 방은 제외). 422면 `detail` 문구 그대로 보여 주기(욕설 필터), 403이면 `detail` 그대로 (차단 관계, 또는 혐오 표현으로 방명록 쓰기 정지 중) |
 | 사진첩 | 내 사진 (최신순, 미션 이름 표시) | `GET /users/{id}/album?page=0&per_page=30` → `photos[]`: `url`, `date`, `used_for.title` |
 | 사진첩 | 월별 탭·달력 | `GET /users/{id}/album/months` |
 | 사진첩 | 사진 지우기 | `DELETE /users/{id}/photos/{photo_id}` |
@@ -86,6 +98,20 @@ API를 직접 눌러 보려면 서버를 켜고 `http://localhost:8000/docs`.
 
 - `category: "daily"` = 매일 고정 미션, 나머지 3개 = 매일 바뀌는 미션
 - `done: true`면 완료 표시
+
+## 주간 미션
+
+`GET /users/{id}/weekly` → `{week_start, week_end, quests: [...]}` (월~일)
+
+```json
+{"id": "nature_walk", "title": "이번 주 자연 속 산책 2번", "goal_days": 2,
+ "progress": 1, "done_days": ["2026-10-06"], "done_today": false, "completed": false,
+ "coins": 100, "xp": 200}
+```
+
+- 미션 탭에 "이번 주" 칸으로 `progress / goal_days` (예: 1/2) 표시
+- 사진 올리기: 사진 미션처럼 `POST /photos`로 올린 뒤 `POST /users/{id}/weekly/nature_walk/complete` `{photos: [photo_id]}`
+- `done_today: true`면 오늘은 버튼 잠금 (같은 날 두 번째는 409). 다 채우면 응답 `earned_total`·`earned_xp`로 보상 표시
 
 ## 보상 응답 (미션 완료 · 출석 · 일기 · 방문 · 방명록 공통)
 
@@ -231,7 +257,7 @@ async function completePhotoMission(userId, missionId) {
 |---|---|
 | `mochi.game.v1` (XP·코인·완료·캐릭터·출석) | `GET /home`, `/missions/today`, `/level`, `/shop` — 서버가 기준, 앱에는 저장하지 않음 |
 | `mochi.wardrobe.v1` (옷) | `GET /shop`, `PUT /equipped` |
-| `mochi.homeGuestbook.v1`, `mochi.homeGuestLikes.v1` | `GET·POST /users/{id}/guestbook` (좋아요는 서버에 아직 없음) |
+| `mochi.homeGuestbook.v1`, `mochi.homeGuestLikes.v1` | `GET·POST /users/{id}/guestbook`, 좋아요 `POST·DELETE /users/{id}/guestbook/{글 id}/like` |
 | `mochi.visitors.v1`, `mochi.visitNotes.v1`, `mochi.visitConnections.v1`, `mochi.visitLikes.v1` | `GET /rooms/recommended`, `POST /visits`, `GET /users/{이웃}/room`, `/guestbook` |
 | `mochi.petName` | 닉네임 `PATCH /users/{id}` (캐릭터 애칭과 닉네임을 나눌지는 결정 필요) |
 | `mochi.settings.v1` (소리·알림) | 앱에만 저장해도 됨 |
@@ -256,4 +282,4 @@ await api(`/users/${userId}/home`, { token: session?.access_token });
 ## 아직 없는 것
 
 - 로그인: **Supabase Auth로 프론트에서** 처리하기로 함. 백엔드 연결 후에는 요청마다 `Authorization: Bearer <Supabase 토큰>`을 보내야 함 (지금은 `id`만으로 동작)
-- 주간·월간 퀘스트, 방명록 좋아요·답글, 캐릭터 말풍선 AI
+- 방명록 답글, 캐릭터 말풍선 AI
