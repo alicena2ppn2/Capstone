@@ -22,8 +22,8 @@
   {
     "id": "beat_last_week",
     "category": "daily",
-    "title": "지난주보다 많이 걷기",
-    "desc": "지난 7일 동안 하루 평균 {prev}보 걸었어요. 오늘은 {goal}보 이상 걸어 봐요.",
+    "title": "지난주보다 1,000보 더 걷기",
+    "desc": "지난 7일 동안 하루 평균 {prev}보 걸었어요. 오늘은 1,000보 더, {goal}보 이상 걸어 봐요.",
     "kind": "steps",
     "outdoor": true,
     "min_count": 0,
