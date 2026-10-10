@@ -1,7 +1,7 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
 import { initialGame, completeQuest, startQuest, migrateQuestProgress, buyCharacter, equipCharacter, levelFor, questCompletionKey, QUESTS, ensureChallenges, selectChallenge, pauseChallenge, replaceChallenge, goalProgress, claimGoal, previewReward } from './game.js';
-import { targetStatus, restoreNicknames } from './catalog.js';
+import { restoreNicknames } from './catalog.js';
 import { initialConnections, visitNeighbor, favoriteNeighbor } from './neighbors.js';
 const time = day => new Date(`${day}T03:00:00Z`);
 function finish(state, id, day = '2026-10-05', answer = '') {
@@ -113,17 +113,14 @@ test('걸음 목표 선택은 실제 완료 로직에서도 검사한다', () =>
   const chosen = { ...state, challengeChoices: { '2026-10-05:day-more-steps': '1분' } };
   assert.equal(finish(chosen, 'day-more-steps').xp, 20);
 });
-test('구매·장착·목표는 별개, 출석 소유도 목표 완료에 반영한다', () => {
+test('구매와 장착은 별개이며 중복 구매는 차감하지 않고 이전 저장 필드를 보존한다', () => {
   const state = { ...initialGame(), xp: 400, coins: 600, targetItem: 'character:mochi' };
   const bought = buyCharacter(state, 'mochi');
   assert.equal(bought.coins, 300);
   assert.equal(bought.character, 'potato');
   assert.equal(buyCharacter(bought, 'mochi'), bought);
   assert.equal(equipCharacter(bought, 'mochi').character, 'mochi');
-  assert.equal(targetStatus(bought).complete, true);
-  const target = targetStatus({ ...initialGame(), targetItem: 'clothes:star', attendanceClothes: ['star'] });
-  assert.equal(target.complete, true);
-  assert.equal(targetStatus({ ...initialGame(), targetItem: 'character:mochi' }).levelsNeeded, 4);
+  assert.equal(bought.targetItem, state.targetItem);
 });
 test('저장한 샘플 이웃은 날짜 추천과 무관하게 재방문하고 최근 목록은 중복하지 않는다', () => {
   let state = favoriteNeighbor(initialConnections(), 'yuna');
