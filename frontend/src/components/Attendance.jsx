@@ -12,13 +12,14 @@ function RewardIcon({ reward }) {
   const clothing = CLOTHES.find(item => item.id === reward.id);
   if (reward.type === 'decor') return <span aria-hidden="true" style={{ fontSize: 22 }}>{DECOR.find(item => item.id === reward.id)?.icon ?? '🎁'}</span>;
   return <svg width="26" height="26" viewBox="0 0 28 28" aria-hidden="true">
-    {reward.type === 'coins' ? <><circle cx="14" cy="14" r="11" fill="#F5D36B" stroke="#C6A146" strokeWidth="2" /><circle cx="14" cy="14" r="7.5" fill="none" stroke="#FFEBA8" strokeWidth="1.5" /><path d="M14 8 L16 12 L20 13 L17 16 L18 20 L14 18 L10 20 L11 16 L8 13 L12 12Z" fill="#FFF5C6" /></> : reward.type === 'xp' ? <><path d="M14 2 L18 9 L26 11 L20 17 L21 25 L14 21 L7 25 L8 17 L2 11 L10 9Z" fill="#C6B2E9" stroke="#927AB8" strokeWidth="1.5" /><text x="14" y="17" textAnchor="middle" fontSize="8" fontWeight="700" fill="#FFFFFF">XP</text></> : <><path d="M9 4 L2 9 L5 15 L9 13 V25 H23 V13 L26 15 L28 9 L21 4 Q16 9 9 4Z" transform="translate(-2 0)" fill={clothing?.color ?? '#F7B8CC'} stroke={clothing?.trim ?? '#C46C89'} strokeWidth="1.5" /><circle cx="14" cy="17" r="3" fill="#FFFAEE" /></>}
+    {reward.type === 'coins' ? <><circle cx="14" cy="14" r="11" fill="#F5D36B" stroke="#C6A146" strokeWidth="2" /><circle cx="14" cy="14" r="7.5" fill="none" stroke="#FFEBA8" strokeWidth="1.5" /><path d="M14 8 L16 12 L20 13 L17 16 L18 20 L14 18 L10 20 L11 16 L8 13 L12 12Z" fill="#FFF5C6" /></> : reward.type === 'xp' ? <><path d="M14 2 L18 9 L26 11 L20 17 L21 25 L14 21 L7 25 L8 17 L2 11 L10 9Z" fill="#C6B2E9" stroke="#927AB8" strokeWidth="1.5" /><text x="14" y="17" textAnchor="middle" fontSize="8" fontWeight="600" fill="#FFFFFF">XP</text></> : <><path d="M9 4 L2 9 L5 15 L9 13 V25 H23 V13 L26 15 L28 9 L21 4 Q16 9 9 4Z" transform="translate(-2 0)" fill={clothing?.color ?? '#F7B8CC'} stroke={clothing?.trim ?? '#C46C89'} strokeWidth="1.5" /><circle cx="14" cy="17" r="3" fill="#FFFAEE" /></>}
   </svg>;
 }
 
 export default function Attendance({ records, plans, onPrepare, onClaim }) {
   const [now, setNow] = useState(() => new Date());
   const [open, setOpen] = useState(false);
+  const [error,setError]=useState('');
   const lastPrompt = useRef(null);
   const dialog = useRef(null);
   const today = seoulDateKey(now);
@@ -70,8 +71,11 @@ export default function Attendance({ records, plans, onPrepare, onClaim }) {
       <button type="button" className="pb attendance-claim" disabled={!!receipt} onClick={() => {
         const current = new Date();
         setNow(current);
-        onClaim(seoulDateKey(current));
+        const result=onClaim(seoulDateKey(current));
+        setError(result?.ok===false?'출석을 저장하지 못했어요. 다시 시도해 주세요.':'');
+        if (result?.ok && result.receipt) setOpen(false);
       }}>{receipt ? '출석 완료 ✓' : '출석하기'}</button>
+      {error&&<p role="alert">{error}</p>}
       <button type="button" className="pb attendance-later" onClick={() => setOpen(false)}>닫기</button>
     </dialog>
   </>;

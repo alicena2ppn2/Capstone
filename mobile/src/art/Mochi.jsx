@@ -1,3 +1,5 @@
+import ExpansionFriends from './ExpansionFriends.jsx';
+import { isBasicFriendDraft } from '../../../frontend/src/utils/characterExpansion.js';
 import Svg, { G, Path, Ellipse, Circle, Rect, Line, Defs, ClipPath, Text as SvgText } from 'react-native-svg';
 import { useContext } from 'react';
 import { CharacterContext } from './CharacterContext.jsx';
@@ -5,6 +7,7 @@ import Potato from './Potato.jsx';
 import MochiFriends from './MochiFriends.jsx';
 import useFriendReaction from './useFriendReaction.js';
 import FriendEffects from './FriendEffects.jsx';
+import PrototypeFriends from './PrototypeFriends.jsx';
 
 function Flower() {
   return <G transform="translate(151 65)" stroke="#8EA9CD" strokeWidth="1.8">
@@ -18,6 +21,8 @@ function Flower() {
 export default function Mochi({ color = '#FFF5E6', width, height, full = false, asleep = false, label, outfit, variant, interactive, active, reactionId, onReactionConsumed }) {
   const character = useContext(CharacterContext);
   const motion = useFriendReaction({ interactive: interactive && (variant ?? character) === 'mochi', active, reactionId, onReactionConsumed });
+  if (isBasicFriendDraft(variant ?? character)) return <ExpansionFriends variant={variant ?? character} width={width} height={height} label={label} outfit={outfit} />;
+  if (['proto-pebble', 'proto-pear', 'proto-quilt'].includes(variant ?? character)) return <PrototypeFriends variant={variant ?? character} width={width} height={height} label={label} outfit={outfit} interactive={interactive} active={active} reactionId={reactionId} onReactionConsumed={onReactionConsumed} />;
   if ((variant ?? character) === 'potato') return <Potato width={width} height={height} full={full} asleep={asleep} label={label} outfit={outfit} interactive={interactive} active={active} reactionId={reactionId} onReactionConsumed={onReactionConsumed} />;
   if (['pink', 'lavender', 'mint', 'sky'].includes(variant ?? character)) return <MochiFriends variant={variant ?? character} width={width} height={height} full={full} asleep={asleep} label={label} outfit={outfit} interactive={interactive} active={active} reactionId={reactionId} onReactionConsumed={onReactionConsumed} />;
   const a11y = { accessible: false };

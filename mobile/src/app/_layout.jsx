@@ -1,3 +1,10 @@
-import { Slot } from 'expo-router';
+import { Slot, usePathname } from 'expo-router';
+import { SafeAreaProvider } from 'react-native-safe-area-context';
 import GameApp from '../GameApp';
-export default function Layout() { return <GameApp><Slot /></GameApp>; }
+import AuthGate from '../AuthGate';
+export default function Layout() {
+  const pathname = usePathname();
+  // Review route never mounts the game, hydration, attendance, or save effects.
+  if (pathname === '/friend-preview' || pathname === '/friend-identity-review') return <SafeAreaProvider><Slot /></SafeAreaProvider>;
+  return <SafeAreaProvider><AuthGate><GameApp><Slot /></GameApp></AuthGate></SafeAreaProvider>;
+}

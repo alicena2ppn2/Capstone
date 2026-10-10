@@ -2,6 +2,25 @@ import test from 'node:test';
 import assert from 'node:assert/strict';
 import { saveJournal, deleteJournal, journalDates, hasJournal, calendarDays, shiftMonth } from './journal.js';
 import { completeQuest, initialGame, selectChallenge, goalProgress, QUESTS } from './game.js';
+import { journalEmotion } from './journal.js';
+test('감정은 글과 함께 복원하고 감정만 수정해도 중복 집계하지 않는다', () => {
+ const date = '2026-10-08', time = new Date('2026-10-08T01:00Z');
+ const old = saveJournal(initialGame(), date, '기존 글', time);
+ assert.equal(journalEmotion(old, date), undefined);
+ const saved = saveJournal(old, date, '기존 글', time, 'happy');
+ const restored = JSON.parse(JSON.stringify(saved));
+ assert.equal(journalEmotion(restored, date).emoji, '😄');
+ const changed = saveJournal(restored, date, '기존 글', time, 'sad');
+ assert.equal(journalEmotion(changed, date).id, 'sad');
+ assert.deepEqual(journalDates(changed), [date]);
+ assert.equal(changed.coins, old.coins); assert.equal(changed.xp, old.xp);
+ assert.equal(saveJournal(changed, date, '글', time, 'invalid'), changed);
+ assert.equal(saveJournal(changed, date, ' ', time, 'happy'), changed);
+ const deleted = deleteJournal(changed, date, time);
+ assert.equal(journalEmotion(deleted, date), undefined);
+ assert.equal(journalEmotion(saveJournal(deleted, date, '재작성', time, 'loved'), date).id, 'loved');
+ assert.equal(saveJournal(changed, date, '기존 글', new Date('2026-10-08T15:00Z'), 'happy'), changed);
+});
 const now = new Date('2026-10-07T14:59:00Z');
 test('일기는 공백을 거부하고 당일 수정만 허용하며 기존 재화를 유지한다', () => {
  const original = initialGame();
@@ -13,25 +32,32 @@ test('일기는 공백을 거부하고 당일 수정만 허용하며 기존 재�
  assert.equal(saveJournal(game, '2026-10-07', '자정 이후', new Date('2026-10-07T15:00:00Z')), game);
  assert.equal(journalDates(game).length, 1);
 });
-test('삭제는 글과 답변을 지우되 날짜·완료 기록을 보존하고 당일 재작성을 막는다', () => {
+test('당일 삭제·재작성은 가능하고 날짜 경계와 중복 보상은 보호한다', () => {
  let game = saveJournal(initialGame(), '2026-10-07', '글', now);
  game = { ...game, questAnswers: { '2026-10-07:day-diary': '글' } };
- const deleted = deleteJournal(game, '2026-10-07');
+ const deleted = deleteJournal(game, '2026-10-07', now);
  assert.equal(hasJournal(deleted, '2026-10-07'), false);
  assert.equal(deleted.questAnswers['2026-10-07:day-diary'], undefined);
  assert.deepEqual(journalDates(deleted), ['2026-10-07']);
  assert.equal(goalProgress(deleted, QUESTS.find(q => q.id === 'week-diary'), '2026-10-07'), 1);
  assert.equal(goalProgress(deleted, QUESTS.find(q => q.id === 'month-diary'), '2026-10-07'), 1);
- assert.equal(saveJournal(deleted, '2026-10-07', '다시', now), deleted);
+ const rewritten = saveJournal(deleted, '2026-10-07', '다시', now);
+ assert.equal(rewritten.journals['2026-10-07'], '다시');
+ assert.deepEqual(journalDates(rewritten), ['2026-10-07']);
+ assert.equal(rewritten.xp, deleted.xp); assert.equal(rewritten.coins, deleted.coins);
+ const pastDeleted=deleteJournal(game, '2026-10-07', new Date('2026-10-07T15:00:00Z'));
+ assert.equal(hasJournal(pastDeleted,'2026-10-07'),false);
+ assert.deepEqual(journalDates(pastDeleted),['2026-10-07']);
  const selected = selectChallenge(deleted, 'day-diary', '2026-10-07');
  assert.equal(completeQuest(selected, 'day-diary', now, '다시'), selected);
  const restored = JSON.parse(JSON.stringify(deleted));
- assert.equal(saveJournal(restored, '2026-10-07', '다시', now), restored);
+ assert.equal(saveJournal(restored, '2026-10-07', '다시', now).journals['2026-10-07'], '다시');
+ assert.equal(saveJournal(restored, '2026-10-07', '지난 날', new Date('2026-10-07T15:00:00Z')), restored);
  assert.ok(hasJournal(saveJournal(restored, '2026-10-08', '새 날', new Date('2026-10-08T01:00Z')), '2026-10-08'));
 });
 test('이전 일기는 날짜 필드 없이 복원하고 달력은 윤년과 연도 경계를 지원한다', () => {
  const old = { journals: { '2024-02-29': '윤년' } };
- assert.deepEqual(journalDates(deleteJournal(old, '2024-02-29')), ['2024-02-29']);
+ assert.deepEqual(journalDates(deleteJournal(old, '2024-02-29', new Date('2024-02-29T01:00:00Z'))), ['2024-02-29']);
  assert.equal(calendarDays('2024-02').filter(Boolean).length, 29);
  assert.equal(calendarDays('2026-02').filter(Boolean).length, 28);
  assert.equal(calendarDays('2026-10').length % 7, 0);

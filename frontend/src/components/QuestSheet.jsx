@@ -10,7 +10,7 @@ export default function QuestSheet({ frame, trigger, title, children, onClose })
     buttons()[0]?.focus();
     const siblings = [...frame.children].filter(child => child !== node).map(child => ({ child, inert: child.inert }));
     siblings.forEach(({ child }) => { child.inert = true; });
-    const scroll = frame.querySelector('.sub-screen-content');
+    const scroll = frame.querySelector('.phone-content') ?? frame.querySelector('.sub-screen-content');
     const overflow = scroll?.style.overflow;
     const bodyOverflow = document.body.style.overflow;
     if (scroll) scroll.style.overflow = 'hidden';
