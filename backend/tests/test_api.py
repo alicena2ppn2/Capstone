@@ -189,7 +189,7 @@ def test_cannot_use_someone_elses_photo(client):
 
 
 def test_relative_step_missions_use_uploaded_steps(client):
-    """지난 6일 3,000보, 어제 500보 → 어제보다: 600보 / 지난주보다: 평균 2,643보 → 2,700보"""
+    """지난 6일 3,000보, 어제 500보 → 어제보다: 600보 / 지난주보다: 평균 2,643보 + 1,000 → 3,700보"""
     seen = {}
     for n in range(40):                      # 사용자마다 고르는 미션이 달라서 여러 명으로 확인
         user = f"walker{n}"
@@ -199,7 +199,7 @@ def test_relative_step_missions_use_uploaded_steps(client):
         for m in client.get(f"/users/{user}/missions/today", params={"date": "2026-10-01"}).json()["missions"]:
             if m["id"] in ("beat_yesterday", "beat_last_week"):
                 seen[m["id"]] = m["min_count"]
-    assert seen == {"beat_yesterday": 600, "beat_last_week": 2700}
+    assert seen == {"beat_yesterday": 600, "beat_last_week": 3700}
 
 
 # --- 일기 ------------------------------------------------------------------------
@@ -259,9 +259,12 @@ def test_level_up_after_enough_missions(client):
     leveled, total_xp, saw_last_week = False, 0, False
     for d in range(1, 10):
         date = f"2026-10-{d:02d}"
-        # 매일 조금씩 더 걸어서 '지난주보다 많이 걷기'도 채운다
-        client.post("/users/u1/steps", json={"date": date, "steps": 9000 + d * 300})
+        # 8,000보 아래로 매일 더 걸어서 '지난주보다 많이 걷기'도 나오고 채워지게 한다
+        walked = 2000 + d * 600
+        client.post("/users/u1/steps", json={"date": date, "steps": walked})
         for m in client.get("/users/u1/missions/today", params={"date": date}).json()["missions"]:
+            if m["kind"] == "steps" and walked < m["min_count"]:
+                continue                     # 8,000보 미션처럼 못 채운 걸음 미션은 건너뛴다
             leveled = do_mission(client, "u1", m, date)["leveled_up"] or leveled
             total_xp += m["xp"]
             saw_last_week = saw_last_week or m["id"] == "beat_last_week"
@@ -390,7 +393,7 @@ def test_names_shown_for_visits_and_rooms(client):
     visitors = client.get(f"/users/{b['id']}/visits", params={"date": DAY}).json()["visitors"]
     assert visitors == [{"id": a["id"], "nickname": "놀러감"}]
     rooms = client.get(f"/users/{a['id']}/rooms/recommended", params={"date": DAY}).json()["rooms"]
-    assert {"id": b["id"], "nickname": "방주인"} in rooms
+    assert any(r["id"] == b["id"] and r["nickname"] == "방주인" for r in rooms)
 
 
 def test_guestbook_uses_nickname_when_author_missing(client):
@@ -436,3 +439,70 @@ def test_default_date_is_seoul(client, monkeypatch):
     from app import main
     monkeypatch.setattr(main, "seoul_today", lambda: date(2026, 12, 25))
     assert client.get("/users/u1/missions/today").json()["date"] == "2026-12-25"
+
+
+def test_recommended_rooms_prefer_similar_level(client):
+    from tests.test_shop import give
+    # 나: LV.5 / 이웃: LV.1, LV.4, LV.5, LV.6, LV.12
+    give(client, "me", xp=ms.xp_to_reach(5))
+    for u, lv in [("lv1", 1), ("lv4", 4), ("lv5", 5), ("lv6", 6), ("lv12", 12)]:
+        if lv > 1:
+            give(client, u, xp=ms.xp_to_reach(lv))
+        client.get(f"/users/{u}/missions/today", params={"date": DAY})
+    r = client.get("/users/me/rooms/recommended", params={"date": DAY, "limit": 5}).json()
+    assert r["my_level"] == 5
+    ids = [x["id"] for x in r["rooms"]]
+    assert ids[0] == "lv5"                                  # 같은 레벨이 먼저
+    assert set(ids[1:3]) == {"lv4", "lv6"}                  # 그다음 ±1
+    assert ids[3:] == ["lv1", "lv12"]                       # 멀수록 뒤 (부족하면 채움)
+    lv12 = next(x for x in r["rooms"] if x["id"] == "lv12")
+    assert (lv12["level"], lv12["level_diff"], lv12["similar"]) == (12, 7, False)
+    assert next(x for x in r["rooms"] if x["id"] == "lv6")["similar"] is True
+
+    # 개수 제한이면 가까운 레벨만
+    near = client.get("/users/me/rooms/recommended", params={"date": DAY, "limit": 3}).json()["rooms"]
+    assert {x["id"] for x in near} == {"lv5", "lv4", "lv6"}
+
+
+# --- 주간 미션 ---------------------------------------------------------------------
+
+def weekly_walk(client, user, date):
+    photo = upload(client, user).json()["photo_id"]
+    return client.post(f"/users/{user}/weekly/nature_walk/complete", params={"date": date}, json={"photos": [photo]})
+
+
+def test_weekly_nature_walk_twice_on_different_days(client):
+    # 2026-10-05(월) ~ 10-11(일)
+    w = client.get("/users/u1/weekly", params={"date": "2026-10-07"}).json()
+    assert (w["week_start"], w["week_end"]) == ("2026-10-05", "2026-10-11")
+    q = w["quests"][0]
+    assert (q["id"], q["goal_days"], q["progress"], q["completed"]) == ("nature_walk", 2, 0, False)
+
+    first = weekly_walk(client, "u1", "2026-10-06").json()
+    assert first["quest"]["progress"] == 1 and first["earned"] == []
+    assert weekly_walk(client, "u1", "2026-10-06").status_code == 409        # 같은 날 두 번은 안 셈
+
+    second = weekly_walk(client, "u1", "2026-10-09").json()
+    assert second["quest"]["completed"] is True
+    assert (second["earned_total"], second["earned_xp"]) == (100, 200)
+    assert second["coins"] == 100
+
+    third = weekly_walk(client, "u1", "2026-10-10").json()                    # 더 해도 보상은 한 번
+    assert third["quest"]["progress"] == 2 and third["earned"] == []
+    assert client.get("/users/u1/coins").json()["coins"] == 100
+
+    # 다음 주는 새로 시작
+    nxt = client.get("/users/u1/weekly", params={"date": "2026-10-12"}).json()["quests"][0]
+    assert (nxt["progress"], nxt["done_today"]) == (0, False)
+
+
+def test_weekly_needs_own_photo_and_shows_in_album(client):
+    assert client.post("/users/u1/weekly/nature_walk/complete", params={"date": DAY}, json={}).status_code == 422
+    other = upload(client, "u2").json()["photo_id"]
+    r = client.post("/users/u1/weekly/nature_walk/complete", params={"date": DAY}, json={"photos": [other]})
+    assert r.status_code == 422
+    assert client.post("/users/u1/weekly/nope/complete", params={"date": DAY}, json={}).status_code == 404
+
+    assert weekly_walk(client, "u1", DAY).status_code == 200
+    photos = client.get("/users/u1/album").json()["photos"]
+    assert next(p for p in photos if p["used_for"])["used_for"] == {"type": "weekly", "id": "weekly:nature_walk", "title": "이번 주 자연 속 산책 2번"}
