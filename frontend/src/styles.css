@@ -174,7 +174,6 @@ button, input, select, textarea, details, summary {
 .growth-quest .shop-buy { width: auto; min-height: 32px; margin-top: 0; padding: 4px 9px; font-size: 11px; border-radius: 10px; }
 .quest-reward-note { padding: 14px; background: var(--color-accent-soft); border-radius: 16px; border: 1px solid var(--color-border); font-size: 12px; color: var(--color-ink); line-height: 1.8; }
 
-.attendance-open { padding: 8px 14px; border: 1px solid var(--color-border); border-radius: 999px; background: var(--color-surface); color: var(--color-ink); font-size: 12px; }
 .attendance-open span { margin-left: 6px; font-weight: 600; }
 .attendance-dialog { position: fixed; width: min(380px, calc(100vw - 32px)); max-height: calc(100dvh - 40px); overflow-y: auto; box-sizing: border-box; padding: 32px 20px 20px; border: 1px solid var(--color-border); border-radius: 28px; background: var(--color-surface); color: var(--color-ink); text-align: center; box-shadow: none; }
 .attendance-dialog::backdrop { background: var(--color-overlay); }
@@ -192,7 +191,7 @@ button, input, select, textarea, details, summary {
 .attendance-receipt { min-height: 30px; margin: 18px 0 8px; font-size: 13px; color: var(--color-muted); line-height: 1.6; }
 .attendance-claim { width: 100%; min-height: 46px; border: 1px solid var(--color-primary); border-radius: 14px; background: var(--color-primary); color: var(--color-surface); font-size: 14px; font-weight: 500; }
 .attendance-claim:disabled { background: var(--color-disabled); border-color: var(--color-border); color: var(--color-ink); }
-.attendance-later { min-height: 40px; margin-top: 6px; padding: 8px; border: 0; background: transparent; color: var(--color-ink); font-size: 12px; }
+.attendance-later { min-height: var(--ui-touch); margin-top: 6px; padding: 8px; border: 0; background: transparent; color: var(--color-ink); font-size: 12px; }
 .attendance-dialog button:focus-visible, .attendance-open:focus-visible { outline: 3px solid var(--color-primary); outline-offset: 3px; }
 @media (max-width: 360px) { .attendance-dialog { padding-left: 12px; padding-right: 12px; } .attendance-stamps { gap: 3px; } .attendance-stamp { width: 30px; height: 30px; } }
 
@@ -301,7 +300,7 @@ button, input, select, textarea, details, summary {
 .phone-shell.is-home .growth-bar strong { font-size: 13px; }
 .phone-shell.is-home .growth-bar progress { flex: 1; max-width: 120px; width: auto; height: 8px; accent-color: var(--color-primary); }
 .phone-shell.is-home .growth-bar > span { margin-left: auto; font-size: 11px; white-space: nowrap; }
-.phone-shell.is-home .attendance-open { position: static; grid-row: 2; grid-column: 2; margin: 0; min-height: 44px; padding: 6px 10px; background: var(--color-background); border: 1px solid var(--color-border); border-radius: 14px; color: var(--color-ink); font-size: 12px; }
+.phone-shell.is-home .attendance-open { position: static; grid-row: 2; grid-column: 2; margin: 0;  }
 .phone-shell.is-home .phone-content { flex: 1 1 auto; min-height: 0; overflow-y: auto; overscroll-behavior-y: contain; }
 .phone-shell.is-home .phone-page:not([hidden]) { height: auto; min-height: 0; }
 .phone-shell.is-home .home-screen { height: auto !important; min-height: 0; width: 100%; display: flex; flex-direction: column; background: var(--color-background); }
@@ -709,3 +708,5 @@ button.pb, .ui-disclosure > summary { font-weight: 500; }
 @media(prefers-reduced-motion:reduce){.phone-shell > .attendance-award{animation:none;scale:1}}
 .neighbor-feedback{font-size:14px;line-height:1.6;color: var(--color-ink);background: var(--color-primary-soft);border-radius:12px;padding:8px 12px;}.neighbor-feedback.is-error{color: var(--color-error);background:var(--color-error-soft)}
 .diary-rollover{padding:14px;background: var(--color-primary-soft);border-radius:16px;margin:12px 0;}.diary-rollover .pb,.diary-past-drafts .pb{margin:4px;}.diary-past-drafts{display:flex;flex-wrap:wrap;gap:6px;}
+
+.room-time-accessible { position: absolute; width: 1px; height: 1px; padding: 0; margin: -1px; overflow: hidden; clip-path: inset(50%); white-space: nowrap; border: 0; }

@@ -1,12 +1,15 @@
+import RoomTimeProps from '../components/RoomTimeProps.jsx';
+import useRoomNow from '../components/useRoomNow.js';
+import { roomTime } from '../utils/roomTime.js';
 import UiIcon from '../components/UiIcon.jsx';
 import HomeSummary from '../components/HomeSummary.jsx';
 import Mochi from '../components/Mochi.jsx';
-import SeoulClock from '../components/SeoulClock.jsx';
 import HouseDecor from '../components/HouseDecor.jsx';
 import { levelFor } from '../utils/game.js';
 import { GearIcon, ShopIcon } from '../components/Icons.jsx';
 
-export function RoomBackdrop({ decor = {}, wallColor = '#D6EAF8', floorColor = '#EBCDA6', homeScene = false }) {
+export function RoomBackdrop({ decor = {}, wallColor = '#D6EAF8', floorColor = '#EBCDA6', homeScene = false, now }) {
+  const time = now ? roomTime(now) : null;
   return (
     <svg width="100%" height="100%" viewBox={homeScene ? '0 55 368 500' : '0 0 368 838'} preserveAspectRatio={homeScene ? 'xMidYMid meet' : 'none'} aria-hidden="true" style={{ position: 'absolute', inset: 0 }}>
       <rect x="0" y="0" width="368" height="430" fill={wallColor} />
@@ -15,8 +18,8 @@ export function RoomBackdrop({ decor = {}, wallColor = '#D6EAF8', floorColor = '
         <line x1="268" y1="0" x2="268" y2="430" /><line x1="308" y1="0" x2="308" y2="430" /><line x1="348" y1="0" x2="348" y2="430" />
       </g>
       <rect x="114" y="150" width="140" height="190" rx="8" fill="#FFF6DD" stroke="#C9A982" strokeWidth="5" />
-      <rect x="124" y="160" width="120" height="170" fill="#FDEFC3" />
-      <circle cx="184" cy="236" r="34" fill="#FFF9E8" />
+      <rect x="124" y="160" width="120" height="170" fill={time?.night ? '#344461' : '#D7ECF8'} />
+      {time?.night ? <g><path d="M213 176 C192 172 183 201 207 208 C195 198 199 183 213 176Z" fill="#FFF3CC" /><path d="M142 179 v6 m-3 -3 h6 M226 212 v6 m-3 -3 h6 M163 216 v5 m-2.5 -2.5 h5" stroke="#FFF3CC" strokeWidth="1.5" /></g> : <g><circle cx="157" cy="190" r="17" fill="#FFF1B6" /><path d="M157 168 v-4 M157 212 v4 M135 190 h-4 M179 190 h4" stroke="#FFF1B6" strokeWidth="2" /></g>}
       <line x1="184" y1="160" x2="184" y2="330" stroke="#C9A982" strokeWidth="4" />
       <line x1="124" y1="245" x2="244" y2="245" stroke="#C9A982" strokeWidth="4" />
       <path d="M104 146 C112 200 112 280 122 346 L104 346 Z" fill="#FFF3E2" stroke="#E2CDB3" strokeWidth="3" />
@@ -42,17 +45,21 @@ export function RoomBackdrop({ decor = {}, wallColor = '#D6EAF8', floorColor = '
       </g>
       <rect x="0" y="426" width="368" height="8" fill="#C9A982" />
       <ellipse cx="184" cy="482" rx="166" ry="50" fill="#FFF8EE" stroke="#EADFCB" strokeWidth="3" />
-      <HouseDecor equipped={decor} />
+      <HouseDecor equipped={decor} night={time?.night} />
+      {time?.night && <rect width="368" height="838" fill="#344461" opacity=".09" />}
+      {homeScene && time && <RoomTimeProps time={time} />}
     </svg>
   );
 }
 
 export default function Home({ game, day, petName = 'MOCHI', petColor, onQuest, onDiary, onGuestbook, onVisit, onSettings, onShop, outfit, decor, active, reactionId, onReactionConsumed }) {
+  const now = useRoomNow();
+  const time = roomTime(now);
   return <section className="home-screen" aria-label="내 집">
     <div className="home-room">
-      <RoomBackdrop decor={decor} homeScene />
+      <RoomBackdrop decor={decor} homeScene now={now} />
       <button type="button" className="pb home-settings" onClick={onSettings} aria-label="설정" title="설정"><GearIcon size={22} /></button>
-      <SeoulClock />
+      <time className="room-time-accessible" dateTime={now.toISOString()}>기기 현지 시간: {time.label}</time>
       <nav className="home-room-menus" aria-label="보조 메뉴">
         <button type="button" className="pb home-visit-button" onClick={onVisit}>
           <svg width="22" height="22" viewBox="0 0 24 24" aria-hidden="true"><path d="M3 11 L12 3 L21 11 M6 9 V21 H18 V9 M10 21 V14 H14 V21" fill="none" stroke="currentColor" strokeWidth="1.7" strokeLinejoin="round" /></svg>방문하기
