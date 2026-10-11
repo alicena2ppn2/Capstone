@@ -1,6 +1,9 @@
+import RoomTimeProps from './RoomTimeProps.jsx';
+import { roomTime } from '../../../frontend/src/utils/roomTime.js';
 import Svg, { G, Path, Ellipse, Circle, Rect, Line, Defs, ClipPath, Text as SvgText } from 'react-native-svg';
 import HouseDecor from './HouseDecor.jsx';
-export default function RoomBackdrop({ decor = {}, wallColor = '#D6EAF8', floorColor = '#EBCDA6', homeScene = false }) {
+export default function RoomBackdrop({ decor = {}, wallColor = '#D6EAF8', floorColor = '#EBCDA6', homeScene = false, now }) {
+  const time = now ? roomTime(now) : null;
   return (
     <Svg width="100%" height="100%" viewBox={homeScene ? '0 55 368 500' : '0 0 368 838'} preserveAspectRatio={homeScene ? 'xMidYMid meet' : 'none'} >
       <Rect x="0" y="0" width="368" height="430" fill={wallColor} />
@@ -9,8 +12,8 @@ export default function RoomBackdrop({ decor = {}, wallColor = '#D6EAF8', floorC
         <Line x1="268" y1="0" x2="268" y2="430" /><Line x1="308" y1="0" x2="308" y2="430" /><Line x1="348" y1="0" x2="348" y2="430" />
       </G>
       <Rect x="114" y="150" width="140" height="190" rx="8" fill="#FFF6DD" stroke="#C9A982" strokeWidth="5" />
-      <Rect x="124" y="160" width="120" height="170" fill="#FDEFC3" />
-      <Circle cx="184" cy="236" r="34" fill="#FFF9E8" />
+      <Rect x="124" y="160" width="120" height="170" fill={time?.night ? '#344461' : '#D7ECF8'} />
+      {time?.night ? <G><Path d="M213 176 C192 172 183 201 207 208 C195 198 199 183 213 176Z" fill="#FFF3CC" /><Path d="M142 179 v6 m-3 -3 h6 M226 212 v6 m-3 -3 h6 M163 216 v5 m-2.5 -2.5 h5" stroke="#FFF3CC" strokeWidth="1.5" /></G> : <G><Circle cx="157" cy="190" r="17" fill="#FFF1B6" /><Path d="M157 168 v-4 M157 212 v4 M135 190 h-4 M179 190 h4" stroke="#FFF1B6" strokeWidth="2" /></G>}
       <Line x1="184" y1="160" x2="184" y2="330" stroke="#C9A982" strokeWidth="4" />
       <Line x1="124" y1="245" x2="244" y2="245" stroke="#C9A982" strokeWidth="4" />
       <Path d="M104 146 C112 200 112 280 122 346 L104 346 Z" fill="#FFF3E2" stroke="#E2CDB3" strokeWidth="3" />
@@ -36,7 +39,9 @@ export default function RoomBackdrop({ decor = {}, wallColor = '#D6EAF8', floorC
       </G>
       <Rect x="0" y="426" width="368" height="8" fill="#C9A982" />
       <Ellipse cx="184" cy="482" rx="166" ry="50" fill="#FFF8EE" stroke="#EADFCB" strokeWidth="3" />
-      <HouseDecor equipped={decor} />
+      <HouseDecor equipped={decor} night={time?.night} />
+      {time?.night && <Rect width="368" height="838" fill="#344461" opacity=".09" />}
+      {homeScene && time && <RoomTimeProps time={time} />}
     </Svg>
   );
 }
