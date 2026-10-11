@@ -15,7 +15,7 @@ import MenuIcon from './MenuIcon';
 import RoomBackdrop from './art/RoomBackdrop';
 import { loadStorage, saveStorage } from './storage';
 import { buyOutfit, wearOutfit, eventSnapshot, reactionEvent } from './actions';
-import { Label, Button, Progress, Sheet, styles, FontReadyContext } from './ui';
+import { AttendanceButton, Label, Button, Progress, Sheet, styles, FontReadyContext } from './ui';
 import Diary from './screens/Diary';
 import HomeSummary from './HomeSummary';
 import Quests from './screens/Quests';
@@ -111,7 +111,7 @@ function GameApp({ children }) {
   };
   const roomWidth = Math.min(width - 24, 430);
   return <FontReadyContext.Provider value={fontsLoaded}><SafeAreaView style={styles.safe} edges={['top', 'left', 'right', 'bottom']}>{children}<StatusBar style="dark" /><KeyboardAvoidingView style={styles.flex} behavior={Platform.OS === 'ios' ? 'padding' : undefined}>
-    <View style={styles.header}><Label style={styles.coin}>🪙 {game.coins.toLocaleString('ko-KR')}</Label><Button onPress={() => setSheet({ kind: 'attendance' })}>출석표</Button></View>
+    <View style={styles.header}><Label style={styles.coin}>🪙 {game.coins.toLocaleString('ko-KR')}</Label><AttendanceButton onPress={() => setSheet({ kind: 'attendance' })}>출석표</AttendanceButton></View>
     {screen !== 'home' && <View style={[styles.level, { paddingHorizontal: 16, paddingBottom: 4 }]}><Label style={styles.small}>LV.{level}</Label><View style={{ width: 80 }}><Progress value={game.xp % 100} /></View><Label style={styles.small}>{game.xp % 100} / 100 XP</Label></View>}
     {error ? <Label accessibilityRole="alert" style={styles.error}>{error}</Label> : null}
     <ScrollView ref={scrollRef} style={styles.flex} contentContainerStyle={styles.content} keyboardShouldPersistTaps="handled">
