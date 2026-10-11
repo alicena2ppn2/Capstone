@@ -1,3 +1,4 @@
+import { roomTime } from '../../frontend/src/utils/roomTime.js';
 import { colors } from '../../frontend/src/design/tokens.js';
 import UiIcon from './UiIcon';
 import { continueJournalDraft } from '../../frontend/src/utils/journal.js';
@@ -116,9 +117,9 @@ function GameApp({ children }) {
     {error ? <Label accessibilityRole="alert" style={styles.error}>{error}</Label> : null}
     <ScrollView ref={scrollRef} style={styles.flex} contentContainerStyle={styles.content} keyboardShouldPersistTaps="handled">
       {screen === 'home' ? <>
-        <View style={[styles.room, { width: roomWidth, height: roomWidth * 500 / 368 }]}><View style={StyleSheet.absoluteFill}><RoomBackdrop decor={game.decor ?? {}} homeScene /></View>
+        <View style={[styles.room, { width: roomWidth, height: roomWidth * 500 / 368 }]}><View accessible accessibilityLabel={`기기 현지 시간: ${roomTime(now).label}`} style={StyleSheet.absoluteFill}><RoomBackdrop decor={game.decor ?? {}} homeScene now={now} /></View>
           <View style={styles.settingsCorner}><Button onPress={() => go('settings')} accessibilityLabel="설정" icon={<UiIcon kind="gear" />} /></View>
-          <Label style={styles.clock}>{new Intl.DateTimeFormat('ko-KR', { timeZone: 'Asia/Seoul', hour: 'numeric', minute: '2-digit', hour12: true }).format(now)} · {new Intl.DateTimeFormat('ko-KR', { timeZone: 'Asia/Seoul', month: 'long', day: 'numeric' }).format(now)}</Label>
+
           <View style={styles.roomMenus}><Button textStyle={{ fontSize: 13 }} style={{ paddingHorizontal: 7 }} onPress={() => go('visit')} icon={<MenuIcon kind="visit" />}>방문하기</Button><Button textStyle={{ fontSize: 13 }} style={{ paddingHorizontal: 7 }} onPress={() => go('guest')} icon={<MenuIcon kind="guest" />}>방명록</Button><Button textStyle={{ fontSize: 13 }} style={{ paddingHorizontal: 7 }} onPress={() => openDiary()} icon={<MenuIcon kind="diary" />}>일기</Button></View>
           <View style={styles.friendPosition}><Character variant={game.character} outfit={outfit} size={Math.min(roomWidth * .66, 248)} label={name} interactive reactionId={reaction} onConsumed={consumeReaction} /></View>
           <View style={styles.identity}><Button textStyle={{ fontFamily: 'A2z-600' }} onPress={() => go('settings')} style={styles.nameButton}>{name}</Button><View style={styles.level}><Label style={styles.small}>LV.{level}</Label><View style={{ width: 60 }}><Progress value={game.xp % 100} /></View><Label style={styles.small}>{game.xp % 100} / 100 XP</Label></View></View>
