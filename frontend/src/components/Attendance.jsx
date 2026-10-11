@@ -50,7 +50,7 @@ export default function Attendance({ records, plans, onPrepare, onClaim }) {
   }, [open]);
 
   return <>
-    <button type="button" className="pb attendance-open" onClick={() => { setNow(new Date()); setOpen(true); }}>출석표 <span>{count}/7</span></button>
+    <button type="button" className="pb ui-secondary attendance-entry attendance-open" onClick={() => { setNow(new Date()); setOpen(true); }}>출석표 <span>{count}/7</span></button>
     <dialog ref={dialog} className="attendance-dialog" aria-labelledby="attendance-title" aria-describedby="attendance-description" onCancel={() => setOpen(false)} onClose={() => setOpen(false)}>
       <button type="button" className="pb attendance-close" aria-label="출석표 닫기" onClick={() => setOpen(false)}>×</button>
       <h2 id="attendance-title">이번주의 출석표</h2>
@@ -68,7 +68,7 @@ export default function Attendance({ records, plans, onPrepare, onClaim }) {
       </div>
       <p id="attendance-description" className="attendance-count">이번 주 <strong>{count}일</strong> 함께했어요. 언제든 반가워요.</p>
       {receipt && <div className="attendance-receipt" role="status">{receipt.type === 'outfit' ? '옷장에 추가 · ' : receipt.type === 'decor' ? '소품함에 추가 · ' : '+'}{rewardLabel(receipt)}{receipt.duplicateOutfit ? ' (보유 의상 대신)' : receipt.duplicateDecor ? ' (보유 소품 대신)' : ''}</div>}
-      <button type="button" className="pb attendance-claim" disabled={!!receipt} onClick={() => {
+      <button type="button" className="pb ui-primary attendance-claim" disabled={!!receipt} onClick={() => {
         const current = new Date();
         setNow(current);
         const result=onClaim(seoulDateKey(current));
@@ -76,7 +76,7 @@ export default function Attendance({ records, plans, onPrepare, onClaim }) {
         if (result?.ok && result.receipt) setOpen(false);
       }}>{receipt ? '출석 완료 ✓' : '출석하기'}</button>
       {error&&<p role="alert">{error}</p>}
-      <button type="button" className="pb attendance-later" onClick={() => setOpen(false)}>닫기</button>
+      <button type="button" className="pb ui-secondary attendance-later" onClick={() => setOpen(false)}>닫기</button>
     </dialog>
   </>;
 }
