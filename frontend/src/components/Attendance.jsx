@@ -1,7 +1,7 @@
 import { useEffect, useRef, useState } from 'react';
-import { attendanceWeek, seoulDateKey } from '../utils/seoulDate.js';
-import { CLOTHES } from '../utils/clothes.js';
-import { DECOR } from '../utils/decor.js';
+import { attendanceWeek, seoulDateKey } from '../../../shared/utils/seoulDate.js';
+import { CLOTHES } from '../../../shared/data/clothes.js';
+import { DECOR } from '../../../shared/data/decor.js';
 
 const DAYS = ['월', '화', '수', '목', '금', '토', '일'];
 const shortDate = (key) => `${Number(key.slice(5, 7))}월 ${Number(key.slice(8, 10))}일`;

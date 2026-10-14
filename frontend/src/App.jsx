@@ -1,13 +1,13 @@
-import { saveMissionPreferences } from './utils/missionGuidance.js';
+import { saveMissionPreferences } from '../../shared/features/missionGuidance.js';
 import BottomNav from './components/BottomNav.jsx';
-import { completePhotoMission } from './utils/missionPhotos.js';
+import { completePhotoMission } from '../../shared/features/missionPhotos.js';
 import UiIcon from './components/UiIcon.jsx';
-import { continueJournalDraft } from './utils/journal.js';
+import { continueJournalDraft } from '../../shared/features/journal.js';
 import RewardPanel from './components/RewardPanel.jsx';
-import { newAttendanceReward } from './utils/rewardFeedback.js';
+import { newAttendanceReward } from '../../shared/features/rewardFeedback.js';
 import { useCallback, useEffect, useRef, useState } from 'react';
 import Diary from './screens/Diary.jsx';
-import { ensureDailyMissions, startDailyMission, finishDailyMission, pauseDailyMission, replaceDailyMission, saveDiaryMission, deleteDiaryMission, recordRoutine } from './utils/dailyMissions.js';
+import { ensureDailyMissions, startDailyMission, finishDailyMission, pauseDailyMission, replaceDailyMission, saveDiaryMission, deleteDiaryMission, recordRoutine } from '../../shared/features/dailyMissions.js';
 import Home from './screens/Home.jsx';
 import Visit from './screens/Visit.jsx';
 import Quest from './screens/Quest.jsx';
@@ -15,11 +15,11 @@ import Guestbook from './screens/Guestbook.jsx';
 import Settings from './screens/Settings.jsx';
 import Shop, { CLOTHES } from './screens/Shop.jsx';
 import { CharacterContext } from './components/CharacterContext.jsx';
-import { CHARACTERS, initialGame, levelFor, migrateQuestProgress, buyCharacter, equipCharacter, claimAttendance, ensureAttendanceWeek, buyDecor, equipDecor, claimGoal } from './utils/game.js';
+import { CHARACTERS, initialGame, levelFor, migrateQuestProgress, buyCharacter, equipCharacter, claimAttendance, ensureAttendanceWeek, buyDecor, equipDecor, claimGoal } from '../../shared/features/game.js';
 import Attendance from './components/Attendance.jsx';
 import IPhoneChrome from './components/IPhoneChrome.jsx';
-import { restoreNicknames } from './utils/catalog.js';
-import { seoulDateKey } from './utils/seoulDate.js';
+import { restoreNicknames } from '../../shared/data/catalog.js';
+import { seoulDateKey } from '../../shared/utils/seoulDate.js';
 
 export default function App() {
   const [screen, setScreen] = useState('home');

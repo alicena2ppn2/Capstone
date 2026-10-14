@@ -1,6 +1,6 @@
 import { useState } from 'react';
-import IdentityReviewDrawing from '../components/IdentityReviewDrawing.jsx';
-import { IDENTITY_FRIENDS, IDENTITY_PLANS, IDENTITY_NOTES } from '../utils/identityReview.js';
+import IdentityReviewDrawing from '../../../shared/art/IdentityReviewDrawing.jsx';
+import { IDENTITY_FRIENDS, IDENTITY_PLANS, IDENTITY_NOTES } from '../../../shared/data/identityReview.js';
 import { RoomBackdrop } from './Home.jsx';
 function Art({friend,plan,size}) {
   return <svg className="identity-art" data-friend={friend.id} data-plan={plan} width={size} height={size*1.05} viewBox="0 0 200 210" preserveAspectRatio="xMidYMid meet" role="img" aria-label={`${friend.name} ${plan}안`}><IdentityReviewDrawing variant={friend.id} revision={plan} /></svg>;

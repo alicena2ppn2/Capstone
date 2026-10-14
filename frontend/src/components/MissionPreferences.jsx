@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { PREFERENCE_QUESTIONS } from '../utils/missionGuidance.js';
+import { PREFERENCE_QUESTIONS } from '../../../shared/features/missionGuidance.js';
 export default function MissionPreferences({ preferences, onSave }) {
   const [answers,setAnswers]=useState(()=>({activities:[],exclude:[],...preferences?.missions}));
   const [saved,setSaved]=useState(false);

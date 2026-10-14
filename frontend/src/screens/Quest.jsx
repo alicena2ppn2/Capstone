@@ -1,15 +1,15 @@
 import MissionReplacement from '../components/MissionReplacement.jsx';
 import MissionPreferences from '../components/MissionPreferences.jsx';
-import { missionCriterion, missionTitle } from '../utils/missionGuidance.js';
+import { missionCriterion, missionTitle } from '../../../shared/features/missionGuidance.js';
 import PhotoMission from '../components/PhotoMission.jsx';
 import UiIcon from '../components/UiIcon.jsx';
 import { useCallback, useEffect, useRef, useState } from 'react';
 import QuestSheet from '../components/QuestSheet.jsx';
 import SubScreen from '../components/SubScreen.jsx';
-import { QUESTS, levelFor, questCompletionKey, goalProgress } from '../utils/game.js';
-import { CATEGORIES } from '../utils/challenges.js';
-import { ROUTINES, routineDone, dailyActivities, dailyReward } from '../utils/dailyMissions.js';
-import { seoulDateKey } from '../utils/seoulDate.js';
+import { QUESTS, levelFor, questCompletionKey, goalProgress } from '../../../shared/features/game.js';
+import { CATEGORIES } from '../../../shared/features/challenges.js';
+import { ROUTINES, routineDone, dailyActivities, dailyReward } from '../../../shared/features/dailyMissions.js';
+import { seoulDateKey } from '../../../shared/utils/seoulDate.js';
 
 export default function Quest({ onPreferences, game, focusId, onStart, onComplete, onPhotoSave, onPrepare, onPause, onReplace, onFeedback, onProfile, onDiary, onAttendance, onVisit, onGoal, petColor, onShop, onSettings, onHome }) {
   const [tab, setTab] = useState('day');
