@@ -113,17 +113,17 @@ def test_incomplete_submission_rejected(client):
 
 
 def test_prompt_answer_required(client):
-    # 동네를 먼저 묻는 미션이 나오는 날을 찾아서 확인
-    for d in range(1, 29):
-        date = f"2026-11-{d:02d}"
-        missions = client.get("/users/u2/missions/today", params={"date": date}).json()["missions"]
-        m = next((m for m in missions if m.get("prompt")), None)
-        if m:
-            r = client.post(f"/users/u2/missions/{m['id']}/complete", params={"date": date}, json=submission_for(m, client, "u2"))
-            assert r.status_code == 422
-            assert m["prompt"] in r.json()["detail"]
-            return
-    pytest.skip("prompt 미션이 나온 날이 없음")
+    # 동네를 먼저 묻는 미션(찾아보기)은 10/14부터 매일 미션에 안 나와서, 그날 미션으로 직접 넣고 확인
+    from app import db
+    from app.main import app
+    m = ms.CATALOG["local_food"].to_dict()
+    db.save_mission_day(app.state.conn, "u2", {"date": DAY, "stayed_home": None, "missions": [m]})
+    r = client.post(f"/users/u2/missions/{m['id']}/complete", params={"date": DAY}, json=submission_for(m, client, "u2"))
+    assert r.status_code == 422
+    assert m["prompt"] in r.json()["detail"]
+    r = client.post(f"/users/u2/missions/{m['id']}/complete", params={"date": DAY},
+                    json={**submission_for(m, client, "u2"), "answer": "망원동"})
+    assert r.status_code == 200
 
 
 def test_not_todays_mission_404(client):
