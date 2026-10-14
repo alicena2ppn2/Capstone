@@ -455,3 +455,5 @@ iOS bundleIdentifier는 io.github.alicena2ppn2.mymochi로 준비했다. 저장�
 실제 세션 토큰 반환·백엔드 연결 게이트·닉네임 등록·별도 서버ID·재시도/복원/중복·계정전환 보호를 웹/모바일에 구현. 실제 서버 주소/배포가 없어 모의 검증과 실행 가능 범위를 구분.
 
 이번 인증 검증(2026-10-14): 전체101테스트(인증 연결14·SDK 세션10 포함), 웹 build, 모바일 typecheck/lint 및 iOS/Android/Expo Web 로컬 export 통과. 별도 Edge에서 모의 응답으로 기존회원/신규 닉네임/409입력 유지/연속 제출1회/네트워크 오류·재시도/로그아웃/별도ID와 로컬 기록 보존,360/390/430px 화면 확인. 실제 Google 인증·실제 서버 POST·실기기 로그인은 서버 주소 미설정으로 확인하지 않았다. 모의 캡처는 artifacts/ui-review/auth-nickname-mock-*.png 및 auth-backend-error-mock-430.png이다.
+
+2026-10-14: 차단한 작성자 목록 확인·차단 해제는 내 방명록에서만 제공한다. 방문한 이웃 방명록에서는 목록을 숨기며 신고·차단 및 차단된 글 숨김은 유지한다.
