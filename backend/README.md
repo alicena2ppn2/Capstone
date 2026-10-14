@@ -53,7 +53,7 @@ python scripts/seed_demo.py --date 2026-10-22 --days 21
 | `app/diary.py` | 오늘의 일기 주제 고르기 |
 | `app/shop.py` | 상점 규칙 (구매 조건, 무료 지급) |
 | `app/crisis.py` | 위기 표현 확인 (일기·미션 글) |
-| `app/data/missions.json` | **미션 목록 90개 (매일 고정 6개, 이어지기 11개 포함) — 추가·수정은 이 파일만** |
+| `app/data/missions.json` | **미션 목록 92개 (매일 고정 6개, 이어지기 11개 포함) — 추가·수정은 이 파일만** |
 | `app/data/diary_topics.json` | **일기 주제 50개 — 추가·수정은 이 파일만** |
 | `app/data/crisis_lexicon.json` | **위기 표현 목록 103개 (위험도·분류·출처) — 서버 시작 때 DB `crisis_terms` 표로 옮김** |
 | `app/data/shop.json` | **상점 상품 (캐릭터 6·의상 4·집 꾸미기 16) — 프론트 `game.js`·`clothes.js`·`decor.js`와 같은 값** |
@@ -78,6 +78,7 @@ python scripts/seed_demo.py --date 2026-10-22 --days 21
 | `PUT /users/{id}/missions/{mission_id}/feedback` | 미션 소감 (기분 1~5·한 줄, 그날 완료한 미션만, 보상 없음, 위기 표현 확인) |
 | `GET /users/{id}/feedback?from=&to=` | 내 미션 소감 목록 |
 | `GET /admin/feedback/stats` | [관리자] 미션별 소감 수·평균 기분 (`X-Admin-Token`) |
+| `POST /users/{id}/missions/{mission_id}/reroll` | 미션 새로고침: 매일 바뀌는 미션을 같은 칸·같은 단계의 다른 미션으로 (하루 3번, 완료한 미션·매일 고정은 안 됨) |
 | `GET /users/{id}/ladder` | 단계 사다리: 움직이기·이어지기 지금 단계와 다음 단계까지 (`stage`·`done`/`need`·`top`) |
 | `POST /users/{id}/missions/{mission_id}/complete` | 완료 판정 → 코인·경험치 지급 (중복 지급 없음), 레벨업 여부, 단계가 오른 갈래 `stage_up` |
 | `POST /users/{id}/attendance` | 출석하기 (앱을 열 때 호출, 하루 한 번 보상) |
@@ -154,6 +155,7 @@ python scripts/seed_demo.py --date 2026-10-22 --days 21
   - 이어지기 미션에는 `tip` ("이렇게 해 보세요" 사회 기술 팁)
   - `outdoor` 중 `stage: 0`(안 가 본 길, 벽화, 노을 등 새 활동)과 `explore`·`record`는 매일 미션에 안 나옴 (10/12 면담: 새로운 것보다 하던 것 늘리기)
 - 같은 사람·같은 날은 항상 같은 미션, 최근 이틀 동안 준 미션은 가능하면 피함
+- **새로고침**: 마음에 안 들면 같은 칸·같은 단계의 다른 미션으로 바꿈. 하루 3번(`REROLLS_PER_DAY`), 무료. 끝낸 미션은 못 바꿈
 
 **분류** (`missions.json`의 `category`)
 
@@ -161,7 +163,7 @@ python scripts/seed_demo.py --date 2026-10-22 --days 21
 |---|---|
 | `outdoor` 움직이기 | 1단계 문밖 한 걸음·하늘 사진·분리수거·어제보다 많이 걷기 · 2단계 집 앞 5분·음료수 사 오기·강아지 산책 5분 더 · 3단계 공원·도서관·카페·시장 |
 | `connect` 이어지기 | 1단계 방명록 읽기·이웃 방 구경·가족과 한 끼 · 2단계 짧은 인사·고마움 전하기·가족에게 한마디 · 3단계 관심사 질문·방명록 답하기·단골 가게 한마디·먼저 안부 |
-| `home` 집에서 | 밥 사진, 창문 열고 환기한 사진, 이불 개기 |
+| `home` 집에서 | 설거지, 빨래 개기, 바닥 청소 5분, 이불 개기, 환기 · 운동(스스로 체크): 윗몸일으키기 20회, 스쿼트 20회, 팔굽혀펴기 10회, 플랭크 30초, 스트레칭 5분 |
 | `explore` 찾아보기 (지금 안 나옴) | 동네 맛집 찾아 적기, 상영 중인 영화, 좋아하는 음악 |
 | `record` 기록 (지금 안 나옴) | 감사한 일 세 가지, 오늘 기분 한 단어 |
 
@@ -176,6 +178,7 @@ python scripts/seed_demo.py --date 2026-10-22 --days 21
 | `guestbook` | 그날 다른 사람 방에 방명록을 남긴 기록이 있음 (서버가 확인) |
 | `visit` | 그날 다른 사람 방을 방문한 기록이 있음 (서버가 확인) |
 | `checkin` | 출석 API 호출 |
+| `self` | 스스로 체크 (확인할 수 없는 운동 등). 누르면 완료, 보상은 작게 10코인 · 50XP |
 | `steps` | 서버에 올라온 오늘 걸음이 목표 이상 |
 
 **걸음 목표**
