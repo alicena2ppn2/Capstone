@@ -302,6 +302,10 @@ backendUserId와 supabaseUserId는 AuthContext에 별도 메모리 필드로 유
 
 모바일 src/app은 기존 라우트만, GameApp은 화면 연결, hooks/useGameState는 저장·날짜·출석/반응 이벤트, storage/storage는 기존 AsyncStorage와 백업 형식, auth는 실제 Supabase SDK/플랫폼 복귀, api/client는 기존 환경변수 주소를 맡는다. home/quests/login 전용 UI는 screens 하위에 둔다. 웹은 자체 DOM/CSS/IndexedDB, 모바일은 네이티브 UI/카메라/SecureStore를 유지한다. 저장 키·ID·보상·상품 가격·캐릭터 그림·경로·OAuth 설정은 변경하지 않았다. 상세 구조와 검증은 mobile/ARCHITECTURE.md.
 
+### 리팩토링 마무리 검증
+
+전체 공유/모바일 테스트 122개 통과. exceptions의 사진 미션 성공 경로와 부담 응답 우선순위 검사를 현재 규칙으로 정리했으며 지급/잠금/오늘 목록/조건 검증을 유지·강화한다. 캐릭터·아이콘의 장식 SVG는 웹 aria-hidden=true / 네이티브 accessible=false로 전달하고 부모의 이름/버튼 접근성을 유지한다. 실제 도형과 게임 동작은 동일하다. Expo 웹 전체 흐름 콘솔 오류0, 실서버 인증·실기기는 미검증. 저장 큐와 웹 App 추가 분리는 진행하지 않았다.
+
 ## 14. 변경 이력
 
 본문은 현재 구현을 설명한다. 아래는 해당 날짜의 변경 기록이며 현재 동작을 대체하지 않는다.
@@ -467,3 +471,7 @@ iOS bundleIdentifier는 io.github.alicena2ppn2.mymochi로 준비했다. 저장�
 ### 2026-10-15 구조 정리
 
 웹 내부 직접 공유를 루트 shared로 분리, 모바일 공통/화면 전용 UI·저장·API·인증/로그인 표시·GameApp 생명주기 책임 분리. 기능·저장 규칙 유지. 기존 전체 검사에서 오래된 exceptions 기대값 2개 실패를 HEAD 복사본에서도 확인했으며 별도 문제로 남김.
+
+### 2026-10-15 마무리 변경 이력
+
+오래된 exceptions 가정 2개를 현재 합의에 맞춰 강화하고 SVG 플랫폼 속성 경고를 해결. 전체122/122, 모바일 정적 검사/로컬 번들 및 Expo 웹 흐름 확인. 실제 인증·실기기 미검증은 유지.

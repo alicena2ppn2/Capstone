@@ -1,25 +1,58 @@
+import { completePhotoMission } from './missionPhotos.js';
+import { DAILY_CHALLENGES } from '../data/missions.js';
+import { recommendMissions, eligibleMission } from './missionGuidance.js';
 import test from 'node:test';
 import assert from 'node:assert/strict';
 import { initialGame, ensureAttendanceWeek, claimAttendance } from './game.js';
 import { ensureDailyMissions,dailyActivities,replaceDailyMission,finishDailyMission,startDailyMission,saveDiaryMission,deleteDiaryMission } from './dailyMissions.js';
 import { continueJournalDraft,hasJournal } from './journal.js';
 import { newAttendanceReward,rewardPresentation } from './rewardFeedback.js';
-test('new plans use distinct semantic groups, stay stable, and paid slots cannot swap',()=>{
- let game=initialGame();let previous;
+// Current rules: photos require a successful photo save; repeated days are allowed.
+// Keep the paid-slot lock assertion, but complete each mission through its real path.
+test('daily plans stay distinct and stable; self-confirmed and photo paid slots stay locked',()=>{
+ let game=initialGame(),photoCount=0,selfCount=0;
  for(let n=1;n<=28;n++){
-  const day=`2026-10-${String(n).padStart(2,'0')}`;game=ensureDailyMissions(game,day);const quests=dailyActivities(game,day);
+  const day=`2026-10-${String(n).padStart(2,'0')}`,now=new Date(`${day}T03:00Z`);
+  game=ensureDailyMissions(game,day);const quests=dailyActivities(game,day);
   assert.equal(quests.length,3);assert.equal(new Set(quests.map(q=>q.activityGroup)).size,3);assert(quests.every(q=>q.effort<=1));
   assert.deepEqual(dailyActivities(ensureDailyMissions(JSON.parse(JSON.stringify(game)),day),day),quests);
-  if(previous)assert.notDeepEqual(quests.map(q=>q.activityGroup).sort(),previous);
-  previous=quests.map(q=>q.activityGroup).sort();
-  const q=quests.find(q=>!q.choices),now=new Date(`${day}T03:00Z`);game=finishDailyMission(startDailyMission(game,q.id,now),q.id,now);assert.equal(replaceDailyMission(game,q.id,day),game);
-  for(const other of dailyActivities(game,day).filter(other=>other.id!==q.id))assert.equal(replaceDailyMission(game,other.id,day).coins,game.coins);
+  for(const q of quests){
+   const before=game,started=startDailyMission(game,q.id,now);
+   assert.equal(started.coins,before.coins);assert.equal(started.xp,before.xp);
+   let done;
+   if(q.photo){
+    photoCount++;assert.equal(finishDailyMission(started,q.id,now),started);
+    done=completePhotoMission(started,q.id,day,{id:`photo-${day}-${q.id}`,uri:'test-photo',storage:'indexeddb',mime:'image/jpeg',size:1000},now);
+   }else{selfCount++;done=finishDailyMission(started,q.id,now);}
+   assert(done.completed.includes(`${day}:${q.id}`));assert.equal(done.coins,before.coins+25);assert(done.xp>before.xp);
+   assert.equal(replaceDailyMission(done,q.id,day),done);
+   assert.equal(finishDailyMission(done,q.id,now),done);
+   const restored=JSON.parse(JSON.stringify(done));assert.equal(replaceDailyMission(restored,q.id,day),restored);
+   game=done;
+   for(const other of dailyActivities(game,day).filter(other=>other.id!==q.id))assert.equal(replaceDailyMission(game,other.id,day).coins,game.coins);
+  }
  }
+ assert(photoCount>0);assert(selfCount>0);
 });
-test('hard feedback stays at effort zero and replacement avoids another slot or completed group',()=>{
- let game={...initialGame(),activityRecords:{r:{id:'day-door',day:'2026-10-08',input:false}},feedback:{'2026-10-08:day-door':'hard'}};
- game=ensureDailyMissions(game,'2026-10-09');assert(dailyActivities(game,'2026-10-09').every(q=>q.effort===0));
- for(const q of dailyActivities(game,'2026-10-09')){const next=replaceDailyMission(game,q.id,'2026-10-09','taste');assert.equal(new Set(dailyActivities(next,'2026-10-09').map(q=>q.activityGroup)).size,3);assert.equal(next.coins,game.coins);}
+
+// Hard feedback changes future ranking, not every mission's effort or today's frozen plan.
+test('hard feedback prioritizes other eligible activities without escalation or rewriting today',()=>{
+ const day='2026-10-09',base={...initialGame(),preferences:{...initialGame().preferences,missions:{activities:['contact']}},activityRecords:{'2026-10-08:day-door':{id:'day-door',day:'2026-10-08',input:false}}};
+ const pool=['day-door','day-cup','day-photo-leaf','day-nod'].map(id=>DAILY_CHALLENGES.find(q=>q.id===id));
+ assert(pool.every(Boolean));
+ const before=recommendMissions(base,pool,day,0);assert(before.some(q=>q.id==='day-door'));
+ const hard={...base,feedback:{'2026-10-08:day-door':'hard'}};
+ const after=recommendMissions(hard,pool,day,0);
+ assert.equal(after.length,3);assert(!after.some(q=>q.activityGroup==='short-outing'));
+ assert(after.every(q=>q.effort<=1&&eligibleMission(q,hard.preferences)));
+ assert.equal(new Set(after.map(q=>q.activityGroup)).size,3);
+ const frozen=ensureDailyMissions(base,day),updated={...frozen,feedback:hard.feedback};
+ assert.deepEqual(ensureDailyMissions(updated,day).dailyMissions[day],frozen.dailyMissions[day]);
+ for(const q of dailyActivities(updated,day)){
+  const next=replaceDailyMission(updated,q.id,day);
+  const list=dailyActivities(next,day);assert.equal(new Set(list.map(q=>q.activityGroup)).size,3);
+  assert(list.every(q=>eligibleMission(q,next.preferences)));assert.equal(next.coins,updated.coins);assert.equal(next.xp,updated.xp);
+ }
 });
 test('carry preserves source emotion, conflicts do not overwrite; only diary save awards',()=>{
  const old='2026-10-08',today='2026-10-09',incoming={text:'자정 전 글',emotion:'loved',prompt:2};let game={...initialGame(),journalDrafts:{[old]:incoming}};

@@ -67,17 +67,17 @@ Expo entry → app/_layout → AuthGate → GameApp. app/index와 [page]는 기�
 
 EXPO_PUBLIC_API_URL / VITE_API_URL, Supabase 환경변수, scheme/redirect, 저장 키/ID/완료 형식은 유지. access_token은 실제 SDK 세션에서 가져와 Bearer로 사용하고 backendUserId를 분리하며, 알려진404만 가입·기타 실패 재시도·중복 요청/이전 계정 응답 차단을 유지한다. 서버 주소 미설정/실제 서버 인증 미검증은 기존과 같다. 로컬 게임 데이터를 계정에 자동 병합하지 않는다.
 
-개발 미리보기/모의 인증 검사는 frontend/scripts와 기존 개발 라우트에만 있다. artifacts/dist는 import되지 않으며 생성물은 앱 소스 경로로 옮기지 않았다. 관련 없는 스크린샷 변경·PDF 삭제 상태·AGENTS·로컬 백업은 보존한다. 커밋·푸시 없음.
+개발 미리보기/모의 인증 검사는 frontend/scripts와 기존 개발 라우트에만 있다. artifacts/dist는 import되지 않으며 생성물은 앱 소스 경로로 옮기지 않았다. 관련 없는 스크린샷 변경·PDF 삭제 상태·AGENTS·로컬 백업은 보존한다. 커밋·푸시는 사용자의 마무리 요청 범위에서만 수행하며 main에 직접 푸시하지 않는다.
 
 ## 검사 명령과 기존 문제
 
 ```powershell
 cd mobile
 npm run test       # 기존 기본 검사 101개 (경로만 변경)
-npm run test:all   # 공유 검사 전체 포함; 기존 exceptions 2개 실패도 숨기지 않음
+npm run test:all   # 공유 검사 전체 포함: 122개 통과
 npm run lint
 npm run typecheck
-npm run export -- --output-dir dist/structure-verified-20261015
+npm run export -- --output-dir dist/refactor-closed-20261015
 cd ../frontend
 npm run build
 node scripts/design-tokens.mjs
@@ -86,7 +86,11 @@ node scripts/check-mission-replacement.mjs
 node scripts/check-structure-native.mjs # Expo dev web localhost:5183 필요
 ```
 
-전체 공유 검사에는 오래된 exceptions.test.js 기대값 2개가 현재 규칙과 맞지 않는다. (1) 사진 미션에 자기확인 완료를 호출한 뒤 완료 슬롯으로 가정 (실제로 사진 저장 경로 필요), (2) hard 응답 후 모든 미션 effort=0 가정 (최근 선호·추천 변경과 불일치). HEAD a87377a 복사본에서도 동일한 2개 실패. 리팩토링을 이유로 미션 규칙이나 기대값을 변경하지 않았다. 초기 기본 테스트/타입 검사는 통과, 초기 lint는 파일 이동과 겹쳐 파일경로 오류로 중단되어 독립 기준 결과로 사용하지 않는다. 최종 검사는 실제 최종 코드에 실행한다.
+exceptions.test.js의 이전 두 실패는 현재 합의와 다른 가정이었다. 사진 미션을 일반 자기확인으로 끝내던 테스트는 유효한 사진 저장 성공 경로로 수정했으며 28일 동안 사진/자기확인 양쪽의 시작 무보상·완료 지급·슬롯 잠금·복원 후 잠금·중복 지급 방지를 검증한다. 날짜 간 활동 반복은 허용하는 현재 규칙을 반영한다.
+
+부담 응답 후 모든 미션 effort=0을 강제하던 테스트는 현재 추천 규칙에 맞춰 명시적 연락 선호가 있는 후보군에서 부담 활동 대신 다른 적합한 활동 우선, 자동 상승 없음, 시간/제외 조건 준수, 의미 그룹 중복 방지, 이미 배정한 오늘 목록 유지와 교체 무보상을 검증한다. 규칙 구현과 보상값은 변경하지 않았다. 삭제/skip/검사 약화로 통과시킨 것이 아니다.
+
+최종 npm run test:all은 출력 필터 없이 Node를 직접 실행하여 122/122 통과(종료0). 기존 실패 HEAD 복사본의 Node 종료1 및 실패 테스트를 추가한 npm 명령의 종료1도 확인해 실패가 성공으로 가려지지 않음을 검증한다. 초기 lint는 파일 이동과 겹쳤던 결과를 기준 검증으로 사용하지 않으며 최종 lint/typecheck를 실행한다.
 
 ## 남은 구조/기능 문제
 
@@ -96,11 +100,11 @@ node scripts/check-structure-native.mjs # Expo dev web localhost:5183 필요
 
 아래 결과는 작업 종료 시 갱신한다. 빌드/모의 테스트/실기기 검증은 구분한다.
 
-- 기존 기본 테스트 101/101, 웹 기본 인증 어댑터 3/3 통과. 확장 검사 122개 중 120 통과/2 기존 실패; HEAD 복사본에서 같은 실패 재현.
+- 최종 전체 검사 122/122와 웹 기본 인증 어댑터 3/3 통과. 변경한 exceptions 테스트 4/4 통과. 이전 실패와 변경 이유는 위에 기록.
 - 웹 빌드 통과. 토큰 생성 파일 일치 및 실제 텍스트 대비 4.5:1 이상 검사 통과. 모바일 lint/typecheck, iOS·Android·Expo 웹 로컬 export 통과.
 - 별도 Edge 임시 프로필: Vite 교체/소진/명시적 다시 보기/저장 실패와 재시도/서울 날짜 갱신/중복 지급 방지 통과. 모의 인증 기존회원/신규404/닉네임409/입력 유지/중복 제출/네트워크 재시도/로그아웃 통과 (실제 서버 인증 아님).
 - Expo dev web localhost:5183: 360/390/430px 및 360×600, 홈→퀘스트 교체/로컬 완료→일기 저장→옷 구매(1회 차감, 자동 장착 없음)/장착→새로고침 기록 유지→이웃/방명록/설정/로그아웃 통과. 실제 iPhone/Android 실행과 센서/카메라/가상 키보드는 미확인.
 - 승인된 공유 SVG 11개의 도형 본문은 HEAD와 동일함을 확인. 런타임 상대 import 순환 없음, 모바일에서 frontend/src 직접 import 없음. Vite/Expo 웹 배포 entry에 이전 Firebase 어댑터와 모의 인증 harness 미포함.
-- Expo 웹의 빈 오류 문자열이 View 자식으로 전달되던 경고는 MissionPreferences/MissionReplacement의 조건을 boolean으로 정리해 제거. 기존 접근성 SVG 속성 accessible=false가 웹 DOM에 전달되는 개발 경고는 이전 캡처 로그에서도 확인됐으며 이번 그림/모션 변경 범위에 넣지 않고 남겼다. 캡처에는 해당 기존 개발 경고 배너가 보일 수 있다.
+- 빈 오류 문자열 View 경고 제거 유지. SVG 경고는 Mochi/MochiFriends/Potato 및 MenuIcon/UiIcon의 accessible=false가 웹 SVG DOM에 전달돼 발생했다. 웹은 aria-hidden=true, 네이티브는 기존 accessible=false를 전달한다. 이름·반응 버튼의 접근성은 부모 Character/버튼에 유지한다. 도형·색·비율·의상·모션은 변경하지 않았다. 동일 Expo 웹 흐름의 콘솔 오류 0개를 확인했으며 LogBox 무시/경고 필터는 추가하지 않았다.
 - 실제 계정/배포 서버 접속·신규회원 생성, iPhone/Android OAuth 복귀는 미검증. 현재 서버 주소 미설정과 backend 계약 배포 확인 필요는 기존 제한 그대로.
 - 캡처: ../artifacts/ui-review/structure-20261015/ (홈·미션 360/390/430, 일기·상점·의상·이웃·방명록·로그인). 원본 사용자 브라우저 저장소는 사용하지 않았다.
