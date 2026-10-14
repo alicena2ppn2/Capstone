@@ -1,6 +1,14 @@
 # MOCHI Frontend
 
-최종 수정: 2026-10-09. React/Vite 웹과 Expo/React Native 모바일이 공유 게임 계산을 사용한다. 최신 상세 기능·저장 구조·백엔드 합의 표는 [FEATURE_SPEC.md](FEATURE_SPEC.md). 본문은 현재 상태, 과거 동작은 아래 변경 이력이다.
+최종 수정: 2026-10-14. React/Vite 웹과 Expo/React Native 모바일이 공유 게임 계산을 사용한다. 최신 상세 기능·저장 구조·백엔드 합의 표는 [FEATURE_SPEC.md](FEATURE_SPEC.md). 본문은 현재 상태, 과거 동작은 아래 변경 이력이다.
+
+## 현재 퀘스트 추천과 수행 안내
+
+고정 출석/일기/방명록3개와 변동 활동3개를 유지한다. 세 가지 선택 질문은 건너뛸 수 있고 설정·기록/취향에서 같은 선호를 수정한다. 기존 preferences에 missions를 추가해 음악/음식과 자산을 보존한다. 익숙한 활동을 우선하며 정보가 없으면 기본 후보라고 안내한다. 같은 날짜 목록은 그대로, 제외 조건은 다음 배정과 명시적 교체에 반영한다. 같은 의미 그룹은 하루 중복하지 않으며 날짜 간 반복을 허용한다.
+
+방법 보기에서 완료 조건·단계·시간 안내·대안·대화 예시를 확인한다. 가벼운 방법/조금 더 해볼래요는 같은 ID·보상 슬롯이며 선택한 방법을 기록한다. 완료 후 선택 피드백은 보상 조건이 아니고 자동 난도 상승에 사용하지 않는다. 방명록이 현실 교류 추천을 자동 변경하지 않는다. 실제 게임 서버 연결은 아직 없으며 보상/레벨/서버 확인 차이는 [협의 문서](QUEST_BACKEND_AGREEMENT.md)를 따른다.
+
+검증용: mobile에서 npm test / npm run typecheck / npm run lint, 웹에서 npm run build. 웹 임시 Edge 검증은 frontend/scripts/check-mission-guidance.mjs를 사용하며 사용자 저장소를 사용하지 않는다.
 
 ## 색상과 공통 UI
 
@@ -361,3 +369,13 @@ Android development EAS 빌드: https://expo.dev/accounts/sungshin/projects/caps
 ### 현재 모바일 인증·사진 미션 (2026-10-12)
 mobile Google 인증은 Supabase 브라우저 OAuth/PKCE로 전환했다. Firebase 로컬 의존성·플러그인만 제거했고 원격 Firebase·Google 프로젝트와 서명 키는 유지한다. URL/publishable key는 EXPO_PUBLIC 환경 변수, 세션은 SecureStore이며 게임 AsyncStorage는 그대로다. 카카오/Apple와 게임 서버 동기화는 미연결. iOS 빌드 준비·현재 진행·사용자 직접 조작·재개 명령은 [SUPABASE_IOS_SETUP.md](../mobile/SUPABASE_IOS_SETUP.md)에 기록한다.
 음악/볼륨 UI 제거, 사진 선택·촬영 미션과 일기 사진첩, 퀘스트/홈/상점 하단바, 간결한 6개 완료 요약을 웹·모바일에 적용했다. 웹 IndexedDB/앱 document 파일 + 기존 게임 metadata 저장; 사진 원본은 JSON 백업으로 타 기기에 전송되지 않는다. 기존 자산/기록 보존. Edge 작은 화면/저장 실패 재시도/앨범 복원 검증 및 웹 build·Android export 통과. 실제 카메라/권한은 미확인.
+
+### 2026-10-14 홈 문장 표시
+
+캐릭터 이름은 방 상단에, 날짜별 공통 문장은 캐릭터 아래 가로로 긴 말풍선에 표시한다. 웹·모바일 문장 글씨는 13px, 세로 여백은 7px로 간결하게 조정했다. 날짜 선정과 보상·저장 규칙은 변경하지 않는다.
+
+### 2026-10-14 변경 이력
+
+퀘스트 콘텐츠와 선택 질문3개, 익숙한 활동 우선 추천, 방법 보기/대안/명시적 확장, 기록 출처 구분을 반영. 보상/레벨/캐릭터 조건은 유지.
+
+이번 퀘스트 검증(2026-10-14): 관련 전체 테스트71개, 추가 추천/방법 테스트8개, 웹 build, 모바일 typecheck/lint, iOS 로컬 export 통과. 별도 Edge에서360/390/430px 목록·방법 보기, 짧은 높이, 질문 건너뛰기/선호 저장, 연락 예시, 가벼운 방법 기록, 연속 클릭1회 지급, 새로고침/오늘 목록 유지 확인. 실기기 iPhone/Android의 키보드·접근성 확대·안전 영역과 실제 게임 서버 연동은 미확인. 화면 캡처는 artifacts/ui-review/mission-guidance-list-*.png 및 mission-guidance-method-*.png.

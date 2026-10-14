@@ -1,3 +1,6 @@
+import MissionMethod from './MissionMethod';
+import { saveMissionPreferences } from '../../frontend/src/utils/missionGuidance.js';
+import DailySentence from './DailySentence';
 import BottomNav from './BottomNav';
 import { completePhotoMission } from '../../frontend/src/utils/missionPhotos.js';
 import { roomTime } from '../../frontend/src/utils/roomTime.js';
@@ -42,6 +45,7 @@ function GameApp({ children }) {
   const scrollRef = useRef(null);
   const [questFocus, setQuestFocus] = useState(null);
   const [diaryDate,setDiaryDate]=useState(null);
+  const [sentenceHeight,setSentenceHeight]=useState(0);
   const screen = ['quest', 'shop', 'settings', 'visit', 'guest', 'diary'].includes(pathname.slice(1)) ? pathname.slice(1) : 'home';
   const [fontsLoaded, fontError] = useFonts({ 'A2z-400': require('../assets/fonts/A2z-400.ttf'), 'A2z-500': require('../assets/fonts/A2z-500.ttf'), 'A2z-600': require('../assets/fonts/A2z-600.ttf') });
   const [state, setState] = useState(null), [error, setError] = useState('');
@@ -50,7 +54,7 @@ function GameApp({ children }) {
   useEffect(()=>{if(!attendanceAward)return;const timer=setTimeout(()=>setAttendanceAward(null),1000);return()=>clearTimeout(timer);},[attendanceAward]);
   const attendanceBusy=useRef(false);
   const reactionSerial = useRef(0), observed = useRef(null), saveQueue = useRef(Promise.resolve());
-  const { width } = useWindowDimensions();
+  const { width, fontScale } = useWindowDimensions();
   const day = seoulDateKey(now);
   const ready = state !== null;
   const stateRef=useRef(state);
@@ -91,7 +95,7 @@ function GameApp({ children }) {
   useEffect(() => { if (ready && lastAttendance.current !== day) { lastAttendance.current = day; if (!attendance?.[day]) setSheet({ kind: 'attendance' }); } }, [ready, day, attendance]);
   // A replacement dialog cannot mutate yesterday's selection after the clock rolls over.
   // eslint-disable-next-line react-hooks/set-state-in-effect
-  useEffect(() => { setSheet(value => value?.kind === 'swap' ? null : value); }, [day]);
+  useEffect(() => { setSheet(value => ['swap','method'].includes(value?.kind) ? null : value); }, [day]);
   if (!state || !fontsLoaded && !fontError) return <SafeAreaView style={styles.safe}>{children}<Label style={{ padding: 24 }}>{error || '친구의 방을 준비하고 있어요…'}</Label>{!!error && <Button onPress={load}>다시 읽기</Button>}</SafeAreaView>;
   const { game, wardrobe } = state, level = levelFor(state.game.xp);
   const name = game.nicknames?.[game.character] || CHARACTERS.find(item => item.id === game.character)?.name;
@@ -113,28 +117,32 @@ function GameApp({ children }) {
     setState({ ...loaded, game: ensureAttendanceWeek(ensureDailyMissions(loaded.game, day,loaded.visitNotes), day), visitors: dailyVisitors(day, loaded.visitors) });
   };
   const roomWidth = Math.min(width - 24, 430);
+  const baseRoomHeight = roomWidth * 500 / 368;
+  const friendSize = Math.min(roomWidth * .66, 248);
+  const sentenceExtra = Math.max(0,baseRoomHeight * .868 + sentenceHeight + 22 * fontScale + 14 - baseRoomHeight);
   return <FontReadyContext.Provider value={fontsLoaded}><SafeAreaView style={styles.safe} edges={['top', 'left', 'right', 'bottom']}>{children}<StatusBar style="dark" /><KeyboardAvoidingView style={styles.flex} behavior={Platform.OS === 'ios' ? 'padding' : undefined}>
     <View style={styles.header}><Label style={styles.coin}>🪙 {game.coins.toLocaleString('ko-KR')}</Label><AttendanceButton onPress={() => setSheet({ kind: 'attendance' })}>출석표</AttendanceButton></View>
     {screen !== 'home' && <View style={[styles.level, { paddingHorizontal: 16, paddingBottom: 4 }]}><Label style={styles.small}>LV.{level}</Label><View style={{ width: 80 }}><Progress value={game.xp % 100} /></View><Label style={styles.small}>{game.xp % 100} / 100 XP</Label></View>}
     {error ? <Label accessibilityRole="alert" style={styles.error}>{error}</Label> : null}
     <ScrollView ref={scrollRef} style={styles.flex} contentContainerStyle={styles.content} keyboardShouldPersistTaps="handled">
       {screen === 'home' ? <>
-        <View style={[styles.room, { width: roomWidth, height: roomWidth * 500 / 368 }]}><View accessible accessibilityLabel={`기기 현지 시간: ${roomTime(now).label}`} style={StyleSheet.absoluteFill}><RoomBackdrop decor={game.decor ?? {}} homeScene now={now} /></View>
+        <View style={[styles.room, { width: roomWidth, height: baseRoomHeight + sentenceExtra,backgroundColor:roomTime(now).night?'#DBC1A2':'#EBCDA6' }]}><View accessible accessibilityLabel={`기기 현지 시간: ${roomTime(now).label}`} style={[StyleSheet.absoluteFill,{height:baseRoomHeight,bottom:undefined}]}><RoomBackdrop decor={game.decor ?? {}} homeScene now={now} /></View>
           <View style={styles.settingsCorner}><Button onPress={() => go('settings')} accessibilityLabel="설정" icon={<UiIcon kind="gear" />} /></View>
 
           <View style={styles.roomMenus}><Button textStyle={{ fontSize: 13 }} style={{ paddingHorizontal: 7 }} onPress={() => go('visit')} icon={<MenuIcon kind="visit" />}>방문하기</Button><Button textStyle={{ fontSize: 13 }} style={{ paddingHorizontal: 7 }} onPress={() => go('guest')} icon={<MenuIcon kind="guest" />}>방명록</Button><Button textStyle={{ fontSize: 13 }} style={{ paddingHorizontal: 7 }} onPress={() => openDiary()} icon={<MenuIcon kind="diary" />}>일기</Button></View>
-          <View style={styles.friendPosition}><Character variant={game.character} outfit={outfit} size={Math.min(roomWidth * .66, 248)} label={name} interactive reactionId={reaction} onConsumed={consumeReaction} /></View>
-          <View style={styles.identity}><Button textStyle={{ fontFamily: 'A2z-600' }} onPress={() => go('settings')} style={styles.nameButton}>{name}</Button><View style={styles.level}><Label style={styles.small}>LV.{level}</Label><View style={{ width: 60 }}><Progress value={game.xp % 100} /></View><Label style={styles.small}>{game.xp % 100} / 100 XP</Label></View></View>
+          <View style={{position:'absolute',top:64,alignSelf:'center',maxWidth:'50%'}}><Button textStyle={{fontFamily:'A2z-600',fontSize:14}} style={{minHeight:38,paddingVertical:7}} onPress={()=>go('settings')}>{name}</Button></View><View style={[styles.friendPosition,{bottom:baseRoomHeight*.15}]}><Character variant={game.character} outfit={outfit} size={friendSize} label={name} interactive reactionId={reaction} onConsumed={consumeReaction} /></View>
+          <View style={[styles.identity,{top:baseRoomHeight*.868,bottom:undefined,maxWidth:undefined,gap:6}]}><DailySentence now={now} width={Math.min(roomWidth-24,340)} onHeight={setSentenceHeight}/><View style={styles.level}><Label style={styles.small}>LV.{level}</Label><View style={{ width: 60 }}><Progress value={game.xp % 100} /></View><Label style={styles.small}>{game.xp % 100} / 100 XP</Label></View></View>
         </View><View style={styles.row}><Button primary onPress={() => { setQuestFocus(null); go('quest'); }} style={styles.flex} icon={<UiIcon kind="routine" color={colors.surface} />}>오늘의 도전</Button><Button onPress={() => go('shop')} style={styles.flex} icon={<UiIcon kind="wardrobe" />}>꾸미기</Button></View>
         <HomeSummary game={game} day={day} onQuest={id => { setQuestFocus(id ?? null); go('quest'); }} />
-      </> : screen === 'diary' ? <Diary onBack={() => go('home')} game={game} day={day} initialDate={diaryDate} onContinue={continueDraft} onDraft={saveDraft} onSave={saveDiary} onDelete={deleteDiary} scrollTop={() => scrollRef.current?.scrollTo({ y: 0, animated: false })} /> : screen === 'quest' ? <Quests onPhotoSave={(id,date,photo)=>commitState(old=>{const next=completePhotoMission(old.game,id,date,photo);return next===old.game?old:{...old,game:next};})} onBack={() => go('home')} onDiary={openDiary} onVisit={() => go('visit')} onAttendance={() => setSheet({kind:'attendance'})} focusId={questFocus} scrollTo={y => scrollRef.current?.scrollTo({ y, animated: false })} game={game} day={day} update={updateGame} openSheet={setSheet} /> : screen === 'shop' ? <Shop onBuyCharacter={buyFriend} onBack={() => go('home')} game={game} level={level} ownedClothes={ownedClothes} outfit={wardrobe.outfit} update={updateGame} buyClothes={buyClothes} wear={wear} /> : screen === 'settings' ? <Settings onBack={() => go('home')} state={state} name={name} update={updateGame} setState={setState} openSheet={setSheet} /> : screen === 'visit' ? <Visit onBack={() => go('home')} commitState={commitState} state={state} setState={setState} name={name} day={day} /> : <Guestbook onBack={() => go('home')} state={state} setState={setState} name={name} day={day} />}
+      </> : screen === 'diary' ? <Diary onBack={() => go('home')} game={game} day={day} initialDate={diaryDate} onContinue={continueDraft} onDraft={saveDraft} onSave={saveDiary} onDelete={deleteDiary} scrollTop={() => scrollRef.current?.scrollTo({ y: 0, animated: false })} /> : screen === 'quest' ? <Quests onPreferences={answers=>commitState(old=>({...old,game:saveMissionPreferences(old.game,answers)}))} onPhotoSave={(id,date,photo)=>commitState(old=>{const next=completePhotoMission(old.game,id,date,photo);return next===old.game?old:{...old,game:next};})} onBack={() => go('home')} onDiary={openDiary} onVisit={() => go('visit')} onAttendance={() => setSheet({kind:'attendance'})} focusId={questFocus} scrollTo={y => scrollRef.current?.scrollTo({ y, animated: false })} game={game} day={day} update={updateGame} openSheet={setSheet} /> : screen === 'shop' ? <Shop onBuyCharacter={buyFriend} onBack={() => go('home')} game={game} level={level} ownedClothes={ownedClothes} outfit={wardrobe.outfit} update={updateGame} buyClothes={buyClothes} wear={wear} /> : screen === 'settings' ? <Settings onPreferences={answers=>commitState(old=>({...old,game:saveMissionPreferences(old.game,answers)}))} onBack={() => go('home')} state={state} name={name} update={updateGame} setState={setState} openSheet={setSheet} /> : screen === 'visit' ? <Visit onBack={() => go('home')} commitState={commitState} state={state} setState={setState} name={name} day={day} /> : <Guestbook onBack={() => go('home')} state={state} setState={setState} name={name} day={day} />}
     </ScrollView>
     <BottomNav screen={screen} onNavigate={destination=>{if(destination==='quest')setQuestFocus(null);go(destination);}}/>
     {!!toast && <View pointerEvents="none" style={styles.toast} accessibilityLiveRegion="polite"><Label>{toast}</Label></View>}
     {sheet && <Sheet title={sheet.kind === 'attendance' ? '이번 주의 출석표' : sheet.kind === 'swap' ? '어떤 도전으로 바꿀까요?' : sheet.title ?? '안내'} close={() => setSheet(null)}>
       {sheet.kind === 'attendance' ? <><Label style={styles.body}>이번 주 {attendanceWeek(day).filter(date => game.attendance?.[date]).length}일 함께했어요. 언제든 반가워요.</Label>{attendanceWeek(day).map(date => <View style={styles.attendanceRow} key={date}><Label>{date.slice(5)} {game.attendance?.[date] ? '✓' : ''}</Label><Label style={{ flexShrink: 1 }}>{rewardText(game.attendance?.[date] ?? game.attendancePlans?.[attendanceWeek(day)[0]]?.[date])}</Label></View>)}<Button primary disabled={!!game.attendance?.[day]} onPress={async () => { if(attendanceBusy.current)return;attendanceBusy.current=true;const date=seoulDateKey();let paid=null;try { const result=await commitState(old=>{if(date!==seoulDateKey())return old;const game=recordRoutine(claimAttendance({...ensureAttendanceWeek(old.game,date),attendanceClothes:ownedClothes},date),'day-attendance',date);paid=newAttendanceReward(old.game,game,date);return {...old,game};});if(!result.ok)setError(result.message);else if(paid){setSheet(null);setAttendanceAward(paid);setError('');}}finally{attendanceBusy.current=false;} }}>{game.attendance?.[day] ? '오늘 출석 완료 ✓' : '오늘 출석하기'}</Button></>
       : sheet.kind === 'swap' ? [['hard', '더 가볍게'], ['time', '더 짧게'], ['taste', '다른 활동으로']].map(([reason, text]) => <Button key={reason} onPress={() => { const next = replaceDailyMission(game, sheet.id, day, reason); updateGame(value => replaceDailyMission(value, sheet.id, day, reason)); setSheet(null); if (next === game) setToast('지금은 적절한 대안이 없어요. 현재 도전을 유지해요.'); }}>{text}</Button>)
-      : sheet.kind === 'feedback' ? ['편했어요', '적당했어요', '버거웠어요'].map((text, index) => <Button key={text} selected={game.feedback?.[sheet.key] === ['easy', 'okay', 'hard'][index]} onPress={() => { updateGame(value => ({ ...value, feedback: { ...value.feedback, [sheet.key]: ['easy', 'okay', 'hard'][index] } })); setSheet(null); }}>{text}</Button>)
+      : sheet.kind === 'method' ? <MissionMethod game={game} day={day} id={sheet.id} update={updateGame}/>
+      : sheet.kind === 'feedback' ? ['가벼웠어요', '적당했어요', '부담됐어요'].map((text, index) => <Button key={text} selected={game.feedback?.[sheet.key] === ['easy', 'okay', 'hard'][index]} onPress={() => { updateGame(value => ({ ...value, feedback: { ...value.feedback, [sheet.key]: ['easy', 'okay', 'hard'][index] } })); setSheet(null); }}>{text}</Button>)
       : sheet.kind === 'backup' ? <Backup state={state} onRestore={restore} close={() => setSheet(null)} /> : <Label style={styles.body}>{sheet.text}</Label>}
     </Sheet>}
   {attendanceAward && <RewardPanel receipt={attendanceAward} />}
