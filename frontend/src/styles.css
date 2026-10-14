@@ -600,9 +600,11 @@ button.pb, .ui-disclosure > summary { font-weight: 500; }
 .friend-preview .home-quest-start { background: #B4D7E9; }.friend-preview .home-room-menus .pb { font-size: 12px; padding: 6px 8px; }
 
 /* Web guestbook safety controls only. */
-.guest-safety { margin: 8px 0 12px; padding: 12px; border: 1px solid var(--color-border); border-radius: 16px; background: var(--color-surface); color: var(--color-ink); }
-.guest-safety p { margin: 0 0 8px; font-size: 14px; line-height: 1.6; word-break: keep-all; overflow-wrap: anywhere; }.guest-safety p:empty { display: none; }
-.guest-safety small { display: block; font-size: 12px; line-height: 1.6; color: var(--color-muted); margin-bottom: 8px; }
+.guest-safety { margin: 6px 0 10px; padding: 8px 10px; border: 1px solid var(--color-border); border-radius: 12px; background: var(--color-surface); color: var(--color-ink); }
+.guest-safety p { margin: 0 0 4px; font-size: 12px; line-height: 1.5; word-break: keep-all; overflow-wrap: anywhere; }.guest-safety p:empty { display: none; }
+.guest-safety small { display: block; font-size: 12px; line-height: 1.5; color: var(--color-muted); margin-bottom: 4px; }
+.guest-safety .ui-disclosure { margin-top: 4px; font-size: 12px; }
+.guest-safety .ui-disclosure > summary { min-height: 44px; padding: 4px 2px; font-size: 12px; font-weight: 500; }
 .guest-safety-actions { display: flex; flex-wrap: wrap; align-items: center; gap: 6px; }
 .guest-safety-action, .guest-blocked button, .guest-report-choice { min-height: 44px; padding: 8px 12px; font-size: 13px; font-weight: 500; border: 1px solid var(--color-border); border-radius: 12px; background: var(--color-surface); color: var(--color-ink); }
 .guest-report-choice { display: block; width: 100%; margin: 8px 0; text-align: left; font-size: 14px; }
