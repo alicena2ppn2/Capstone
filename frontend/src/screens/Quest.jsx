@@ -1,5 +1,6 @@
+import MissionReplacement from '../components/MissionReplacement.jsx';
 import MissionPreferences from '../components/MissionPreferences.jsx';
-import { missionGuide, missionCriterion, missionMode, missionSteps } from '../utils/missionGuidance.js';
+import { missionCriterion, missionTitle } from '../utils/missionGuidance.js';
 import PhotoMission from '../components/PhotoMission.jsx';
 import UiIcon from '../components/UiIcon.jsx';
 import { useCallback, useEffect, useRef, useState } from 'react';
@@ -7,10 +8,10 @@ import QuestSheet from '../components/QuestSheet.jsx';
 import SubScreen from '../components/SubScreen.jsx';
 import { QUESTS, levelFor, questCompletionKey, goalProgress } from '../utils/game.js';
 import { CATEGORIES } from '../utils/challenges.js';
-import { ROUTINES, routineDone, dailyActivities, dailyReward, replaceDailyMission } from '../utils/dailyMissions.js';
+import { ROUTINES, routineDone, dailyActivities, dailyReward } from '../utils/dailyMissions.js';
 import { seoulDateKey } from '../utils/seoulDate.js';
 
-export default function Quest({ onPreferences, onMode, game, focusId, onStart, onComplete, onPhotoSave, onPrepare, onPause, onReplace, onFeedback, onProfile, onDiary, onAttendance, onVisit, onGoal, petColor, onShop, onSettings, onHome }) {
+export default function Quest({ onPreferences, game, focusId, onStart, onComplete, onPhotoSave, onPrepare, onPause, onReplace, onFeedback, onProfile, onDiary, onAttendance, onVisit, onGoal, petColor, onShop, onSettings, onHome }) {
   const [tab, setTab] = useState('day');
   const [today, setToday] = useState(seoulDateKey);
   const [message, setMessage] = useState(null);
@@ -52,17 +53,16 @@ export default function Quest({ onPreferences, onMode, game, focusId, onStart, o
     const justCompleted = done && game.questReward?.key === key && (game.questReward.sequence !== lastReward.current || message?.key === key);
     return <article data-quest-id={quest.id} tabIndex={-1} className={`growth-quest quest-compact${started ? ' is-started' : ''}${done ? ' is-completed' : ''}`} key={key}>
       <small className="quest-category"><UiIcon kind={quest.photo?'camera':quest.category==='outside'?'discover':quest.category==='connect'?'envelope':'routine'} size={17}/>{CATEGORIES[quest.category]}</small>
-      <div className="quest-card-heading"><strong>{quest.name}</strong><span className="quest-state">{done ? '완료 ✓' : started ? '도전 중' : paused ? '보류 중' : '시작 전'}</span></div>
+      <div className="quest-card-heading"><strong>{missionTitle(game,quest,today)}</strong><span className="quest-state">{done ? '완료 ✓' : started ? '도전 중' : paused ? '보류 중' : '시작 전'}</span></div>
       {(!done || justCompleted) && <>
         <p>{missionCriterion(game,quest,today)}</p>
         <div className="quest-card-reward"><small>{quest.minutes}분 안팎 · </small><small>{reward.xp ? `${reward.xp} XP · ${reward.coins} 코인` : '추가 보상 없음 · 완료하면 기록만 남아요'}</small>{candidate && <button type="button" className="pb quest-info" aria-label="추천 이유" onClick={event => openSheet(event, { kind: 'info', reason: `${candidate.role} · ${candidate.reason}` })}>i</button>}</div>
-        <button type="button" className="pb ui-secondary" onClick={event=>openSheet(event,{kind:'method',id:quest.id})}>방법 보기</button>
         {selected && quest.choices && <label>내 목표 <select disabled={done} value={game.challengeChoices?.[key] ?? ''} onChange={event => onProfile('choice', event.target.value, key)}><option value="">선택하기</option>{quest.choices.map(value => <option key={value}>{value}</option>)}</select></label>}
         <div className="quest-card-actions">{started && quest.photo ? <PhotoMission onSave={photo => onPhotoSave(quest.id, today, photo)}/> : <button type="button" className="pb shop-buy" disabled={done || (!!quest.choices && !game.challengeChoices?.[key])} onClick={() => {
           if (started) onComplete(quest.id);
           else onStart(quest.id);
         }}>{done ? '완료 ✓' : started ? '해냈어요!' : paused ? '다시 도전' : '도전하기'}</button>}
-        {selected && <div className="quest-card-secondary"><button type="button" className="pb" disabled={done} onClick={event => openSheet(event, { kind: 'swap', id: quest.id })}>바꾸기</button><button type="button" className="pb" disabled={done} onClick={() => onPause(quest.id, today, '')}>나중에 하기</button></div>}</div>
+        {selected && <div className="quest-card-secondary"><button type="button" className="pb" disabled={done} onClick={event => openSheet(event, { kind: 'swap', id: quest.id })}>다른 활동으로</button><button type="button" className="pb" disabled={done} onClick={() => onPause(quest.id, today, '')}>나중에 하기</button></div>}</div>
       </>}
       {done && selected && <button type="button" className="pb quest-feedback-link" onClick={event => openSheet(event, { kind: 'feedback', key })}>어땠나요? (선택)</button>}
     </article>;
@@ -84,13 +84,8 @@ export default function Quest({ onPreferences, onMode, game, focusId, onStart, o
     </> : <div className="growth-quests">{QUESTS.filter(q => q.period === tab).map(q => { const count = goalProgress(game, q, today); const done = game.completed.includes(questCompletionKey(q, today)); return <article className="growth-quest" key={q.id}><strong>{q.name}</strong><p>{q.description} · 사용자 확인 기록 집계</p><progress value={Math.min(count, q.target)} max={q.target} aria-label={q.name} /><small>{count} / {q.target} · {q.xp} XP · {q.coins} 코인</small><button type="button" className="pb shop-buy" disabled={done || count < q.target} onClick={() => onGoal(q.id)}>{done ? '보상 받음 ✓' : '집계 보상 받기'}</button></article>; })}</div>}
     <div className="quest-toast-region" role="status" aria-live="polite">{message && <div className="quest-reward-toast"><strong>{message.xp ? '보상을 받았어요!' : '활동을 기록했어요!'}</strong>{message.xp > 0 && <span>+{message.xp} XP · +{message.coins} 코인</span>}</div>}</div>
     </div>
-    {sheet && <QuestSheet frame={sheet.frame} trigger={sheet.trigger} onClose={closeSheet} title={sheet.kind === 'method' ? '방법 보기' : sheet.kind === 'swap' ? '어떤 도전으로 바꿀까요?' : sheet.kind === 'rewards' ? '보상 안내' : sheet.kind === 'feedback' ? '어땠나요?' : '추천 이유'}>
-      {sheet.kind === 'method' ? (()=>{const q=dailyActivities(game,today).find(q=>q.id===sheet.id);if(!q)return null;const guide=missionGuide(q),done=game.completed.includes(`${today}:${q.id}`);return <div className="mission-method"><h3>{q.name}</h3><p>{missionCriterion(game,q,today)}</p><small>{q.minutes}분 안팎 · 시간 제한은 없어요</small><ol>{missionSteps(game,q,today).map(step=><li key={step}>{step}</li>)}</ol>{guide.example&&<p>말해보기: “{guide.example}”</p>}<p>{guide.condition}</p><small>{guide.confirmation}</small>{!q.photo&&!q.choices&&<div className="mission-preference-options">{[['base','기본 행동'],...(guide.light?[['light','더 가볍게']]:[]),['extend','조금 더 해볼래요']].map(([mode,label])=><button type="button" key={mode} className="pb ui-secondary" aria-pressed={missionMode(game,q,today)===mode} disabled={done||!!game.missionSlots?.[`${today}:slot:${q.slot}`]} onClick={()=>onMode(q.id,today,mode)}>{label}</button>)}</div>}{guide.light&&<p>더 가볍게: {guide.light}</p>}<p>방법을 바꿔도 추가 보상은 없어요.</p></div>;})() : sheet.kind === 'swap' ? <div className="quest-sheet-options">{[['hard', '더 가볍게'], ['time', '더 짧게'], ['taste', '다른 활동으로']].map(([reason, label]) => <button type="button" className="pb ui-secondary" key={reason} onClick={() => {
-        const proposed = replaceDailyMission(game, sheet.id, sheet.day, reason);
-        if (proposed === game) setNotice('지금은 맞는 대안이 없어요. 현재 도전을 유지해요.');
-        else { onReplace(sheet.id, sheet.day, reason); setNotice('다른 도전으로 바꿨어요. 준비되면 시작해요.'); }
-        closeSheet();
-      }}>{label}<span aria-hidden="true">→</span></button>)}</div> : sheet.kind === 'rewards' ? <p>매일 작은 루틴 3개와 새로운 발견 3개를 제공해요. 하나만 완료해도 개별 기록이 남아요. 출석은 출석표의 보상만 받아요. 일기와 활동은 기존 로컬 시연 보상이며, 방명록 추가 보상은 정책 확인 중이에요. 교체·수정은 보상을 다시 지급하지 않아요. 실제 서버 저장·인증은 아직 연결되지 않았어요.</p> : sheet.kind === 'feedback' ? <label className="profile-field">응답은 선택이에요.<select value={game.feedback?.[sheet.key] ?? ''} onChange={event => { onFeedback(sheet.key, event.target.value); closeSheet(); }}><option value="">응답하지 않기</option><option value="easy">가벼웠어요</option><option value="okay">적당했어요</option><option value="hard">부담됐어요</option></select></label> : <p>{sheet.reason}</p>}
+    {sheet && <QuestSheet frame={sheet.frame} trigger={sheet.trigger} onClose={closeSheet} title={sheet.kind === 'swap' ? '다른 활동으로' : sheet.kind === 'rewards' ? '보상 안내' : sheet.kind === 'feedback' ? '어땠나요?' : '추천 이유'}>
+      {sheet.kind === 'swap' ? <MissionReplacement game={game} id={sheet.id} day={sheet.day} onReplace={onReplace} onClose={closeSheet} onNotice={setNotice}/> : sheet.kind === 'rewards' ? <p>매일 작은 루틴 3개와 새로운 발견 3개를 제공해요. 하나만 완료해도 개별 기록이 남아요. 출석은 출석표의 보상만 받아요. 일기와 활동은 기존 로컬 시연 보상이며, 방명록 추가 보상은 정책 확인 중이에요. 교체·수정은 보상을 다시 지급하지 않아요. 실제 서버 저장·인증은 아직 연결되지 않았어요.</p> : sheet.kind === 'feedback' ? <label className="profile-field">응답은 선택이에요.<select value={game.feedback?.[sheet.key] ?? ''} onChange={event => { onFeedback(sheet.key, event.target.value); closeSheet(); }}><option value="">응답하지 않기</option><option value="easy">가벼웠어요</option><option value="okay">적당했어요</option><option value="hard">부담됐어요</option></select></label> : <p>{sheet.reason}</p>}
     </QuestSheet>}
   </SubScreen>;
 }

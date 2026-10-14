@@ -457,8 +457,6 @@ button, input, select, textarea, details, summary {
 .quest-sheet h2 { margin: 0; font-size: 18px; font-weight: 600; line-height: 1.4; }
 .quest-sheet-close { flex-shrink: 0; width: 44px; height: 44px; border: 0; border-radius: 12px; background: transparent; color: var(--color-ink); font-size: 26px; }
 .quest-sheet p { margin: 10px 0; word-break: keep-all; overflow-wrap: anywhere; }
-.quest-sheet-options { display: grid; gap: 8px; margin-top: 10px; }
-.quest-sheet-options button { display: flex; align-items: center; justify-content: space-between; min-height: 48px; text-align: left; }
 .quest-sheet select { box-sizing: border-box; width: 100%; min-height: 44px; padding: 9px; border: 1px solid var(--color-input-border); border-radius: 10px; font: inherit; background: var(--color-surface); }
 @media (max-width: 480px) { .quest-sheet select { font-size: 16px; } }
 
@@ -738,10 +736,10 @@ button.pb, .ui-disclosure > summary { font-weight: 500; }
 
 .home-friend-name { position:absolute;top:64px;left:50%;transform:translateX(-50%);z-index:3;min-height:38px;max-width:50%;padding:7px 14px;border:1px solid var(--color-border);border-radius:12px;background:var(--color-surface);color:var(--color-ink);font-size:14px;font-weight:600;line-height:1.5;overflow-wrap:anywhere; }
 
-/* Mission guidance and optional preference questions use existing UI tokens. */
+/* Compact replacement and optional preference questions use existing UI tokens. */
 .mission-preferences fieldset { border:0;padding:0;margin:14px 0;min-width:0; }
 .mission-preferences legend { font-size:14px;line-height:1.6;font-weight:500;margin-bottom:8px; }
 .mission-preference-options { display:flex;flex-wrap:wrap;gap:8px; }
 .mission-preference-options .pb { min-height:44px;white-space:normal; }
-.mission-preferences .pb[aria-pressed=true],.mission-method .pb[aria-pressed=true] { background:var(--color-primary-soft);border-color:var(--color-primary);color:var(--color-ink); }
-.mission-method { display:grid;gap:10px; }.mission-method h3,.mission-method p { margin:0; }.mission-method p,.mission-method li { font-size:14px;line-height:1.65;word-break:keep-all;overflow-wrap:anywhere; }.mission-method small { font-size:13px;line-height:1.6;color:var(--color-muted); }.mission-method ol { margin:0;padding-left:22px; }
+.mission-preferences .pb[aria-pressed=true] { background:var(--color-primary-soft);border-color:var(--color-primary);color:var(--color-ink); }
+.mission-replacement { display:grid;gap:10px; }.mission-replacement h3,.mission-replacement p { margin:0; }.mission-replacement p { font-size:14px;line-height:1.65;word-break:keep-all;overflow-wrap:anywhere; }.mission-replacement small { font-size:13px;line-height:1.6;color:var(--color-muted); }

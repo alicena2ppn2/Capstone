@@ -1,4 +1,4 @@
-import MissionMethod from './MissionMethod';
+import MissionReplacement from './MissionReplacement';
 import { saveMissionPreferences } from '../../frontend/src/utils/missionGuidance.js';
 import DailySentence from './DailySentence';
 import BottomNav from './BottomNav';
@@ -95,7 +95,7 @@ function GameApp({ children }) {
   useEffect(() => { if (ready && lastAttendance.current !== day) { lastAttendance.current = day; if (!attendance?.[day]) setSheet({ kind: 'attendance' }); } }, [ready, day, attendance]);
   // A replacement dialog cannot mutate yesterday's selection after the clock rolls over.
   // eslint-disable-next-line react-hooks/set-state-in-effect
-  useEffect(() => { setSheet(value => ['swap','method'].includes(value?.kind) ? null : value); }, [day]);
+  useEffect(() => { setSheet(value => value?.kind === 'swap' ? null : value); }, [day]);
   if (!state || !fontsLoaded && !fontError) return <SafeAreaView style={styles.safe}>{children}<Label style={{ padding: 24 }}>{error || '친구의 방을 준비하고 있어요…'}</Label>{!!error && <Button onPress={load}>다시 읽기</Button>}</SafeAreaView>;
   const { game, wardrobe } = state, level = levelFor(state.game.xp);
   const name = game.nicknames?.[game.character] || CHARACTERS.find(item => item.id === game.character)?.name;
@@ -138,10 +138,9 @@ function GameApp({ children }) {
     </ScrollView>
     <BottomNav screen={screen} onNavigate={destination=>{if(destination==='quest')setQuestFocus(null);go(destination);}}/>
     {!!toast && <View pointerEvents="none" style={styles.toast} accessibilityLiveRegion="polite"><Label>{toast}</Label></View>}
-    {sheet && <Sheet title={sheet.kind === 'attendance' ? '이번 주의 출석표' : sheet.kind === 'swap' ? '어떤 도전으로 바꿀까요?' : sheet.title ?? '안내'} close={() => setSheet(null)}>
+    {sheet && <Sheet title={sheet.kind === 'attendance' ? '이번 주의 출석표' : sheet.kind === 'swap' ? '다른 활동으로' : sheet.title ?? '안내'} close={() => setSheet(null)}>
       {sheet.kind === 'attendance' ? <><Label style={styles.body}>이번 주 {attendanceWeek(day).filter(date => game.attendance?.[date]).length}일 함께했어요. 언제든 반가워요.</Label>{attendanceWeek(day).map(date => <View style={styles.attendanceRow} key={date}><Label>{date.slice(5)} {game.attendance?.[date] ? '✓' : ''}</Label><Label style={{ flexShrink: 1 }}>{rewardText(game.attendance?.[date] ?? game.attendancePlans?.[attendanceWeek(day)[0]]?.[date])}</Label></View>)}<Button primary disabled={!!game.attendance?.[day]} onPress={async () => { if(attendanceBusy.current)return;attendanceBusy.current=true;const date=seoulDateKey();let paid=null;try { const result=await commitState(old=>{if(date!==seoulDateKey())return old;const game=recordRoutine(claimAttendance({...ensureAttendanceWeek(old.game,date),attendanceClothes:ownedClothes},date),'day-attendance',date);paid=newAttendanceReward(old.game,game,date);return {...old,game};});if(!result.ok)setError(result.message);else if(paid){setSheet(null);setAttendanceAward(paid);setError('');}}finally{attendanceBusy.current=false;} }}>{game.attendance?.[day] ? '오늘 출석 완료 ✓' : '오늘 출석하기'}</Button></>
-      : sheet.kind === 'swap' ? [['hard', '더 가볍게'], ['time', '더 짧게'], ['taste', '다른 활동으로']].map(([reason, text]) => <Button key={reason} onPress={() => { const next = replaceDailyMission(game, sheet.id, day, reason); updateGame(value => replaceDailyMission(value, sheet.id, day, reason)); setSheet(null); if (next === game) setToast('지금은 적절한 대안이 없어요. 현재 도전을 유지해요.'); }}>{text}</Button>)
-      : sheet.kind === 'method' ? <MissionMethod game={game} day={day} id={sheet.id} update={updateGame}/>
+      : sheet.kind === 'swap' ? <MissionReplacement game={game} id={sheet.id} day={day} onClose={()=>setSheet(null)} onNotice={setToast} onReplace={(id,date,options)=>commitState(old=>{if(date!==seoulDateKey())return old;const next=replaceDailyMission(old.game,id,date,options);return next===old.game?old:{...old,game:next};})}/>
       : sheet.kind === 'feedback' ? ['가벼웠어요', '적당했어요', '부담됐어요'].map((text, index) => <Button key={text} selected={game.feedback?.[sheet.key] === ['easy', 'okay', 'hard'][index]} onPress={() => { updateGame(value => ({ ...value, feedback: { ...value.feedback, [sheet.key]: ['easy', 'okay', 'hard'][index] } })); setSheet(null); }}>{text}</Button>)
       : sheet.kind === 'backup' ? <Backup state={state} onRestore={restore} close={() => setSheet(null)} /> : <Label style={styles.body}>{sheet.text}</Label>}
     </Sheet>}
