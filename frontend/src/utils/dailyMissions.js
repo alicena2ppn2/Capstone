@@ -74,6 +74,7 @@ export function startDailyMission(game, id, now = new Date()) {
 export function finishDailyMission(game,id,now=new Date()) {
   const day=seoulDateKey(now); game=ensureDailyMissions(game,day);
   const quest=dailyActivities(game,day).find(q=>q.id===id),key=keyFor(day,id);
+  if (quest?.photo && !game.missionPhotos?.[key]) return game;
   if (!quest || game.completed.includes(key) || !game.started.includes(key) || game.dailyMissions[day].paused.includes(id) || (quest.choices && !quest.choices.includes(game.challengeChoices?.[key]))) return game;
   const reward=dailyReward(game,quest,day);
   const next={...game,xp:game.xp+reward.xp,coins:game.coins+reward.coins,completed:[...game.completed,key],

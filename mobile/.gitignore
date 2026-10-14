@@ -42,3 +42,8 @@ AGENTS.md
 # generated native folders
 /ios
 /android
+
+# Firebase app configuration supplied by the team; provide the file to EAS separately.
+/google-services.json
+/GoogleService-Info.plist
+/credentials.json

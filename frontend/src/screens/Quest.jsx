@@ -1,3 +1,4 @@
+import PhotoMission from '../components/PhotoMission.jsx';
 import UiIcon from '../components/UiIcon.jsx';
 import { useCallback, useEffect, useRef, useState } from 'react';
 import QuestSheet from '../components/QuestSheet.jsx';
@@ -15,7 +16,7 @@ const CARD_COPY = {
   'day-invite': '지인이나 커뮤니티에 함께할 활동을 제안해요. 약속 성사는 필요 없어요.',
 };
 
-export default function Quest({ game, focusId, onStart, onComplete, onPrepare, onPause, onReplace, onFeedback, onProfile, onDiary, onAttendance, onVisit, onGoal, petColor, onShop, onSettings, onHome }) {
+export default function Quest({ game, focusId, onStart, onComplete, onPhotoSave, onPrepare, onPause, onReplace, onFeedback, onProfile, onDiary, onAttendance, onVisit, onGoal, petColor, onShop, onSettings, onHome }) {
   const [tab, setTab] = useState('day');
   const [today, setToday] = useState(seoulDateKey);
   const [message, setMessage] = useState(null);
@@ -56,16 +57,16 @@ export default function Quest({ game, focusId, onStart, onComplete, onPrepare, o
     const reward = done && game.questReward?.key === key ? game.questReward : dailyReward(game, quest, today);
     const justCompleted = done && game.questReward?.key === key && (game.questReward.sequence !== lastReward.current || message?.key === key);
     return <article data-quest-id={quest.id} tabIndex={-1} className={`growth-quest quest-compact${started ? ' is-started' : ''}${done ? ' is-completed' : ''}`} key={key}>
-      <small>{CATEGORIES[quest.category]}</small>
+      <small className="quest-category"><UiIcon kind={quest.photo?'camera':quest.category==='outside'?'discover':quest.category==='connect'?'envelope':'routine'} size={17}/>{CATEGORIES[quest.category]}</small>
       <div className="quest-card-heading"><strong>{quest.name}</strong><span className="quest-state">{done ? '완료 ✓' : started ? '도전 중' : paused ? '보류 중' : '시작 전'}</span></div>
       {(!done || justCompleted) && <>
         <p>{CARD_COPY[quest.id] ?? quest.description}</p>
         <div className="quest-card-reward"><small>{reward.xp ? `${reward.xp} XP · ${reward.coins} 코인` : '추가 보상 없음 · 완료하면 기록만 남아요'}</small>{candidate && <button type="button" className="pb quest-info" aria-label="추천 이유" onClick={event => openSheet(event, { kind: 'info', reason: `${candidate.role} · ${candidate.reason}` })}>i</button>}</div>
         {selected && quest.choices && <label>내 목표 <select disabled={done} value={game.challengeChoices?.[key] ?? ''} onChange={event => onProfile('choice', event.target.value, key)}><option value="">선택하기</option>{quest.choices.map(value => <option key={value}>{value}</option>)}</select></label>}
-        <div className="quest-card-actions"><button type="button" className="pb shop-buy" disabled={done || (!!quest.choices && !game.challengeChoices?.[key])} onClick={() => {
+        <div className="quest-card-actions">{started && quest.photo ? <PhotoMission onSave={photo => onPhotoSave(quest.id, today, photo)}/> : <button type="button" className="pb shop-buy" disabled={done || (!!quest.choices && !game.challengeChoices?.[key])} onClick={() => {
           if (started) onComplete(quest.id);
           else onStart(quest.id);
-        }}>{done ? '완료 ✓' : started ? '해냈어요!' : paused ? '다시 도전' : '도전하기'}</button>
+        }}>{done ? '완료 ✓' : started ? '해냈어요!' : paused ? '다시 도전' : '도전하기'}</button>}
         {selected && <div className="quest-card-secondary"><button type="button" className="pb" disabled={done} onClick={event => openSheet(event, { kind: 'swap', id: quest.id })}>바꾸기</button><button type="button" className="pb" disabled={done} onClick={() => onPause(quest.id, today, '')}>나중에 하기</button></div>}</div>
       </>}
       {done && selected && <button type="button" className="pb quest-feedback-link" onClick={event => openSheet(event, { kind: 'feedback', key })}>어땠나요? (선택)</button>}
@@ -76,6 +77,7 @@ export default function Quest({ game, focusId, onStart, onComplete, onPrepare, o
     <nav className="ui-period-tabs shop-tabs" aria-label="도전 기간">{[['day', '오늘'], ['week', '이번 주'], ['month', '이번 달']].map(([id, label]) => <button type="button" className="pb" key={id} aria-pressed={tab === id} onClick={() => setTab(id)}>{label}</button>)}</nav>
     <div className="quest-utility"><button type="button" className="pb ui-secondary" aria-pressed={tab === 'records'} onClick={() => setTab('records')}>기록·취향</button><button type="button" className="pb quest-text-button" onClick={event => openSheet(event, { kind: 'rewards' })}>보상 안내</button></div>
     {tab === 'day' ? <>
+      <div className="daily-overview"><div><strong>오늘의 작은 도전</strong><span>{ROUTINES.filter(q=>routineDone(game,q.id,today)).length+dailyActivities(game,today).filter(q=>game.completed.includes(`${today}:${q.id}`)).length}/6 완료</span></div><progress max={6} value={ROUTINES.filter(q=>routineDone(game,q.id,today)).length+dailyActivities(game,today).filter(q=>game.completed.includes(`${today}:${q.id}`)).length} aria-label="오늘 미션 완료 수"/></div>
       <p className="quest-inline-notice" role="status">{notice}</p>
       <section className="daily-routines"><h2><UiIcon kind="routine" /> 매일 하는 3가지 <small>{ROUTINES.filter(q=>routineDone(game,q.id,today)).length}/3 완료</small></h2>{ROUTINES.map(q=>{ const done=routineDone(game,q.id,today); return <article key={q.id} data-quest-id={q.id} tabIndex={-1} className={`routine-row${done?' is-completed':''}`}><div><strong>{q.name}</strong><small>{done?'완료 ✓':q.kind==='diary'?'15 XP · 25 코인 (로컬 시연)':q.kind==='attendance'?'출석표의 오늘 보상':'글 등록 시 완료 · 보상 정책 확인 중'}</small></div><button type="button" className={`pb ui-secondary${q.kind==='attendance'?' attendance-entry':''}`} onClick={()=>q.kind==='diary'?onDiary(today):q.kind==='attendance'?onAttendance():onVisit()}>{q.kind==='diary'&&done?'일기 보기':q.kind==='attendance'&&done?'출석표 보기':q.action}</button></article>;})}</section>
       <section className="daily-discoveries"><h2 className="quest-selection-heading" tabIndex={-1}><UiIcon kind="discover" /> 오늘의 새로운 3가지 <small>{dailyActivities(game,today).filter(q=>game.completed.includes(`${today}:${q.id}`)).length}/3 완료</small></h2><div className="growth-quests">{dailyActivities(game,today).map(q=>card(q,{reason:q.reason,role:'오늘의 제안'},true))}</div></section>
