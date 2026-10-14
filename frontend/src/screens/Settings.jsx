@@ -17,8 +17,7 @@ export default function Settings({ petColor, petName, onPetName, onBack }) {
 
   const [nameDraft, setNameDraft] = useState(petName);
   const [nameMessage, setNameMessage] = useState('');
-  const [options, setOptions] = useState({ music: true, effects: true, reminders: false });
-  const [volume, setVolume] = useState(70);
+  const [options, setOptions] = useState({ effects: true, reminders: false });
   const [saved, setSaved] = useState(false);
   const update = (key) => {
     setOptions((value) => ({ ...value, [key]: !value[key] }));
@@ -53,7 +52,6 @@ export default function Settings({ petColor, petName, onPetName, onBack }) {
       <div className="settings-card">
         <h2 className="jua">소리 설정</h2>
         {[
-          ['music', '배경 음악', '방 안을 채우는 포근한 음악'],
           ['effects', '효과음', '모찌와 함께하는 작은 소리'],
         ].map(([key, title, description]) => (
           <div className="settings-row" key={key}>
@@ -61,11 +59,7 @@ export default function Settings({ petColor, petName, onPetName, onBack }) {
             <button type="button" className="pb settings-toggle" role="switch" aria-checked={options[key]} aria-labelledby={`${key}-label`} onClick={() => update(key)}><span /></button>
           </div>
         ))}
-        <div className="settings-volume">
-          <label htmlFor="settings-volume">소리 크기 <output>{volume}%</output></label>
-          <input id="settings-volume" type="range" min="0" max="100" value={volume} onChange={(event) => { setVolume(Number(event.target.value)); setSaved(false); }} />
-          <div><span>조용하게</span><span>크게</span></div>
-        </div>
+
       </div>
       <div className="settings-card settings-card-pink">
         <h2 className="jua">알림 설정</h2>

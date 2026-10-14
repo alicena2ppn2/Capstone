@@ -1,3 +1,5 @@
+import BottomNav from './components/BottomNav.jsx';
+import { completePhotoMission } from './utils/missionPhotos.js';
 import UiIcon from './components/UiIcon.jsx';
 import { continueJournalDraft } from './utils/journal.js';
 import RewardPanel from './components/RewardPanel.jsx';
@@ -123,11 +125,12 @@ export default function App() {
         onPause={(id, date, reason) => setGame(value => pauseDailyMission(value, id, date, reason))}
         onFeedback={(key, response) => setGame(value => ({ ...value, feedback: { ...value.feedback, [key]: response } }))}
         onProfile={(field, text, key) => setGame(value => field === 'choice' ? ({ ...value, challengeChoices: { ...value.challengeChoices, [key]: text } }) : ({ ...value, preferences: { ...value.preferences, [field]: text.slice(0, 80) } }))}
-        onGoal={id => setGame(value => claimGoal(value, id))} onStart={id => setGame(value => startDailyMission(value, id))} onComplete={(id, answer) => setGame((value) => finishDailyMission(value, id, new Date()))} petColor={petColor} onShop={() => setScreen('shop')} onSettings={() => setScreen('settings')} onHome={() => setScreen('home')} />}
+        onGoal={id => setGame(value => claimGoal(value, id))} onStart={id => setGame(value => startDailyMission(value, id))} onPhotoSave={(id, date, photo) => commitGame(value => completePhotoMission(value, id, date, photo))} onComplete={(id, answer) => setGame((value) => finishDailyMission(value, id, new Date()))} petColor={petColor} onShop={() => setScreen('shop')} onSettings={() => setScreen('settings')} onHome={() => setScreen('home')} />}
       {screen === 'guest' && <Guestbook petName={petName} level={level} petColor={petColor} onShop={() => setScreen('shop')} onSettings={() => setScreen('settings')} onHome={() => setScreen('home')} />}
       <div className="phone-page" hidden={screen !== 'settings'}><Settings key={game.character} petColor={petColor} petName={petName} onPetName={rename} onBack={() => setScreen('home')} /></div>
       {screen === 'shop' && <Shop onBuyDecor={id => setGame(value => buyDecor(value, id))} onEquipDecor={(slot, id) => setGame(value => equipDecor(value, slot, id))} game={game} level={level} onBuyCharacter={id => commitGame(value => buyCharacter(value, id))} onEquipCharacter={(id) => setGame((value) => equipCharacter(value, id))} petColor={petColor} coins={game.coins} owned={ownedClothes} outfit={wardrobe.outfit} onBuy={buy} onWear={wear} onBack={() => setScreen('home')} />}
       </div>
+      <BottomNav screen={screen} onNavigate={destination => { if(destination==='quest') openQuest(); else setScreen(destination); }}/>
       {attendanceAward && <RewardPanel receipt={attendanceAward} />}
       <div className="iphone-home-indicator" aria-hidden="true"><span /></div>
       </div>
