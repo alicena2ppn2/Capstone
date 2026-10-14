@@ -1,3 +1,4 @@
+import { recommendMissions, eligibleMission, missionMode, missionCriterion } from './missionGuidance.js';
 import { DAILY_CHALLENGES, ensureChallenges } from './challenges.js';
 import { grantMilestone } from './game.js';
 import { seoulDateKey } from './seoulDate.js';
@@ -23,7 +24,7 @@ export function recordRoutine(game, id, day, { legacy = false } = {}) {
   const reward = !legacy && !already && id === 'day-diary' ? { xp: 15, coins: 25 } : { xp: 0, coins: 0 };
   const next = { ...game, completed: [...new Set([...(game.completed ?? []), key])],
     xp: game.xp + reward.xp, coins: game.coins + reward.coins,
-    missionReceipts: { ...game.missionReceipts, [key]: { ...reward, source: id, status: legacy || already ? 'preserved' : id === 'day-guestbook' ? 'pending-policy' : id === 'day-attendance' ? 'attendance-path' : 'local-demo' } } };
+    missionReceipts: { ...game.missionReceipts, [key]: { ...reward, source: id, channel: id === 'day-guestbook' ? 'sample-neighbor-local' : 'local-routine', status: legacy || already ? 'preserved' : id === 'day-guestbook' ? 'pending-policy' : id === 'day-attendance' ? 'attendance-path' : 'local-demo' } } };
   if (reward.xp || reward.coins) next.questReward = { key, ...reward, sequence: (game.questReward?.sequence ?? 0) + 1 };
   return grantMilestone(next);
 }
@@ -35,14 +36,11 @@ export function ensureDailyMissions(game, day = seoulDateKey(), savedVisitNotes)
     // Preserve paid legacy activities. New suggestions avoid equivalent actions.
     const ids = [...new Set(legacyPaid.map(r=>r.id))].filter(id=>pool.some(q=>q.id===id)).slice(0,3);
     const seed = [...day].reduce((sum, char) => sum * 31 + char.charCodeAt(0), 0) >>> 0;
-    const last=Object.values(game.activityRecords??{}).filter(r=>r.day<day&&!r.input).sort((a,b)=>b.day.localeCompare(a.day))[0];
-    const ceiling=last&&game.feedback?.[`${last.day}:${last.id}`]==='hard'?0:1;
-    const fallback = [...pool.slice(seed % pool.length), ...pool.slice(0, seed % pool.length)].filter(q => q.effort <= ceiling);
-    const recent=Object.entries(game.dailyMissions??{}).filter(([date])=>date<day).sort(([a],[b])=>b.localeCompare(a)).slice(0,3).flatMap(([,plan])=>plan.activities.map(q=>groupFor(q.id)));
-    const recentCount=q=>recent.filter(group=>group===q.activityGroup).length;
-    const candidates=[...fallback].sort((a,b)=>recentCount(a)-recentCount(b));
+    const candidates = recommendMissions(game,pool,day,seed);
     for (const quest of candidates) if (ids.length < 3 && !ids.some(id=>groupFor(id)===quest.activityGroup)) ids.push(quest.id);
-    const activities = ids.map((id, slot) => ({ id, slot, reason: old?.candidates?.find(c => c.id === id)?.reason ?? '부담 적은 작은 행동을 권해요.' }));
+    const activities = ids.map((id, slot) => ({ id, slot, reason: candidates.find(q=>q.id===id)?.reason ?? old?.candidates?.find(c => c.id === id)?.reason ?? '기존 오늘 기록을 유지해요.' }));
+    const modes = Object.fromEntries(candidates.filter(q=>q.suggestLight&&ids.includes(q.id)).map(q=>[keyFor(day,q.id),'light']));
+    game = {...game,missionModes:{...modes,...game.missionModes}};
     // Carry legacy payments to slot receipts without changing balances or records.
     const used = new Set();
     const slots = Object.fromEntries(legacyPaid.slice(0,3).map(r => {
@@ -78,7 +76,7 @@ export function finishDailyMission(game,id,now=new Date()) {
   if (!quest || game.completed.includes(key) || !game.started.includes(key) || game.dailyMissions[day].paused.includes(id) || (quest.choices && !quest.choices.includes(game.challengeChoices?.[key]))) return game;
   const reward=dailyReward(game,quest,day);
   const next={...game,xp:game.xp+reward.xp,coins:game.coins+reward.coins,completed:[...game.completed,key],
-    activityRecords:{...game.activityRecords,[key]:{id,day,category:quest.category,input:false,rewarded:!!reward.xp}},
+    activityRecords:{...game.activityRecords,[key]:{id,day,category:quest.category,input:false,rewarded:!!reward.xp,mode:missionMode(game,quest,day),criterion:missionCriterion(game,quest,day),channel:quest.photo?'local-photo-save':quest.category==='connect'?'real-world-self-report':'activity-self-report'}},
     missionReceipts:{...game.missionReceipts,[key]:{...reward,status:'local-demo'}},missionSlots:{...game.missionSlots,[`${day}:slot:${quest.slot}`]:{id,status:'local-demo'}},
     questReward:{key,...reward,sequence:(game.questReward?.sequence??0)+1}};
   if(Object.values(next.activityRecords).filter(r=>!r.input&&r.category!==undefined).length>=10&&!next.characters.includes('sky'))next.characters=[...next.characters,'sky'];
@@ -93,7 +91,7 @@ export function replaceDailyMission(game,id,day=seoulDateKey(),reason='') {
   const plan=game.dailyMissions?.[day], current=dailyActivities(game,day).find(q=>q.id===id);
   if(!current||game.completed.includes(keyFor(day,id))||game.missionSlots?.[`${day}:slot:${current.slot}`])return game;
   const excluded=new Set([...plan.activities.filter(a=>a.id!==id).map(a=>groupFor(a.id)),...Object.values(game.activityRecords??{}).filter(r=>r.day===day&&!r.input).map(r=>groupFor(r.id))]);
-  const alternatives=pool.filter(q=>q.id!==id&&!excluded.has(q.activityGroup)&&!game.completed.includes(keyFor(day,q.id))&&q.category===current.category&&q.effort<=current.effort);
+  const alternatives=pool.filter(q=>q.id!==id&&!excluded.has(q.activityGroup)&&!game.completed.includes(keyFor(day,q.id))&&q.category===current.category&&q.effort<=current.effort&&eligibleMission(q,game.preferences));
   const next=alternatives.sort((a,b)=>reason==='time'?a.minutes-b.minutes:a.effort-b.effort||a.minutes-b.minutes).find(q=>reason==='hard'?q.effort<=current.effort&&q.minutes<=current.minutes:reason==='time'?q.minutes<current.minutes:true);
   if(!next)return game;
   return {...game,dailyMissions:{...game.dailyMissions,[day]:{...plan,activities:plan.activities.map(a=>a.id===id?{...a,id:next.id,reason:'같은 목적을 다른 작은 행동으로 시도해요.'}:a),paused:plan.paused.filter(q=>q!==id),replacements:[...plan.replacements,{id,replacement:next.id,reason}]}}};
