@@ -1,29 +1,49 @@
 {
-    "expo":  {
-                 "name":  "모찌와 친구들",
-                 "slug":  "capstone-mochi",
-                 "version":  "1.0.0",
-                 "orientation":  "portrait",
-                 "icon":  "./assets/icon.png",
-                 "userInterfaceStyle":  "light",
-                 "ios":  {
-                             "supportsTablet":  true
-                         },
-                 "android":  {
-                                 "adaptiveIcon":  {
-                                                      "backgroundColor":  "#E6F4FE",
-                                                      "foregroundImage":  "./assets/android-icon-foreground.png",
-                                                      "backgroundImage":  "./assets/android-icon-background.png",
-                                                      "monochromeImage":  "./assets/android-icon-monochrome.png"
-                                                  }
-                             },
-                 "web":  {
-                             "favicon":  "./assets/favicon.png"
-                         },
-                 "plugins":  [
-                                 "expo-font",
-                                 "expo-router"
-                             ],
-                 "scheme":  "capstone-mochi"
-             }
+  "expo": {
+    "name": "모찌와 친구들",
+    "slug": "capstone-mochi",
+    "version": "1.0.0",
+    "orientation": "portrait",
+    "icon": "./assets/icon.png",
+    "userInterfaceStyle": "light",
+    "ios": {
+      "supportsTablet": true,
+      "bundleIdentifier": "io.github.alicena2ppn2.mymochi"
+    },
+    "android": {
+      "adaptiveIcon": {
+        "backgroundColor": "#E6F4FE",
+        "foregroundImage": "./assets/android-icon-foreground.png",
+        "backgroundImage": "./assets/android-icon-background.png",
+        "monochromeImage": "./assets/android-icon-monochrome.png"
+      },
+      "package": "io.github.alicena2ppn2.mymochi"
+    },
+    "web": {
+      "favicon": "./assets/favicon.png"
+    },
+    "plugins": [
+      "expo-font",
+      "expo-router",
+      "expo-dev-client",
+      [
+        "expo-image-picker",
+        {
+          "photosPermission": "미션 사진을 선택해 사진첩에 저장할 수 있도록 사진 접근을 허용해 주세요.",
+          "cameraPermission": "사진 미션을 직접 촬영할 수 있도록 카메라 접근을 허용해 주세요.",
+          "microphonePermission": false
+        }
+      ],
+      "expo-web-browser",
+      "expo-secure-store"
+    ],
+    "scheme": "capstone-mochi",
+    "extra": {
+      "router": {},
+      "eas": {
+        "projectId": "694b8d60-d14d-442e-b2ff-15c31d5450b7"
+      }
+    },
+    "owner": "sungshin"
+  }
 }
