@@ -64,7 +64,7 @@ export default function Guestbook({ level, petColor, onShop, onSettings, onHome,
 
   return (
     <SubScreen title="방명록" plainTitle petColor={petColor} onShop={onShop} onSettings={onSettings} onHome={onHome} level={level}>
-      <SafetyPanel safety={safety} />
+      <SafetyPanel safety={safety} showBlockedAuthors />
       <div style={{ marginTop: 4, background: colors.surface, border: `1px solid ${colors.inputBorder}`, borderRadius: 22, padding: 12, display: 'flex', flexDirection: 'column', gap: 10 }}>
         <div style={{ display: 'flex', alignItems: 'center', gap: 8, padding: 8, borderRadius: 16, background: colors.primarySoft, border: `1px solid ${colors.border}` }}>
           <span style={{ position: 'relative', flexShrink: 0, width: 52, height: 50, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
