@@ -228,6 +228,10 @@ def connect(path: str | os.PathLike | None = None) -> sqlite3.Connection:
     for col in ("author_id", "date"):
         if col not in cols:
             conn.execute(f"ALTER TABLE guestbook ADD COLUMN {col} TEXT")
+    # 미션 새로고침 횟수 칸이 없던 예전 mission_days면 추가
+    cols = {r["name"] for r in conn.execute("PRAGMA table_info(mission_days)")}
+    if "rerolls" not in cols:
+        conn.execute("ALTER TABLE mission_days ADD COLUMN rerolls INTEGER NOT NULL DEFAULT 0")
     # Supabase 로그인 연결 칸이 없던 예전 사용자 테이블이면 추가 (ALTER로는 UNIQUE를 못 붙여 인덱스로)
     cols = {r["name"] for r in conn.execute("PRAGMA table_info(users)")}
     if "supabase_id" not in cols:
@@ -465,7 +469,17 @@ def get_mission_day(conn, user_id: str, date: str) -> dict | None:
     if not row:
         return None
     home = row["stayed_home"]
-    return {"date": date, "stayed_home": None if home is None else bool(home), "missions": json.loads(row["missions"])}
+    return {"date": date, "stayed_home": None if home is None else bool(home), "missions": json.loads(row["missions"]),
+            "rerolls": row["rerolls"]}
+
+
+def replace_missions(conn, user_id: str, date: str, missions: list[dict]) -> None:
+    """미션 새로고침: 오늘 미션 목록을 바꾸고 새로고침 횟수 +1."""
+    conn.execute(
+        "UPDATE mission_days SET missions = ?, rerolls = rerolls + 1 WHERE user_id = ? AND date = ?",
+        (json.dumps(missions, ensure_ascii=False), user_id, date),
+    )
+    conn.commit()
 
 
 def save_mission_day(conn, user_id: str, day: dict) -> None:
