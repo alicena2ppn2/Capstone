@@ -1,5 +1,5 @@
 import ExpansionFriends from './ExpansionFriends.jsx';
-import { isBasicFriendDraft } from '../../../frontend/src/utils/characterExpansion.js';
+import { isBasicFriendDraft } from '../../../shared/data/characterExpansion.js';
 import Svg, { G, Path, Ellipse, Circle, Rect, Line, Defs, ClipPath, Text as SvgText } from 'react-native-svg';
 import { useContext } from 'react';
 import { CharacterContext } from './CharacterContext.jsx';

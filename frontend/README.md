@@ -1,6 +1,24 @@
 # MOCHI Frontend
 
-최종 수정: 2026-10-14. React/Vite 웹과 Expo/React Native 모바일이 공유 게임 계산을 사용한다. 최신 상세 기능·저장 구조·백엔드 합의 표는 [FEATURE_SPEC.md](FEATURE_SPEC.md). 본문은 현재 상태, 과거 동작은 아래 변경 이력이다.
+## 현재 소스 구조 (2026-10-15)
+
+모바일 진입점은 `expo-router/entry` → `src/app/_layout.jsx`이다. `src/app`은 기존 경로·레이아웃·인증 복귀/개발 미리보기 라우트만 유지하고, 내부 화면 전환은 GameApp에서 기존 방식대로 연결한다.
+
+- `mobile/src/GameApp.jsx`: 화면 연결과 게임 동작 전달.
+- `mobile/src/hooks/useGameState.js`: 한 곳에서 저장 복원·저장 큐·서울 날짜 갱신·출석 연출·축하 이벤트 관찰.
+- `mobile/src/screens/home`, `screens/quests`, `screens/login`: 화면별 UI와 전용 컴포넌트/스타일. 작은 나머지 화면은 `screens/*.jsx` 유지.
+- `mobile/src/components`: 공통 UI·아이콘·캐릭터 렌더러·하단바·보상 표시. `src/art`는 네이티브 SVG/모션 어댑터.
+- `mobile/src/auth`: Supabase native/Android 어댑터·세션 훅·AuthGate·닉네임 입력. `src/api/client.js`: EXPO_PUBLIC_API_URL 주입.
+- `mobile/src/storage/storage.js`: AsyncStorage/웹 백업 호환. 기존 저장 키와 형식 유지.
+- 루트 `shared/features`: 순수 미션·배정·교체·보상·상점·일기 규칙. `shared/data`: 캐릭터/미션/의상/가구/소개/문장 콘텐츠.
+- `shared/utils`: 날짜·시간·색 표시 함수. `shared/theme`: 색/타이포/아이콘 값. `shared/api`·`shared/auth`: 플랫폼 독립 HTTP/인증 계정 연결.
+- `shared/art`·`shared/hooks`·`shared/auth/AuthContext.js`: React를 사용하는 공유 렌더링/훅/컨텍스트 경계이며 순수 게임 규칙과 분리. SVG 태그를 웹/네이티브에서 주입한다.
+
+모바일은 이제 frontend/src를 직접 import하지 않는다. Metro는 shared만 감시하며 React를 모바일의 설치본으로 해석한다. Vite도 자신의 React를 사용한다. 실제 웹 UI·IndexedDB 사진 저장과 모바일 AsyncStorage·SecureStore·카메라·OAuth는 각각 유지한다. 모노레포 패키지 설치/의존성 변경 없이 상대 경로를 사용한다.
+
+자세한 변경 전후 구조와 검증/남은 문제는 [구조 문서](../mobile/ARCHITECTURE.md)를 참고한다.
+
+최종 수정: 2026-10-15. React/Vite 웹과 Expo/React Native 모바일이 공유 게임 계산을 사용한다. 최신 상세 기능·저장 구조·백엔드 합의 표는 [FEATURE_SPEC.md](FEATURE_SPEC.md). 본문은 현재 상태, 과거 동작은 아래 변경 이력이다.
 
 ## 현재 백엔드 로그인 연결
 
@@ -55,7 +73,7 @@ cd frontend
 npm.cmd ci
 npm.cmd run dev -- --host 127.0.0.1 --port 5180 --strictPort
 npm.cmd run build
-node --test src/utils/*.test.js ../mobile/src/storage.test.mjs
+node --test ../shared/features/*.test.js ../shared/utils/*.test.js ../shared/auth/*.test.mjs src/utils/authEntry.test.js ../mobile/src/storage/storage.test.mjs
 node scripts/check-ui-review.mjs
 ```
 

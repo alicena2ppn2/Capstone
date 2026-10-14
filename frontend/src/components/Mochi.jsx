@@ -1,5 +1,5 @@
 import ExpansionFriends from './ExpansionFriends.jsx';
-import { isBasicFriendDraft } from '../utils/characterExpansion.js';
+import { isBasicFriendDraft } from '../../../shared/data/characterExpansion.js';
 import { useContext } from 'react';
 import { CharacterContext } from './CharacterContext.jsx';
 import Potato from './Potato.jsx';

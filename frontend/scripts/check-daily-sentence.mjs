@@ -4,8 +4,8 @@ import { mkdtemp, mkdir, writeFile } from 'node:fs/promises';
 import { tmpdir } from 'node:os';
 import { join, resolve } from 'node:path';
 import assert from 'node:assert/strict';
-import { initialGame } from '../src/utils/game.js';
-import { seoulDateKey } from '../src/utils/seoulDate.js';
+import { initialGame } from '../../shared/features/game.js';
+import { seoulDateKey } from '../../shared/utils/seoulDate.js';
 const delay = ms => new Promise(done => setTimeout(done, ms));
 const profile = await mkdtemp(join(tmpdir(), 'capstone-ui-review-'));
 const output = resolve('../artifacts/ui-review'); await mkdir(output, { recursive: true });
@@ -47,7 +47,7 @@ try {
   assert(await evalPage(`(()=>{const b=document.querySelector(".daily-sentence").getBoundingClientRect(),w=document.querySelector('.home-room-scenery svg rect[x="114"]').getBoundingClientRect(),clock=document.querySelector('.home-room-scenery svg g[transform="translate(314 158)"]').getBoundingClientRect(),cal=document.querySelector('.home-room-scenery svg g[transform="translate(18 126)"]').getBoundingClientRect();const overlaps=r=>b.left<r.right&&b.right>r.left&&b.top<r.bottom&&b.bottom>r.top;return !overlaps(w)&&!overlaps(clock)&&!overlaps(cal)})()`));
   await screenshot('daily-sentence-home-'+width);
  }
- const characters=await evalPage("(async()=>{const {CHARACTERS}=await import('/src/utils/game.js');return CHARACTERS.map(c=>c.id)})()");
+ const characters=await evalPage("(async()=>{const {CHARACTERS}=await import('/shared/features/game.js');return CHARACTERS.map(c=>c.id)})()");
  for(const id of characters){
   await evalPage(`(()=>{const g=JSON.parse(localStorage.getItem('mochi.game.v1'));g.characters=${JSON.stringify(characters)};g.character=${JSON.stringify(id)};localStorage.setItem('mochi.game.v1',JSON.stringify(g));})()`);
   await nav('?preview=game');await clearPopup();assert.equal(await evalPage("document.querySelector('.daily-sentence').dataset.sentenceId"),original);

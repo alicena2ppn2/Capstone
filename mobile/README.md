@@ -1,8 +1,26 @@
 # 모찌와 친구들 — React Native
 
-최종 수정: 2026-10-14.
+## 현재 소스 구조 (2026-10-15)
 
-현재 모바일 프론트는 Expo SDK 57, React Native 0.86.3, React 19.2.3이다. `View`, `Text`, `Pressable`, `TextInput`, `ScrollView`, `Modal`과 StyleSheet로 화면을 구현한다. WebView로 Vite 화면을 감싼 앱이 아니다. 기존 웹은 `../frontend`에 보존하며, 게임 데이터/계산은 `../frontend/src/utils`를 공유한다.
+모바일 진입점은 `expo-router/entry` → `src/app/_layout.jsx`이다. `src/app`은 기존 경로·레이아웃·인증 복귀/개발 미리보기 라우트만 유지하고, 내부 화면 전환은 GameApp에서 기존 방식대로 연결한다.
+
+- `mobile/src/GameApp.jsx`: 화면 연결과 게임 동작 전달.
+- `mobile/src/hooks/useGameState.js`: 한 곳에서 저장 복원·저장 큐·서울 날짜 갱신·출석 연출·축하 이벤트 관찰.
+- `mobile/src/screens/home`, `screens/quests`, `screens/login`: 화면별 UI와 전용 컴포넌트/스타일. 작은 나머지 화면은 `screens/*.jsx` 유지.
+- `mobile/src/components`: 공통 UI·아이콘·캐릭터 렌더러·하단바·보상 표시. `src/art`는 네이티브 SVG/모션 어댑터.
+- `mobile/src/auth`: Supabase native/Android 어댑터·세션 훅·AuthGate·닉네임 입력. `src/api/client.js`: EXPO_PUBLIC_API_URL 주입.
+- `mobile/src/storage/storage.js`: AsyncStorage/웹 백업 호환. 기존 저장 키와 형식 유지.
+- 루트 `shared/features`: 순수 미션·배정·교체·보상·상점·일기 규칙. `shared/data`: 캐릭터/미션/의상/가구/소개/문장 콘텐츠.
+- `shared/utils`: 날짜·시간·색 표시 함수. `shared/theme`: 색/타이포/아이콘 값. `shared/api`·`shared/auth`: 플랫폼 독립 HTTP/인증 계정 연결.
+- `shared/art`·`shared/hooks`·`shared/auth/AuthContext.js`: React를 사용하는 공유 렌더링/훅/컨텍스트 경계이며 순수 게임 규칙과 분리. SVG 태그를 웹/네이티브에서 주입한다.
+
+모바일은 이제 frontend/src를 직접 import하지 않는다. Metro는 shared만 감시하며 React를 모바일의 설치본으로 해석한다. Vite도 자신의 React를 사용한다. 실제 웹 UI·IndexedDB 사진 저장과 모바일 AsyncStorage·SecureStore·카메라·OAuth는 각각 유지한다. 모노레포 패키지 설치/의존성 변경 없이 상대 경로를 사용한다.
+
+자세한 변경 전후 구조와 검증/남은 문제는 [구조 문서](../mobile/ARCHITECTURE.md)를 참고한다.
+
+최종 수정: 2026-10-15.
+
+현재 모바일 프론트는 Expo SDK 57, React Native 0.86.3, React 19.2.3이다. `View`, `Text`, `Pressable`, `TextInput`, `ScrollView`, `Modal`과 StyleSheet로 화면을 구현한다. WebView로 Vite 화면을 감싼 앱이 아니다. 기존 웹은 `../frontend`에 보존하며, 게임 데이터/계산은 루트 `shared/`를 공유한다.
 
 ## 현재 백엔드 로그인 연결
 
@@ -98,7 +116,7 @@ npm.cmd run export
 
 서버 실제 계정·동기화·보상 권한·일기 삭제·주제 교체·인증·신고/차단·계정 삭제·알림·배포·스토어 제출은 별도 연결 필요. backend/는 이번 작업에서 읽기만 했다. 가격/XP/교체 정책의 충돌은 명세서의 현재 프론트/서버/추천안을 기준으로 팀과 결정한다.
 
-코드: GameApp.jsx 상태·저장·날짜·연결, screens 네이티브 UI, ui.jsx 공통 규칙, storage.js 백업/복원, actions.js 의상·반응, frontend/src/utils/dailyMissions.js 공유6개 미션/원장. 폰트/라이선스 [FONT_LICENSE.md](../frontend/FONT_LICENSE.md).
+코드: GameApp.jsx 화면 연결, hooks/useGameState.js 상태·저장·날짜, screens 네이티브 UI, components/ui.jsx 공통 규칙, storage/storage.js 백업/복원, shared/features/wardrobeActions.js 의상·반응, shared/features/dailyMissions.js 공유6개 미션/원장. 폰트/라이선스 [FONT_LICENSE.md](../frontend/FONT_LICENSE.md).
 
 ## 캐릭터 확장 · 총20종 목표
 전체 목표20종 중12종을 실제 상점에서 제공한다. 나머지8종은 제안만이며 상품으로 등록하지 않는다. 상세는 아래 최종6종 설명과 [구성안](../frontend/CHARACTER_EXPANSION.md)을 참고한다.

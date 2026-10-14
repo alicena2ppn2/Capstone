@@ -37,10 +37,11 @@
     "web": "expo start --web",
     "lint": "expo lint",
     "typecheck": "tsc --noEmit",
-    "test": "node --test src/storage.test.mjs ../frontend/src/utils/journal.test.js ../frontend/src/utils/game.test.js ../frontend/src/utils/attendance.test.js ../frontend/src/utils/visitors.test.js src/auth/supabaseAuthCore.test.mjs ../frontend/src/utils/dailyMissions.test.js ../frontend/src/utils/missionPhotos.test.js ../frontend/src/utils/dailySentence.test.js ../frontend/src/utils/missionGuidance.test.js ../frontend/src/utils/missionReplacement.test.js ../frontend/src/utils/questCompact.test.js ../frontend/src/auth/authBackendController.test.mjs",
+    "test": "node --test src/storage/storage.test.mjs ../shared/features/journal.test.js ../shared/features/game.test.js ../shared/features/attendance.test.js ../shared/features/visitors.test.js src/auth/supabaseAuthCore.test.mjs ../shared/features/dailyMissions.test.js ../shared/features/missionPhotos.test.js ../shared/features/dailySentence.test.js ../shared/features/missionGuidance.test.js ../shared/features/missionReplacement.test.js ../shared/features/questCompact.test.js ../shared/auth/authBackendController.test.mjs",
     "export": "expo export --platform all",
     "start:dev": "expo start --dev-client",
-    "auth:check": "node scripts/check-supabase-auth.mjs"
+    "auth:check": "node scripts/check-supabase-auth.mjs",
+    "test:all": "node --test src/storage/storage.test.mjs src/auth/supabaseAuthCore.test.mjs ../shared/features/*.test.js ../shared/utils/*.test.js ../shared/auth/*.test.mjs"
   },
   "private": true,
   "devDependencies": {

@@ -1,5 +1,5 @@
 import MissionPreferences from '../components/MissionPreferences.jsx';
-import { useAuthActions } from '../auth/AuthContext.js';
+import { useAuthActions } from '../../../shared/auth/AuthContext.js';
 import ScreenHeader from '../components/ScreenHeader.jsx';
 import { useState } from 'react';
 import Mochi from '../components/Mochi.jsx';

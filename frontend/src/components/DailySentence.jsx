@@ -1,5 +1,5 @@
 import { useEffect, useRef } from 'react';
-import { dailySentence } from '../utils/dailySentence.js';
+import { dailySentence } from '../../../shared/features/dailySentence.js';
 
 export default function DailySentence({ now }) {
   const sentence = dailySentence(now), ref = useRef(null);

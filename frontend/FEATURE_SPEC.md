@@ -1,6 +1,6 @@
 # 프론트 기능 명세서
 
-최종 수정: 2026-10-14. 본문은 최신 로컬 구현만 설명하며 과거 동작은 변경 이력에서 확인한다. 실행 방법은 [웹 README](README.md), [모바일 README](../mobile/README.md).
+최종 수정: 2026-10-15. 본문은 최신 로컬 구현만 설명하며 과거 동작은 변경 이력에서 확인한다. 실행 방법은 [웹 README](README.md), [모바일 README](../mobile/README.md).
 
 ## 색상과 공통 UI
 
@@ -296,6 +296,12 @@ backendUserId와 supabaseUserId는 AuthContext에 별도 메모리 필드로 유
 
 계약은 origin/backend-onboarding-survey 82c24f5에서 읽었다. 체크아웃된 main의 backend에는 해당 경로가 없고 실제 서버 주소(EXPO_PUBLIC_API_URL)가 아직 제공되지 않았다. 실제 서버 연결/실기기 성공은 미확인이다. Android 남은 Firebase 어댑터는 로컬 백업 후 Supabase native 공유로 바꿨다. backend/의 인증·API 정책은 변경하지 않았다. [연결 설정/재개 문서](../mobile/AUTH_BACKEND_SETUP.md)를 따른다.
 
+## 소스 책임과 공유 경계
+
+실제 최신 경로는 루트 shared/features의 게임·퀘스트·보상·일기 규칙, shared/data의 미션·캐릭터·상품·일일 문장, shared/utils의 서울 날짜·기기 시간, shared/theme의 공통 UI 값이다. shared/api와 shared/auth는 HTTP·계정 연결 상태 머신이며 토큰을 새 저장소에 복제하지 않는다. 공유 SVG는 shared/art에서 태그를 주입받고, React 공유 훅/컨텍스트는 순수 규칙과 별도 경계다.
+
+모바일 src/app은 기존 라우트만, GameApp은 화면 연결, hooks/useGameState는 저장·날짜·출석/반응 이벤트, storage/storage는 기존 AsyncStorage와 백업 형식, auth는 실제 Supabase SDK/플랫폼 복귀, api/client는 기존 환경변수 주소를 맡는다. home/quests/login 전용 UI는 screens 하위에 둔다. 웹은 자체 DOM/CSS/IndexedDB, 모바일은 네이티브 UI/카메라/SecureStore를 유지한다. 저장 키·ID·보상·상품 가격·캐릭터 그림·경로·OAuth 설정은 변경하지 않았다. 상세 구조와 검증은 mobile/ARCHITECTURE.md.
+
 ## 14. 변경 이력
 
 본문은 현재 구현을 설명한다. 아래는 해당 날짜의 변경 기록이며 현재 동작을 대체하지 않는다.
@@ -457,3 +463,7 @@ iOS bundleIdentifier는 io.github.alicena2ppn2.mymochi로 준비했다. 저장�
 이번 인증 검증(2026-10-14): 전체101테스트(인증 연결14·SDK 세션10 포함), 웹 build, 모바일 typecheck/lint 및 iOS/Android/Expo Web 로컬 export 통과. 별도 Edge에서 모의 응답으로 기존회원/신규 닉네임/409입력 유지/연속 제출1회/네트워크 오류·재시도/로그아웃/별도ID와 로컬 기록 보존,360/390/430px 화면 확인. 실제 Google 인증·실제 서버 POST·실기기 로그인은 서버 주소 미설정으로 확인하지 않았다. 모의 캡처는 artifacts/ui-review/auth-nickname-mock-*.png 및 auth-backend-error-mock-430.png이다.
 
 2026-10-14: 차단한 작성자 목록 확인·차단 해제는 내 방명록에서만 제공한다. 방문한 이웃 방명록에서는 목록을 숨기며 신고·차단 및 차단된 글 숨김은 유지한다.
+
+### 2026-10-15 구조 정리
+
+웹 내부 직접 공유를 루트 shared로 분리, 모바일 공통/화면 전용 UI·저장·API·인증/로그인 표시·GameApp 생명주기 책임 분리. 기능·저장 규칙 유지. 기존 전체 검사에서 오래된 exceptions 기대값 2개 실패를 HEAD 복사본에서도 확인했으며 별도 문제로 남김.

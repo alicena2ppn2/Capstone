@@ -1,7 +1,7 @@
 import { useEffect, useState } from 'react';
 import { authClient } from './authClient.js';
 import { backendClient } from '../api/client.js';
-import { createAuthBackendController } from './authBackendController.mjs';
+import { createAuthBackendController } from '../../../shared/auth/authBackendController.mjs';
 
 export default function useAuthEntry(client=authClient,backend=backendClient) {
   const [entry]=useState(()=>createAuthBackendController({client,backend}));

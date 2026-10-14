@@ -1,4 +1,4 @@
-import { colors } from '../design/tokens.js';
+import { colors } from '../../../shared/theme/tokens.js';
 // 여러 화면에서 같이 쓰는 아이콘
 
 const GEAR = 'M12 2.5l1.6 2.3 2.7-.6.6 2.7 2.3 1.6-1.2 2.5 1.2 2.5-2.3 1.6-.6 2.7-2.7-.6L12 21.5l-1.6-2.3-2.7.6-.6-2.7-2.3-1.6L6 12 4.8 9.5l2.3-1.6.6-2.7 2.7.6z';

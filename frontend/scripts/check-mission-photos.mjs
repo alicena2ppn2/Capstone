@@ -4,8 +4,8 @@ import { mkdtemp, mkdir, writeFile } from 'node:fs/promises';
 import { tmpdir } from 'node:os';
 import { join, resolve } from 'node:path';
 import assert from 'node:assert/strict';
-import { initialGame } from '../src/utils/game.js';
-import { seoulDateKey } from '../src/utils/seoulDate.js';
+import { initialGame } from '../../shared/features/game.js';
+import { seoulDateKey } from '../../shared/utils/seoulDate.js';
 const delay = ms => new Promise(done => setTimeout(done, ms));
 const profile = await mkdtemp(join(tmpdir(), 'capstone-ui-review-'));
 const output = resolve('../artifacts/ui-review'); await mkdir(output, { recursive: true });
@@ -32,7 +32,7 @@ try {
 
 
  await nav('?preview=game');
- await evalPage(`(async()=>{const {initialGame}=await import('/src/utils/game.js');const {ensureDailyMissions}=await import('/src/utils/dailyMissions.js');const {seoulDateKey}=await import('/src/utils/seoulDate.js');const day=seoulDateKey();let game=ensureDailyMissions(initialGame(),day);game.dailyMissions[day].activities=['day-photo-detail','day-water','day-nod'].map((id,slot)=>({id,slot,reason:'시연 검증'}));localStorage.setItem('mochi.game.v1',JSON.stringify(game));})()`);
+ await evalPage(`(async()=>{const {initialGame}=await import('/shared/features/game.js');const {ensureDailyMissions}=await import('/shared/features/dailyMissions.js');const {seoulDateKey}=await import('/shared/utils/seoulDate.js');const day=seoulDateKey();let game=ensureDailyMissions(initialGame(),day);game.dailyMissions[day].activities=['day-photo-detail','day-water','day-nod'].map((id,slot)=>({id,slot,reason:'시연 검증'}));localStorage.setItem('mochi.game.v1',JSON.stringify(game));})()`);
  await nav('?preview=game'); await evalPage("document.querySelector('.attendance-close')?.click()");
  for(const width of [360,390,430]){
   await send('Emulation.setDeviceMetricsOverride',{width,height:844,deviceScaleFactor:1,mobile:true});

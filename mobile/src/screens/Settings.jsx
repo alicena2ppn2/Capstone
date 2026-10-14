@@ -1,11 +1,11 @@
-import MissionPreferences from '../MissionPreferences';
-import { saveMissionPreferences } from '../../../frontend/src/utils/missionGuidance.js';
-import { useAuthActions } from '../../../frontend/src/auth/AuthContext.js';
+import MissionPreferences from './quests/MissionPreferences';
+import { saveMissionPreferences } from '../../../shared/features/missionGuidance.js';
+import { useAuthActions } from '../../../shared/auth/AuthContext.js';
 import React, { useState } from 'react';
 import { Alert, Platform, Switch, View } from 'react-native';
 import * as Clipboard from 'expo-clipboard';
-import { Label, Button, Input, Card, styles, ScreenHeader } from '../ui';
-import { decodeBackup, encodeBackup } from '../storage';
+import { Label, Button, Input, Card, styles, ScreenHeader } from '../components/ui';
+import { decodeBackup, encodeBackup } from '../storage/storage';
 
 export default function Settings({ onBack, state, name, update, setState, openSheet, onPreferences }) {
   const auth = useAuthActions();

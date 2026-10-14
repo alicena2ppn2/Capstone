@@ -1,7 +1,7 @@
-import FinalExpansionFriendDrawing from './FinalExpansionFriendDrawing.jsx';
+import FinalExpansionFriendDrawing from '../../../shared/art/FinalExpansionFriendDrawing.jsx';
 import useFriendReaction from './useFriendReaction.js';
 import FriendEffects from './FriendEffects.jsx';
-import { finalFriend } from '../utils/finalFriends.js';
+import { finalFriend } from '../../../shared/features/finalFriends.js';
 export default function ExpansionFriends({ variant, width, height, label, outfit, interactive, active, reactionId, onReactionConsumed }) {
   const { blink, reaction, props } = useFriendReaction({ interactive, active, reactionId, onReactionConsumed });
   const gesture = finalFriend(variant)?.gesture;

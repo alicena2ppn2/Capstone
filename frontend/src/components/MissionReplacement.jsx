@@ -1,5 +1,5 @@
 import { useEffect, useRef, useState } from 'react';
-import { replacementCandidates } from '../utils/dailyMissions.js';
+import { replacementCandidates } from '../../../shared/features/dailyMissions.js';
 export default function MissionReplacement({ game,id,day,onReplace,onClose,onNotice }) {
   const [revisit,setRevisit]=useState(false),[busy,setBusy]=useState(false),[error,setError]=useState('');
   const locked=useRef(false),confirm=useRef(null);

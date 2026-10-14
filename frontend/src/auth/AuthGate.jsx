@@ -1,5 +1,5 @@
 import NicknameEntry from './NicknameEntry.jsx';
-import { AuthContext } from './AuthContext.js';
+import { AuthContext } from '../../../shared/auth/AuthContext.js';
 import { useState } from 'react';
 import Mochi from '../components/Mochi.jsx';
 import useAuthEntry from './useAuthEntry.js';
