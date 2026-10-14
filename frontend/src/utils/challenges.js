@@ -5,6 +5,9 @@ export const CATEGORIES = { prepare: '오늘의 준비', outside: '바깥 발견
 const activityGroups = { 'day-wake':'start-day','day-water':'start-day','day-walk':'short-outing','day-door':'short-outing','day-more-steps':'walk-goal','day-drink':'neighborhood','day-place':'new-place','day-greet':'greeting','day-nod':'greeting','day-checkin':'checkin','day-thanks':'thanks','day-question':'question','day-invite':'invite','day-seasonal':'seasonal' };
 const action = (id, category, name, description, effort = 1, minutes = 5, extra = {}) => ({ id, activityGroup:activityGroups[id] ?? id, period: 'day', category, name, description, effort, minutes, xp: 15, coins: 25, ...extra });
 export const DAILY_CHALLENGES = [
+  action('day-photo-detail', 'prepare', '작은 발견 사진 남기기', '집 안이나 주변에서 눈에 들어온 작은 물건 하나를 찍어 저장해요.', 0, 2, { photo: true, activityGroup: 'photo-moment' }),
+  action('day-photo-sky', 'outside', '오늘의 하늘 담기', '잠깐 밖에 나가 하늘을 찍고 사진을 저장해요. 거리는 내가 정해요.', 1, 3, { photo: true, activityGroup: 'photo-moment' }),
+  action('day-photo-leaf', 'outside', '초록 한 장 발견하기', '밖에서 만난 나무나 풀을 찍어 저장해요. 사람 얼굴은 담지 않아도 돼요.', 1, 3, { photo: true, activityGroup: 'photo-moment' }),
   action('day-wake', 'prepare', '내 하루 시작하기', '정한 기상 시간 이후 커튼을 열거나 물 한 잔을 마시면 완료예요.'),
   action('day-diary', 'prepare', '오늘의 하루 기록하기', '오늘 있었던 일이나 기분을 한 줄 저장해요.', 1, 3, { input: true }),
   action('day-seasonal', 'prepare', '제철 음식 알아보기', '제철 음식 하나를 찾아 이름을 확인해요. 구매하거나 먹지 않아도 괜찮아요.'),
