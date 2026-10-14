@@ -1,4 +1,4 @@
-import { saveMissionPreferences, selectMissionMode } from './utils/missionGuidance.js';
+import { saveMissionPreferences } from './utils/missionGuidance.js';
 import BottomNav from './components/BottomNav.jsx';
 import { completePhotoMission } from './utils/missionPhotos.js';
 import UiIcon from './components/UiIcon.jsx';
@@ -7,7 +7,7 @@ import RewardPanel from './components/RewardPanel.jsx';
 import { newAttendanceReward } from './utils/rewardFeedback.js';
 import { useCallback, useEffect, useRef, useState } from 'react';
 import Diary from './screens/Diary.jsx';
-import { dailyActivities, ensureDailyMissions, startDailyMission, finishDailyMission, pauseDailyMission, replaceDailyMission, saveDiaryMission, deleteDiaryMission, recordRoutine } from './utils/dailyMissions.js';
+import { ensureDailyMissions, startDailyMission, finishDailyMission, pauseDailyMission, replaceDailyMission, saveDiaryMission, deleteDiaryMission, recordRoutine } from './utils/dailyMissions.js';
 import Home from './screens/Home.jsx';
 import Visit from './screens/Visit.jsx';
 import Quest from './screens/Quest.jsx';
@@ -120,9 +120,9 @@ export default function App() {
       <div className="phone-page" hidden={screen !== 'home'}><Home game={game} day={day} active={screen === 'home'} reactionId={potatoReaction} onReactionConsumed={consumePotatoReaction} petName={petName} petColor={petColor} onQuest={openQuest} onDiary={() => openDiary()} onGuestbook={() => setScreen('guest')} onVisit={() => setScreen('visit')} onSettings={() => setScreen('settings')} onShop={() => setScreen('shop')} coins={game.coins} outfit={outfit} decor={game.decor ?? {}} /></div>
       {screen === 'diary' && <Diary game={game} day={day} initialDate={diaryDate} onSave={saveDiary} onDelete={deleteDiary} onDraft={saveDraft} onContinue={continueDraft} onHome={() => setScreen('home')} />}
       {screen === 'visit' && <Visit onPosted={date => commitGame(value => recordRoutine(value, 'day-guestbook', date))} visitorName={petName} visitorVariant={game.character ?? 'potato'} onBack={() => setScreen('home')} />}
-      {screen === 'quest' && <Quest onPreferences={answers => commitGame(value => saveMissionPreferences(value,answers))} onMode={(id,date,mode) => commitGame(value => selectMissionMode(value,id,date,mode,dailyActivities(value,date)))} game={game} focusId={questFocus} onDiary={openDiary} onVisit={() => setScreen('visit')} onAttendance={() => document.querySelector('.attendance-open')?.click()}
+      {screen === 'quest' && <Quest onPreferences={answers => commitGame(value => saveMissionPreferences(value,answers))} game={game} focusId={questFocus} onDiary={openDiary} onVisit={() => setScreen('visit')} onAttendance={() => document.querySelector('.attendance-open')?.click()}
         onPrepare={prepareChallenges}
-        onReplace={(id, date, reason) => setGame(value => replaceDailyMission(value, id, date, reason))}
+        onReplace={(id, date, options) => date===seoulDateKey()?commitGame(value => replaceDailyMission(value, id, date, options)):{ok:false,message:'날짜가 바뀌었어요. 오늘 목록에서 다시 확인해 주세요.'}}
         onPause={(id, date, reason) => setGame(value => pauseDailyMission(value, id, date, reason))}
         onFeedback={(key, response) => setGame(value => ({ ...value, feedback: { ...value.feedback, [key]: response } }))}
         onProfile={(field, text, key) => setGame(value => field === 'choice' ? ({ ...value, challengeChoices: { ...value.challengeChoices, [key]: text } }) : ({ ...value, preferences: { ...value.preferences, [field]: text.slice(0, 80) } }))}
