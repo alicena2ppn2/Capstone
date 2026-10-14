@@ -284,8 +284,9 @@ await api(`/users/${userId}/home`, { token: session?.access_token });
 
 ## 서버 주소
 
-- 개발: `http://localhost:8000` (프론트 `http://localhost:5173`에서 호출 허용됨)
-- 프론트 포트가 다르면 서버 실행 시 `CORS_ORIGINS=http://127.0.0.1:5180` 처럼 지정
+- 개발: `http://localhost:8000` (웹 `http://localhost:5173`·Expo 웹 `http://localhost:8081`에서 호출 허용됨)
+- **휴대폰 앱 시연 (같은 와이파이)**: 백엔드에서 `python scripts/serve.py` → 화면에 나오는 `EXPO_PUBLIC_API_URL=http://<노트북 IP>:8000`을 `mobile/.env.local`에 넣고 앱 다시 시작
+- 프론트 포트가 다르면 서버 `backend/.env`에 `CORS_ORIGINS=http://127.0.0.1:5180` 처럼 지정
 - 배포 주소는 정해지면 여기에 적는다
 - 프론트에서는 `VITE_API_URL` 같은 환경변수로 주소를 받는 것을 권장
 
