@@ -1,6 +1,6 @@
 import { useCallback, useEffect, useState } from 'react';
 import QuestSheet from './QuestSheet.jsx';
-import { MODERATION_KEY, SELF_AUTHOR, REPORT_REASONS, restoreModeration, reportNote, blockAuthor, noteKey, suspensionUntil, writingError } from '../utils/guestModeration.js';
+import { MODERATION_KEY, SELF_AUTHOR, REPORT_REASONS, restoreModeration, reportNote, blockAuthor, noteKey, suspensionUntil, writingError } from '../../../shared/features/guestModeration.js';
 
 function load() { return restoreModeration(JSON.parse(localStorage.getItem(MODERATION_KEY) ?? 'null')); }
 export function useGuestModeration() {

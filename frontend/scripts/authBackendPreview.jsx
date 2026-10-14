@@ -2,10 +2,10 @@
 import React from 'react';
 import { createRoot } from 'react-dom/client';
 import AuthGate from '../src/auth/AuthGate.jsx';
-import { useAuthActions } from '../src/auth/AuthContext.js';
+import { useAuthActions } from '../../shared/auth/AuthContext.js';
 import { authClient } from '../src/auth/authClient.js';
 import { backendClient } from '../src/api/client.js';
-import { BackendError,NEW_MEMBER_DETAIL } from '../src/api/backendClient.mjs';
+import { BackendError,NEW_MEMBER_DETAIL } from '../../shared/api/backendClient.mjs';
 export function mountMockAuthUI() {
   let current=null,listener=null,mode='new';
   window.__mockLinkCalls=0;

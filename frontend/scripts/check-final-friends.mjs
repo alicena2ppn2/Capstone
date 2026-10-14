@@ -4,8 +4,8 @@ import { mkdtemp, mkdir, writeFile } from 'node:fs/promises';
 import { tmpdir } from 'node:os';
 import { join, resolve } from 'node:path';
 import assert from 'node:assert/strict';
-import { initialGame } from '../src/utils/game.js';
-import { seoulDateKey } from '../src/utils/seoulDate.js';
+import { initialGame } from '../../shared/features/game.js';
+import { seoulDateKey } from '../../shared/utils/seoulDate.js';
 const delay = ms => new Promise(done => setTimeout(done, ms));
 const profile = await mkdtemp(join(tmpdir(), 'capstone-ui-review-'));
 const output = resolve('../artifacts/ui-review'); await mkdir(output, { recursive: true });
@@ -28,7 +28,7 @@ try {
  await send('Page.enable'); await send('Emulation.setDeviceMetricsOverride',{width:1280,height:1000,deviceScaleFactor:1,mobile:false});
  const nav=async url=>{await send('Page.navigate',{url:'http://127.0.0.1:5180/'+url});await delay(800);};
  const geometry=selector=>evalPage(`(()=>{const e=document.querySelector(${JSON.stringify(selector)});return [...e.querySelectorAll('path,ellipse,circle')].filter(n=>!n.closest('defs')).map(n=>[n.tagName,[...n.attributes].filter(a=>!['id','class'].includes(a.name)).map(a=>[a.name,a.value]).sort()]);})()`);
- const { FINAL_FRIENDS }=await import('../src/utils/finalFriends.js');
+ const { FINAL_FRIENDS }=await import('../../shared/features/finalFriends.js');
  // Store the exact chosen A/B/C painted shapes before comparing actual game art.
  await nav('?preview=friends&review=abc'); const expected={};
  for(const friend of FINAL_FRIENDS){await evalPage(`(()=>{const e=document.querySelector('[aria-label="비교 친구"]');e.value=${JSON.stringify(friend.id)};e.dispatchEvent(new Event('change',{bubbles:true}));})()`);await delay(80);expected[friend.id]=await geometry(`[data-review="${friend.id}:${friend.revision==='A-no-spots'?'A':friend.revision}"] svg`);if(friend.id==='draft-deer')expected[friend.id]=expected[friend.id].filter(([tag,attrs])=>!(['67','77','123','133'].includes(attrs.find(([key])=>key==='cx')?.[1])&&['57','64'].includes(attrs.find(([key])=>key==='cy')?.[1])));}

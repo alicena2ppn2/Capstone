@@ -1,5 +1,5 @@
 import Svg, { G, Path, Ellipse, Circle, Rect, Line, Defs, ClipPath, Text as SvgText } from 'react-native-svg';
-import { DECOR } from '../../../frontend/src/utils/decor.js';
+import { DECOR } from '../../../shared/data/decor.js';
 
 export function Scenery({ item, night: roomNight }) {
   const kind = item?.landscape ?? 'coast';

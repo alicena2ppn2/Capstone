@@ -1,10 +1,10 @@
-import { colors } from '../design/tokens.js';
+import { colors } from '../../../shared/theme/tokens.js';
 import { useEffect, useState } from 'react';
 import Mochi from '../components/Mochi.jsx';
 import SubScreen from '../components/SubScreen.jsx';
 import { HeartIcon } from '../components/Icons.jsx';
 import { useGuestModeration, SafetyPanel, ModerationActions, writingMessage } from '../components/GuestbookSafety.jsx';
-import { SELF_AUTHOR, visibleNote, violation, suspensionUntil } from '../utils/guestModeration.js';
+import { SELF_AUTHOR, visibleNote, violation, suspensionUntil } from '../../../shared/features/guestModeration.js';
 
 const PER_PAGE = 4;
 

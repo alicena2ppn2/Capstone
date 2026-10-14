@@ -1,12 +1,12 @@
 import DailySentence from '../components/DailySentence.jsx';
 import RoomTimeProps from '../components/RoomTimeProps.jsx';
 import useRoomNow from '../components/useRoomNow.js';
-import { roomTime } from '../utils/roomTime.js';
+import { roomTime } from '../../../shared/utils/roomTime.js';
 import UiIcon from '../components/UiIcon.jsx';
 import HomeSummary from '../components/HomeSummary.jsx';
 import Mochi from '../components/Mochi.jsx';
 import HouseDecor from '../components/HouseDecor.jsx';
-import { levelFor } from '../utils/game.js';
+import { levelFor } from '../../../shared/features/game.js';
 import { GearIcon, ShopIcon } from '../components/Icons.jsx';
 
 export function RoomBackdrop({ decor = {}, wallColor = '#D6EAF8', floorColor = '#EBCDA6', homeScene = false, now }) {

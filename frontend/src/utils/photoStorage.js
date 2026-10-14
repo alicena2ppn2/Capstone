@@ -1,4 +1,4 @@
-import { PHOTO_MAX_BYTES } from './missionPhotos.js';
+import { PHOTO_MAX_BYTES } from '../../../shared/features/missionPhotos.js';
 function openPhotos() {
   return new Promise((resolve, reject) => {
     const request = indexedDB.open('mochi.photos.v1', 1);

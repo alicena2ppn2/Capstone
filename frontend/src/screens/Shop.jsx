@@ -2,12 +2,12 @@ import UiIcon from '../components/UiIcon.jsx';
 import ScreenHeader from '../components/ScreenHeader.jsx';
 import { useState } from 'react';
 import Mochi from '../components/Mochi.jsx';
-import { CHARACTERS } from '../utils/game.js';
+import { CHARACTERS } from '../../../shared/features/game.js';
 import DecorShop from '../components/DecorShop.jsx';
 import CharacterShop from '../components/CharacterShop.jsx';
 
-import { CLOTHES } from '../utils/clothes.js';
-export { CLOTHES } from '../utils/clothes.js';
+import { CLOTHES } from '../../../shared/data/clothes.js';
+export { CLOTHES } from '../../../shared/data/clothes.js';
 
 export default function Shop({ game, level, onBuyCharacter, onEquipCharacter, onBuyDecor, onEquipDecor, petColor, coins, owned, outfit, onBuy, onWear, onBack }) {
   const [preview, setPreview] = useState(outfit);

@@ -2,8 +2,8 @@ import { useEffect, useState } from 'react';
 import { AppState } from 'react-native';
 import * as Linking from 'expo-linking';
 import { authClient } from './authClient';
-import { backendClient } from '../api';
-import { createAuthBackendController } from '../../../frontend/src/auth/authBackendController.mjs';
+import { backendClient } from '../api/client';
+import { createAuthBackendController } from '../../../shared/auth/authBackendController.mjs';
 
 export default function useMobileAuthEntry() {
   const [entry]=useState(()=>createAuthBackendController({client:authClient,backend:backendClient}));
