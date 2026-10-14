@@ -1,3 +1,4 @@
+import { Platform } from 'react-native';
 import Svg, { G, Path, Ellipse, Circle, Rect, Line, Defs, ClipPath, Text as SvgText } from 'react-native-svg';
 import useFriendReaction from './useFriendReaction.js';
 import { useEffect, useId, useState } from 'react';
@@ -7,7 +8,7 @@ export default function Potato({ width, height, label, asleep, outfit, full, int
   const motion = useFriendReaction();
   const reaction = motion.reaction;
   const bodyPath = 'M103 17 C139 15 154 53 151 90 Q150 119 163 148 Q172 184 126 194 Q75 207 46 177 Q31 157 42 125 Q50 105 47 73 Q47 28 103 17Z';
-  return <Svg width={width} height={height} viewBox="0 0 200 210" accessible={false}>
+  return <Svg width={width} height={height} viewBox="0 0 200 210" {...(Platform.OS === 'web' ? { 'aria-hidden': true } : { accessible: false })}>
     <Defs><ClipPath id={clipId}><Path d={bodyPath} /></ClipPath></Defs>
     <Ellipse cx="100" cy="199" rx="58" ry="6" fill="#8B6745" opacity=".12" />
     <G key={reaction?.id ?? 'idle'} transform={motion.bodyTransform}>
