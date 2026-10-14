@@ -344,3 +344,20 @@ http://127.0.0.1:5180/?preview=friends 및 앱 개발 /friend-preview. 버터 �
 
 ### 2026-10-11 방의 달력·아날로그 시계와 낮/밤
 홈의 한 줄 시간 표시를 작은 벽 달력(월·일·요일)과 시계(시침·분침·12눈금)로 교체했다. 기기 현지 시간06:00~18:00은 낮,18:00~06:00은 밤이며 열린 화면에서1초마다 갱신한다. 웹 탭 복귀/포커스와 앱 활성화 시 즉시 갱신하고 타이머·리스너는 해제 시 정리한다. 구매한 창밖 풍경의 지형과 기존 가구·캐릭터를 보존하며 밤 음영은 배경에만9% 적용한다. 미션·출석 서울 날짜 및 저장·경제 규칙은 변경하지 않았다.
+
+### 2026-10-11 Android Firebase 인증 사전 설정
+최종 모바일 인증은 React Native Firebase + Google native 로그인 방향으로 결정했다. 영구 Android 패키지명은 io.github.alicena2ppn2.mymochi이며 development build를 준비한다. Firebase 설정 파일과 SHA-1·콘솔·OAuth 값은 사용자 설정 대기이며 로그인은 아직 미연결이다. 웹과 백엔드 인증 코드는 변경하지 않는다. 상세 등록·서명·빌드 절차 및 Supabase 계획에서의 백엔드 전환 합의는 mobile/FIREBASE_ANDROID_SETUP.md를 따른다.
+
+### 2026-10-11 EAS 조직 연결
+
+Android 개발 빌드 프로젝트를 sungshin/capstone-mochi에 연결했다(projectId: 694b8d60-d14d-442e-b2ff-15c31d5450b7). development 키스토어 생성은 대화형 터미널 입력이 필요해 아직 완료되지 않았고 SHA-1은 미확인이다. 제공된 Firebase 파일의 패키지는 일치하지만 Google Web OAuth 설정이 없어 firebase:check는 실패한다. 상세 절차는 mobile/FIREBASE_ANDROID_SETUP.md를 참고한다. 실제 인증 연결·네이티브 빌드는 미완료이며 게임 데이터와 백엔드는 변경하지 않았다.
+
+### Android Google 로그인 (2026-10-11)
+
+mobile의 Android 전용 Firebase 인증 어댑터를 기존 로그인·로그아웃에 연결했다. 새 google-services.json 검사 통과, EAS development 환경에 비밀 파일 변수로 제공. OAuth ID는 native 설정에서 읽으며 토큰은 Firebase가 관리한다. 취소·중복 입력·실패·재시도·세션 복원 검증 9개 포함 모바일 테스트 50개, 타입검사·수정 파일 ESLint 통과. 개발 APK 빌드와 실기기 인증 검증은 별도로 구분한다. 웹/iOS/카카오 인증과 게임 서버 동기화는 미연결, 게임 저장은 기존 기기 저장소 그대로이며 게스트/계정 데이터를 임의 병합하지 않는다. `npm run start:dev`로 development APK와 Metro를 연결한다.
+
+Android development EAS 빌드: https://expo.dev/accounts/sungshin/projects/capstone-mochi/builds/d07c38b1-8e68-47f6-96d9-e3413a24626e . 실제 원격 키스토어 Build Credentials JlS2DuEJ6M(default)를 사용해 제출됐으며 현재 빌드 결과 확인 중이다. 개발 APK는 설치 후 `npm run start:dev`로 최신 Metro 코드를 실행한다. 로컬 Android Hermes 번들 생성 통과. 실기기 Google 계정 선택·인증·재시작 복원은 아직 확인하지 않았다.
+
+### 현재 모바일 인증·사진 미션 (2026-10-12)
+mobile Google 인증은 Supabase 브라우저 OAuth/PKCE로 전환했다. Firebase 로컬 의존성·플러그인만 제거했고 원격 Firebase·Google 프로젝트와 서명 키는 유지한다. URL/publishable key는 EXPO_PUBLIC 환경 변수, 세션은 SecureStore이며 게임 AsyncStorage는 그대로다. 카카오/Apple와 게임 서버 동기화는 미연결. iOS 빌드 준비·현재 진행·사용자 직접 조작·재개 명령은 [SUPABASE_IOS_SETUP.md](../mobile/SUPABASE_IOS_SETUP.md)에 기록한다.
+음악/볼륨 UI 제거, 사진 선택·촬영 미션과 일기 사진첩, 퀘스트/홈/상점 하단바, 간결한 6개 완료 요약을 웹·모바일에 적용했다. 웹 IndexedDB/앱 document 파일 + 기존 게임 metadata 저장; 사진 원본은 JSON 백업으로 타 기기에 전송되지 않는다. 기존 자산/기록 보존. Edge 작은 화면/저장 실패 재시도/앨범 복원 검증 및 웹 build·Android export 통과. 실제 카메라/권한은 미확인.

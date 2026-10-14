@@ -1,3 +1,5 @@
+> 현재 모바일 인증: 2026-10-12 Supabase Google 브라우저 OAuth/PKCE로 전환. mobile/SUPABASE_IOS_SETUP.md를 따른다. Firebase는 이전 준비 이력이며 frontend 웹은 기존 미연결 상태를 유지한다.
+
 # 로그인 연결 준비
 
 최종 수정: 2026-10-09
@@ -31,3 +33,6 @@ OAuth 로그인·가입·리다이렉트·세션 갱신은 실제 설정과 서�
 - 임시 Edge에서 360/390/430px와 360×480px 화면, 공식 PNG 로딩, 미연결 버튼 재시도, 로그인 화면의 게임 저장 부작용 없음, 개발용 게임 진입 확인. `artifacts/ui-review/login-*.png` 캡처.
 - 기존 UI 회귀 검사 통과: 6개 미션, 일기 초안·삭제/재작성 중복 방지, 방명록 저장 실패/성공, 구매·착용·새로고침, 출석 중복 방지와 모바일 단일 스크롤.
 - 배포 웹 번들에는 개발용 게임 미리보기 문구가 없다. 실제 OAuth·신규 가입·실제 계정 세션 복원은 미연결이며 실제 iPhone/Android의 안전 영역과 화면은 미확인이다.
+
+## 2026-10-11 Android 인증 방향 확정
+mobile/은 React Native Firebase + Google native 로그인으로 진행한다. Android 식별자 io.github.alicena2ppn2.mymochi와 개발용 빌드 사전 설정을 준비했고, 실제 Firebase 프로젝트/설정 파일/서명과 로그인 어댑터 연결은 대기 중이다. 웹 인증은 그대로 미연결이다. 백엔드 문서의 Supabase 계획은 Firebase ID 토큰 검증/UID 매핑 계약으로 팀과 합의해야 하며 이번 작업에서 서버를 수정하지 않았다. 자세한 단계는 ../mobile/FIREBASE_ANDROID_SETUP.md를 참고한다.
