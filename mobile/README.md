@@ -4,6 +4,12 @@
 
 현재 모바일 프론트는 Expo SDK 57, React Native 0.86.3, React 19.2.3이다. `View`, `Text`, `Pressable`, `TextInput`, `ScrollView`, `Modal`과 StyleSheet로 화면을 구현한다. WebView로 Vite 화면을 감싼 앱이 아니다. 기존 웹은 `../frontend`에 보존하며, 게임 데이터/계산은 `../frontend/src/utils`를 공유한다.
 
+## 현재 백엔드 로그인 연결
+
+모바일 Supabase getSession은 검증된 user.id와 실제 access_token을 반환한다. POST /auth/supabase에 조회{}·등록{nickname}을 보내고 알려진 신규회원404만 닉네임 입력으로 전환한다. 성공한 backendUserId는 Supabase ID와 분리해 메모리에 저장하며 requestUser가 서버ID·현재 토큰을 사용한다. 연결 실패/닉네임 오류/재시도/복원/중복콜백/로그아웃·계정전환을 처리한다. 연결 성공 전 홈에 들어가지 않으며 토큰 추가 저장·로컬 기록 자동 병합은 없다.
+
+현재 실제 서버 주소가 미설정이고 체크아웃의 backend에는 해당API가 없다. 원격 backend-onboarding-survey의 계약으로 코드와 모의 검증을 진행했다. Vite 웹 소셜 인증은 기존처럼 미연결이며 공유 연결 구조/UI만 준비했다. [설정·검증·재개 문서](AUTH_BACKEND_SETUP.md)에서 EXPO_PUBLIC_API_URL/백엔드 배포와 실기기 확인 항목을 본다.
+
 ## 현재 퀘스트 추천과 수행 안내
 
 고정 출석/일기/방명록3개와 변동 활동3개를 유지한다. 세 가지 선택 질문은 건너뛸 수 있고 설정·기록/취향에서 같은 선호를 수정한다. 기존 preferences에 missions를 추가해 음악/음식과 자산을 보존한다. 익숙한 활동을 우선하며 정보가 없으면 기본 후보라고 안내한다. 같은 날짜 목록은 그대로, 제외 조건은 다음 배정과 명시적 교체에 반영한다. 같은 의미 그룹은 하루 중복하지 않으며 날짜 간 반복을 허용한다.
@@ -223,3 +229,9 @@ mobile Google 인증은 Supabase 브라우저 OAuth/PKCE로 전환했다. Fireba
 웹/모바일 방법 보기 및 수행 수준 UI 제거, 짧은 행동·완료 문구와 교류 예시 적용. 과거 조건/모드 및 자산을 보존하며 명시적 교체·입력·완료·피드백은 유지.
 
 카드 UI 검증(2026-10-14): 전체85테스트(기존 조건 보존/신규 시작 조건 고정5개 포함), 웹 build, 모바일 typecheck/lint와 iOS 로컬 export 통과. 별도 Edge360/390/430px·짧은 화면에서 방법/수준 버튼 없음, 카드 문구·대화 예시, 이전 light 조건, 재접속·연속 완료1회 지급, 교체 소진/명시적 다시 보기/저장 실패 재시도/서울 자정 확인. 실기기 iPhone/Android의 실제 화면·카메라·키보드는 이번 실행에서 미확인. 캡처: artifacts/ui-review/quest-compact-cards-*.png.
+
+### 2026-10-14 인증 연결 변경 이력
+
+Supabase 토큰 반환, 서버 계정 연결과 닉네임 UI, 계정별ID/지연응답 보호 구현. Android 이전어댑터 백업·Supabase공유. 기존 게임/화면/미션 작업을 보존하고 서버는 수정하지 않음.
+
+이번 인증 검증(2026-10-14): 전체101테스트(인증 연결14·SDK 세션10 포함), 웹 build, 모바일 typecheck/lint 및 iOS/Android/Expo Web 로컬 export 통과. 별도 Edge에서 모의 응답으로 기존회원/신규 닉네임/409입력 유지/연속 제출1회/네트워크 오류·재시도/로그아웃/별도ID와 로컬 기록 보존,360/390/430px 화면 확인. 실제 Google 인증·실제 서버 POST·실기기 로그인은 서버 주소 미설정으로 확인하지 않았다. 모의 캡처는 artifacts/ui-review/auth-nickname-mock-*.png 및 auth-backend-error-mock-430.png이다.
