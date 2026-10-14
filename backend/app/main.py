@@ -17,11 +17,12 @@ from datetime import date as Date, datetime, timedelta, timezone
 
 from pathlib import Path
 
-from fastapi import Depends, FastAPI, File, Header, HTTPException, Query, Request, UploadFile
+from fastapi import Depends, FastAPI, File, Header, HTTPException, Query, Request, Response, UploadFile
 from fastapi.responses import FileResponse, PlainTextResponse
 from fastapi.middleware.cors import CORSMiddleware
 from pydantic import BaseModel, Field
 
+from . import auth
 from . import crisis
 from . import db
 from . import diary as dy
@@ -30,6 +31,7 @@ from . import missions as ms
 from . import moderation
 from . import photo_meta
 from . import shop
+from . import survey as sv
 
 USUAL_STEPS_DAYS = 28   # 평소 걸음 = 최근 28일 걸음 중앙값
 
@@ -120,6 +122,20 @@ class UserIn(BaseModel):
     nickname: str = Field(..., description=f"닉네임 {NICKNAME_MIN}~{NICKNAME_MAX}자")
 
 
+class SupabaseLoginIn(BaseModel):
+    supabase_id: str | None = Field(None, description="개발·시연 모드에서만 사용 (서버에 SUPABASE_URL이 없을 때). 실제로는 Authorization 헤더의 토큰")
+    nickname: str | None = Field(None, description="처음 로그인일 때만: 이 닉네임으로 서버 사용자를 만든다")
+
+
+FEEDBACK_TEXT_MAX = 200
+
+
+class FeedbackIn(BaseModel):
+    mood: int | None = Field(None, ge=1, le=5, description="해 보니 어땠어? 1(힘들었어)~5(좋았어)")
+    text: str | None = Field(None, max_length=FEEDBACK_TEXT_MAX, description=f"소감 한 줄 ({FEEDBACK_TEXT_MAX}자까지)")
+    expected: int | None = Field(None, ge=1, le=5, description="하기 전 예상한 어색함 1~5 (선택, 나중에 씀)")
+
+
 class BuyIn(BaseModel):
     type: str = Field(..., description="character | outfit | decor")
     item_id: str
@@ -204,6 +220,14 @@ def welcome_back(conn, user_id: str, today: Date) -> dict | None:
             "xp_reset": -reset["xp"] if reset else 0, "message": message}
 
 
+LADDER_IDS = [m for track in ms.BY_STAGE.values() for ids in track.values() for m in ids]
+
+
+def ladder(conn, user_id: str) -> dict:
+    """단계 사다리: 움직이기·이어지기 지금 단계와 다음 단계까지 (완료 기록으로 계산)."""
+    return ms.ladder_progress(db.completion_history(conn, user_id, LADDER_IDS))
+
+
 def todays_missions(conn, user_id: str, today: Date) -> dict:
     """오늘의 미션. 처음 부르면 어제 걸음으로 골라 저장하고, 이후엔 저장된 걸 돌려준다."""
     saved = db.get_mission_day(conn, user_id, today.isoformat())
@@ -211,6 +235,7 @@ def todays_missions(conn, user_id: str, today: Date) -> dict:
         return saved
     comeback_reset(conn, user_id, today)        # 오늘의 미션을 저장하기 전에 (저장하면 '마지막으로 쓴 날'이 오늘이 됨)
     yesterday = (today - timedelta(days=1)).isoformat()
+    answers = (db.get_survey(conn, user_id) or {}).get("answers")
     picked = ms.pick_missions(
         user_id,
         today.isoformat(),
@@ -218,6 +243,9 @@ def todays_missions(conn, user_id: str, today: Date) -> dict:
         usual_steps=usual_steps(conn, user_id, today),
         recent=db.recent_mission_ids(conn, user_id, today.isoformat()),
         last_week_steps=db.steps_between(conn, user_id, (today - timedelta(days=7)).isoformat(), yesterday),
+        goes_out_often=sv.goes_out_often(answers),
+        stages={t: v["stage"] for t, v in ladder(conn, user_id).items()},
+        answers=answers,
     )
     db.save_mission_day(conn, user_id, picked)
     return picked
@@ -340,7 +368,8 @@ def with_names(conn, user_ids: list[str]) -> list[dict]:
 
 def with_status(conn, user_id: str, day_: dict) -> dict:
     done = db.completed_ids(conn, user_id, day_["date"])
-    missions = [{**m, "done": m["id"] in done} for m in day_["missions"]]
+    wrote = db.feedback_ids(conn, user_id, day_["date"])
+    missions = [{**m, "done": m["id"] in done, "feedback": m["id"] in wrote} for m in day_["missions"]]
     return {**day_, "missions": missions, "done_count": sum(m["done"] for m in missions)}
 
 
@@ -355,6 +384,23 @@ def health():
 def create_user(body: UserIn, conn=Depends(get_conn)):
     nickname = clean_nickname(conn, body.nickname)
     return db.create_user(conn, uuid.uuid4().hex, nickname)
+
+
+@app.post("/auth/supabase", summary="Supabase 로그인 → 서버 사용자. 처음이면 nickname으로 만들고(201), 닉네임이 없으면 404 → 앱이 닉네임 화면")
+def login_supabase(body: SupabaseLoginIn, response: Response, authorization: str | None = Header(None), conn=Depends(get_conn)):
+    try:
+        supabase_id = auth.supabase_user_id(authorization, body.supabase_id)
+    except auth.AuthError as e:
+        raise HTTPException(e.status, e.message)
+    user = db.user_by_supabase(conn, supabase_id)
+    if user:
+        return {"user": user, "created": False}
+    if not body.nickname:
+        raise HTTPException(404, "처음 오셨네요. 닉네임을 정해 주세요.")
+    user = db.create_user(conn, uuid.uuid4().hex, clean_nickname(conn, body.nickname))
+    db.link_supabase(conn, user["id"], supabase_id)
+    response.status_code = 201
+    return {"user": user, "created": True}
 
 
 @app.get("/nicknames/check", summary="닉네임 쓸 수 있는지 확인")
@@ -388,6 +434,34 @@ def delete_user(user_id: str, conn=Depends(get_conn)):
     for filename in db.delete_user(conn, user_id):
         (upload_dir() / filename).unlink(missing_ok=True)
     return {"deleted": user_id}
+
+
+@app.get("/survey/questions", summary="처음 설문 질문과 고를 수 있는 답 (앱은 이 순서대로 보여 주면 됨)")
+def survey_questions():
+    return {"questions": sv.QUESTIONS}
+
+
+class SurveyIn(BaseModel):
+    answers: dict = Field(..., description='질문 id → 답. 하나 고르기는 "student", 여러 개는 ["game", "music"]. 건너뛴 질문은 빼거나 null')
+
+
+@app.put("/users/{user_id}/survey", summary="처음 설문 답 저장 (다시 보내면 통째로 바뀜). 모든 질문은 건너뛸 수 있음")
+def put_survey(user_id: str, body: SurveyIn, conn=Depends(get_conn)):
+    if db.get_user(conn, user_id) is None:
+        raise HTTPException(404, "없는 사용자입니다.")
+    try:
+        answers = sv.clean(body.answers)
+    except ValueError as e:
+        raise HTTPException(422, str(e))
+    db.set_survey(conn, user_id, answers)
+    return {"answers": answers, "done": True}
+
+
+@app.get("/users/{user_id}/survey", summary="내 설문 답 (done=false면 아직 안 함 → 앱이 설문 화면을 띄우면 됨)")
+def get_survey(user_id: str, conn=Depends(get_conn)):
+    saved = db.get_survey(conn, user_id)
+    return {"answers": saved["answers"] if saved else {}, "done": saved is not None,
+            "updated_at": saved["updated_at"] if saved else None}
 
 
 @app.post("/users/{user_id}/steps", summary="하루 걸음 수 올리기 (앱 만보기 → 서버)")
@@ -431,9 +505,15 @@ def get_home(user_id: str, date: str | None = DateQuery, conn=Depends(get_conn))
     }
 
 
-@app.get("/users/{user_id}/missions/today", summary="오늘의 미션: 매일 고정(출석·걸음·지난주보다·일기·방문·방명록) + 매일 바뀌는 3개")
+@app.get("/users/{user_id}/missions/today",
+         summary="오늘의 미션: 매일 고정(출석·걸음·지난주보다·일기·방문·방명록) + 매일 바뀌는 3개(움직이기·집·이어지기) + 단계 사다리")
 def get_missions_today(user_id: str, date: str | None = DateQuery, conn=Depends(get_conn)):
-    return with_status(conn, user_id, todays_missions(conn, user_id, day(date)))
+    return {**with_status(conn, user_id, todays_missions(conn, user_id, day(date))), "ladder": ladder(conn, user_id)}
+
+
+@app.get("/users/{user_id}/ladder", summary="단계 사다리: 움직이기·이어지기 지금 단계(1 혼자 · 2 한 명 · 3 여럿)와 다음 단계까지 남은 횟수")
+def get_ladder(user_id: str, conn=Depends(get_conn)):
+    return ladder(conn, user_id)
 
 
 @app.post("/users/{user_id}/missions/{mission_id}/complete", summary="미션 완료 제출 → 판정 → 코인 지급")
@@ -479,8 +559,46 @@ def complete_mission(user_id: str, mission_id: str, body: CompleteIn, date: str 
         db.save_diary(conn, user_id, today.isoformat(), submission["text"].strip(), submission["topic_id"], None, [])
     if mission["kind"] == "photo":
         db.tag_photos(conn, user_id, submission["photos"], mission_id, today.isoformat())   # 사진첩에 미션 이름으로
+    before = ladder(conn, user_id)
     settle = finish_and_pay(conn, user_id, today, day_, mission_id, submission)
-    return {"mission_id": mission_id, **rewards(conn, user_id, settle), "care": care}
+    after = ladder(conn, user_id)
+    stage_up = [t for t in after if after[t]["stage"] > before[t]["stage"]]   # 이번 완료로 다음 단계가 열린 갈래
+    return {"mission_id": mission_id, **rewards(conn, user_id, settle), "care": care, "ladder": after, "stage_up": stage_up}
+
+
+# --- 미션 소감 ---------------------------------------------------------------------
+
+@app.put("/users/{user_id}/missions/{mission_id}/feedback",
+         summary="미션 소감 쓰기·고치기 (그날 완료한 미션만). 기분(1~5)이나 한 줄 중 하나는 있어야 함. 보상 없음")
+def put_feedback(user_id: str, mission_id: str, body: FeedbackIn, date: str | None = DateQuery, conn=Depends(get_conn)):
+    today = day(date)
+    if mission_id not in db.completed_ids(conn, user_id, today.isoformat()):
+        raise HTTPException(404, "그날 완료한 미션에만 소감을 남길 수 있어요.")
+    text = (body.text or "").strip() or None
+    if body.mood is None and text is None:
+        raise HTTPException(422, "기분을 고르거나 한 줄을 적어 주세요.")
+    care = screen_text(conn, user_id, today, f"feedback:{mission_id}", text) if text else None
+    db.set_feedback(conn, user_id, today.isoformat(), mission_id, body.mood, text, body.expected)
+    return {"mission_id": mission_id, "date": today.isoformat(), "mood": body.mood, "text": text,
+            "expected": body.expected, "care": care}
+
+
+@app.get("/users/{user_id}/feedback", summary="내 미션 소감 목록 (기간, 최신순)")
+def list_feedback(user_id: str, start: str = Query(..., alias="from"), end: str = Query(..., alias="to"), conn=Depends(get_conn)):
+    rows = db.feedback_between(conn, user_id, day(start).isoformat(), day(end).isoformat())
+    return {"feedback": [{**r, "title": ms.CATALOG[r["mission_id"]].title if r["mission_id"] in ms.CATALOG else None}
+                         for r in rows]}
+
+
+@app.get("/admin/feedback/stats", summary="[관리자] 미션별 소감 수·평균 기분 (모든 사용자) — X-Admin-Token 필요")
+def admin_feedback_stats(x_admin_token: str | None = Header(None), conn=Depends(get_conn)):
+    token = os.environ.get("ADMIN_TOKEN")
+    if not token:
+        raise HTTPException(404, "Not Found")
+    if x_admin_token != token:
+        raise HTTPException(403, "권한이 없습니다.")
+    return {"missions": [{**r, "title": ms.CATALOG[r["mission_id"]].title if r["mission_id"] in ms.CATALOG else None}
+                         for r in db.feedback_stats(conn)]}
 
 
 # --- 주간 미션 ---------------------------------------------------------------------
@@ -540,63 +658,6 @@ def complete_weekly(user_id: str, quest_id: str, body: CompleteIn, date: str | N
         "earned": earned,
         "earned_total": sum(e["coins"] for e in earned),
         "earned_xp": sum(e["xp"] for e in earned),
-        "coins": db.coin_balance(conn, user_id),
-        "level": level,
-        "leveled_up": level["level"] > before,
-        "new_items": grant_free_items(conn, user_id),
-    }
-
-
-# --- 월간 목표 ---------------------------------------------------------------------
-
-def monthly_progress(conn, user_id: str, goal: dict, start: Date, end: Date) -> int:
-    s, e = start.isoformat(), end.isoformat()
-    if goal["count"] == "diary_days":
-        return db.diary_days(conn, user_id, s, e)
-    if goal["count"] == "outdoor_missions":
-        missions = [m for m in db.completions_between(conn, user_id, s, e) if m in ms.CATALOG and ms.CATALOG[m].outdoor]
-        walks = db.weekly_count_between(conn, user_id, "nature_walk", s, e)
-        return len(missions) + walks
-    raise ValueError(goal["count"])
-
-
-def monthly_status(conn, user_id: str, today: Date, goal: dict) -> dict:
-    start, end = ms.month_range(today)
-    progress = monthly_progress(conn, user_id, goal, start, end)
-    claimed = db.paid_ever(conn, user_id, f"monthly:{goal['id']}:{start.isoformat()[:7]}")
-    return {**{k: v for k, v in goal.items() if k != "count"}, "progress": min(progress, goal["target"]),
-            "done": progress >= goal["target"], "claimed": claimed}
-
-
-@app.get("/users/{user_id}/monthly", summary="이번 달 목표 (바깥 미션 8번, 일기 10일) — 기록으로 자동 집계")
-def get_monthly(user_id: str, date: str | None = DateQuery, conn=Depends(get_conn)):
-    today = day(date)
-    start, end = ms.month_range(today)
-    return {"month": start.isoformat()[:7], "month_start": start.isoformat(), "month_end": end.isoformat(),
-            "goals": [monthly_status(conn, user_id, today, g) for g in ms.MONTHLY_GOALS.values()]}
-
-
-@app.post("/users/{user_id}/monthly/{goal_id}/claim", summary="월간 목표 보상 받기 (다 채웠을 때 한 번)")
-def claim_monthly(user_id: str, goal_id: str, date: str | None = DateQuery, conn=Depends(get_conn)):
-    today = day(date)
-    goal = ms.MONTHLY_GOALS.get(goal_id)
-    if goal is None:
-        raise HTTPException(404, f"월간 목표가 아닙니다: {goal_id}")
-    status = monthly_status(conn, user_id, today, goal)
-    if status["claimed"]:
-        raise HTTPException(409, "이번 달 보상은 이미 받았어요.")
-    if not status["done"]:
-        raise HTTPException(422, f"아직이에요. {status['progress']}/{goal['target']}")
-    start = ms.month_range(today)[0].isoformat()
-    before = ms.level_from_xp(db.xp_total(conn, user_id))["level"]
-    earned = [{"id": f"monthly:{goal_id}:{start[:7]}", "coins": goal["coins"], "xp": goal["xp"]}]
-    db.add_coins(conn, user_id, start, earned)                  # 그 달 1일 날짜로 기록
-    level = ms.level_from_xp(db.xp_total(conn, user_id))
-    return {
-        "goal": monthly_status(conn, user_id, today, goal),
-        "earned": earned,
-        "earned_total": goal["coins"],
-        "earned_xp": goal["xp"],
         "coins": db.coin_balance(conn, user_id),
         "level": level,
         "leveled_up": level["level"] > before,
