@@ -1,3 +1,4 @@
+import { saveMissionPreferences, selectMissionMode } from './utils/missionGuidance.js';
 import BottomNav from './components/BottomNav.jsx';
 import { completePhotoMission } from './utils/missionPhotos.js';
 import UiIcon from './components/UiIcon.jsx';
@@ -6,7 +7,7 @@ import RewardPanel from './components/RewardPanel.jsx';
 import { newAttendanceReward } from './utils/rewardFeedback.js';
 import { useCallback, useEffect, useRef, useState } from 'react';
 import Diary from './screens/Diary.jsx';
-import { ensureDailyMissions, startDailyMission, finishDailyMission, pauseDailyMission, replaceDailyMission, saveDiaryMission, deleteDiaryMission, recordRoutine } from './utils/dailyMissions.js';
+import { dailyActivities, ensureDailyMissions, startDailyMission, finishDailyMission, pauseDailyMission, replaceDailyMission, saveDiaryMission, deleteDiaryMission, recordRoutine } from './utils/dailyMissions.js';
 import Home from './screens/Home.jsx';
 import Visit from './screens/Visit.jsx';
 import Quest from './screens/Quest.jsx';
@@ -119,7 +120,7 @@ export default function App() {
       <div className="phone-page" hidden={screen !== 'home'}><Home game={game} day={day} active={screen === 'home'} reactionId={potatoReaction} onReactionConsumed={consumePotatoReaction} petName={petName} petColor={petColor} onQuest={openQuest} onDiary={() => openDiary()} onGuestbook={() => setScreen('guest')} onVisit={() => setScreen('visit')} onSettings={() => setScreen('settings')} onShop={() => setScreen('shop')} coins={game.coins} outfit={outfit} decor={game.decor ?? {}} /></div>
       {screen === 'diary' && <Diary game={game} day={day} initialDate={diaryDate} onSave={saveDiary} onDelete={deleteDiary} onDraft={saveDraft} onContinue={continueDraft} onHome={() => setScreen('home')} />}
       {screen === 'visit' && <Visit onPosted={date => commitGame(value => recordRoutine(value, 'day-guestbook', date))} visitorName={petName} visitorVariant={game.character ?? 'potato'} onBack={() => setScreen('home')} />}
-      {screen === 'quest' && <Quest game={game} focusId={questFocus} onDiary={openDiary} onVisit={() => setScreen('visit')} onAttendance={() => document.querySelector('.attendance-open')?.click()}
+      {screen === 'quest' && <Quest onPreferences={answers => commitGame(value => saveMissionPreferences(value,answers))} onMode={(id,date,mode) => commitGame(value => selectMissionMode(value,id,date,mode,dailyActivities(value,date)))} game={game} focusId={questFocus} onDiary={openDiary} onVisit={() => setScreen('visit')} onAttendance={() => document.querySelector('.attendance-open')?.click()}
         onPrepare={prepareChallenges}
         onReplace={(id, date, reason) => setGame(value => replaceDailyMission(value, id, date, reason))}
         onPause={(id, date, reason) => setGame(value => pauseDailyMission(value, id, date, reason))}
@@ -127,7 +128,7 @@ export default function App() {
         onProfile={(field, text, key) => setGame(value => field === 'choice' ? ({ ...value, challengeChoices: { ...value.challengeChoices, [key]: text } }) : ({ ...value, preferences: { ...value.preferences, [field]: text.slice(0, 80) } }))}
         onGoal={id => setGame(value => claimGoal(value, id))} onStart={id => setGame(value => startDailyMission(value, id))} onPhotoSave={(id, date, photo) => commitGame(value => completePhotoMission(value, id, date, photo))} onComplete={(id, answer) => setGame((value) => finishDailyMission(value, id, new Date()))} petColor={petColor} onShop={() => setScreen('shop')} onSettings={() => setScreen('settings')} onHome={() => setScreen('home')} />}
       {screen === 'guest' && <Guestbook petName={petName} level={level} petColor={petColor} onShop={() => setScreen('shop')} onSettings={() => setScreen('settings')} onHome={() => setScreen('home')} />}
-      <div className="phone-page" hidden={screen !== 'settings'}><Settings key={game.character} petColor={petColor} petName={petName} onPetName={rename} onBack={() => setScreen('home')} /></div>
+      <div className="phone-page" hidden={screen !== 'settings'}><Settings preferences={game.preferences} onPreferences={answers => commitGame(value => saveMissionPreferences(value,answers))} key={game.character} petColor={petColor} petName={petName} onPetName={rename} onBack={() => setScreen('home')} /></div>
       {screen === 'shop' && <Shop onBuyDecor={id => setGame(value => buyDecor(value, id))} onEquipDecor={(slot, id) => setGame(value => equipDecor(value, slot, id))} game={game} level={level} onBuyCharacter={id => commitGame(value => buyCharacter(value, id))} onEquipCharacter={(id) => setGame((value) => equipCharacter(value, id))} petColor={petColor} coins={game.coins} owned={ownedClothes} outfit={wardrobe.outfit} onBuy={buy} onWear={wear} onBack={() => setScreen('home')} />}
       </div>
       <BottomNav screen={screen} onNavigate={destination => { if(destination==='quest') openQuest(); else setScreen(destination); }}/>
