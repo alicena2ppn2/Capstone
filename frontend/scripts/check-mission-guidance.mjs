@@ -36,7 +36,7 @@ try {
  await send('Page.addScriptToEvaluateOnNewDocument',{source:`(()=>{const RealDate=Date;window.Date=class extends RealDate{constructor(...args){super(...(args.length?args:['2026-10-15T03:00:00Z']));}static now(){return new RealDate('2026-10-15T03:00:00Z').getTime();}};})()`});
  const clearPopup=()=>evalPage("document.querySelector('.attendance-close')?.click()");
  await nav('?preview=game');await clearPopup();
- const seed={...initialGame(),xp:210,coins:450,preferences:{music:'재즈',food:'밥'},dailyMissions:{'2026-10-15':{version:1,activities:[{id:'day-tidy',slot:0,reason:'검토용'},{id:'day-listen',slot:1,reason:'취향'},{id:'day-checkin',slot:2,reason:'내 선택'}],paused:[],replacements:[]}}};
+ const seed={...initialGame(),xp:210,coins:450,preferences:{music:'재즈',food:'밥'},missionModes:{'2026-10-15:day-tidy':'light'},dailyMissions:{'2026-10-15':{version:1,activities:[{id:'day-tidy',slot:0,reason:'검토용'},{id:'day-listen',slot:1,reason:'취향'},{id:'day-checkin',slot:2,reason:'내 선택'}],paused:[],replacements:[]}}};
  await evalPage(`localStorage.setItem('mochi.game.v1',${JSON.stringify(JSON.stringify(seed))})`);
  await nav('?preview=game');await clearPopup();await text('오늘의 도전');
  assert.equal(await evalPage("document.querySelectorAll('[data-quest-id]').length"),6);
@@ -45,15 +45,12 @@ try {
  for(const width of [360,390,430]){
    await send('Emulation.setDeviceMetricsOverride',{width,height:740,deviceScaleFactor:1,mobile:true});await delay(300);
    assert(await evalPage("document.documentElement.scrollWidth<=innerWidth"));
-   await screenshot('mission-guidance-list-'+width);
-   await evalPage("[...document.querySelectorAll('[data-quest-id=day-tidy] button')].find(b=>b.textContent==='방법 보기').click()");await delay(150);
-   await text('더 가볍게');
-   assert(await evalPage("document.querySelector('[role=dialog]').textContent.includes('물건 하나를 제자리에')"));
-   await screenshot('mission-guidance-method-'+width);
-   await click('.quest-sheet-close');
+   assert(!await evalPage("[...document.querySelectorAll('button')].some(b=>['방법 보기','더 가볍게','조금 더 해볼래요'].includes(b.textContent))"));
+   assert(await evalPage("document.querySelector('[data-quest-id=day-tidy]').textContent.includes('물건 하나를 제자리에')"));
+   await screenshot('quest-compact-list-'+width);
+   await evalPage("document.querySelector('.daily-discoveries').scrollIntoView({block:'start'})");await delay(120);await screenshot('quest-compact-cards-'+width);
  }
- await evalPage("[...document.querySelectorAll('[data-quest-id=day-checkin] button')].find(b=>b.textContent==='방법 보기').click()");await delay(150);
- assert(await evalPage("document.querySelector('[role=dialog]').textContent.includes('문득 생각나서')"));await click('.quest-sheet-close');
+ assert(await evalPage("document.querySelector('[data-quest-id=day-checkin]').textContent.includes('잘 지내?')"));
  await evalPage("[...document.querySelectorAll('[data-quest-id=day-tidy] button')].find(b=>b.textContent==='도전하기').click()");await delay(150);
  const before=await evalPage("JSON.parse(localStorage.getItem('mochi.game.v1')).coins");
  await evalPage("(()=>{const b=[...document.querySelectorAll('[data-quest-id=day-tidy] button')].find(b=>b.textContent==='해냈어요!');b.click();b.click()})()");await delay(300);
@@ -61,10 +58,10 @@ try {
  assert.equal(await evalPage("JSON.parse(localStorage.getItem('mochi.game.v1')).activityRecords['2026-10-15:day-tidy'].mode"),'light');
  await nav('?preview=game');await clearPopup();await text('오늘의 도전');
  assert.equal(await evalPage("JSON.parse(localStorage.getItem('mochi.game.v1')).coins"),before+25);
- await send('Emulation.setDeviceMetricsOverride',{width:360,height:540,deviceScaleFactor:1,mobile:true});await screenshot('mission-guidance-short');
+ await send('Emulation.setDeviceMetricsOverride',{width:360,height:540,deviceScaleFactor:1,mobile:true});await screenshot('quest-compact-short');
  await text('기록·취향');await text('음악');await text('연락·대화');await text('선호 저장');await delay(250);
  assert(await evalPage("JSON.parse(localStorage.getItem('mochi.game.v1')).preferences.missions.exclude.includes('contact')"));
  assert.equal(await evalPage("JSON.parse(localStorage.getItem('mochi.game.v1')).preferences.music"),'재즈');
  await text('오늘');assert(await evalPage("!!document.querySelector('[data-quest-id=day-checkin]')"));
- console.log('PASS web: 360/390/430 list/details, short height, optional questions, conversation example, mode criteria, double-click one payment, reload and today preservation.');
+ console.log('PASS web: 360/390/430 compact cards, no method/level UI, short height, optional questions, inline conversation, legacy light condition, double-click one payment, reload and today preservation.');
 }finally{socket?.close();browser.kill();}

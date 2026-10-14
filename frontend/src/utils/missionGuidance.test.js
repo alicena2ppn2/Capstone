@@ -3,7 +3,7 @@ import assert from 'node:assert/strict';
 import { initialGame } from './game.js';
 import { DAILY_CHALLENGES } from './challenges.js';
 import { ensureDailyMissions, dailyActivities, startDailyMission, finishDailyMission, replaceDailyMission, recordRoutine } from './dailyMissions.js';
-import { saveMissionPreferences, recommendMissions, activityTags, selectMissionMode, missionGuide } from './missionGuidance.js';
+import { saveMissionPreferences, recommendMissions, activityTags } from './missionGuidance.js';
 const day='2026-10-15', now=new Date('2026-10-15T03:00:00Z');
 test('skipping preserves old tastes and assets; unknown basics never claim familiarity',()=>{
  const old={...initialGame(),preferences:{music:'재즈',food:'밥'},coins:321};
@@ -40,27 +40,27 @@ test('today plan stable after preferences, guestbook and reload; tomorrow uses e
  const tomorrow=ensureDailyMissions(reloaded,'2026-10-16');
  assert(dailyActivities(tomorrow,'2026-10-16').every(q=>!activityTags(q).includes('movement')&&!q.photo));
 });
-test('hard feedback favors other actions or light alternative on next date, never mutates today',()=>{
+test('hard feedback favors other actions without new level selections or today changes',()=>{
  let g=initialGame();g.activityRecords={'2026-10-14:day-tidy':{id:'day-tidy',day:'2026-10-14'}};g.feedback={'2026-10-14:day-tidy':'hard'};
  const qs=recommendMissions(g,DAILY_CHALLENGES.filter(q=>q.id==='day-tidy'),day,0);
- assert.equal(qs[0].suggestLight,true);
+ assert(!qs[0].suggestLight);
  const alternatives=recommendMissions(g,DAILY_CHALLENGES.filter(q=>!q.input),day,0);
  assert(alternatives.every(q=>q.activityGroup!=='tidy'));
 });
 test('alternative and extension retain ID/slot, record condition, reward once and lock after completion',()=>{
  let g=ensureDailyMissions(initialGame(),day);
- const q=dailyActivities(g,day).find(q=>missionGuide(q).light&&!q.photo&&!q.choices);
+ const q=dailyActivities(g,day).find(q=>!q.photo&&!q.choices);
  assert(q);const coins=g.coins;
- g=selectMissionMode(g,q.id,day,'light',dailyActivities(g,day));
+ g={...g,missionModes:{[`${day}:${q.id}`]:'light'}};
  assert.equal(g.coins,coins);g=startDailyMission(g,q.id,now);g=finishDailyMission(g,q.id,now);
  assert.equal(g.coins,coins+25);assert.equal(g.activityRecords[`${day}:${q.id}`].mode,'light');
  assert(g.activityRecords[`${day}:${q.id}`].criterion);
  assert.equal(finishDailyMission(g,q.id,now),g);assert.equal(replaceDailyMission(g,q.id,day),g);
- assert.equal(selectMissionMode(g,q.id,day,'extend',dailyActivities(g,day)),g);
+
 });
-test('explicit extension alone never pays or adds a slot',()=>{
+test('legacy extension record never pays or adds a slot',()=>{
  let g=ensureDailyMissions(initialGame(),day);const q=dailyActivities(g,day).find(q=>!q.photo&&!q.choices);
- const next=selectMissionMode(g,q.id,day,'extend',dailyActivities(g,day));
+ const next=ensureDailyMissions({...g,missionModes:{[`${day}:${q.id}`]:'extend'}},day);
  assert.equal(next.xp,g.xp);assert.equal(next.coins,g.coins);assert.equal(dailyActivities(next,day).length,3);
  assert.equal(next.missionModes[`${day}:${q.id}`],'extend');
 });
