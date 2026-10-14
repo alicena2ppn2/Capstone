@@ -103,7 +103,7 @@ def test_ladder_progress_goes_up_and_stops_at_3():
     p = ms.ladder_progress([first] * 3 + [second] * 3 + [third] * 9)
     assert (p["move"]["stage"], p["move"]["done"], p["move"]["top"]) == (3, 3, True)
     # 다른 갈래·사다리 밖 미션은 안 셈
-    assert ms.ladder_progress(["meal_photo", "new_road"] * 5)["move"]["stage"] == 1
+    assert ms.ladder_progress(["cook", "new_road"] * 5)["move"]["stage"] == 1
 
 
 def test_same_day_same_missions_and_days_vary():
@@ -140,8 +140,8 @@ def test_load_catalog_rejects_duplicates(tmp_path):
     ("walk", {"steps": 7999}, False),
     ("diary", {"text": "산책했다"}, True),
     ("diary", {"text": "   "}, False),
-    ("meal_photo", {"photos": ["p1"]}, True),
-    ("meal_photo", {}, False),
+    ("cook", {"photos": ["p1"]}, True),
+    ("cook", {}, False),
     ("movies", {"items": ["A", "B", "C"]}, True),
     ("movies", {"items": ["A", "A", "B"]}, False),   # 중복은 하나로
     ("local_food", {"items": ["A", "", "B"]}, False),
@@ -156,14 +156,14 @@ def test_rewards_match_frontend_day_quests():
     # frontend/src/utils/game.js: 오늘 퀘스트 100 XP · 30 코인, 기록하기 40 코인
     # 밖에 나가는 미션은 코인 50 (외출을 이끌기 위해 집 미션보다 많이)
     assert (ms.CATALOG["sky_photo"].coins, ms.CATALOG["sky_photo"].xp) == (50, 100)
-    assert (ms.CATALOG["meal_photo"].coins, ms.CATALOG["meal_photo"].xp) == (30, 100)
+    assert (ms.CATALOG["cook"].coins, ms.CATALOG["cook"].xp) == (30, 100)
     assert (ms.CATALOG["diary"].coins, ms.CATALOG["diary"].xp) == (40, 100)
     assert (ms.CATALOG["guestbook"].coins, ms.CATALOG["guestbook"].xp) == (30, 100)
     assert ms.CATALOG["walk"].to_dict()["coins"] == 50
 
 
 def today_missions():
-    return [ms.CATALOG[m].to_dict() for m in ("sky_photo", "meal_photo", "movies")]
+    return [ms.CATALOG[m].to_dict() for m in ("sky_photo", "cook", "movies")]
 
 
 def test_settle_partial():
@@ -173,18 +173,18 @@ def test_settle_partial():
 
 def test_settle_all_done_has_no_coin_bonus():
     # 3개 완료 보상은 코인이 아니라 특별 캐릭터 (상점 기능에서 지급)
-    r = ms.settle_coins(today_missions(), {"sky_photo", "meal_photo", "movies"})
+    r = ms.settle_coins(today_missions(), {"sky_photo", "cook", "movies"})
     assert r["all_done"]
     assert r["total"] == 50 + 30 + 30                 # 밖(하늘) 50 + 집 30 + 집 30
-    assert [i["id"] for i in r["items"]] == ["sky_photo", "meal_photo", "movies"]
+    assert [i["id"] for i in r["items"]] == ["sky_photo", "cook", "movies"]
 
 
 def test_settle_does_not_pay_twice():
-    r = ms.settle_coins(today_missions(), {"sky_photo", "meal_photo", "movies"},
-                        already_paid={"sky_photo", "meal_photo"})
+    r = ms.settle_coins(today_missions(), {"sky_photo", "cook", "movies"},
+                        already_paid={"sky_photo", "cook"})
     assert [i["id"] for i in r["items"]] == ["movies"]
-    r = ms.settle_coins(today_missions(), {"sky_photo", "meal_photo", "movies"},
-                        already_paid={"sky_photo", "meal_photo", "movies"})
+    r = ms.settle_coins(today_missions(), {"sky_photo", "cook", "movies"},
+                        already_paid={"sky_photo", "cook", "movies"})
     assert r["total"] == 0
 
 
@@ -297,8 +297,8 @@ def test_attendance_every_day_with_small_reward():
 
 def test_all_done_does_not_need_attendance():
     missions = [ms.CATALOG["attendance"].to_dict()] + today_missions()
-    assert ms.settle_coins(missions, {"sky_photo", "meal_photo", "movies"})["all_done"]
-    assert not ms.settle_coins(missions, {"attendance", "sky_photo", "meal_photo"})["all_done"]
+    assert ms.settle_coins(missions, {"sky_photo", "cook", "movies"})["all_done"]
+    assert not ms.settle_coins(missions, {"attendance", "sky_photo", "cook"})["all_done"]
 
 
 @pytest.mark.parametrize("xp, level, in_level, to_next", [

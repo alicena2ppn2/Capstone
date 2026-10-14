@@ -369,8 +369,11 @@ def with_names(conn, user_ids: list[str]) -> list[dict]:
 def with_status(conn, user_id: str, day_: dict) -> dict:
     done = db.completed_ids(conn, user_id, day_["date"])
     wrote = db.feedback_ids(conn, user_id, day_["date"])
-    missions = [{**m, "done": m["id"] in done, "feedback": m["id"] in wrote} for m in day_["missions"]]
-    return {**day_, "missions": missions, "done_count": sum(m["done"] for m in missions)}
+    missions = [{**m, "done": m["id"] in done, "feedback": m["id"] in wrote,
+                 "rerollable": ms.slot_of(m) is not None and m["id"] not in done} for m in day_["missions"]]
+    return {**{k: v for k, v in day_.items() if k != "rerolls"}, "missions": missions,
+            "done_count": sum(m["done"] for m in missions),
+            "rerolls_left": max(ms.REROLLS_PER_DAY - day_.get("rerolls", 0), 0)}
 
 
 # --- 라우트 ------------------------------------------------------------------------
@@ -509,6 +512,37 @@ def get_home(user_id: str, date: str | None = DateQuery, conn=Depends(get_conn))
          summary="오늘의 미션: 매일 고정(출석·걸음·지난주보다·일기·방문·방명록) + 매일 바뀌는 3개(움직이기·집·이어지기) + 단계 사다리")
 def get_missions_today(user_id: str, date: str | None = DateQuery, conn=Depends(get_conn)):
     return {**with_status(conn, user_id, todays_missions(conn, user_id, day(date))), "ladder": ladder(conn, user_id)}
+
+
+@app.post("/users/{user_id}/missions/{mission_id}/reroll",
+          summary=f"미션 새로고침 — 매일 바뀌는 미션을 같은 칸·같은 단계의 다른 미션으로 (하루 {ms.REROLLS_PER_DAY}번, 완료한 미션은 안 됨)")
+def reroll_mission(user_id: str, mission_id: str, date: str | None = DateQuery, conn=Depends(get_conn)):
+    today = day(date)
+    day_ = todays_missions(conn, user_id, today)
+    mission = next((m for m in day_["missions"] if m["id"] == mission_id), None)
+    if mission is None:
+        raise HTTPException(404, f"오늘의 미션이 아닙니다: {mission_id}")
+    if ms.slot_of(mission) is None:
+        raise HTTPException(422, "매일 하는 미션은 바꿀 수 없어요.")
+    if mission_id in db.completed_ids(conn, user_id, today.isoformat()):
+        raise HTTPException(409, "이미 끝낸 미션이에요.")
+    used = day_.get("rerolls", 0)
+    if used >= ms.REROLLS_PER_DAY:
+        raise HTTPException(429, f"오늘은 {ms.REROLLS_PER_DAY}번 다 바꿨어요. 내일 또 바꿀 수 있어요.")
+    yesterday = (today - timedelta(days=1)).isoformat()
+    new = ms.reroll(
+        user_id, today.isoformat(), day_["missions"], mission_id, used + 1,
+        steps=db.get_steps(conn, user_id, yesterday),
+        last_week_steps=db.steps_between(conn, user_id, (today - timedelta(days=7)).isoformat(), yesterday),
+        answers=(db.get_survey(conn, user_id) or {}).get("answers"),
+        recent=db.recent_mission_ids(conn, user_id, today.isoformat()),
+    )
+    if new is None:
+        raise HTTPException(409, "지금은 바꿀 수 있는 다른 미션이 없어요.")
+    missions = [new if m["id"] == mission_id else m for m in day_["missions"]]
+    db.replace_missions(conn, user_id, today.isoformat(), missions)
+    return {"replaced": mission_id, "mission": new,
+            **with_status(conn, user_id, db.get_mission_day(conn, user_id, today.isoformat()))}
 
 
 @app.get("/users/{user_id}/ladder", summary="단계 사다리: 움직이기·이어지기 지금 단계(1 혼자 · 2 한 명 · 3 여럿)와 다음 단계까지 남은 횟수")
