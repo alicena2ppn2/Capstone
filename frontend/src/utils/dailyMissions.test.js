@@ -1,3 +1,4 @@
+import { completePhotoMission } from './missionPhotos.js';
 import test from 'node:test';
 import assert from 'node:assert/strict';
 import { initialGame, claimAttendance, ensureAttendanceWeek, goalProgress, QUESTS } from './game.js';
@@ -8,7 +9,7 @@ test('3 routines + 3 stable activities, diary excluded, legacy 3-reward cap does
   let game=ready();assert.equal(ROUTINES.length,3);assert.equal(dailyActivities(game,day).length,3);assert(!dailyActivities(game,day).some(q=>q.input));
   const ids=dailyActivities(game,day).map(q=>q.id),initialCoins=game.coins;game.rewardDays={[day]:3};
   game=saveDiaryMission(game,day,'한 줄만',now);assert.equal(game.coins,initialCoins+25);
-  for(const q of dailyActivities(game,day)){const key=`${day}:${q.id}`;if(q.choices)game={...game,challengeChoices:{...game.challengeChoices,[key]:q.choices[0]}};const old=game.coins;game=startDailyMission(game,q.id,now);assert.equal(game.coins,old);game=finishDailyMission(game,q.id,now);assert.equal(game.coins,old+25);const paid=game;game=finishDailyMission(game,q.id,now);assert.equal(game,paid);}
+  for(const q of dailyActivities(game,day)){const key=`${day}:${q.id}`;if(q.choices)game={...game,challengeChoices:{...game.challengeChoices,[key]:q.choices[0]}};const old=game.coins;game=startDailyMission(game,q.id,now);assert.equal(game.coins,old);game=q.photo?completePhotoMission(game,q.id,day,{id:'test',uri:'test',storage:'indexeddb',mime:'image/jpeg',size:100},now):finishDailyMission(game,q.id,now);assert.equal(game.coins,old+25);const paid=game;game=finishDailyMission(game,q.id,now);assert.equal(game,paid);}
   assert.equal(game.coins,initialCoins+100);assert.deepEqual(dailyActivities(ensureDailyMissions(JSON.parse(JSON.stringify(game)),day),day).map(q=>q.id),ids);
 });
 test('diary blank rejected, optional mood, drafts not stamps; edit/delete/rewrite keep receipt and balances',()=>{
