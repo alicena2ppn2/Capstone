@@ -68,7 +68,8 @@
     "kind": "steps",
     "outdoor": true,
     "min_count": 500,
-    "prompt": ""
+    "prompt": "",
+    "stage": 2
   },
   {
     "id": "beat_yesterday",
@@ -79,7 +80,8 @@
     "outdoor": true,
     "min_count": 0,
     "prompt": "",
-    "goal_rule": "yesterday"
+    "goal_rule": "yesterday",
+    "stage": 1
   },
   {
     "id": "block_walk",
@@ -89,7 +91,8 @@
     "kind": "steps",
     "outdoor": true,
     "min_count": 1500,
-    "prompt": ""
+    "prompt": "",
+    "stage": 2
   },
   {
     "id": "sky_photo",
@@ -99,7 +102,8 @@
     "kind": "photo",
     "outdoor": true,
     "min_count": 1,
-    "prompt": ""
+    "prompt": "",
+    "stage": 1
   },
   {
     "id": "photo_nature",
@@ -109,7 +113,8 @@
     "kind": "photo",
     "outdoor": true,
     "min_count": 1,
-    "prompt": ""
+    "prompt": "",
+    "stage": 2
   },
   {
     "id": "drink_run",
@@ -119,7 +124,8 @@
     "kind": "photo",
     "outdoor": true,
     "min_count": 1,
-    "prompt": ""
+    "prompt": "",
+    "stage": 2
   },
   {
     "id": "snack_new",
@@ -129,7 +135,8 @@
     "kind": "photo",
     "outdoor": true,
     "min_count": 1,
-    "prompt": ""
+    "prompt": "",
+    "stage": 2
   },
   {
     "id": "bakery",
@@ -139,7 +146,8 @@
     "kind": "photo",
     "outdoor": true,
     "min_count": 1,
-    "prompt": ""
+    "prompt": "",
+    "stage": 2
   },
   {
     "id": "sunlight",
@@ -149,7 +157,8 @@
     "kind": "photo",
     "outdoor": true,
     "min_count": 1,
-    "prompt": ""
+    "prompt": "",
+    "stage": 1
   },
   {
     "id": "bench",
@@ -159,7 +168,8 @@
     "kind": "photo",
     "outdoor": true,
     "min_count": 1,
-    "prompt": ""
+    "prompt": "",
+    "stage": 3
   },
   {
     "id": "sunset",
@@ -209,7 +219,8 @@
     "kind": "photo",
     "outdoor": true,
     "min_count": 1,
-    "prompt": ""
+    "prompt": "",
+    "stage": 3
   },
   {
     "id": "library_visit",
@@ -219,7 +230,8 @@
     "kind": "photo",
     "outdoor": true,
     "min_count": 1,
-    "prompt": ""
+    "prompt": "",
+    "stage": 3
   },
   {
     "id": "cafe_visit",
@@ -229,7 +241,8 @@
     "kind": "photo",
     "outdoor": true,
     "min_count": 1,
-    "prompt": ""
+    "prompt": "",
+    "stage": 3
   },
   {
     "id": "recycle",
@@ -239,7 +252,8 @@
     "kind": "photo",
     "outdoor": true,
     "min_count": 1,
-    "prompt": ""
+    "prompt": "",
+    "stage": 1
   },
   {
     "id": "bus_stop_walk",
@@ -249,7 +263,8 @@
     "kind": "steps",
     "outdoor": true,
     "min_count": 1500,
-    "prompt": ""
+    "prompt": "",
+    "stage": 3
   },
   {
     "id": "new_road",
@@ -269,7 +284,8 @@
     "kind": "steps",
     "outdoor": true,
     "min_count": 3000,
-    "prompt": ""
+    "prompt": "",
+    "stage": 3
   },
   {
     "id": "errand",
@@ -279,7 +295,8 @@
     "kind": "photo",
     "outdoor": true,
     "min_count": 1,
-    "prompt": ""
+    "prompt": "",
+    "stage": 2
   },
   {
     "id": "meal_photo",
@@ -459,7 +476,31 @@
     "kind": "photo",
     "outdoor": true,
     "min_count": 1,
+    "prompt": "",
+    "stage": 3
+  },
+  {
+    "id": "door_step",
+    "category": "outdoor",
+    "stage": 1,
+    "title": "문밖 한 걸음",
+    "desc": "현관문을 열고 한 걸음만 나가 봐요. 눈에 보이는 걸 한 장 찍어 주세요.",
+    "kind": "photo",
+    "outdoor": true,
+    "min_count": 1,
     "prompt": ""
+  },
+  {
+    "id": "pet_walk_more",
+    "category": "outdoor",
+    "stage": 2,
+    "title": "강아지 산책 5분 더",
+    "desc": "평소 산책에 5분만 더 걸어 봐요. 산책 사진 한 장이면 돼요.",
+    "kind": "photo",
+    "outdoor": true,
+    "min_count": 1,
+    "prompt": "",
+    "requires": "pets:dog"
   },
   {
     "id": "cafes",
@@ -770,5 +811,138 @@
     "outdoor": false,
     "min_count": 1,
     "prompt": ""
+  },
+  {
+    "id": "c1_guestbook_read",
+    "category": "connect",
+    "stage": 1,
+    "title": "친구 방명록 읽어 보기",
+    "desc": "친구 방에 놀러 가서 방명록을 읽어 봐요. 마음에 든 글을 한 줄 적어 주세요.",
+    "kind": "text",
+    "outdoor": false,
+    "min_count": 1,
+    "prompt": ""
+  },
+  {
+    "id": "c1_room_like",
+    "category": "connect",
+    "stage": 1,
+    "title": "이웃 방에서 마음에 든 것 찾기",
+    "desc": "이웃 방을 구경하고 마음에 든 물건이나 꾸밈을 적어 봐요.",
+    "kind": "text",
+    "outdoor": false,
+    "min_count": 1,
+    "prompt": ""
+  },
+  {
+    "id": "c1_family_meal",
+    "category": "connect",
+    "stage": 1,
+    "title": "가족과 한 끼 같이 먹기",
+    "desc": "같은 상에서 한 끼 먹어요. 무엇을 먹었는지 적어 주세요.",
+    "kind": "text",
+    "outdoor": false,
+    "min_count": 1,
+    "prompt": "",
+    "tip": "대화할 때 휴대폰은 잠깐 내려놓아요.",
+    "requires": "living:family"
+  },
+  {
+    "id": "c2_greet",
+    "category": "connect",
+    "stage": 2,
+    "title": "짧은 인사 한마디",
+    "desc": "가게 직원·경비원·이웃에게 \"안녕하세요\" 한마디. 누구에게 했는지 적어 주세요.",
+    "kind": "text",
+    "outdoor": true,
+    "min_count": 1,
+    "prompt": "",
+    "tip": "눈을 잠깐 보고 짧게. 대답이 없어도 괜찮아요."
+  },
+  {
+    "id": "c2_thanks",
+    "category": "connect",
+    "stage": 2,
+    "title": "고마움 한마디 전하기",
+    "desc": "가족·친구·가게 직원 누구든, 고마웠던 걸 말이나 메시지로 전해요. 무엇을 전했는지 적어 주세요.",
+    "kind": "text",
+    "outdoor": false,
+    "min_count": 1,
+    "prompt": "",
+    "tip": "무엇이 고마웠는지 하나만 구체적으로 말해 보세요."
+  },
+  {
+    "id": "c2_family_talk",
+    "category": "connect",
+    "stage": 2,
+    "title": "가족에게 오늘 있었던 일 한마디",
+    "desc": "저녁에 가족에게 오늘 있었던 일을 하나 이야기해 봐요. 어떤 이야기를 했는지 적어 주세요.",
+    "kind": "text",
+    "outdoor": false,
+    "min_count": 1,
+    "prompt": "",
+    "tip": "내 얘기만 하지 말고 질문을 하나 해 보세요.",
+    "requires": "living:family"
+  },
+  {
+    "id": "c2_pet_neighbor",
+    "category": "connect",
+    "stage": 2,
+    "title": "강아지 산책하며 이웃과 인사",
+    "desc": "산책길에 만난 이웃이나 다른 보호자에게 인사해 봐요. 어땠는지 적어 주세요.",
+    "kind": "text",
+    "outdoor": true,
+    "min_count": 1,
+    "prompt": "",
+    "tip": "눈을 잠깐 보고 짧게. 대답이 없어도 괜찮아요.",
+    "requires": "pets:dog"
+  },
+  {
+    "id": "c3_interest_q",
+    "category": "connect",
+    "stage": 3,
+    "title": "관심사 질문 남기기",
+    "desc": "친구 방명록에 요즘 관심 있는 걸 묻는 질문을 남겨 봐요. 남긴 질문을 적어 주세요.",
+    "kind": "text",
+    "outdoor": false,
+    "min_count": 1,
+    "prompt": "",
+    "tip": "처음엔 내 이야기를 너무 많이 하지 않기. 날씨·주변 이야기처럼 가벼운 것부터."
+  },
+  {
+    "id": "c3_reply",
+    "category": "connect",
+    "stage": 3,
+    "title": "받은 방명록에 답하기",
+    "desc": "내 방에 남은 글에 답을 남겨 봐요. 어떻게 답했는지 적어 주세요.",
+    "kind": "text",
+    "outdoor": false,
+    "min_count": 1,
+    "prompt": "",
+    "tip": "상대 말에 한 번 맞장구치고, 질문을 하나 덧붙여 보세요."
+  },
+  {
+    "id": "c3_regular_shop",
+    "category": "connect",
+    "stage": 3,
+    "title": "늘 가던 가게에서 한마디 더",
+    "desc": "자주 가는 가게에서 인사에 한마디를 더해 봐요. \"오늘 덥네요\"처럼요. 무슨 말을 했는지 적어 주세요.",
+    "kind": "text",
+    "outdoor": true,
+    "min_count": 1,
+    "prompt": "",
+    "tip": "처음엔 내 이야기를 너무 많이 하지 않기. 날씨·주변 이야기처럼 가벼운 것부터."
+  },
+  {
+    "id": "c3_check_in",
+    "category": "connect",
+    "stage": 3,
+    "title": "먼저 안부 보내기",
+    "desc": "한동안 연락 안 한 친구나 가족에게 먼저 안부 메시지를 보내요. 누구에게 보냈는지 적어 주세요.",
+    "kind": "text",
+    "outdoor": false,
+    "min_count": 1,
+    "prompt": "",
+    "tip": "내 얘기만 하지 말고 질문을 하나 해 보세요."
   }
 ]
