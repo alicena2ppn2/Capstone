@@ -1013,3 +1013,11 @@ button.pb, .ui-disclosure > summary { font-weight: 500; }
 .app .phone-shell .arrange-bar .ui-primary { width: auto; min-height: 34px !important; padding: 4px 16px !important; }
 .home-arrange-button[aria-pressed=true] { background: var(--color-primary) !important; color: var(--color-surface) !important; }
 .decor-swatch { width: 78% !important; height: auto; border-radius: 10px; }
+
+/* 홈: 방은 위에 그대로 두고, LV 막대만 '오늘의 도전 펼치기' 바로 위로 내린다 (키 큰 휴대폰에서 LV 아래 빈 바닥이 넓던 것) */
+.home-screen.is-sheet-layout .home-level-dock { position: absolute; left: 50%; bottom: calc(var(--sheet-peek) + 6px); transform: translateX(-50%); z-index: 4; margin: 0; white-space: nowrap; }
+
+/* 일기: '오늘 기분은 어때요? (선택)'은 한 줄로, 글 상자는 기본 네 줄 높이 (줄 간격 30px × 4 + 위아래 여백) */
+.diary-emotions legend { white-space: nowrap; }
+.diary-emotions legend small { display: inline; margin-left: 4px; }
+.diary-entry textarea#diary-text { min-height: 130px; height: 130px; }
