@@ -4,7 +4,7 @@ export function callbackCode(value) {
   let url; try { url = new URL(value); } catch { return null; }
   const expected = new URL(AUTH_REDIRECT);
   if (url.protocol !== expected.protocol || url.host !== expected.host || url.pathname !== expected.pathname) return null;
-  if (url.searchParams.has('error')) throw new Error('Google 로그인을 완료하지 못했어요. 다시 시도해 주세요.');
+  if (url.searchParams.has('error')) throw new Error('소셜 로그인을 완료하지 못했어요. 다시 시도해 주세요.');
   return url.searchParams.get('code');
 }
 export function createSupabaseAuthClient({ auth, browser }) {
@@ -17,7 +17,7 @@ export function createSupabaseAuthClient({ auth, browser }) {
     const job = (async () => {
       abort(signal);
       const { error } = await auth.exchangeCodeForSession(code);
-      if (error) throw new Error('앱 복귀 후 로그인 확인에 실패했어요. Google로 다시 시작해 주세요.');
+      if (error) throw new Error('앱 복귀 후 로그인 확인에 실패했어요. 다시 시도해 주세요.');
       if (signal?.aborted) { await auth.signOut({scope:'local'}); abort(signal); }
     })();
     exchanges.set(code, job); return job;
@@ -47,18 +47,19 @@ export function createSupabaseAuthClient({ auth, browser }) {
       return result.data.user ? {verified:true,user:{id:result.data.user.id},source:'supabase',access_token:data.session.access_token} : null;
     },
     async signIn(provider, { signal } = {}) {
-      if (provider !== 'google') throw new Error('카카오 로그인은 아직 연결되지 않았어요. Google로 시작해 주세요.');
+      if (!['google','kakao'].includes(provider)) throw new Error('지원하지 않는 로그인 방식이에요.');
+      const providerLabel = provider === 'kakao' ? '카카오' : 'Google';
       if (pending) throw new Error('로그인 창을 닫은 뒤 다시 시도해 주세요.');
       pending = true; const close = () => browser.dismiss();
       signal?.addEventListener('abort',close,{once:true});
       try {
         abort(signal);
-        const { data, error } = await auth.signInWithOAuth({provider:'google',options:{redirectTo:AUTH_REDIRECT,skipBrowserRedirect:true,queryParams:{prompt:'select_account'}}});
+        const { data, error } = await auth.signInWithOAuth({provider,options:{redirectTo:AUTH_REDIRECT,skipBrowserRedirect:true,...(provider==='google'?{queryParams:{prompt:'select_account'}}:{})}});
         abort(signal);
-        if (error || !data.url) throw new Error('Google 로그인 연결에 실패했어요. 다시 시도해 주세요.');
+        if (error || !data.url) throw new Error(`${providerLabel} 로그인 연결에 실패했어요. 다시 시도해 주세요.`);
         const result = await browser.open(data.url,AUTH_REDIRECT);
         abort(signal);
-        if (result.type !== 'success') throw new Error('Google 로그인을 취소했어요. 다시 시도할 수 있어요.');
+        if (result.type !== 'success') throw new Error(`${providerLabel} 로그인을 취소했어요. 다시 시도할 수 있어요.`);
         const code = callbackCode(result.url);
         if (!code) throw new Error('앱 복귀 주소를 확인하지 못했어요. 로그인 설정을 확인해 주세요.');
         await exchange(code,signal);
