@@ -6,7 +6,7 @@ import { FRIEND_INTROS } from '../data/catalog.js';
 import { ensureDailyMissions, dailyActivities, startDailyMission, finishDailyMission, saveDiaryMission, recordRoutine } from './dailyMissions.js';
 test('12 unique products, only six new products, approved revisions and level order', () => {
   assert.equal(CHARACTERS.length,12); assert.equal(new Set(CHARACTERS.map(f=>f.id)).size,12);
-  assert.deepEqual(FINAL_FRIENDS.map(f=>[f.level,f.price,f.revision]),[[4,300,'B'],[7,350,'A'],[10,400,'A'],[15,450,'C'],[20,500,'A-no-spots'],[25,500,'B']]);
+  assert.deepEqual(FINAL_FRIENDS.map(f=>[f.level,f.price,f.revision]),[[4,300,'B'],[7,350,'A'],[10,450,'A'],[15,600,'C'],[20,625,'A-no-spots'],[25,650,'B']]);
   assert(CHARACTERS.every((f,i)=>i===0||CHARACTERS[i-1].level<=f.level));
   assert(FINAL_FRIENDS.every(f=>!f.method&&FRIEND_INTROS[f.id].personality));
   assert.equal(levelFor(10000),101);
