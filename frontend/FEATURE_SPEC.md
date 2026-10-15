@@ -351,7 +351,7 @@ challengeVersion 2 이관은 XP·코인·자산·원본 완료·답변을 유지
 
 backendUserId와 supabaseUserId는 AuthContext에 별도 메모리 필드로 유지한다. 연결 성공 후에만 홈으로 이동하며 재실행은 SDK 세션과 백엔드 연결을 다시 확인한다. requestUser는 백엔드 ID 경로와 새 SDK 토큰을 사용하고 계정 변경/로그아웃/늦은 응답에서 이전 계정을 차단한다. 토큰을 별도 영구 저장하지 않는다. 기존 로컬 게임 데이터와 계정 데이터를 자동 병합하지 않는다. Vite 웹은 같은 연결 구조/UI만 준비되어 있고 소셜 인증은 미설정이다.
 
-계약은 origin/backend-onboarding-survey 82c24f5에서 읽었다. 체크아웃된 main의 backend에는 해당 경로가 없고 실제 서버 주소(EXPO_PUBLIC_API_URL)가 아직 제공되지 않았다. 실제 서버 연결/실기기 성공은 미확인이다. Android 남은 Firebase 어댑터는 로컬 백업 후 Supabase native 공유로 바꿨다. backend/의 인증·API 정책은 변경하지 않았다. [연결 설정/재개 문서](../mobile/AUTH_BACKEND_SETUP.md)를 따른다.
+계약은 origin/backend-onboarding-survey 82c24f5에서 읽었다. 2026-10-15 최신 main 반영 후 backend/app/main.py에도 해당 경로가 존재한다. 앱의 실제 서버 주소(EXPO_PUBLIC_API_URL)는 아직 설정되지 않았다. 실제 서버 연결/실기기 성공은 미확인이다. Android 남은 Firebase 어댑터는 로컬 백업 후 Supabase native 공유로 바꿨다. backend/의 인증·API 정책은 변경하지 않았다. [연결 설정/재개 문서](../mobile/AUTH_BACKEND_SETUP.md)를 따른다.
 
 ## 소스 책임과 공유 경계
 
