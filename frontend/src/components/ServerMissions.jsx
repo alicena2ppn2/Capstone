@@ -1,17 +1,28 @@
 import { useCallback, useEffect, useRef, useState } from 'react';
-import UiIcon from './UiIcon.jsx';
 import { todayMissions, completeWithPhoto, completeSteps, rerollMission, sendFeedback } from '../api/missions.js';
 
 // 서버가 정한 오늘의 미션 3개 (움직이기 · 집 · 이어지기). 걸음 미션 말고는 오늘 찍은 사진을 올리면 서버가 날짜를 확인해 완료한다.
-const SLOT = { outdoor: ['움직이기', 'discover'], home: ['집에서', 'routine'], connect: ['이어지기', 'envelope'] };
-const STAGE = { 1: '1단계 혼자', 2: '2단계 한 명', 3: '3단계 여럿' };
-const MOODS = [[1, '힘들었어'], [2, '조금 힘들었어'], [3, '보통'], [4, '괜찮았어'], [5, '좋았어']];
+// 카드 하나에 행동 하나: 사진 올리기(또는 걸음 확인) → 완료 → 기분 고르기. Habitica 할 일 목록처럼 보상은 카드 오른쪽 위에.
+const SLOT = { outdoor: ['움직이기', 'is-move'], home: ['집에서', 'is-home'], connect: ['이어지기', 'is-connect'] };
+const STAGE = { 1: '1단계', 2: '2단계', 3: '3단계' };
+const MOODS = [[1, '😣', '힘들었어'], [2, '😕', '조금 힘들었어'], [3, '🙂', '보통'], [4, '😊', '괜찮았어'], [5, '😄', '좋았어']];
 
-function ServerPhoto({ busy, onUpload }) {
+function PhotoPick({ busy, onUpload }) {
   const [file, setFile] = useState(null), [preview, setPreview] = useState('');
-  useEffect(() => { if (!file) return; const url = URL.createObjectURL(file); setPreview(url); return () => URL.revokeObjectURL(url); }, [file]);
+  const input = useRef(null);
+  useEffect(() => { if (!file) return undefined; const url = URL.createObjectURL(file); setPreview(url); return () => URL.revokeObjectURL(url); }, [file]);
   const choose = event => { const picked = event.target.files?.[0]; if (picked) setFile(picked); event.target.value = ''; };
-  return <div className="photo-mission"><div className="photo-source-actions"><label className={`pb ui-secondary${busy?' is-disabled':''}`}>사진 선택<input type="file" accept="image/*" disabled={busy} onChange={choose}/></label><label className={`pb ui-secondary${busy?' is-disabled':''}`}>사진 찍기<input type="file" accept="image/*" capture="environment" disabled={busy} onChange={choose}/></label></div>{file&&<><img className="photo-preview" src={preview} alt="올릴 사진 미리보기"/><button type="button" className="pb shop-buy" disabled={busy} onClick={() => onUpload(file)}>{busy?'확인 중…':'사진 올리고 완료'}</button></>}<small>오늘 찍은 사진만 인정돼요. 서버가 찍은 날짜를 확인해요.</small></div>;
+  // accept=image/* 하나로 휴대폰은 '사진 찍기 / 앨범에서 고르기'를 함께 보여 준다
+  return <div className="mission-photo">
+    <input ref={input} type="file" accept="image/*" hidden disabled={busy} onChange={choose} />
+    {file ? <div className="mission-photo-confirm">
+      <img src={preview} alt="올릴 사진 미리보기" />
+      <div>
+        <button type="button" className="pb shop-buy" disabled={busy} onClick={() => onUpload(file)}>{busy ? '날짜 확인 중…' : '이 사진으로 완료'}</button>
+        <button type="button" className="pb mission-link" disabled={busy} onClick={() => input.current?.click()}>다른 사진 고르기</button>
+      </div>
+    </div> : <button type="button" className="pb shop-buy mission-main" disabled={busy} onClick={() => input.current?.click()}><span aria-hidden="true">📷</span> 사진 찍어서 완료하기</button>}
+  </div>;
 }
 
 export default function ServerMissions({ userId }) {
@@ -24,33 +35,41 @@ export default function ServerMissions({ userId }) {
     catch (e) { if (mounted.current) setError(e.message); }
   }, [userId]);
   useEffect(() => { void load(); }, [load]);
-  useEffect(() => { if (!toast) return; const timer = setTimeout(() => setToast(null), 1800); return () => clearTimeout(timer); }, [toast]);
+  useEffect(() => { if (!toast) return undefined; const timer = setTimeout(() => setToast(null), 2200); return () => clearTimeout(timer); }, [toast]);
   const run = async (id, job) => {
     if (busy) return; setBusy(id); setNotes(value => ({ ...value, [id]: '' }));
     try { const result = await job(); if (result?.earned_total !== undefined) setToast(result); await load(); }
     catch (e) { if (mounted.current) setNotes(value => ({ ...value, [id]: e.message })); }
     finally { if (mounted.current) setBusy(null); }
   };
-  if (error && !data) return <section className="daily-discoveries"><h2><UiIcon kind="discover" /> 서버 미션</h2><p role="alert">{error}</p><button type="button" className="pb ui-secondary" onClick={load}>다시 불러오기</button></section>;
-  if (!data) return <section className="daily-discoveries"><h2><UiIcon kind="discover" /> 서버 미션</h2><p role="status">오늘의 미션을 불러오는 중…</p></section>;
+  if (error && !data) return <section className="daily-discoveries"><h2>오늘의 활동</h2><p role="alert">{error}</p><button type="button" className="pb ui-secondary" onClick={load}>다시 불러오기</button></section>;
+  if (!data) return <section className="daily-discoveries"><h2>오늘의 활동</h2><p role="status">오늘의 미션을 불러오는 중…</p></section>;
   const missions = data.missions.filter(m => m.category !== 'daily');
-  return <section className="daily-discoveries">
-    <h2 className="quest-selection-heading" tabIndex={-1}><UiIcon kind="discover" /> 오늘의 활동 3가지 <small>{missions.filter(m => m.done).length}/3 완료 · 서버</small></h2>
-    <div className="growth-quests">{missions.map(m => { const [slot, icon] = SLOT[m.category] ?? ['오늘의 활동', 'discover']; return <article data-quest-id={m.id} tabIndex={-1} key={m.id} className={`growth-quest quest-compact${m.done ? ' is-completed' : ''}`}>
-      <small className="quest-category"><UiIcon kind={m.kind === 'photo' ? 'camera' : icon} size={17}/>{slot}{m.stage ? ` · ${STAGE[m.stage]}` : ''}</small>
-      <div className="quest-card-heading"><strong>{m.title}</strong><span className="quest-state">{m.done ? '완료 ✓' : '시작 전'}</span></div>
-      {!m.done && <>
-        <p>{m.desc}</p>
-        {m.tip && <p className="quest-tip"><small>이렇게 해 보세요 · {m.tip}</small></p>}
-        <div className="quest-card-reward"><small>{m.xp} XP · {m.coins} 코인</small></div>
-        <div className="quest-card-actions">{m.kind === 'photo' ? <ServerPhoto busy={busy === m.id} onUpload={file => run(m.id, () => completeWithPhoto(userId, m.id, file))}/> : m.kind === 'steps' ? <button type="button" className="pb shop-buy" disabled={!!busy} onClick={() => run(m.id, () => completeSteps(userId, m.id))}>오늘 걸음으로 확인 ({m.min_count.toLocaleString('ko-KR')}보)</button> : <small>앱에서 아직 지원하지 않는 미션이에요.</small>}
-          {m.rerollable && <div className="quest-card-secondary"><button type="button" className="pb" disabled={!!busy || data.rerolls_left < 1} onClick={() => run(m.id, () => rerollMission(userId, m.id))}>다른 미션으로 ({data.rerolls_left}번 남음)</button></div>}
+  const done = missions.filter(m => m.done).length;
+  return <section className="daily-discoveries mission-list">
+    <h2 className="quest-selection-heading" tabIndex={-1}>오늘의 활동 <small>{done}/{missions.length}</small></h2>
+    <ol className="mission-cards">{missions.map(m => { const [slot, tone] = SLOT[m.category] ?? ['오늘의 활동', 'is-home']; return <li data-quest-id={m.id} tabIndex={-1} key={m.id} className={`mission-card ${tone}${m.done ? ' is-done' : ''}`}>
+      <div className="mission-card-top">
+        <span className="mission-chip">{slot}{m.stage ? ` · ${STAGE[m.stage]}` : ''}</span>
+        <span className="mission-reward" aria-label={`보상 ${m.coins}코인, ${m.xp} XP`}>+{m.coins} 코인</span>
+      </div>
+      <div className="mission-card-title"><span className="mission-check" aria-hidden="true">{m.done ? '✓' : ''}</span><strong>{m.title}</strong></div>
+      {m.done ? <div className="mission-done">
+        {m.feedback ? <small>완료! 소감까지 남겼어요.</small> : <><small>완료! 해 보니 어땠어요? (선택)</small>
+          <div className="mission-moods" role="group" aria-label="해 보니 어땠는지">{MOODS.map(([v, face, label]) => <button type="button" key={v} className="pb" disabled={!!busy} aria-label={label} title={label} onClick={() => run(m.id, () => sendFeedback(userId, m.id, v))}>{face}</button>)}</div></>}
+      </div> : <>
+        <p className="mission-desc">{m.desc}</p>
+        {m.tip && <p className="mission-tip"><span aria-hidden="true">💡</span> {m.tip}</p>}
+        {m.kind === 'photo' ? <PhotoPick busy={busy === m.id} onUpload={file => run(m.id, () => completeWithPhoto(userId, m.id, file))}/>
+          : m.kind === 'steps' ? <button type="button" className="pb shop-buy mission-main" disabled={!!busy} onClick={() => run(m.id, () => completeSteps(userId, m.id))}><span aria-hidden="true">👟</span> 오늘 걸음으로 확인 · {m.min_count.toLocaleString('ko-KR')}보</button>
+          : <small>앱에서 아직 지원하지 않는 미션이에요.</small>}
+        <p role="status" className="mission-note">{notes[m.id]}</p>
+        <div className="mission-card-foot">
+          <small>{m.kind === 'photo' ? '오늘 찍은 사진만 인정돼요' : '서버에 올라온 오늘 걸음으로 확인해요'}</small>
+          {m.rerollable && <button type="button" className="pb mission-link" disabled={!!busy || data.rerolls_left < 1} onClick={() => run(m.id, () => rerollMission(userId, m.id))}>↻ 다른 미션 ({data.rerolls_left})</button>}
         </div>
-        <p role="status">{notes[m.id]}</p>
       </>}
-      {m.done && !m.feedback && <label className="profile-field">어땠나요? (선택)<select defaultValue="" disabled={!!busy} onChange={event => event.target.value && run(m.id, () => sendFeedback(userId, m.id, Number(event.target.value)))}><option value="">고르기</option>{MOODS.map(([v, label]) => <option key={v} value={v}>{label}</option>)}</select></label>}
-      {m.done && m.feedback && <small>소감을 남겼어요.</small>}
-    </article>; })}</div>
-    <div className="quest-toast-region" role="status" aria-live="polite">{toast && <div className="quest-reward-toast"><strong>{toast.earned_total || toast.earned_xp ? '서버에서 보상을 받았어요!' : '완료했어요!'}</strong>{(toast.earned_total > 0 || toast.earned_xp > 0) && <span>+{toast.earned_xp} XP · +{toast.earned_total} 코인 (서버 기록)</span>}</div>}</div>
+    </li>; })}</ol>
+    <div className="quest-toast-region" role="status" aria-live="polite">{toast && <div className="quest-reward-toast"><strong>{toast.earned_total || toast.earned_xp ? '미션 완료!' : '완료했어요!'}</strong>{(toast.earned_total > 0 || toast.earned_xp > 0) && <span>+{toast.earned_xp} XP · +{toast.earned_total} 코인</span>}</div>}</div>
   </section>;
 }
