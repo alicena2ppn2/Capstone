@@ -43,6 +43,8 @@ COINS_OUTDOOR, XP_OUTDOOR = 50, 100       # 밖에 나가야 하는 미션 — �
 COINS_HOME, XP_HOME = 30, 100             # 집에서 할 수 있는 미션
 COINS_DIARY = 40                          # 일기 미션 (프론트 '오늘의 하루 기록하기')
 COINS_DAILY, XP_DAILY = 10, 10            # 출석하기 (프론트에는 아직 없음)
+COINS_SELF, XP_SELF = 10, 50              # 스스로 체크 (윗몸일으키기 20회처럼 확인할 수 없는 것) — 누르기만 해도 쌓이지 않게 작게 (QUEST_DESIGN 4절)
+REROLLS_PER_DAY = 3                       # 매일 바뀌는 미션 새로고침: 하루 3번까지 (무료)
 # 매일 고정 미션: 출석하기 + 걸음 8,000보 + 지난주보다 많이 걷기(기록이 있을 때) + 오늘의 일기 쓰기 + 친구 방 놀러 가기 + 방명록 남기기. 나머지 3개는 매일 바뀐다.
 # 하루 3개를 모두 끝내면 코인 대신 특별 캐릭터(프론트 '하루 친구 모찌')를 준다 → 상점 기능에서 지급
 
@@ -71,7 +73,7 @@ CATALOG_PATH = Path(__file__).resolve().parent / "data" / "missions.json"
 #   record  : 하루 기록
 #   daily   : 매일 고정으로 나오는 미션 (출석하기, 걸음 8,000보, 지난주보다 많이 걷기, 오늘의 일기 쓰기, 친구 방 놀러 가기, 방명록 남기기). 하루 3개와 별도
 CATEGORIES = ("daily", "outdoor", "home", "explore", "record", "connect")
-KINDS = ("steps", "text", "photo", "list", "diary", "checkin", "guestbook", "visit")
+KINDS = ("steps", "text", "photo", "list", "diary", "checkin", "guestbook", "visit", "self")
 DAILY_PLAN = ("move", "home", "connect")          # 매일 바뀌는 3칸: 움직이기 · 집에서 할 일 · 이어지기
 
 
@@ -81,7 +83,7 @@ class Mission:
     category: str      # outdoor | home | explore | record | connect
     title: str
     desc: str
-    kind: str          # steps | text | photo | list | diary(기록 탭 일기로 완료) | guestbook(다른 사람 방에 방명록) | visit(다른 사람 방 방문) | checkin(출석)
+    kind: str          # steps | text | photo | list | diary(기록 탭 일기로 완료) | guestbook(다른 사람 방에 방명록) | visit(다른 사람 방 방문) | checkin(출석) | self(스스로 체크)
     outdoor: bool      # 밖에 나가야 할 수 있는 미션인지
     min_count: int = 1 # list: 입력 개수, photo: 사진 장수, steps: 목표 걸음
     prompt: str = ""   # 입력 전에 먼저 묻는 것 (예: 사는 동네)
@@ -96,6 +98,8 @@ class Mission:
             return COINS_DAILY
         if self.kind == "diary":
             return COINS_DIARY
+        if self.kind == "self":
+            return COINS_SELF
         base = COINS_OUTDOOR if self.outdoor else COINS_HOME
         return base + STAGE_BONUS_COINS * max(self.stage - 1, 0)
 
@@ -103,6 +107,8 @@ class Mission:
     def xp(self) -> int:
         if self.kind == "checkin":
             return XP_DAILY
+        if self.kind == "self":
+            return XP_SELF
         return XP_OUTDOOR if self.outdoor else XP_HOME
 
     def to_dict(self) -> dict:
@@ -244,6 +250,60 @@ def with_topic(mission: dict, topic: dict) -> dict:
     return {**mission, "desc": mission["desc"].format(topic=topic["text"]), "suggested_topic_id": topic["id"]}
 
 
+def usable(mid: str, baselines: dict[str, float], answers: dict | None) -> bool:
+    m = CATALOG[mid]
+    # 기준 기록이 없는 걸음 미션(어제보다·지난주보다)은 후보에서 뺀다
+    return (m.goal_rule == "fixed" or m.goal_rule in baselines) and fits(m, answers)
+
+
+def slot_options(slot: str, stage: int, baselines: dict[str, float], answers: dict | None) -> list[str]:
+    """한 칸(움직이기·집·이어지기)에 넣을 수 있는 미션. 사다리 칸은 그 단계, 맞는 게 없으면 아래 단계에서."""
+    if slot not in LADDER:
+        return [m for m in BY_CATEGORY[slot] if usable(m, baselines, answers)]
+    for s in range(stage, 0, -1):
+        options = [m for m in BY_STAGE[slot][s] if usable(m, baselines, answers)]
+        if options:
+            return options
+    return []
+
+
+def slot_of(mission: dict) -> tuple[str, int] | None:
+    """매일 바뀌는 미션이 어느 칸·단계인지. 매일 고정 미션이면 None."""
+    for slot, cat in LADDER.items():
+        if mission["category"] == cat:
+            return slot, mission.get("stage") or 1
+    if mission["category"] in DAILY_PLAN:
+        return mission["category"], 0
+    return None
+
+
+def reroll(
+    user_id: str,
+    date: str,
+    missions: list[dict],
+    mission_id: str,
+    attempt: int,
+    steps: float | None = None,
+    last_week_steps: list[float] | None = None,
+    answers: dict | None = None,
+    recent: list[str] | None = None,
+) -> dict | None:
+    """마음에 안 드는 미션을 같은 칸·같은 단계의 다른 미션으로 바꾼다. 바꿀 게 없으면 None.
+
+    attempt: 오늘 몇 번째 새로고침인지 (같은 날 같은 순서면 같은 결과)
+    """
+    current = next(m for m in missions if m["id"] == mission_id)
+    slot, stage = slot_of(current)
+    baselines = step_baselines(steps, last_week_steps)
+    today_ids = {m["id"] for m in missions}
+    options = [m for m in slot_options(slot, stage, baselines, answers) if m not in today_ids]
+    if not options:
+        return None
+    fresh = [m for m in options if m not in set(recent or [])]
+    choice = random.Random(f"{user_id}:{date}:reroll{attempt}").choice(fresh or options)
+    return with_topic(personalize(CATALOG[choice].to_dict(), baselines), diary.topic_for(user_id, date))
+
+
 def pick_missions(
     user_id: str,
     date: str,
@@ -275,22 +335,9 @@ def pick_missions(
     rng = random.Random(f"{user_id}:{date}")
     recent = set(recent or [])
 
-    def usable(mid: str) -> bool:
-        m = CATALOG[mid]
-        # 기준 기록이 없는 걸음 미션(어제보다·지난주보다)은 후보에서 뺀다
-        return (m.goal_rule == "fixed" or m.goal_rule in baselines) and fits(m, answers)
-
     picked: list[str] = []
     for slot in DAILY_PLAN:
-        if slot in LADDER:
-            # 지금 단계 미션. 조건에 맞는 게 없으면 아래 단계에서
-            options = []
-            for s in range(stages[slot], 0, -1):
-                options = [m for m in BY_STAGE[slot][s] if usable(m)]
-                if options:
-                    break
-        else:
-            options = [m for m in BY_CATEGORY[slot] if usable(m)]
+        options = slot_options(slot, stages.get(slot, 1), baselines, answers)
         fresh = [m for m in options if m not in recent and m not in picked]
         choices = fresh or [m for m in options if m not in picked]
         picked.append(rng.choice(choices))
@@ -327,7 +374,7 @@ def is_complete(mission: Mission | dict, submission: dict) -> bool:
     kind, need = m["kind"], m["min_count"]
     if kind == "steps":
         return (submission.get("steps") or 0) >= need
-    if kind == "checkin":
+    if kind in ("checkin", "self"):
         return True
     if kind == "guestbook":
         # 서버가 확인한 값: 그날 다른 사람 방에 방명록을 남겼는지
