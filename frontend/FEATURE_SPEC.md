@@ -12,7 +12,7 @@
 
 출석 지급 성공에서 새 날짜 영수증이 생긴 경우에만 출석표를 자동으로 닫고 앱 중앙의 작은 ‘오늘 받은 선물’ 패널을 1초 표시한다. 기존 RewardPanel/RewardGlyphDrawing/HouseDecor와 newAttendanceReward를 연결했다. 코인·XP는 실제 수치, 의상·소품은 실제 상품 도형과 이름을 표시한다. 중복 아이템은 지급된 대체 코인 영수증을 그대로 표시한다. 확인 버튼 없이 자동 종료하며 재열기/새로고침으로 반복하지 않는다. 오늘 받은 결과는 출석표에 남는다. 실패 시 출석표를 유지하고 성공 연출을 하지 않는다. 웹 모션 줄이기는 정적 표시, 네이티브는 확대/이동 없는 opacity만 사용한다. 보상량·확률·대체 규칙은 유지한다.
 
-일일 구조는 고정3+활동3 그대로다. 활동의 의미는 challenges.js의 activityGroup으로 관리하며 새 계획에서 같은 의미의 활동을 동시에 추천하지 않는다. 최근 3개 날짜에 제공한 그룹을 덜 반복하고, 후보가 부족하면 부담을 올리지 않고 반복한다. 최근 버거웠어요 응답이면 effort 0을 유지한다. 기존 날짜에 저장된 계획/지급 이력은 재작성하지 않는다. 교체는 오늘의 다른 활동·이미 완료한 의미 그룹과 겹치지 않고 기존보다 높은 effort를 사용하지 않는다. 완료/지급된 슬롯은 교체 불가, 대안이 없으면 유지하며 기존 화면이 안내한다. 최종 서버 선정/교체 정책은 미확정이며 이 규칙은 로컬 추천 개선이다.
+일일 구조는 고정3+활동3 그대로다. 활동의 의미는 challenges.js의 activityGroup으로 관리하며 새 계획에서 같은 의미의 활동을 동시에 추천하지 않는다. 최근 3개 날짜에 제공한 그룹을 덜 반복하고, 후보가 부족하면 부담을 올리지 않고 반복한다. 최근 부담 응답은 다음 배정에서 같은 활동 그룹보다 조건에 맞는 다른 행동을 우선하는 데 사용하며, 모든 활동을 effort 0으로 바꾸지는 않는다. 기존 날짜에 저장된 계획/지급 이력은 재작성하지 않는다. 교체는 오늘의 다른 활동·이미 완료한 의미 그룹과 겹치지 않고 기존보다 높은 effort를 사용하지 않는다. 완료/지급된 슬롯은 교체 불가, 대안이 없으면 유지하며 기존 화면이 안내한다. 최종 서버 선정/교체 정책은 미확정이며 이 규칙은 로컬 추천 개선이다.
 
 서울 자정이 지나면 편집 중 본문·감정·질문을 보존하고 ‘오늘로 이어 쓰기 / 초안으로 남기기’를 제공한다. 오늘 저장 본문/초안이 있으면 유지 또는 합쳐 이어 쓰기를 사용자가 선택한다. 자동 덮어쓰기/자동 저장/자동 보상은 없다. 합친 내용이 2,000자를 넘으면 원본들을 유지하고 안내한다. 지난 초안은 날짜별 진입 버튼으로 새로고침 뒤에도 다시 찾을 수 있다. 초안을 옮기는 작업은 journals/스탬프/완료/보상을 만들지 않으며 오늘 저장 성공에만 기존 날짜별 지급 원장이 적용된다.
 
@@ -25,14 +25,71 @@
 
 ## 첫 진입 · 로그인 연결 범위
 
-MY MOCHI 로그인/가입 화면에서 시작한다. 청록·크림 UI와 기존 친구 렌더러, 공식 카카오 로그인·Google 버튼 이미지를 사용한다. A2z 400~600을 유지하며 공급자 버튼 글씨는 공식 PNG에 포함된 스타일이다. 세션 확인 중 홈을 마운트하지 않는다. 설정의 로그아웃은 signOut 성공 후 로그인 화면으로 돌아가며 개발 미리보기도 종료한다. 실패 시 설정에서 다시 시도할 수 있고 게임 저장 데이터는 삭제하지 않는다. frontend 웹 인증 어댑터는 미연결이다. mobile의 iOS·Android는 브라우저 Google OAuth → Supabase PKCE 코드 교환 → getUser 서버 검증으로 홈 진입한다. 세션·PKCE verifier는 SecureStore에 별도 저장하고 앱 활성 상태에서 자동 토큰 갱신한다. 사용자 ID나 임의 토큰을 로그인으로 취급하지 않는다. 실패/취소 시 재시도하고 진행 중 중복 입력을 막는다. 게임 데이터는 초기화하지 않는다.
+MY MOCHI 로그인/가입 화면에서 시작한다. 청록·크림 UI와 기존 친구 렌더러, 공식 카카오 로그인·Google 버튼 이미지를 사용한다. A2z 400~600을 유지하며 공급자 버튼 글씨는 공식 PNG에 포함된 스타일이다. 세션 확인 중 홈을 마운트하지 않는다. 설정의 로그아웃은 signOut 성공 후 로그인 화면으로 돌아가며 개발 미리보기도 종료한다. 실패 시 설정에서 다시 시도할 수 있고 게임 저장 데이터는 삭제하지 않는다. frontend 웹 인증 어댑터는 미연결이다. mobile의 iOS·Android에는 브라우저 Google OAuth → Supabase PKCE 코드 교환 → getUser 검증 → POST /auth/supabase 계정 연결 성공 후 홈 진입하는 코드가 있다. 실제 서버 주소/배포 계약 및 실기기 성공은 미검증이다. 세션·PKCE verifier는 SecureStore에 별도 저장하고 앱 활성 상태에서 자동 토큰 갱신한다. 사용자 ID나 임의 토큰을 로그인으로 취급하지 않는다. 실패/취소 시 재시도하고 진행 중 중복 입력을 막는다. 게임 데이터는 초기화하지 않는다.
 
 개발 환경에서만 게임 미리보기 버튼을 제공한다. 웹 `http://127.0.0.1:5180/?preview=game`, 모바일 로그인 화면의 개발용 게임 미리보기. 모바일 Supabase Google 인증 코드가 연결됐으며 iPhone 실기기 로그인은 검증 대기다. 카카오·Apple·웹 인증, 계정별 게임 동기화와 신규 가입/온보딩은 별도 계약·앱 등록·설정이 필요하다. 게스트/계정 병합은 미확정이며 자동 병합하지 않는다. 약관·개인정보처리방침은 실제 URL이 없어 준비 상태만 표시한다. 자세한 연결 항목은 [AUTH_SETUP.md](AUTH_SETUP.md).
 
 
+## 화면 위치·진입 경로·코드 위치 안내
+
+기준: 현재 코드의 상대 배치와 실제 진입 버튼이다. 화면 폭·글자 확대·스크롤에 따라 좌표가 달라지므로 픽셀 위치를 모든 기기에 대한 보장으로 해석하지 않는다. 아래 경로는 이 명세서가 있는 frontend/ 기준 상대 경로이며, 웹·모바일 차이가 있으면 따로 적는다.
+
+### 전체 화면 찾아가기
+
+| 기능/화면 | 사용자가 찾는 위치와 진입 경로 | 웹 화면 구현 | 모바일 화면 구현/경로 |
+| --- | --- | --- | --- |
+| 로그인·가입 | 첫 진입 시 세션 확인 후 표시. 워드마크 → 소개 → 친구 환영 장면 → 카카오/Google 버튼 → 하단 안내. 가입은 별도 화면 URL 없이 같은 인증 게이트에서 분기 | [AuthGate](src/auth/AuthGate.jsx), [로그인 스타일](src/auth/login.css) | [AuthGate](../mobile/src/auth/AuthGate.jsx), [LoginScreen](../mobile/src/screens/login/LoginScreen.jsx). 루트 `/`도 인증 전에는 이 화면 |
+| 신규 회원 닉네임 | 계약상 신규회원404를 받은 경우 로그인 버튼 영역을 닉네임 입력·제출 영역으로 교체. 다른404/네트워크 오류에는 가입 화면으로 전환하지 않음 | [NicknameEntry](src/auth/NicknameEntry.jsx) | [NicknameEntry](../mobile/src/auth/NicknameEntry.jsx). 독립 `/signup` 경로 없음 |
+| 홈 | 하단 가운데 ‘홈’. 다른 화면 상단 뒤로가기는 홈으로 연결하되 이웃 방 내부는 먼저 이웃 목록으로 돌아감 | [Home](src/screens/Home.jsx), [App 화면 연결](src/App.jsx) | [HomeScreen](../mobile/src/screens/home/HomeScreen.jsx), [GameApp](../mobile/src/GameApp.jsx), `/` |
+| 오늘의 도전 | 홈 방 아래 왼쪽 주요 버튼 ‘오늘의 도전’, 하단 왼쪽 ‘퀘스트’, 홈 요약 항목 클릭. ‘오늘/이번 주/이번 달’은 제목 아래, ‘기록·취향’은 기간 탭과 별도 보조 버튼 | [Quest](src/screens/Quest.jsx) | [Quests](../mobile/src/screens/quests/Quests.jsx), `/quest` |
+| 상점 | 홈 방 아래 오른쪽 ‘꾸미기’, 하단 오른쪽 ‘상점’. 제목 아래 친구/의상/집 꾸미기 탭과 보유 필터, 아래 상품 목록 | [Shop](src/screens/Shop.jsx), [CharacterShop](src/components/CharacterShop.jsx) | [Shop](../mobile/src/screens/Shop.jsx), [CharacterShop](../mobile/src/screens/shop/CharacterShop.jsx), `/shop` |
+| 일기 | 방 안 왼쪽 위 보조 메뉴의 ‘일기’(방명록 오른쪽). 도전 고정 루틴의 ‘일기 쓰기/보기’ 또는 기록·취향의 일기 항목도 같은 날짜 편집기로 연결 | [Diary](src/screens/Diary.jsx) | [Diary](../mobile/src/screens/Diary.jsx), `/diary` |
+| 방문하기 | 방 안 왼쪽 위 ‘방문하기’. 도전 방명록 루틴의 ‘이웃 둘러보기’도 연결. 상단에 오늘 추천/최근 방문/저장한 이웃/내가 남긴 글, 아래 이웃 목록 | [Visit](src/screens/Visit.jsx) | [Visit](../mobile/src/screens/Visit.jsx), `/visit` |
+| 이웃 방 | 방문 목록의 이웃 카드 또는 내가 남긴 글의 ‘그 집 방명록 보기’. 방 미리보기 아래 저장/응원/감사 → 작성칸 → 해당 방명록 목록. 상단 뒤로가기는 이웃 목록으로 복귀 | Visit의 `selected` 분기 | Visit의 `selected` 분기. 별도 사용자별 URL/실제 매칭 경로 없음 |
+| 내 방명록 | 방 안 ‘방명록’ 보조 메뉴. 내 집 방명록을 읽고 로컬 글 작성/좋아요. 일일 루틴은 내 집 글이 아니라 다른 샘플 이웃에게 등록한 글로 완료 | [Guestbook](src/screens/Guestbook.jsx) | [Visit.jsx의 Guestbook export](../mobile/src/screens/Visit.jsx), `/guest` |
+| 설정 | 방 안 오른쪽 위 톱니바퀴, 또는 방 상단 중앙 친구 이름표 클릭. 애칭 → 선호/설정 → 기록 옮기기 → 계정 삭제 안내/로그아웃 | [Settings](src/screens/Settings.jsx) | [Settings](../mobile/src/screens/Settings.jsx), `/settings` |
+
+### 홈 안의 세부 위치
+
+| 요소 | 현재 표시 위치/동작 | 소유 코드·스타일 |
+| --- | --- | --- |
+| 코인 / 출석표 | 게임 콘텐츠 위 공통 상태 줄: 코인 왼쪽, 출석표 오른쪽. 출석표는 모든 화면에서 같은 진입 UI | 웹 App + [Attendance](src/components/Attendance.jsx), 앱 GameApp + [components/ui](../mobile/src/components/ui.jsx)의 AttendanceButton |
+| 방문·방명록·일기 / 설정 | 방 왼쪽 위에 방문하기 → 방명록 → 일기 순. 설정은 방 오른쪽 위. 웹 top/left 12px, 앱 top/left 8px 기준이며 좁으면 보조 메뉴 줄바꿈 | 웹 Home + [styles.css](src/styles.css)의 `.home-room-menus`/`.home-settings`, 앱 HomeScreen의 `homeStyles.roomMenus/settingsCorner` |
+| 친구 이름 | 방 상단 중앙, top 64px, 최대 방 너비의 50%. 클릭하면 설정의 친구별 애칭을 편집. 계정 닉네임 입력과 별개 | 웹 `.home-friend-name`, 앱 HomeScreen의 이름 View/Button |
+| 달력 / 아날로그 시계 | 방 왼쪽 벽의 달력, 오른쪽 벽의 시계. 달력·바늘·창밖 낮/밤은 기기 현지 시간. 출석·일일 미션·일일 문장 날짜는 서울 기준 | [RoomTimeProps](src/components/RoomTimeProps.jsx), [앱 RoomTimeProps](../mobile/src/art/RoomTimeProps.jsx), [roomTime](../shared/utils/roomTime.js) |
+| 친구·가구·창밖 | 방 중앙, 카페트/바닥에 친구. 소품과 풍경은 장착한 항목을 방 SVG에 표시. 터치/키보드 반응은 홈에서 사용 | 웹 Mochi/Home/HouseDecor, 앱 [Character](../mobile/src/components/Character.jsx)/[RoomBackdrop](../mobile/src/art/RoomBackdrop.jsx)/HouseDecor |
+| 일일 문장 / LV·XP | 현재 문장은 친구 아래 가로형 말풍선(방 높이의 약86.8% 기준), 그 아래 실제 LV/XP. ‘오늘의 한 문장’ 제목은 화면에서 숨기고 접근성 이름에만 사용. 긴 문장/글자 확대 시 필요한 공간 추가 | [DailySentence](src/components/DailySentence.jsx), [앱 DailySentence](../mobile/src/screens/home/DailySentence.jsx), `.home-identity` / HomeScreen identity |
+| 주요 버튼 / 요약 | 방 바로 아래 왼쪽 오늘의 도전, 오른쪽 꾸미기. 그 아래 둥근 오늘의 도전 요약 카드. 요약 클릭 시 해당 도전으로 이동 | [웹 HomeSummary](src/components/HomeSummary.jsx), [앱 HomeSummary](../mobile/src/screens/home/HomeSummary.jsx) |
+| 하단 단축 메뉴 | 콘텐츠 스크롤 영역 바깥 아래에 퀘스트 → 홈 → 상점 순. 개발 iframe 바깥 안내·배율 표시는 실제 앱 UI가 아님 | [웹 BottomNav](src/components/BottomNav.jsx), [앱 BottomNav](../mobile/src/components/BottomNav.jsx) |
+
+### 기능 안의 상세 진입과 표시 위치
+
+| 기능 | 표시/조작 위치 | 코드 |
+| --- | --- | --- |
+| 초기 선호 / 음악·음식 취향 | 도전 첫 진입 상단의 선택 질문, 도전의 ‘기록·취향’, 설정. 음악/음식 수정은 도전의 기록·취향에 있고 매일 보상 미션이 아님 | 웹 MissionPreferences/Quest/Settings, 앱 [MissionPreferences](../mobile/src/screens/quests/MissionPreferences.jsx)/Quests/Settings, [공유 선호](../shared/features/missionGuidance.js) |
+| 고정3 / 변동3 | 오늘 탭 본문에서 매일 하는3가지 행을 먼저, 오늘의 활동3가지 카드를 뒤에 표시. 사진 활동은 진행 중 카드 안에 사진 입력 표시 | Quest/Quests, [미션 콘텐츠](../shared/data/missions.js), [일일 처리](../shared/features/dailyMissions.js) |
+| 다른 활동으로 / 느낌 남기기 | 미완료 카드 하단 보조 ‘다른 활동으로’ → 앱 프레임의 선택 창. 완료 항목의 ‘느낌 남기기(선택)’ → 부담 피드백. 방법 보기/수행 수준 선택 UI 없음 | 웹 [MissionReplacement](src/components/MissionReplacement.jsx)/[QuestSheet](src/components/QuestSheet.jsx), 앱 [MissionReplacement](../mobile/src/screens/quests/MissionReplacement.jsx)/Sheet |
+| 사진 선택·촬영 / 사진첩 | 사진 미션 시작 후 카드 안에서 사진 선택/사진 찍기 → 미리보기 → 저장하고 완료. 저장한 사진은 일기 목록의 ‘사진첩’ 탭에서 미션 제목·날짜와 확인 | [웹 PhotoMission](src/components/PhotoMission.jsx)/[PhotoAlbum](src/components/PhotoAlbum.jsx), [앱 PhotoMission](../mobile/src/screens/quests/PhotoMission.jsx)/[PhotoAlbum](../mobile/src/screens/diary/PhotoAlbum.jsx), [공유 사진 처리](../shared/features/missionPhotos.js) |
+| 일기 입력 / 다시 읽기 | 일기 목록 위 오늘 일기 버튼, 아래 지난 초안 진입과 날짜별 목록/월별 달력/사진첩 탭. 편집기는 날짜·목록 복귀 → 선택적 질문/감정 → 본문 → 저장/삭제/상태 순. 달력의 도장 날짜를 누르면 해당 글 | 양쪽 Diary의 Entry/DiaryEntry, [일기 규칙](../shared/features/journal.js) |
+| 친구 소개 / 구매·함께하기 | 상점 친구 카드: 그림 → 이름/레벨/가격/상태/성격 → 친구 소개 펼침 → 구매 또는 함께하기. 구매 성공의 환영 영역은 목록 위에 표시하며 자동 캐릭터 교체 없음 | 양쪽 CharacterShop, [캐릭터 목록](../shared/data/characters.js), [친구 정보](../shared/data/catalog.js), [구매/선택](../shared/features/game.js) |
+| 옷·집 소품·창밖 | 상점 의상/옷 꾸미기 또는 집 꾸미기 탭. 집 탭에서 전등/카페트/액자/인형/창밖 필터. 상품 미리보기 아래 가격/조건/구매·장착·해제 | 양쪽 Shop, [의상](../shared/data/clothes.js), [집 상품](../shared/data/decor.js) |
+| 이웃 응원 / 내 글 찾기 | 선택한 이웃의 방 아래 응원/감사 버튼 근처 1.3초 안내. 선택 상태는 버튼에 남음. 방문 목록 ‘내가 남긴 글’에서 해당 방명록으로 재진입 | 양쪽 Visit, [이웃 상태](../shared/features/neighbors.js), [짧은 안내 훅](../shared/hooks/useBriefFeedback.js) |
+| 신고·차단·차단 목록 | 웹 내/이웃 글 하단의 신고·차단 버튼 → 확인 창. 차단 작성자 목록 확인·해제는 내 방명록 안전 안내 안에서만 표시. 모바일은 전체 관리 UI 없이 이웃 글 등록 전 필터만 재사용 | [GuestbookSafety](src/components/GuestbookSafety.jsx), [안전 규칙](../shared/features/guestModeration.js). 앱 Visit의 `violation` 검사 |
+| 출석표 / 선물 패널 | 상단 출석표 → 주간 표와 오늘 버튼. 미출석 날짜 진입/서울 자정에도 자동 표시. 새 지급 성공 시 표 자동 닫힘 → 앱 중앙 선물1초 → 이후 출석표에서 오늘 결과 확인 | 웹 Attendance/App/[RewardPanel](src/components/RewardPanel.jsx), 앱 useGameState/GameApp/[RewardPanel](../mobile/src/components/RewardPanel.jsx), [실제 영수증 표시](../shared/features/rewardFeedback.js) |
+| 기록 옮기기 / 로그아웃 / 계정 삭제 | 설정 안 전용 카드. 웹 백업 다운로드, 앱 백업·가져오기 Sheet. 로그아웃은 로그인으로 복귀하되 게임 기록 유지. 계정 삭제는 실제 삭제가 아닌 안내만 표시 | [BackupExport](src/components/BackupExport.jsx), 앱 Settings의 Backup, 양쪽 AuthGate/AuthContext |
+| 개발 비교/크기 미리보기 | 웹의 기존 개발 비교 진입과 모바일 `/friend-preview`, `/friend-identity-review`. 별도 localhost:5184 페이지는 localhost:5183 Expo 웹을390×844 iframe으로 표시. 사용자 기능과 별도 | 웹 FriendPreview/FriendIdentityReview, 앱 screens의 같은 이름 및 src/app 라우트, [개발 프레임](../mobile/dev-preview/index.html)/[개발 서버](../mobile/scripts/serve-dev-preview.mjs) |
+
+### UI와 별개로 수정할 규칙·저장·인증 위치
+
+- 게임 레벨/지급/구매/해금: [shared/features/game.js](../shared/features/game.js), 일일 배정/교체/완료/날짜별 넘긴 이력: [dailyMissions.js](../shared/features/dailyMissions.js). UI 위치 변경과 보상 정책 변경은 별개 작업이다.
+- 캐릭터/미션/상품/일일 문장: [shared/data](../shared/data/characters.js)의 해당 콘텐츠 파일. 날짜 선정은 [dailySentence.js](../shared/features/dailySentence.js), 서울 날짜는 [seoulDate.js](../shared/utils/seoulDate.js).
+- 공통 색/크기: [tokens.js](../shared/theme/tokens.js), 웹 스타일 src/styles.css·src/design/ui.css, 앱 components/ui.jsx 및 화면 가까이 있는 StyleSheet.
+- 웹 상태/저장 연결: src/App.jsx 및 화면의 localStorage/사진 IndexedDB 코드. 앱 상태 연결: [useGameState](../mobile/src/hooks/useGameState.js), 백업·AsyncStorage 어댑터: [storage.js](../mobile/src/storage/storage.js). 키와 기록 구조는 기존 것 유지.
+- 로그인 판단·서버 ID/토큰 연결: [authBackendController](../shared/auth/authBackendController.mjs), HTTP: [backendClient](../shared/api/backendClient.mjs), 플랫폼 SDK: mobile/src/auth/authClient.native.js/.android.js/기본.js. 실제 로그인 제공자별 상태와 미검증 범위는 [AUTH_BACKEND_SETUP](../mobile/AUTH_BACKEND_SETUP.md).
+
 ## 1. 의도와 구현 범위
 
-현실의 작은 활동 → XP·코인 → 독립된 친구·옷·집 꾸미기 → 캐릭터 반응. 결석·미완료 벌점, 강제 진화, 심리 상태 진단은 없다. frontend/는 React/Vite·localStorage, mobile/은 Expo SDK 57·React Native 0.86.3·React 19.2.3·AsyncStorage다. 공유 utils로 계산하며 게임 백엔드 호출과 센서 인증은 연결 전이다. 모바일 Supabase Google 인증과 게임 기록 동기화는 별개이며 게임은 기존 AsyncStorage를 유지한다. 샘플 이웃에게 글이나 반응을 실제 전달하지 않는다.
+현실의 작은 활동 → XP·코인 → 독립된 친구·옷·집 꾸미기 → 캐릭터 반응. 결석·미완료 벌점, 강제 진화, 심리 상태 진단은 없다. frontend/는 React/Vite·localStorage, mobile/은 Expo SDK 57·React Native 0.86.3·React 19.2.3·AsyncStorage다. 루트 shared/features와 shared/data의 규칙·콘텐츠로 계산하며 게임 백엔드 호출과 센서 인증은 연결 전이다. 모바일 Supabase Google 인증과 게임 기록 동기화는 별개이며 게임은 기존 AsyncStorage를 유지한다. 샘플 이웃에게 글이나 반응을 실제 전달하지 않는다.
 
 실제 상점 캐릭터는12종이다. 기존6종의 외형·조건은 유지하고 추가6종은 아래 최종6종 표의 외형·레벨·가격을 사용한다. 원본/ABC는 개발 비교 화면에서만 보존한다.
 
@@ -46,17 +103,17 @@ MY MOCHI 로그인/가입 화면에서 시작한다. 청록·크림 UI와 기존
 
 480px 이하 실제 모바일에서는 테두리/장식 상태 바/홈 표시줄을 숨겨 실제 OS 표시와 중복하지 않고 100dvh 전체 화면·네 방향 safe-area inset을 적용한다. viewport-fit=cover와 iOS 홈 화면 실행 메타 정보를 제공하지만 네이티브 앱·서비스 워커·오프라인 PWA 구현은 아니다. 모바일 폼 입력은 16px으로 설정해 iOS 자동 확대를 방지한다. 모든 화면 너비는 셸 안에 맞추며 상점은 좁은 기기 콘텐츠 폭을 고려해 1열로 표시한다. 이 기기 셸 내 상점/설정/방문 화면의 중복 테두리는 제거한다. 실제 iPhone/Safari·가상 키보드·홈 화면 실행 검증은 미수행이다.
 
-React screen 상태로 홈·도전·방명록·설정·상점·방문하기 전환. URL 라우터/공통 하단 내비게이션 없음. 전체 에이투지체 웹폰트, 실패 시 시스템 sans-serif.
+웹은 React screen 상태로 홈·도전·일기·방명록·설정·상점·방문하기를 전환한다. 모바일은 Expo Router 경로를 GameApp 화면 구현에 연결한다. 양쪽 모두 하단 퀘스트 → 홈 → 상점 단축 메뉴가 있으며, 웹 내부 화면은 별도 URL 경로를 만들지 않는다. 전체 에이투지체 웹폰트, 실패 시 시스템 sans-serif.
 
 폼 요소와 details/summary도 에이투지체 및 시스템 폴백을 상속한다. 상점/quest-ui 내부 타이포그래피는 화면 제목 21~22px, 카드 제목 16px·섹션 제목 18px, 본문/입력/펼침 제목 14px, 보조 정보 12~13px으로 명시한다. 홈의 기존 크기·배치는 유지한다. ui-disclosure는 기본 삼각형을 작은 CSS 꺾쇠로 대체하며 접힘/펼침·Enter/Space·포커스는 네이티브 details/summary 그대로다. 소개 본문은 1.7 줄간격과 한글 keep-all/긴 문자열 줄바꿈을 적용한다.
 
 ui-secondary는 밝은 크림색·청록 계열 경계선·14px 곡률·최소 44px 터치 영역의 보조 버튼이다. 구매/저장/시작/완료는 차분한 청록 주요 버튼으로 구분한다. 상점 그리드는 시작 정렬해 펼친 카드의 옆 카드를 늘리지 않으며 430px 이하 뷰포트에서 1열로 표시한다. 상점/퀘스트 프레임 폭만 화면에 맞추며 다른 화면 구조는 변경하지 않는다.
 
-홈은 코인/출석 한 줄, 방과 캐릭터, 이름 아래 실제 LV/XP, 오늘의 도전·꾸미기 주요 버튼, 오늘의 도전 요약 순서다. 홈의 상단 LV/XP는 제거하고 캐릭터 이름 밑에 한 번만 표시하며 다른 화면 상단 LV/XP는 유지한다. 코인은 한 번 표시한다. 설정은 모서리 톱니바퀴, 방문·방명록은 방 안 보조 버튼, 애칭은 캐릭터 아래 15px 이름표이며 설정으로 연결한다. 방의 왼쪽 벽 달력은 월·일·요일, 오른쪽 벽 시계는 시침·분침과12눈금을 표시한다. 기기 현지 시간으로1초마다 갱신하며06~18시는 낮,18~06시는 밤의 하늘과 약한 배경 음영을 적용한다. 미션·출석은 기존 서울 날짜 기준을 유지한다.
+홈은 코인/출석 한 줄, 방과 캐릭터, 말풍선 아래 실제 LV/XP, 오늘의 도전·꾸미기 주요 버튼, 오늘의 도전 요약 순서다. 홈의 상단 LV/XP는 제거하고 캐릭터 아래 말풍선 밑에 한 번만 표시하며 다른 화면 상단 LV/XP는 유지한다. 코인은 한 번 표시한다. 설정은 모서리 톱니바퀴, 방문·방명록은 방 안 보조 버튼, 애칭은 방 상단 중앙(방 기준 top 64px)의 14px 이름표이며 설정으로 연결한다. 방의 왼쪽 벽 달력은 월·일·요일, 오른쪽 벽 시계는 시침·분침과12눈금을 표시한다. 기기 현지 시간으로1초마다 갱신하며06~18시는 낮,18~06시는 밤의 하늘과 약한 배경 음영을 적용한다. 미션·출석은 기존 서울 날짜 기준을 유지한다.
 
 홈 방문하기는 집 아이콘, 방명록은 작은 봉투 아이콘이며 밝은 표면과 청록 윤곽을 공유한다. 두 메뉴 라벨은 에이투지체 500(Medium), 기존 터치 영역과 이동 동작은 유지한다. 홈 메뉴에만 적용한다.
 
-홈 전용 방 비율 368:500, viewBox 0 55 368 500로 빈 벽/바닥 비중을 줄이면서 가구·장착 소품과 카페트 중앙 캐릭터를 유지한다. 캐릭터 폭 66%, 최대 248px과 반응은 유지하며 새 viewBox의 바닥 좌표에 맞춰 위치를 조정한다. 이름/레벨은 방 하단 86.8%에서 묶어 표시하고 주요 버튼을 요약 목록보다 먼저 둬 첫 화면의 스크롤 부담을 줄인다. 짧은 화면은 내부 세로 스크롤을 유지하며 모든 높이에서 무스크롤을 보장하지 않는다. 하늘색·크림·나무색, UI의 주요 행동은 청록, 보상 포인트는 살구. src/refe/image.png는 분위기 참고이며 에셋을 복사하지 않는다. 기본 배경은 상점/이웃 방의 기존 비율을 유지한다. 돌봄·상태 바·가상 걸음·산책 코인 경로는 없다.
+홈 전용 방 비율 368:500, viewBox 0 55 368 500로 빈 벽/바닥 비중을 줄이면서 가구·장착 소품과 카페트 중앙 캐릭터를 유지한다. 캐릭터 폭 66%, 최대 248px과 반응은 유지하며 새 viewBox의 바닥 좌표에 맞춰 위치를 조정한다. 말풍선/레벨은 방 하단 기준 86.8% 위치에서 묶어 표시하고 이름은 방 상단 중앙으로 분리하며 주요 버튼을 요약 목록보다 먼저 둬 첫 화면의 스크롤 부담을 줄인다. 짧은 화면은 내부 세로 스크롤을 유지하며 모든 높이에서 무스크롤을 보장하지 않는다. 하늘색·크림·나무색, UI의 주요 행동은 청록, 보상 포인트는 살구. src/refe/image.png는 분위기 참고이며 에셋을 복사하지 않는다. 기본 배경은 상점/이웃 방의 기존 비율을 유지한다. 돌봄·상태 바·가상 걸음·산책 코인 경로는 없다.
 
 공통 ScreenHeader로 도전·상점·일기·방명록·이웃·설정 제목 21~22px, 뒤로가기 최소 44px, 상단 간격을 통일한다. 기존 이동 목적은 보존하며 장식은 기능과 관련 있는 작은 선 아이콘으로 제한한다. 주요 청록·선택 탭 청록/체크·작은 살구 보상·밝은 크림 카드, 기본/선택/비활성/장착 상태를 구분한다. 장착 중은 실행 불가 상태이며 해제는 보조 동작이다. 상점 미리보기와 방 배경 디자인은 바꾸지 않는다.
 
@@ -181,11 +238,11 @@ LV = 1 + floor(XP/100) 유지. 실제 시작 0XP·90코인·감자 1개. initial
 
 필터 안내와 차단 작성자 펼침은 12px 보조 글씨와 작은 패딩으로 표시한다. 펼침 터치 영역은 44px을 유지하며 다른 화면의 펼침 스타일은 변경하지 않는다.
 
-내 방명록·이웃 방명록은 같은 `guestModeration.js` 규칙과 GuestbookSafety UI를 사용한다. 신고 사유는 욕설/혐오 표현/스팸/기타이며, 확인 창은 앱 프레임 내부에 열고 취소·바깥 클릭·Escape 및 키보드 포커스 제어는 기존 QuestSheet를 사용한다. 차단한 작성자의 글은 두 방명록에서 숨기며 목록에서 차단 해제할 수 있다. 글 원본과 좋아요 기록은 차단 때문에 삭제하지 않는다.
+내 방명록·이웃 방명록은 같은 `guestModeration.js` 규칙과 GuestbookSafety UI를 사용한다. 신고 사유는 욕설/혐오 표현/스팸/기타이며, 확인 창은 앱 프레임 내부에 열고 취소·바깥 클릭·Escape 및 키보드 포커스 제어는 기존 QuestSheet를 사용한다. 차단한 작성자의 글은 두 방명록에서 숨기며 차단 목록 확인·해제는 내 방명록에서만 제공한다. 방문한 이웃 방명록에서는 목록을 표시하지 않는다. 글 원본과 좋아요 기록은 차단 때문에 삭제하지 않는다.
 
 등록 전 NFKC 정규화·공백/기호/제로폭 제거 후 욕설·일부 집단 혐오 표현을 검사한다. 필터는 규칙 기반이며 문맥 오탐·누락 가능성이 있다. 기존 위반 글은 내용을 가리고 신고 동작을 유지한다. 신고된 글에서 필터가 위반을 확인하면 해당 글을 목록에서 제거하고 `신고 시각 + 7×24시간`까지 해당 작성자의 작성 제한을 저장한다. 같은 글 신고는 1회, 재신고로 제재를 연장하지 않는다. 다른 위반 글 신고는 별도 처리한다. 정상 글의 신고는 기록만 남기며 자동 삭제/정지는 하지 않는다. 입력 거절 자체로 제재하지 않는다.
 
-별도 localStorage `mochi.guestModeration.v1`: version=1, blocked[작성자ID], reports[방범위:글ID](사유/작성자/시각/확인 결과, 원문 없음), deleted[방범위:글ID], suspensions[작성자ID].until(UTC 밀리초)를 저장한다. 게임·옷장 데이터는 변경하지 않는다. 기존 글에 계정 ID가 없으면 샘플 이름 기반 ID로 해석하고 기존 m숫자/로컬 글은 local:self로 식별하며 애칭 변경으로 정지를 우회하지 않는다. 신규 로컬 글에는 authorId와 source를 붙인다. 제한 중에는 내/이웃 작성칸과 등록을 차단하고 함수에서도 재검사한다. 화면 타이머·focus·storage 이벤트로 해제를 반영하며 이탈 시 정리한다. 동일 브라우저 탭 상태를 공유하지만 서버 트랜잭션/기기 간 동기화는 아니다.
+별도 localStorage `mochi.guestModeration.v1`: version=1, blocked[작성자ID], `reports[방범위:글ID]`(사유/작성자/시각/확인 결과, 원문 없음), deleted[방범위:글ID], suspensions[작성자ID].until(UTC 밀리초)를 저장한다. 게임·옷장 데이터는 변경하지 않는다. 기존 글에 계정 ID가 없으면 샘플 이름 기반 ID로 해석하고 기존 m숫자/로컬 글은 local:self로 식별하며 애칭 변경으로 정지를 우회하지 않는다. 신규 로컬 글에는 authorId와 source를 붙인다. 제한 중에는 내/이웃 작성칸과 등록을 차단하고 함수에서도 재검사한다. 화면 타이머·focus·storage 이벤트로 해제를 반영하며 이탈 시 정리한다. 동일 브라우저 탭 상태를 공유하지만 서버 트랜잭션/기기 간 동기화는 아니다.
 
 현재 Vite 웹 로컬 목업만 구현. 실제 사용자 계정 식별·전달·7일 제재의 서버 강제·운영자 심사·이의제기·서버 시간·백업 연동은 미구현이다. 안전 설정을 저장하지 못하면 신고/차단 적용 실패를 알리며 작성 시 안전 설정을 읽지 못하면 등록을 거절한다. 별도 Edge 프로필로 시험하며 실제 사용자 데이터를 초기화하지 않는다. 모바일은 이번에 이웃 등록 전 필터만 재사용하며 전체 신고/차단 UI와 7일 제재는 웹 로컬 구현이다. backend/는 변경하지 않는다.
 
@@ -485,3 +542,7 @@ iOS bundleIdentifier는 io.github.alicena2ppn2.mymochi로 준비했다. 저장�
 개발자 도구 없이 Expo 웹을 390×844 iframe으로 표시하는 독립 개발 페이지 추가. 작은 PC 높이에서는 표시만 축소하며 앱 CSS와 실제 뷰포트 크기는 유지.
 
 개발 프레임 검증: 실제 iframe 내부 390×844 CSS px, PC 3가지 창 크기의 균일 축소와 버튼·탭 이동 확인. 별도 임시 Edge 데이터로 검증했고 기존 사용자 데이터를 초기화하지 않았다.
+
+### 2026-10-15 위치 안내 보완
+
+화면 진입/홈 세부 위치/기능 안의 조작 위치/웹·모바일 구현 경로/공유 규칙·저장·인증 소유 위치를 본문에 통합. 오래된 하단바·이름/말풍선·부담 응답·인증 완료 조건을 실제 코드 기준으로 바로잡음. 앱 코드는 변경하지 않음.
