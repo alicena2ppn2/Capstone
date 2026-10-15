@@ -38,7 +38,7 @@ def test_album_shows_mission_and_diary_photos_newest_first(client):
     assert by_id[p2]["used_for"] == {"type": "diary", "id": "diary", "title": "일기"}
     assert by_id[p3]["used_for"] is None
     assert by_id[p1]["url"] == f"/photos/{p1}"
-    assert client.get(by_id[p1]["url"]).content == JPEG
+    assert client.get(by_id[p1]["url"]).content[:2] == b"\xff\xd8"
 
 
 def test_album_filters_pages_and_months(client):

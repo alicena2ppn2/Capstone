@@ -17,11 +17,12 @@ from datetime import date as Date, datetime, timedelta, timezone
 
 from pathlib import Path
 
-from fastapi import Depends, FastAPI, File, Header, HTTPException, Query, Request, Response, UploadFile
+from fastapi import Depends, FastAPI, File, Form, Header, HTTPException, Query, Request, Response, UploadFile
 from fastapi.responses import FileResponse, PlainTextResponse
 from fastapi.middleware.cors import CORSMiddleware
 from pydantic import BaseModel, Field
 
+from . import attendance as att
 from . import auth
 from . import crisis
 from . import db
@@ -37,9 +38,11 @@ USUAL_STEPS_DAYS = 28   # 평소 걸음 = 최근 28일 걸음 중앙값
 
 # 사진 업로드
 MAX_PHOTO_BYTES = 10 * 1024 * 1024
-# 사진 미션은 오늘 찍은 사진만 인정한다 (촬영 일시가 있을 때).
-# 촬영 일시가 없는 사진(스크린샷·메신저 사진 등)은 일단 인정한다 → 막으려면 False로.
-ALLOW_PHOTO_WITHOUT_TAKEN_AT = True
+# 사진 미션은 미션 날짜에 찍은 사진만 인정한다 (10/15 결정: 사진 날짜가 미션 날짜와 맞아야 성공).
+# 촬영 일시는 파일의 EXIF → 없으면 앱이 보낸 taken_at 순서로 본다. 둘 다 없으면(스크린샷·받은 사진) 인정하지 않는다.
+ALLOW_PHOTO_WITHOUT_TAKEN_AT = False
+NO_TAKEN_AT_MESSAGE = "찍은 날짜를 알 수 없는 사진이에요. 카메라로 오늘 찍은 사진을 올려 주세요."
+NOT_TODAY_MESSAGE = "오늘 찍은 사진으로 다시 올려 주세요."
 PHOTO_TYPES = {"image/jpeg": ".jpg", "image/png": ".png", "image/webp": ".webp", "image/heic": ".heic", "image/heif": ".heif"}
 
 
@@ -59,7 +62,7 @@ async def lifespan(app: FastAPI):
 app = FastAPI(title="Capstone API", version="0.1.0", lifespan=lifespan)
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=os.environ.get("CORS_ORIGINS", "http://localhost:5173,http://localhost:8081").split(","),   # 웹 프론트(Vite) · Expo 웹
+    allow_origins=os.environ.get("CORS_ORIGINS", "http://localhost:5173,http://localhost:5180,http://127.0.0.1:5180,http://localhost:8081,http://localhost:5183").split(","),   # 웹(Vite 5173, 팀은 5180) · Expo 웹(8081, 팀은 5183)
     allow_methods=["*"],
     allow_headers=["*"],
 )
@@ -122,6 +125,15 @@ class UserIn(BaseModel):
     nickname: str = Field(..., description=f"닉네임 {NICKNAME_MIN}~{NICKNAME_MAX}자")
 
 
+BIO_MAX = 40
+
+
+class ProfileIn(BaseModel):
+    """보낸 칸만 바꾼다."""
+    nickname: str | None = Field(None, description=f"닉네임 {NICKNAME_MIN}~{NICKNAME_MAX}자")
+    bio: str | None = Field(None, max_length=BIO_MAX, description=f"한 줄 소개 ({BIO_MAX}자까지, 빈 글이면 지움). 이웃이 내 방에서 봄")
+
+
 class SupabaseLoginIn(BaseModel):
     supabase_id: str | None = Field(None, description="개발·시연 모드에서만 사용 (서버에 SUPABASE_URL이 없을 때). 실제로는 Authorization 헤더의 토큰")
     nickname: str | None = Field(None, description="처음 로그인일 때만: 이 닉네임으로 서버 사용자를 만든다")
@@ -148,8 +160,17 @@ class EquipIn(BaseModel):
 
 
 class DecorIn(BaseModel):
-    slot: str = Field(..., description="lamp | carpet | frame | doll | scenery")
+    slot: str = Field(..., description="wallpaper | floor | lamp | carpet | frame | doll | scenery")
     item_id: str | None = Field(..., description="놓을 소품 id. null이면 그 자리 비우기")
+
+
+MOVABLE_SLOTS = ("lamp", "frame", "doll")   # 끌어서 옮길 수 있는 소품 (앱 shared/data/decor.js와 같음)
+MOVE_LIMIT = 160                             # 기본 자리에서 이만큼까지만 (방 그림 밖으로 안 나가게)
+
+
+class MoveIn(BaseModel):
+    dx: float = Field(..., ge=-MOVE_LIMIT, le=MOVE_LIMIT, description="가로로 옮긴 거리 (방 그림 좌표 368×500 기준)")
+    dy: float = Field(..., ge=-MOVE_LIMIT, le=MOVE_LIMIT, description="세로로 옮긴 거리")
 
 
 class GuestbookIn(BaseModel):
@@ -278,10 +299,10 @@ def check_taken_today(conn, photo_ids: list[str], today: Date) -> None:
     for taken in db.photo_taken_at(conn, photo_ids).values():
         if taken is None:
             if not ALLOW_PHOTO_WITHOUT_TAKEN_AT:
-                raise HTTPException(422, "오늘 찍은 사진으로 다시 올려 주세요.")
+                raise HTTPException(422, NO_TAKEN_AT_MESSAGE)
             continue
         if Date.fromisoformat(taken[:10]) != today:
-            raise HTTPException(422, "오늘 찍은 사진으로 다시 올려 주세요.")
+            raise HTTPException(422, NOT_TODAY_MESSAGE)
 
 
 def screen_text(conn, user_id: str, today: Date, source: str, text: str) -> dict | None:
@@ -423,11 +444,19 @@ def get_user(user_id: str, conn=Depends(get_conn)):
     return {**user, "level": ms.level_from_xp(db.xp_total(conn, user_id))}
 
 
-@app.patch("/users/{user_id}", summary="닉네임 바꾸기")
-def rename_user(user_id: str, body: UserIn, conn=Depends(get_conn)):
+@app.patch("/users/{user_id}", summary="프로필 바꾸기: 닉네임·한 줄 소개 (보낸 칸만)")
+def rename_user(user_id: str, body: ProfileIn, conn=Depends(get_conn)):
     if db.get_user(conn, user_id) is None:
         raise HTTPException(404, "없는 사용자입니다.")
-    return db.rename_user(conn, user_id, clean_nickname(conn, body.nickname, except_id=user_id))
+    user = db.get_user(conn, user_id)
+    if body.nickname is not None:
+        user = db.rename_user(conn, user_id, clean_nickname(conn, body.nickname, except_id=user_id))
+    if "bio" in body.model_fields_set:
+        bio = " ".join((body.bio or "").split()) or None
+        if bio and not moderation.is_clean(bio):
+            raise HTTPException(422, "다른 소개 글로 바꿔 줄래요?")
+        user = db.set_bio(conn, user_id, bio)
+    return user
 
 
 @app.delete("/users/{user_id}", summary="계정 삭제 — 걸음·미션·코인·사진·일기·방문·방명록까지 모두 삭제")
@@ -543,6 +572,23 @@ def reroll_mission(user_id: str, mission_id: str, date: str | None = DateQuery, 
     db.replace_missions(conn, user_id, today.isoformat(), missions)
     return {"replaced": mission_id, "mission": new,
             **with_status(conn, user_id, db.get_mission_day(conn, user_id, today.isoformat()))}
+
+
+@app.post("/users/{user_id}/missions/{mission_id}/photo",
+          summary="사진 미션 한 번에: 사진 올리기 + 완료 (multipart file, 선택 taken_at). 미션 날짜에 찍은 사진이어야 성공")
+async def complete_with_photo(user_id: str, mission_id: str, file: UploadFile = File(...),
+                              taken_at: str | None = Form(None, description="파일에 EXIF가 없을 때 앱이 아는 촬영 일시"),
+                              answer: str | None = Form(None), date: str | None = DateQuery, conn=Depends(get_conn)):
+    today = day(date)
+    mission = next((m for m in todays_missions(conn, user_id, today)["missions"] if m["id"] == mission_id), None)
+    if mission is None:
+        raise HTTPException(404, f"오늘의 미션이 아닙니다: {mission_id}")
+    if mission["kind"] != "photo":
+        raise HTTPException(422, "사진으로 끝내는 미션이 아니에요.")
+    photo = await save_photo(conn, user_id, file, taken_at, today.isoformat())
+    result = complete_mission(user_id, mission_id, CompleteIn(photos=[photo["photo_id"]], answer=answer),
+                              date=today.isoformat(), conn=conn)
+    return {**result, "photo": photo}
 
 
 @app.get("/users/{user_id}/ladder", summary="단계 사다리: 움직이기·이어지기 지금 단계(1 혼자 · 2 한 명 · 3 여럿)와 다음 단계까지 남은 횟수")
@@ -699,13 +745,58 @@ def complete_weekly(user_id: str, quest_id: str, body: CompleteIn, date: str | N
     }
 
 
-@app.post("/users/{user_id}/attendance", summary="출석하기 (앱을 열 때 호출)")
+def attendance_week(conn, user_id: str, today: Date) -> dict:
+    """이번 주 출석표: 날짜마다 정해진 선물, 받은 선물, 오늘인지."""
+    monday = att.week_start(today)
+    plan = att.week_plan(user_id, monday, list(shop.CATALOG["outfit"]), list(shop.CATALOG["decor"]))
+    claims = db.attendance_claims(conn, user_id, monday.isoformat(), (monday + timedelta(days=6)).isoformat())
+
+    def named(reward: dict) -> dict:
+        kind = reward["type"]
+        if kind in ("outfit", "decor"):
+            return {**reward, "name": shop.CATALOG[kind].get(reward["id"], {}).get("name")}
+        return reward
+    days = [{"date": d, "reward": named(r), "claimed": named(claims[d]) if d in claims else None, "today": d == today.isoformat()}
+            for d, r in plan.items()]
+    return {"week_start": monday.isoformat(), "days": days, "count": len(claims), "claimed_today": today.isoformat() in claims}
+
+
+@app.get("/users/{user_id}/attendance/week", summary="이번 주 출석표 (월~일, 날마다 정해진 선물과 받은 선물)")
+def get_attendance_week(user_id: str, date: str | None = DateQuery, conn=Depends(get_conn)):
+    return attendance_week(conn, user_id, day(date))
+
+
+@app.post("/users/{user_id}/attendance", summary="출석하기 — 이번 주 출석표의 오늘 선물을 받는다 (하루 한 번, 가진 옷·소품이면 30코인)")
 def check_in(user_id: str, date: str | None = DateQuery, conn=Depends(get_conn)):
     today = day(date)
     day_ = todays_missions(conn, user_id, today)
     already = "attendance" in db.completed_ids(conn, user_id, today.isoformat())
-    settle = finish_and_pay(conn, user_id, today, day_, "attendance", {"checked_in": True})
-    return {"date": today.isoformat(), "already_checked_in": already, **rewards(conn, user_id, settle)}
+    before = ms.level_from_xp(db.xp_total(conn, user_id))["level"]
+    settle = finish_and_pay(conn, user_id, today, day_, "attendance", {"checked_in": True})   # 출석 미션 완료 (보상 0)
+    gift = None
+    planned = next(d["reward"] for d in attendance_week(conn, user_id, today)["days"] if d["today"])
+    reward = {k: v for k, v in planned.items() if k != "name"}
+    if reward["type"] in ("outfit", "decor"):
+        if (reward["type"], reward["id"]) in db.owned_items(conn, user_id):
+            reward = {"type": "coins", "amount": att.DUPLICATE_COINS, "duplicate": planned.get("name")}
+    if db.add_attendance(conn, user_id, today.isoformat(), reward):
+        gift = reward
+        if reward["type"] in ("coins", "xp"):
+            db.add_coins(conn, user_id, today.isoformat(), [{"id": f"attendance:{today.isoformat()}",
+                         "coins": reward["amount"] if reward["type"] == "coins" else 0,
+                         "xp": reward["amount"] if reward["type"] == "xp" else 0}])
+        else:
+            db.add_items(conn, user_id, [(reward["type"], reward["id"])], "attendance")
+    out = rewards(conn, user_id, settle)
+    level = ms.level_from_xp(db.xp_total(conn, user_id))
+    gained = gift or {}
+    if gift and gift["type"] in ("outfit", "decor"):
+        gift = {**gift, "name": shop.CATALOG[gift["type"]][gift["id"]]["name"]}
+    return {"date": today.isoformat(), "already_checked_in": already, **out,
+            "earned_total": out["earned_total"] + (gained.get("amount", 0) if gained.get("type") == "coins" else 0),
+            "earned_xp": out["earned_xp"] + (gained.get("amount", 0) if gained.get("type") == "xp" else 0),
+            "coins": db.coin_balance(conn, user_id), "level": level, "leveled_up": level["level"] > before,
+            "gift": gift, "week": attendance_week(conn, user_id, today)}
 
 
 @app.get("/users/{user_id}/level", summary="레벨·경험치")
@@ -714,7 +805,13 @@ def get_level(user_id: str, conn=Depends(get_conn)):
 
 
 @app.post("/users/{user_id}/photos", summary="사진 업로드 (카메라·앨범) → photo_id")
-async def upload_photo(user_id: str, file: UploadFile = File(...), date: str | None = DateQuery, conn=Depends(get_conn)):
+async def upload_photo(user_id: str, file: UploadFile = File(...),
+                       taken_at: str | None = Form(None, description="앱이 아는 촬영 일시 (예: ImagePicker exif.DateTimeOriginal '2026:10:15 14:05:00'). 파일에 EXIF가 없을 때만 씀"),
+                       date: str | None = DateQuery, conn=Depends(get_conn)):
+    return await save_photo(conn, user_id, file, taken_at, date)
+
+
+async def save_photo(conn, user_id: str, file: UploadFile, client_taken_at: str | None, date: str | None) -> dict:
     ext = PHOTO_TYPES.get(file.content_type or "")
     if ext is None:
         raise HTTPException(415, f"사진 파일만 올릴 수 있어요 (jpeg, png, webp, heic): {file.content_type}")
@@ -725,10 +822,14 @@ async def upload_photo(user_id: str, file: UploadFile = File(...), date: str | N
         raise HTTPException(422, "빈 파일입니다.")
 
     photo_id = uuid.uuid4().hex
+    taken = photo_meta.taken_at(data) or photo_meta.parse_client_taken(client_taken_at)   # 파일 EXIF가 우선 (지우기 전에 읽음)
+    cleaned = photo_meta.clean_image(data, file.content_type)   # 위치(GPS)·기기 정보 지우고 저장 (10/15)
+    if cleaned is None:
+        raise HTTPException(422, "사진을 열 수 없어요. 다른 사진으로 올려 주세요.")
+    data, ext, content_type = cleaned
     filename = photo_id + ext
-    taken = photo_meta.taken_at(data)
     (upload_dir() / filename).write_bytes(data)
-    db.add_photo(conn, photo_id, user_id, filename, file.content_type, day(date).isoformat(), taken)
+    db.add_photo(conn, photo_id, user_id, filename, content_type, day(date).isoformat(), taken)
     return {"photo_id": photo_id, "url": f"/photos/{photo_id}"}   # 촬영 일시는 서버에만 저장 (응답에 안 넣음)
 
 
@@ -771,7 +872,7 @@ def delete_photo(user_id: str, photo_id: str, conn=Depends(get_conn)):
     return {"deleted": photo_id}
 
 
-@app.get("/photos/{photo_id}", summary="사진 보기")
+@app.get("/photos/{photo_id}", summary="사진 보기 (위치·기기 정보는 올릴 때 지움. 주소는 추측할 수 없는 무작위 id)")
 def get_photo(photo_id: str, conn=Depends(get_conn)):
     photo = db.get_photo(conn, photo_id)
     if photo is None:
@@ -902,6 +1003,7 @@ def room_view(conn, user_id: str) -> dict:
         "character": equipped["character_id"] or shop.DEFAULT_CHARACTER,
         "outfit": equipped["outfit_id"],
         "decor": {slot: placed.get(slot) for slot in shop.DECOR_SLOTS},
+        "positions": db.decor_positions(conn, user_id),
         "scenery_landscape": shop.CATALOG["decor"].get(placed.get("scenery", ""), {}).get("landscape"),
     }
 
@@ -926,6 +1028,15 @@ def buy(user_id: str, body: BuyIn, date: str | None = DateQuery, conn=Depends(ge
             "coins": db.coin_balance(conn, user_id)}
 
 
+@app.put("/users/{user_id}/decor/{slot}/position", summary="소품 옮기기 — 놓여 있는 전등·액자·인형을 끌어서 옮긴 위치 저장")
+def move_decor(user_id: str, slot: str, body: MoveIn, conn=Depends(get_conn)):
+    if slot not in MOVABLE_SLOTS:
+        raise HTTPException(422, "이 소품은 자리가 정해져 있어요.")
+    if not db.move_decor(conn, user_id, slot, round(body.dx, 1), round(body.dy, 1)):
+        raise HTTPException(404, "그 자리에 놓인 소품이 없어요.")
+    return room_view(conn, user_id)
+
+
 @app.put("/users/{user_id}/decor", summary="집 꾸미기 배치 — 가진 소품을 맞는 자리에. item_id=null이면 그 자리 비우기")
 def place_decor(user_id: str, body: DecorIn, conn=Depends(get_conn)):
     if body.slot not in shop.DECOR_SLOTS:
@@ -940,14 +1051,16 @@ def place_decor(user_id: str, body: DecorIn, conn=Depends(get_conn)):
     return room_view(conn, user_id)
 
 
-@app.get("/users/{user_id}/room", summary="방 모습 (내 방·이웃 방 공통): 닉네임·레벨·캐릭터·옷·놓은 소품")
-def get_room(user_id: str, conn=Depends(get_conn)):
+@app.get("/users/{user_id}/room", summary="방 모습 (내 방·이웃 방 공통): 닉네임·레벨·캐릭터·옷·놓은 소품·방문자 수(오늘/전체)")
+def get_room(user_id: str, date: str | None = DateQuery, conn=Depends(get_conn)):
     user = db.get_user(conn, user_id)
     return {
         "user_id": user_id,
         "nickname": user["nickname"] if user else None,
+        "bio": user["bio"] if user else None,
         "level": ms.level_from_xp(db.xp_total(conn, user_id))["level"],
         **room_view(conn, user_id),
+        "visits": db.visit_counts(conn, user_id, day(date).isoformat()),
     }
 
 
@@ -1060,7 +1173,8 @@ def like_guestbook(user_id: str, entry_id: int, body: LikeIn, conn=Depends(get_c
     if entry["author_id"] and entry["author_id"] in db.block_related(conn, body.user_id):
         raise HTTPException(404, "방명록 글이 없습니다.")
     db.like_entry(conn, entry_id, body.user_id)
-    return {"entry_id": entry_id, **db.like_counts(conn, [entry_id], body.user_id)[entry_id]}
+    bond = grow_friendship(conn, body.user_id, entry["author_id"], seoul_today(), "like")   # 글쓴이와 친밀도 +1 (하루 한 번)
+    return {"entry_id": entry_id, **db.like_counts(conn, [entry_id], body.user_id)[entry_id], "friendship": bond}
 
 
 @app.delete("/users/{user_id}/guestbook/{entry_id}/like", summary="방명록 글 좋아요 취소")
@@ -1247,16 +1361,17 @@ def friend_cards(conn, user_id: str, entries: list[dict], today: Date) -> list[d
 
 
 def grow_friendship(conn, actor_id: str, friend_id: str, today: Date, kind: str) -> dict | None:
-    """친구에게 방명록·방문을 하면 친밀도를 올리고, 레벨이 오르면 두 사람 모두에게 코인을 준다.
-    친구가 아니면 None. 그날 같은 활동을 이미 했으면 점수는 그대로."""
-    if friend_id not in db.friend_ids(conn, actor_id):
+    """방명록·방문·좋아요를 하면 두 사람의 친밀도를 올린다. 레벨이 오를 때 코인은 친구 사이일 때만 두 사람 모두에게.
+    그날 같은 활동을 이미 했으면 점수는 그대로. 자기 자신에게 한 건 세지 않음 (None)."""
+    if not friend_id or actor_id == friend_id:
         return None
+    is_friend = friend_id in db.friend_ids(conn, actor_id)
     before = fs.level_from_points(db.friendship_points(conn, actor_id, [friend_id])[friend_id])
     counted = db.add_friendship_points(conn, actor_id, friend_id, today.isoformat(), kind, fs.POINTS[kind])
     after = fs.level_from_points(db.friendship_points(conn, actor_id, [friend_id])[friend_id])
 
     earned = 0
-    for level in range(before["level"] + 1, after["level"] + 1):
+    for level in range(before["level"] + 1, after["level"] + 1) if is_friend else ():
         coins = fs.reward_for(level)
         for me, other in ((actor_id, friend_id), (friend_id, actor_id)):
             item = fs.reward_item(other, level)
@@ -1270,7 +1385,15 @@ def grow_friendship(conn, actor_id: str, friend_id: str, today: Date, kind: str)
         "gained": fs.POINTS[kind] if counted else 0,
         "leveled_up": after["level"] > before["level"],
         "earned_coins": earned,
+        "is_friend": is_friend,
     }
+
+
+@app.get("/users/{user_id}/friendship/{other_id}", summary="두 사람의 친밀도: 레벨·점수·서로 한 방문·방명록·좋아요 횟수 (친구가 아니어도)")
+def get_friendship(user_id: str, other_id: str, conn=Depends(get_conn)):
+    points = db.friendship_points(conn, user_id, [other_id])[other_id]
+    return {"user_id": user_id, "other_id": other_id, "is_friend": other_id in db.friend_ids(conn, user_id),
+            **fs.level_from_points(points), "counts": db.friendship_counts(conn, user_id, other_id)}
 
 
 @app.post("/users/{user_id}/friends", status_code=201,
