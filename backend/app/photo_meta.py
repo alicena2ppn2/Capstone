@@ -8,7 +8,7 @@ iPhone HEIC 사진은 pillow-heif가 있으면 읽는다.
 from __future__ import annotations
 
 import io
-from datetime import datetime
+from datetime import datetime, timedelta, timezone
 
 from PIL import Image
 
@@ -23,6 +23,30 @@ EXIF_IFD = 0x8769
 DATETIME_ORIGINAL = 36867   # 찍은 시각
 DATETIME_DIGITIZED = 36868
 DATETIME = 306              # 파일이 바뀐 시각 (마지막 수단)
+
+
+KST = timezone(timedelta(hours=9))
+
+
+def parse_client_taken(value: str | None) -> str | None:
+    """앱이 따로 보낸 촬영 일시 (expo-image-picker의 exif.DateTimeOriginal 등) → 'YYYY-MM-DDTHH:MM:SS'.
+
+    앱에서 고른 사진 파일은 EXIF가 빠질 때가 있어서(iOS 등) 파일에서 못 읽으면 이 값을 쓴다.
+    'YYYY:MM:DD HH:MM:SS'(EXIF 형식) 또는 ISO. 시간대가 있으면 서울 시각으로 바꾼다. 못 읽으면 None.
+    """
+    text = (value or "").strip()
+    if not text:
+        return None
+    try:
+        when = datetime.strptime(text[:19], "%Y:%m:%d %H:%M:%S")
+    except ValueError:
+        try:
+            when = datetime.fromisoformat(text.replace("Z", "+00:00"))
+        except ValueError:
+            return None
+    if when.tzinfo is not None:
+        when = when.astimezone(KST).replace(tzinfo=None)
+    return when.replace(microsecond=0).isoformat()
 
 
 def taken_at(data: bytes) -> str | None:

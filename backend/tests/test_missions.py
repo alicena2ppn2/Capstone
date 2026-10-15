@@ -38,10 +38,13 @@ def test_catalog_size_and_shape():
         if m.category in ("outdoor", "home", "explore", "record"):
             assert m.outdoor == (m.category == "outdoor")
         if m.category == "connect":
-            assert m.stage >= 1 and m.kind == "text"
+            assert m.stage >= 1 and m.kind == "photo"
         if m.kind == "list":
             assert m.min_count >= 1
     assert ms.CATALOG["walk"].outdoor   # 매일 고정이지만 밖에 나가는 미션
+    # 매일 바뀌는 칸에 나오는 미션은 걸음 아니면 사진 (10/15 결정)
+    rotating = [x for t in ms.BY_STAGE.values() for ids in t.values() for x in ids] + ms.BY_CATEGORY["home"]
+    assert {ms.CATALOG[x].kind for x in rotating} == {"photo", "steps"}
 
 
 def test_three_slots_move_home_connect():
@@ -75,7 +78,7 @@ def test_stage_coins_go_up():
     assert ms.CATALOG["sky_photo"].coins == 50                 # 1단계 밖
     assert ms.CATALOG["drink_run"].coins == 60                 # 2단계 밖
     assert ms.CATALOG["parks"].coins == 70                     # 3단계 밖
-    assert ms.CATALOG["c1_room_like"].coins == 30              # 1단계 이어지기 (집)
+    assert ms.CATALOG["c1_family_meal"].coins == 30            # 1단계 이어지기 (집)
     assert ms.CATALOG["c3_regular_shop"].coins == 70           # 3단계 이어지기 (밖)
 
 
