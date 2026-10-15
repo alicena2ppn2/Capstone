@@ -41,7 +41,8 @@
     "export": "expo export --platform all",
     "start:dev": "expo start --dev-client",
     "auth:check": "node scripts/check-supabase-auth.mjs",
-    "test:all": "node --test src/storage/storage.test.mjs src/auth/supabaseAuthCore.test.mjs ../shared/features/*.test.js ../shared/utils/*.test.js ../shared/auth/*.test.mjs"
+    "test:all": "node --test src/storage/storage.test.mjs src/auth/supabaseAuthCore.test.mjs ../shared/features/*.test.js ../shared/utils/*.test.js ../shared/auth/*.test.mjs",
+    "dev:preview": "node scripts/serve-dev-preview.mjs"
   },
   "private": true,
   "devDependencies": {
