@@ -14,7 +14,10 @@ JPEG = b"\xff\xd8\xff\xe0" + b"0" * 100
 def client(tmp_path, monkeypatch):
     monkeypatch.setenv("CAPSTONE_DB", str(tmp_path / "test.db"))
     monkeypatch.setenv("CAPSTONE_UPLOADS", str(tmp_path / "uploads"))
+    from app import main
     from app.main import app
+    # 테스트 사진(가짜 JPEG)에는 촬영 일시가 없다. 날짜 확인은 tests/test_photo_taken.py에서 따로 본다
+    monkeypatch.setattr(main, "ALLOW_PHOTO_WITHOUT_TAKEN_AT", True)
     with TestClient(app) as c:
         yield c
 
@@ -63,7 +66,7 @@ def test_stay_home_yesterday_gives_outdoor_mission(client):
     assert r["stayed_home"] is True
     assert len(r["missions"]) == 8                      # 매일 고정 5개 + 매일 바뀌는 3개
     assert [m["id"] for m in r["missions"][:5]] == ["attendance", "walk", "diary", "visit", "guestbook"]
-    assert r["missions"][1]["min_count"] == 8000
+    assert r["missions"][1]["kind"] == "photo"           # 10/15: 만보기가 없어 걷기도 사진으로
     assert r["missions"][5]["category"] == "outdoor"
     assert all(not m["done"] for m in r["missions"])
 
@@ -240,18 +243,23 @@ def test_diary_rejects_unknown_photo(client):
 # --- 출석·레벨 ---------------------------------------------------------------------
 
 def test_attendance_once_a_day(client):
+    """출석은 주간 출석표의 그날 선물 (10/15: 앱 방식). 하루 한 번."""
+    week = client.get("/users/u1/attendance/week", params={"date": DAY}).json()
+    assert len(week["days"]) == 7 and week["count"] == 0
+    planned = next(d["reward"] for d in week["days"] if d["today"])
+    assert week == client.get("/users/u1/attendance/week", params={"date": DAY}).json()   # 같은 주는 같은 선물
     r = client.post("/users/u1/attendance", params={"date": DAY}).json()
     assert r["already_checked_in"] is False
-    assert r["earned_total"] == ms.COINS_DAILY and r["earned_xp"] == ms.XP_DAILY
-    assert r["level"]["level"] == 1
-
+    assert r["gift"]["type"] == planned["type"]
+    coins = r["coins"]
+    if planned["type"] == "coins":
+        assert r["earned_total"] == planned["amount"] == coins
     again = client.post("/users/u1/attendance", params={"date": DAY}).json()
-    assert again["already_checked_in"] is True
-    assert again["earned_total"] == 0
+    assert again["already_checked_in"] is True and again["gift"] is None and again["earned_total"] == 0
+    assert again["week"]["claimed_today"] is True and again["week"]["count"] == 1
 
     nxt = client.post("/users/u1/attendance", params={"date": "2026-10-03"}).json()
-    assert nxt["already_checked_in"] is False
-    assert client.get("/users/u1/coins").json()["coins"] == 2 * ms.COINS_DAILY
+    assert nxt["already_checked_in"] is False and nxt["gift"] is not None
     assert client.get("/users/u1/home", params={"date": DAY}).json()["checked_in"] is True
 
 
@@ -506,3 +514,39 @@ def test_weekly_needs_own_photo_and_shows_in_album(client):
     assert weekly_walk(client, "u1", DAY).status_code == 200
     photos = client.get("/users/u1/album").json()["photos"]
     assert next(p for p in photos if p["used_for"])["used_for"] == {"type": "weekly", "id": "weekly:nature_walk", "title": "이번 주 자연 속 산책 2번"}
+
+
+def test_attendance_plan_rules():
+    from datetime import date
+    from app import attendance as att
+    monday = date(2026, 10, 12)
+    plan = att.week_plan("u1", monday, ["sky", "berry"], ["lamp-moon"])
+    assert list(plan) == [f"2026-10-{d}" for d in range(12, 19)]
+    assert plan == att.week_plan("u1", monday, ["sky", "berry"], ["lamp-moon"])            # 같은 사람·주 → 같음
+    values = list(plan.values())
+    assert all(a != b for a, b in zip(values, values[1:]))                                   # 바로 전날과 다름
+    kinds = {r["type"] for u in range(200) for r in att.week_plan(f"u{u}", monday, ["sky"], ["lamp-moon"]).values()}
+    assert kinds == {"coins", "xp", "outfit", "decor"}
+
+
+def test_attendance_duplicate_item_becomes_coins(client, monkeypatch):
+    from app import attendance as att
+    monkeypatch.setattr(att, "week_plan", lambda *a, **k: {f"2026-10-{d:02d}": {"type": "outfit", "id": "sky"} for d in range(12, 19)})
+    first = client.post("/users/u1/attendance", params={"date": "2026-10-13"}).json()
+    assert first["gift"] == {"type": "outfit", "id": "sky", "name": "하늘빛 맨투맨"}
+    second = client.post("/users/u1/attendance", params={"date": "2026-10-14"}).json()
+    assert second["gift"]["type"] == "coins" and second["gift"]["amount"] == att.DUPLICATE_COINS
+    assert second["coins"] == att.DUPLICATE_COINS
+
+
+
+def test_profile_nickname_and_bio(client):
+    uid = signup(client, "프로필")["id"]
+    r = client.patch(f"/users/{uid}", json={"bio": "  산책을 좋아해요  "})
+    assert r.status_code == 200 and (r.json()["nickname"], r.json()["bio"]) == ("프로필", "산책을 좋아해요")
+    assert client.get(f"/users/{uid}/room").json()["bio"] == "산책을 좋아해요"     # 이웃이 방에서 봄
+    r = client.patch(f"/users/{uid}", json={"nickname": "새이름"})
+    assert (r.json()["nickname"], r.json()["bio"]) == ("새이름", "산책을 좋아해요")   # 보낸 칸만 바뀜
+    assert client.patch(f"/users/{uid}", json={"bio": "가" * 41}).status_code == 422
+    assert client.patch(f"/users/{uid}", json={"bio": "시발"}).status_code == 422
+    assert client.patch(f"/users/{uid}", json={"bio": ""}).json()["bio"] is None

@@ -120,9 +120,11 @@ class Seeder:
             self.ok(self.c.delete(f"/users/{user_id}"))
         db.create_user(app.state.conn, user_id, nickname)   # 시연용이라 id를 고정
 
-    def photo(self, user_id: str) -> str:
+    def photo(self, user_id: str, date: str) -> str:
+        """그날 찍은 사진처럼 올린다 (서버는 미션 날짜에 찍은 사진만 인정. 자리표시 PNG라 촬영 일시는 앱처럼 따로 보냄)."""
         color = self.rng.choice([(168, 211, 244), (247, 184, 204), (185, 221, 165), (255, 231, 154)])
-        r = self.c.post(f"/users/{user_id}/photos", files={"file": ("demo.png", png(color), "image/png")})
+        r = self.c.post(f"/users/{user_id}/photos", params={"date": date}, data={"taken_at": f"{date}T12:00:00"},
+                        files={"file": ("demo.png", png(color), "image/png")})
         return self.ok(r).json()["photo_id"]
 
     def do_mission(self, user_id: str, m: dict, date: str, friends: list[str]):
@@ -141,7 +143,7 @@ class Seeder:
         else:
             body: dict = {}
             if kind == "photo":
-                body["photos"] = [self.photo(user_id) for _ in range(m["min_count"])]
+                body["photos"] = [self.photo(user_id, date) for _ in range(m["min_count"])]
             elif kind == "list":
                 pool = LISTS.get(m["id"], LIST_FALLBACK)
                 body["items"] = self.rng.sample(pool, k=min(len(pool), max(m["min_count"], 3)))
