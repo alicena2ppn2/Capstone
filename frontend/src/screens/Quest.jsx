@@ -2,6 +2,8 @@ import MissionReplacement from '../components/MissionReplacement.jsx';
 import MissionPreferences from '../components/MissionPreferences.jsx';
 import { missionCriterion, missionTitle } from '../../../shared/features/missionGuidance.js';
 import PhotoMission from '../components/PhotoMission.jsx';
+import ServerMissions from '../components/ServerMissions.jsx';
+import { useServerUserId } from '../api/missions.js';
 import UiIcon from '../components/UiIcon.jsx';
 import { useCallback, useEffect, useRef, useState } from 'react';
 import QuestSheet from '../components/QuestSheet.jsx';
@@ -13,6 +15,7 @@ import { seoulDateKey } from '../../../shared/utils/seoulDate.js';
 
 export default function Quest({ onPreferences, game, focusId, onStart, onComplete, onPhotoSave, onPrepare, onPause, onReplace, onFeedback, onProfile, onDiary, onAttendance, onVisit, onGoal, petColor, onShop, onSettings, onHome }) {
   const [tab, setTab] = useState('day');
+  const serverUserId = useServerUserId();   // 있으면 오늘의 활동 3가지를 서버 미션으로
   const [today, setToday] = useState(seoulDateKey);
   const [message, setMessage] = useState(null);
   const [sheet, setSheet] = useState(null);
@@ -76,7 +79,7 @@ export default function Quest({ onPreferences, game, focusId, onStart, onComplet
       <div className="daily-overview"><div><strong>오늘의 작은 도전</strong><span>{ROUTINES.filter(q=>routineDone(game,q.id,today)).length+dailyActivities(game,today).filter(q=>game.completed.includes(`${today}:${q.id}`)).length}/6 완료</span></div><progress max={6} value={ROUTINES.filter(q=>routineDone(game,q.id,today)).length+dailyActivities(game,today).filter(q=>game.completed.includes(`${today}:${q.id}`)).length} aria-label="오늘 미션 완료 수"/></div>
       <p className="quest-inline-notice" role="status">{notice}</p>
       <section className="daily-routines"><h2><UiIcon kind="routine" /> 매일 하는 3가지 <small>{ROUTINES.filter(q=>routineDone(game,q.id,today)).length}/3 완료</small></h2>{ROUTINES.map(q=>{ const done=routineDone(game,q.id,today); return <article key={q.id} data-quest-id={q.id} tabIndex={-1} className={`routine-row${done?' is-completed':''}`}><div><strong>{q.name}</strong><small>{done?'완료 ✓':q.kind==='diary'?'15 XP · 25 코인 (로컬 시연)':q.kind==='attendance'?'출석표의 오늘 보상':'글 등록 시 완료 · 보상 정책 확인 중'}</small></div><button type="button" className={`pb ui-secondary${q.kind==='attendance'?' attendance-entry':''}`} onClick={()=>q.kind==='diary'?onDiary(today):q.kind==='attendance'?onAttendance():onVisit()}>{q.kind==='diary'&&done?'일기 보기':q.kind==='attendance'&&done?'출석표 보기':q.action}</button></article>;})}</section>
-      <section className="daily-discoveries"><h2 className="quest-selection-heading" tabIndex={-1}><UiIcon kind="discover" /> 오늘의 활동 3가지 <small>{dailyActivities(game,today).filter(q=>game.completed.includes(`${today}:${q.id}`)).length}/3 완료</small></h2><div className="growth-quests">{dailyActivities(game,today).map(q=>card(q,{reason:q.reason,role:'오늘의 제안'},true))}</div></section>
+      {serverUserId ? <ServerMissions userId={serverUserId}/> : <section className="daily-discoveries"><h2 className="quest-selection-heading" tabIndex={-1}><UiIcon kind="discover" /> 오늘의 활동 3가지 <small>{dailyActivities(game,today).filter(q=>game.completed.includes(`${today}:${q.id}`)).length}/3 완료</small></h2><div className="growth-quests">{dailyActivities(game,today).map(q=>card(q,{reason:q.reason,role:'오늘의 제안'},true))}</div></section>}
     </> : tab === 'records' ? <>
       <MissionPreferences preferences={game.preferences} onSave={onPreferences}/><h2>취향 프로필</h2>{[['music', '좋아하는 음악'], ['food', '좋아하는 음식']].map(([id, label]) => <label className="profile-field" key={id}>{label}<input className="inp" maxLength={80} value={game.preferences?.[id] ?? ''} onChange={event => onProfile(id, event.target.value)} /></label>)}
       <h2>하루 기록</h2><button type="button" className="pb ui-secondary" onClick={()=>onDiary(today)}>오늘의 일기 쓰기</button>{Object.entries(game.journals ?? {}).sort(([a], [b]) => b.localeCompare(a)).map(([date, text]) => <article className="growth-quest" key={date}><strong>{date}</strong><p>{text.slice(0,100)}</p><button type="button" className="pb ui-secondary" onClick={()=>onDiary(date)}>일기 보기</button></article>)}

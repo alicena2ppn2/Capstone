@@ -745,3 +745,57 @@ button.pb, .ui-disclosure > summary { font-weight: 500; }
 .mission-preference-options .pb { min-height:44px;white-space:normal; }
 .mission-preferences .pb[aria-pressed=true] { background:var(--color-primary-soft);border-color:var(--color-primary);color:var(--color-ink); }
 .mission-replacement { display:grid;gap:10px; }.mission-replacement h3,.mission-replacement p { margin:0; }.mission-replacement p { font-size:14px;line-height:1.65;word-break:keep-all;overflow-wrap:anywhere; }.mission-replacement small { font-size:13px;line-height:1.6;color:var(--color-muted); }
+
+/* 2026-10-15 UI 정리 ---------------------------------------------------------------- */
+/* 아래 메뉴: 선택된 탭(청록 배경)에서 아이콘이 배경색과 같아 안 보이던 문제 → 아이콘이 글자색을 따른다 */
+.bottom-nav-item .ui-section-icon { color: currentColor; }
+.bottom-nav-item[aria-current=page] { border-color: var(--color-primary); }
+
+/* 홈이 아닌 화면의 상단 줄: LV 막대가 출석표 버튼 밑으로 겹치던 것 → 한 줄에 나란히 */
+.app .phone-shell:not(.is-home) .status-header { display: flex; align-items: center; gap: 8px; padding: 8px 10px; }
+.app .phone-shell:not(.is-home) .growth-bar { flex: 1 1 auto; min-width: 0; margin: 0; }
+.app .phone-shell:not(.is-home) .growth-bar > span { white-space: nowrap; overflow: hidden; text-overflow: ellipsis; min-width: 0; }
+.app .phone-shell:not(.is-home) .attendance-open { position: static; flex: 0 0 auto; margin: 0; order: 2; }
+
+/* 홈: 캐릭터 방은 화면에 고정하고, 오늘의 도전은 아래에서 올라오는 시트 */
+.phone-shell.is-home .phone-content { overflow: hidden; position: relative; }
+.phone-shell.is-home .phone-page:not([hidden]) { height: 100%; }
+/* 방 그림(368:500)이 시트 손잡이 위 남은 높이에 통째로 들어가게: 높이가 모자라면 폭을 줄여 가운데 둔다 (캐릭터가 잘리지 않게) */
+.phone-shell.is-home .home-screen.is-sheet-layout { --sheet-peek: 40px; container-type: size; position: relative; height: 100% !important; min-height: 0; overflow: hidden;
+  background: linear-gradient(to bottom, #D6EAF8 0, #D6EAF8 calc((100% - var(--sheet-peek)) * .75), var(--home-floor, #EBCDA6) calc((100% - var(--sheet-peek)) * .75)) !important; }
+.home-screen.is-sheet-layout .home-room { position: absolute; top: 0; left: 50%; transform: translateX(-50%); width: min(100cqw, (100cqh - var(--sheet-peek)) * 368 / 500); aspect-ratio: 368 / 500; }
+.home-sheet { --sheet-peek: 40px; position: absolute; left: 0; right: 0; bottom: 0; z-index: 6; display: flex; flex-direction: column; max-height: 84%; box-sizing: border-box; background: var(--color-background); border: 1px solid var(--color-border); border-bottom: 0; border-radius: 22px 22px 0 0; box-shadow: 0 -8px 24px rgba(31, 61, 58, .14); transform: translateY(calc(100% - var(--sheet-peek))); transition: transform .28s ease; }
+.home-sheet.is-open { transform: translateY(0); }
+.home-sheet-handle { flex: 0 0 auto; display: flex; flex-direction: column; align-items: center; gap: 2px; width: 100%; min-height: 36px; padding: 6px 12px 0; border: 0; background: transparent; color: var(--color-muted); font: inherit; font-size: 12px; cursor: grab; touch-action: none; }
+.home-sheet-handle:focus-visible { outline: 3px solid var(--color-primary); outline-offset: -3px; border-radius: 22px 22px 0 0; }
+.home-sheet-grip { width: 40px; height: 5px; border-radius: 3px; background: var(--color-input-border); }
+.home-screen.is-sheet-layout .home-quest-actions { flex: 0 0 auto; border-top: 0; background: transparent; padding: 4px 12px 10px; }
+.home-sheet-body { flex: 1 1 auto; min-height: 0; overflow-y: auto; overscroll-behavior: contain; }
+.home-sheet-scrim { position: absolute; inset: 0; z-index: 5; border: 0; padding: 0; background: rgba(31, 61, 58, .18); cursor: pointer; }
+@media (prefers-reduced-motion: reduce) { .home-sheet { transition: none; } }
+
+/* 이웃 · 방명록 (서버 연결) */
+.neighbors-tabs { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; margin-top: 12px; }
+.neighbor-room { height: auto; aspect-ratio: 368 / 500; max-height: 420px; margin: 0 auto 14px; background: #EBCDA6; }
+.neighbor-room.is-small { max-height: 260px; }
+.neighbor-room .visitor-pet { bottom: 9%; }
+.neighbor-counter { position: absolute; top: 10px; left: 50%; transform: translateX(-50%); z-index: 3; padding: 4px 10px; border: 1px solid var(--color-border); border-radius: 12px; background: var(--color-surface); color: var(--color-ink); font-size: 11px; white-space: nowrap; font-variant-numeric: tabular-nums; }
+.neighbor-counter b { color: var(--color-primary); }
+.neighbor-initial { display: inline-flex; align-items: center; justify-content: center; flex: 0 0 40px; width: 40px; height: 40px; border-radius: 50%; background: var(--color-primary-soft); color: var(--color-primary); font-weight: 600; }
+.neighbor-report { display: inline-flex; align-items: center; gap: 4px; margin: 0 !important; font-size: 12px; color: var(--color-muted); }
+.neighbor-report select { min-height: 36px; padding: 4px 6px; border: 1px solid var(--color-input-border); border-radius: 10px; background: var(--color-surface); font: inherit; font-size: 12px; }
+
+.neighbor-bond { display: grid; gap: 6px; margin: 0 0 14px; padding: 14px 16px; border: 1px solid var(--color-border); border-radius: 18px; background: var(--color-surface); color: var(--color-ink); }
+.neighbor-bond-head { display: flex; align-items: center; justify-content: space-between; gap: 8px; }
+.neighbor-bond-head strong { font-size: 15px; }
+.neighbor-bond-head span { flex-shrink: 0; padding: 2px 8px; border-radius: 10px; background: var(--color-primary-soft); color: var(--color-primary); font-size: 12px; }
+.neighbor-bond progress { width: 100%; height: 8px; accent-color: var(--color-primary); }
+.neighbor-bond small { color: var(--color-muted); font-size: 12px; line-height: 1.5; }
+.neighbor-bond-counts { margin: 2px 0 0; padding: 0; list-style: none; display: grid; gap: 2px; font-size: 12px; line-height: 1.6; }
+.neighbor-bond-counts b { color: var(--color-primary); font-variant-numeric: tabular-nums; }
+
+/* 이웃 방명록: 페이지 안에 따로 생기던 작은 스크롤을 없애고, 좋아요는 둥근 알약 버튼으로 */
+.neighbors-screen .visit-notes { max-height: none; overflow: visible; }
+.neighbors-screen .visit-like { min-height: 36px; padding: 4px 12px; border: 1px solid var(--color-border); border-radius: 18px; background: var(--color-surface); color: var(--color-ink); font-size: 13px; }
+.neighbors-screen .visit-like[aria-pressed=true] { border-color: #F2B69D; background: #FDEDE6; color: #B4553A; }
+.neighbors-screen .guest-safety-actions { display: flex; align-items: center; justify-content: flex-end; gap: 8px; flex-wrap: wrap; }
