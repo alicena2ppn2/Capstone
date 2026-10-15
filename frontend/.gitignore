@@ -1,2 +1,6 @@
 node_modules
 dist
+
+# 개인 환경값 (서버 주소, Supabase 공개 값, 개발용 사용자 id) — 절대 커밋 금지
+.env.local
+.vite
