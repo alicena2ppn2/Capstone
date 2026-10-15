@@ -1,5 +1,6 @@
+import { Platform } from 'react-native';
 import ExpansionFriends from './ExpansionFriends.jsx';
-import { isBasicFriendDraft } from '../../../frontend/src/utils/characterExpansion.js';
+import { isBasicFriendDraft } from '../../../shared/data/characterExpansion.js';
 import Svg, { G, Path, Ellipse, Circle, Rect, Line, Defs, ClipPath, Text as SvgText } from 'react-native-svg';
 import { useContext } from 'react';
 import { CharacterContext } from './CharacterContext.jsx';
@@ -25,7 +26,7 @@ export default function Mochi({ color = '#FFF5E6', width, height, full = false, 
   if (['proto-pebble', 'proto-pear', 'proto-quilt'].includes(variant ?? character)) return <PrototypeFriends variant={variant ?? character} width={width} height={height} label={label} outfit={outfit} interactive={interactive} active={active} reactionId={reactionId} onReactionConsumed={onReactionConsumed} />;
   if ((variant ?? character) === 'potato') return <Potato width={width} height={height} full={full} asleep={asleep} label={label} outfit={outfit} interactive={interactive} active={active} reactionId={reactionId} onReactionConsumed={onReactionConsumed} />;
   if (['pink', 'lavender', 'mint', 'sky'].includes(variant ?? character)) return <MochiFriends variant={variant ?? character} width={width} height={height} full={full} asleep={asleep} label={label} outfit={outfit} interactive={interactive} active={active} reactionId={reactionId} onReactionConsumed={onReactionConsumed} />;
-  const a11y = { accessible: false };
+  const a11y = Platform.OS === 'web' ? { 'aria-hidden': true } : { accessible: false };
   const line = '#91A6C5';
   return (
     <Svg width={width} height={height} viewBox={full ? '0 0 200 210' : '15 0 170 146'} {...a11y} {...motion.props}>

@@ -1,11 +1,12 @@
+import DailySentence from '../components/DailySentence.jsx';
 import RoomTimeProps from '../components/RoomTimeProps.jsx';
 import useRoomNow from '../components/useRoomNow.js';
-import { roomTime } from '../utils/roomTime.js';
+import { roomTime } from '../../../shared/utils/roomTime.js';
 import UiIcon from '../components/UiIcon.jsx';
 import HomeSummary from '../components/HomeSummary.jsx';
 import Mochi from '../components/Mochi.jsx';
 import HouseDecor from '../components/HouseDecor.jsx';
-import { levelFor } from '../utils/game.js';
+import { levelFor } from '../../../shared/features/game.js';
 import { GearIcon, ShopIcon } from '../components/Icons.jsx';
 
 export function RoomBackdrop({ decor = {}, wallColor = '#D6EAF8', floorColor = '#EBCDA6', homeScene = false, now }) {
@@ -56,8 +57,8 @@ export default function Home({ game, day, petName = 'MOCHI', petColor, onQuest, 
   const now = useRoomNow();
   const time = roomTime(now);
   return <section className="home-screen" aria-label="내 집">
-    <div className="home-room">
-      <RoomBackdrop decor={decor} homeScene now={now} />
+    <div className="home-room has-daily-sentence" style={{backgroundColor:time.night?'#DBC1A2':'#EBCDA6'}}>
+      <div className="home-room-scenery"><RoomBackdrop decor={decor} homeScene now={now} /></div>
       <button type="button" className="pb home-settings" onClick={onSettings} aria-label="설정" title="설정"><GearIcon size={22} /></button>
       <time className="room-time-accessible" dateTime={now.toISOString()}>기기 현지 시간: {time.label}</time>
       <nav className="home-room-menus" aria-label="보조 메뉴">
@@ -69,11 +70,12 @@ export default function Home({ game, day, petName = 'MOCHI', petColor, onQuest, 
         </button>
         <button type="button" className="pb home-diary-button" onClick={onDiary}><svg width="22" height="22" viewBox="0 0 24 24" aria-hidden="true"><path d="M6 3 H20 V21 H6Z M3 6 H8 M3 11 H8 M3 16 H8 M11 8 H17 M11 12 H17" fill="var(--color-surface)" stroke="var(--color-primary)" strokeWidth="1.7" strokeLinejoin="round" /></svg>일기</button>
       </nav>
+      <button type="button" className="pb home-friend-name" onClick={onSettings} aria-label={`${petName}, 이름 바꾸기`}>{petName}</button>
       <div className="home-character">
         <Mochi color={petColor} width="100%" height="100%" full asleep={false} label={petName} outfit={outfit} interactive active={active} reactionId={reactionId} onReactionConsumed={onReactionConsumed} />
       </div>
       <div className="home-identity">
-        <button type="button" className="pb pet-name-title home-nameplate" onClick={onSettings} aria-label={`${petName}, 이름 바꾸기`}>{petName}</button>
+        <DailySentence now={now}/>
         <div className="home-character-level"><strong>LV.{levelFor(game.xp)}</strong><progress value={game.xp % 100} max={100} aria-label="다음 레벨까지 경험치" /><span>{game.xp % 100} / 100 XP</span></div>
       </div>
     </div>

@@ -1,8 +1,8 @@
 import { useRef, useState } from 'react';
 import Mochi from './Mochi.jsx';
-import { CHARACTERS } from '../utils/game.js';
-import { FRIEND_INTROS } from '../utils/catalog.js';
-import { CHARACTER_STATUS, characterAvailability } from '../utils/finalFriends.js';
+import { CHARACTERS } from '../../../shared/features/game.js';
+import { FRIEND_INTROS } from '../../../shared/data/catalog.js';
+import { CHARACTER_STATUS, characterAvailability } from '../../../shared/features/finalFriends.js';
 
 export default function CharacterShop({ game, level, collection, onBuy, onEquip, onMessage }) {
   const [welcome, setWelcome] = useState(null);

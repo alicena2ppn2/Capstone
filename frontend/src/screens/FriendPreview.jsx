@@ -1,10 +1,10 @@
-import { BASIC_FRIEND_DRAFTS } from '../utils/characterExpansion.js';
+import { BASIC_FRIEND_DRAFTS } from '../../../shared/data/characterExpansion.js';
 import { useState } from 'react';
-import Baseline from '../components/PrototypeFriendBaseline.jsx';
-import { CLOTHES } from '../utils/clothes.js';
+import Baseline from '../../../shared/art/PrototypeFriendBaseline.jsx';
+import { CLOTHES } from '../../../shared/data/clothes.js';
 import Mochi from '../components/Mochi.jsx';
 import { RoomBackdrop } from './Home.jsx';
-import { PROTOTYPE_FRIENDS } from '../utils/prototypeFriends.js';
+import { PROTOTYPE_FRIENDS } from '../../../shared/data/prototypeFriends.js';
 const FRIENDS = [{ id: 'mochi', name: '구름 모찌' }, { id: 'lavender', name: '달빛 양 모찌' }, ...PROTOTYPE_FRIENDS, ...BASIC_FRIEND_DRAFTS];
 export default function FriendPreview() {
   const [size, setSize] = useState(200);

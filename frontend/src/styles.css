@@ -457,8 +457,6 @@ button, input, select, textarea, details, summary {
 .quest-sheet h2 { margin: 0; font-size: 18px; font-weight: 600; line-height: 1.4; }
 .quest-sheet-close { flex-shrink: 0; width: 44px; height: 44px; border: 0; border-radius: 12px; background: transparent; color: var(--color-ink); font-size: 26px; }
 .quest-sheet p { margin: 10px 0; word-break: keep-all; overflow-wrap: anywhere; }
-.quest-sheet-options { display: grid; gap: 8px; margin-top: 10px; }
-.quest-sheet-options button { display: flex; align-items: center; justify-content: space-between; min-height: 48px; text-align: left; }
 .quest-sheet select { box-sizing: border-box; width: 100%; min-height: 44px; padding: 9px; border: 1px solid var(--color-input-border); border-radius: 10px; font: inherit; background: var(--color-surface); }
 @media (max-width: 480px) { .quest-sheet select { font-size: 16px; } }
 
@@ -602,9 +600,11 @@ button.pb, .ui-disclosure > summary { font-weight: 500; }
 .friend-preview .home-quest-start { background: #B4D7E9; }.friend-preview .home-room-menus .pb { font-size: 12px; padding: 6px 8px; }
 
 /* Web guestbook safety controls only. */
-.guest-safety { margin: 8px 0 12px; padding: 12px; border: 1px solid var(--color-border); border-radius: 16px; background: var(--color-surface); color: var(--color-ink); }
-.guest-safety p { margin: 0 0 8px; font-size: 14px; line-height: 1.6; word-break: keep-all; overflow-wrap: anywhere; }.guest-safety p:empty { display: none; }
-.guest-safety small { display: block; font-size: 12px; line-height: 1.6; color: var(--color-muted); margin-bottom: 8px; }
+.guest-safety { margin: 6px 0 10px; padding: 8px 10px; border: 1px solid var(--color-border); border-radius: 12px; background: var(--color-surface); color: var(--color-ink); }
+.guest-safety p { margin: 0 0 4px; font-size: 12px; line-height: 1.5; word-break: keep-all; overflow-wrap: anywhere; }.guest-safety p:empty { display: none; }
+.guest-safety small { display: block; font-size: 12px; line-height: 1.5; color: var(--color-muted); margin-bottom: 4px; }
+.guest-safety .ui-disclosure { margin-top: 4px; font-size: 12px; }
+.guest-safety .ui-disclosure > summary { min-height: 44px; padding: 4px 2px; font-size: 12px; font-weight: 500; }
 .guest-safety-actions { display: flex; flex-wrap: wrap; align-items: center; gap: 6px; }
 .guest-safety-action, .guest-blocked button, .guest-report-choice { min-height: 44px; padding: 8px 12px; font-size: 13px; font-weight: 500; border: 1px solid var(--color-border); border-radius: 12px; background: var(--color-surface); color: var(--color-ink); }
 .guest-report-choice { display: block; width: 100%; margin: 8px 0; text-align: left; font-size: 14px; }
@@ -724,3 +724,24 @@ button.pb, .ui-disclosure > summary { font-weight: 500; }
 .photo-preview { width:100%;max-height:200px;object-fit:contain;border-radius:12px;background:var(--color-background); }.photo-mission p { margin:0;font-size:13px;line-height:1.5; }.photo-mission small,.photo-local-note { font-size:13px;color:var(--color-muted);line-height:1.5; }
 .photo-album-grid { display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:10px; }.photo-album-card { border:1px solid var(--color-border);border-radius:14px;padding:10px;background:var(--color-surface);display:flex;flex-direction:column;gap:6px;min-width:0; }.photo-album-card img { width:100%;aspect-ratio:1;object-fit:cover;border-radius:9px; }.photo-album-card strong { font-size:14px;line-height:1.5;overflow-wrap:anywhere; }.photo-album-card small,.photo-album-card span { font-size:12px;color:var(--color-muted); }
 @media(max-width:370px){.photo-album-grid{grid-template-columns:1fr}.diary-tabs{flex-wrap:wrap}}
+
+/* Wide, compact sentence below the friend; name remains above the character. */
+.home-room.has-daily-sentence { min-height:calc(var(--sentence-base-height,0px) + var(--sentence-extra,0px)); }
+.home-room-scenery { position:absolute;left:0;right:0;top:0;height:var(--sentence-base-height,100%); }
+.home-room.has-daily-sentence .home-character { bottom:calc(var(--sentence-base-height,0px) * .146 - 13px); }
+.home-room.has-daily-sentence .home-identity { top:calc(var(--sentence-base-height,0px) * .868);width:min(340px,calc(100% - 24px));max-width:none;gap:6px; }
+.daily-sentence { position:relative;width:100%;padding:7px 12px;border:1px solid var(--color-border);border-radius:15px;background:var(--color-surface);color:var(--color-ink);z-index:3;pointer-events:none;box-sizing:border-box;text-align:center; }
+.daily-sentence::after { content:'';position:absolute;top:-6px;left:50%;width:11px;height:11px;background:var(--color-surface);border-left:1px solid var(--color-border);border-top:1px solid var(--color-border);transform:translateX(-50%) rotate(45deg); }
+.daily-sentence p { margin:0;font-size:13px;font-weight:400;line-height:1.5;word-break:keep-all;overflow-wrap:anywhere;animation:sentence-appear 240ms ease-out both; }
+@keyframes sentence-appear { from{opacity:0}to{opacity:1} }
+@media(prefers-reduced-motion:reduce){.daily-sentence p{animation:none}}
+
+.home-friend-name { position:absolute;top:64px;left:50%;transform:translateX(-50%);z-index:3;min-height:38px;max-width:50%;padding:7px 14px;border:1px solid var(--color-border);border-radius:12px;background:var(--color-surface);color:var(--color-ink);font-size:14px;font-weight:600;line-height:1.5;overflow-wrap:anywhere; }
+
+/* Compact replacement and optional preference questions use existing UI tokens. */
+.mission-preferences fieldset { border:0;padding:0;margin:14px 0;min-width:0; }
+.mission-preferences legend { font-size:14px;line-height:1.6;font-weight:500;margin-bottom:8px; }
+.mission-preference-options { display:flex;flex-wrap:wrap;gap:8px; }
+.mission-preference-options .pb { min-height:44px;white-space:normal; }
+.mission-preferences .pb[aria-pressed=true] { background:var(--color-primary-soft);border-color:var(--color-primary);color:var(--color-ink); }
+.mission-replacement { display:grid;gap:10px; }.mission-replacement h3,.mission-replacement p { margin:0; }.mission-replacement p { font-size:14px;line-height:1.65;word-break:keep-all;overflow-wrap:anywhere; }.mission-replacement small { font-size:13px;line-height:1.6;color:var(--color-muted); }

@@ -1,8 +1,8 @@
 import { readFile, writeFile } from 'node:fs/promises';
 import assert from 'node:assert/strict';
-import { colors } from '../src/design/tokens.js';
+import { colors } from '../../shared/theme/tokens.js';
 
-const css = '/* Generated from design/tokens.js by scripts/design-tokens.mjs. */\n:root {\n' + Object.entries(colors).map(([key, value]) => `  --color-${key.replace(/[A-Z]/g, c => '-' + c.toLowerCase())}: ${value};\n`).join('') + '}\n';
+const css = '/* Generated from shared/theme/tokens.js by frontend/scripts/design-tokens.mjs. */\n:root {\n' + Object.entries(colors).map(([key, value]) => `  --color-${key.replace(/[A-Z]/g, c => '-' + c.toLowerCase())}: ${value};\n`).join('') + '}\n';
 const path = new URL('../src/design/tokens.css', import.meta.url);
 if (process.argv.includes('--write')) await writeFile(path, css);
 else assert.equal((await readFile(path, 'utf8')).replaceAll('\r\n', '\n'), css, 'Web/native token values must agree. Run node scripts/design-tokens.mjs --write.');

@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { DECOR, DECOR_SLOTS } from '../utils/decor.js';
+import { DECOR, DECOR_SLOTS } from '../../../shared/data/decor.js';
 import { RoomBackdrop } from '../screens/Home.jsx';
 import { Scenery } from './HouseDecor.jsx';
 

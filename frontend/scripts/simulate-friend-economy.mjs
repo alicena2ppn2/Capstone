@@ -1,6 +1,6 @@
-import { initialGame, levelFor, claimAttendance } from '../src/utils/game.js';
-import { FINAL_FRIENDS } from '../src/utils/finalFriends.js';
-import { ensureDailyMissions, dailyActivities, startDailyMission, finishDailyMission, saveDiaryMission, recordRoutine } from '../src/utils/dailyMissions.js';
+import { initialGame, levelFor, claimAttendance } from '../../shared/features/game.js';
+import { FINAL_FRIENDS } from '../../shared/features/finalFriends.js';
+import { ensureDailyMissions, dailyActivities, startDailyMission, finishDailyMission, saveDiaryMission, recordRoutine } from '../../shared/features/dailyMissions.js';
 // Explainable examples, not health-effect evidence or a guaranteed progression.
 const simulate = full => {
   let game = initialGame(); const unlocked = {};

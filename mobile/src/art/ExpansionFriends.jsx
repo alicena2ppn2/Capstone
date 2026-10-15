@@ -1,5 +1,5 @@
 import Svg, { G, Path, Ellipse, Circle, Defs, ClipPath } from 'react-native-svg';
-import FinalExpansionFriendDrawing from '../../../frontend/src/components/FinalExpansionFriendDrawing.jsx';
+import FinalExpansionFriendDrawing from '../../../shared/art/FinalExpansionFriendDrawing.jsx';
 import useFriendReaction from './useFriendReaction.js';
 import FriendEffects from './FriendEffects.jsx';
 import { useEffect, useState } from 'react';

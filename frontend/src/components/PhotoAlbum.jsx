@@ -1,5 +1,5 @@
 import { useEffect, useState } from 'react';
-import { albumPhotos } from '../utils/missionPhotos.js';
+import { albumPhotos } from '../../../shared/features/missionPhotos.js';
 import { readWebPhoto } from '../utils/photoStorage.js';
 function Photo({ item }) {
   const [url, setUrl] = useState(''), [error, setError] = useState('');

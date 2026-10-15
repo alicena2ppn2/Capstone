@@ -4,8 +4,8 @@ import { mkdtemp, mkdir, writeFile } from 'node:fs/promises';
 import { tmpdir } from 'node:os';
 import { join, resolve } from 'node:path';
 import assert from 'node:assert/strict';
-import { initialGame } from '../src/utils/game.js';
-import { seoulDateKey } from '../src/utils/seoulDate.js';
+import { initialGame } from '../../shared/features/game.js';
+import { seoulDateKey } from '../../shared/utils/seoulDate.js';
 const delay = ms => new Promise(done => setTimeout(done, ms));
 const profile = await mkdtemp(join(tmpdir(), 'capstone-ui-review-'));
 const output = resolve('../artifacts/ui-review'); await mkdir(output, { recursive: true });
@@ -28,9 +28,9 @@ try {
  await send('Page.enable'); await send('Emulation.setDeviceMetricsOverride',{width:1280,height:1000,deviceScaleFactor:1,mobile:false});
  const nav=async url=>{await send('Page.navigate',{url:'http://127.0.0.1:5180/'+url});await delay(1200);};
 
- const {ensureAttendanceWeek}=await import('../src/utils/game.js');
- const {attendanceWeek}=await import('../src/utils/seoulDate.js');
- const {DECOR}=await import('../src/utils/decor.js');
+ const {ensureAttendanceWeek}=await import('../../shared/features/game.js');
+ const {attendanceWeek}=await import('../../shared/utils/seoulDate.js');
+ const {DECOR}=await import('../../shared/data/decor.js');
  const day=seoulDateKey(),week=attendanceWeek(day);
  await send('Emulation.setDeviceMetricsOverride',{width:390,height:750,deviceScaleFactor:1,mobile:true});
  await nav('');await delay(1000);
