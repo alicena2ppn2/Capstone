@@ -15,10 +15,10 @@ export default function RoomBackdrop({ decor = {}, wallColor = '#D6EAF8', floorC
   return (
     <Svg width="100%" height="100%" viewBox={homeScene ? '0 55 368 500' : '0 0 368 838'} preserveAspectRatio={homeScene ? 'xMidYMid meet' : 'none'} >
       {wall && <GarmentPattern outfit={wall} id={`wall${uid}`} elements={PATTERN_ELEMENTS} />}{floor && <GarmentPattern outfit={floor} id={`floor${uid}`} elements={PATTERN_ELEMENTS} />}
-      <Rect x="0" y="0" width="368" height="430" fill={wall ? `url(#wall${uid})` : wallColor} />
+      <Rect x="0" y="0" width="368" height="454" fill={wall ? `url(#wall${uid})` : wallColor} />
       {!wall && <G stroke="#C7DFF2" strokeWidth="10">
-        <Line x1="20" y1="0" x2="20" y2="430" /><Line x1="60" y1="0" x2="60" y2="430" /><Line x1="100" y1="0" x2="100" y2="430" />
-        <Line x1="268" y1="0" x2="268" y2="430" /><Line x1="308" y1="0" x2="308" y2="430" /><Line x1="348" y1="0" x2="348" y2="430" />
+        <Line x1="20" y1="0" x2="20" y2="454" /><Line x1="60" y1="0" x2="60" y2="454" /><Line x1="100" y1="0" x2="100" y2="454" />
+        <Line x1="268" y1="0" x2="268" y2="454" /><Line x1="308" y1="0" x2="308" y2="454" /><Line x1="348" y1="0" x2="348" y2="454" />
       </G>}
       <Rect x="114" y="150" width="140" height="190" rx="8" fill="#FFF6DD" stroke="#C9A982" strokeWidth="5" />
       <Rect x="124" y="160" width="120" height="170" fill={time?.night ? '#344461' : '#D7ECF8'} />
@@ -28,6 +28,7 @@ export default function RoomBackdrop({ decor = {}, wallColor = '#D6EAF8', floorC
       <Path d="M104 146 C112 200 112 280 122 346 L104 346 Z" fill="#FFF3E2" stroke="#E2CDB3" strokeWidth="3" />
       <Path d="M264 146 C256 200 256 280 246 346 L264 346 Z" fill="#FFF3E2" stroke="#E2CDB3" strokeWidth="3" />
       <Rect x="96" y="140" width="176" height="9" rx="4" fill="#C9A982" />
+      {/* 벽 선반 두 개(달력 뒤·시계 아래)와 위의 소품: 살짝 아래로 */}<G transform="translate(0 22)">
       <Rect x="8" y="232" width="78" height="9" rx="3" fill="#C9A982" />
       <Rect x="18" y="206" width="20" height="26" rx="4" fill="#F7C9A8" stroke="#C99773" strokeWidth="2" />
       <Path d="M28 206 C20 194 22 186 28 184 C34 186 36 194 28 206Z" fill="#8CCB8F" stroke="#5E9E62" strokeWidth="2" />
@@ -36,17 +37,18 @@ export default function RoomBackdrop({ decor = {}, wallColor = '#D6EAF8', floorC
       <Rect x="296" y="212" width="24" height="20" rx="5" fill="#FFFFFF" stroke="#9CC7EC" strokeWidth="2.5" />
       <Path d="M320 216 c8 0 8 12 0 12" fill="none" stroke="#9CC7EC" strokeWidth="2.5" />
       <Rect x="330" y="202" width="20" height="30" rx="4" fill="#C9E6C2" stroke="#7FB277" strokeWidth="2" />
-      <Path d="M18 360 h70 a10 10 0 0 1 10 10 v52 h-90 v-52 a10 10 0 0 1 10 -10z" fill="#A9CBEB" stroke="#7FA9D1" strokeWidth="3" />
+      </G>
+      {/* 벽을 조금 높이고 바닥을 줄였다 (바닥선 430→454): 바닥에 선 소파·서랍장도 같이 */}<G transform="translate(0 24)"><Path d="M18 360 h70 a10 10 0 0 1 10 10 v52 h-90 v-52 a10 10 0 0 1 10 -10z" fill="#A9CBEB" stroke="#7FA9D1" strokeWidth="3" />
       <Rect x="4" y="390" width="22" height="40" rx="8" fill="#A9CBEB" stroke="#7FA9D1" strokeWidth="3" />
       <Rect x="282" y="372" width="74" height="58" rx="6" fill="#E9C9A0" stroke="#C49E73" strokeWidth="3" />
       <Line x1="282" y1="400" x2="356" y2="400" stroke="#C49E73" strokeWidth="2.5" />
-      <Circle cx="319" cy="388" r="3" fill="#C49E73" /><Circle cx="319" cy="414" r="3" fill="#C49E73" />
-      <Rect x="0" y="430" width="368" height="408" fill={floor ? `url(#floor${uid})` : floorColor} />
+      <Circle cx="319" cy="388" r="3" fill="#C49E73" /><Circle cx="319" cy="414" r="3" fill="#C49E73" /></G>
+      <Rect x="0" y="454" width="368" height="384" fill={floor ? `url(#floor${uid})` : floorColor} />
       {!floor && <G stroke="#DDB98C" strokeWidth="2.5">
         <Line x1="0" y1="486" x2="368" y2="486" /><Line x1="0" y1="560" x2="368" y2="560" /><Line x1="0" y1="650" x2="368" y2="650" /><Line x1="0" y1="750" x2="368" y2="750" />
-        <Line x1="120" y1="430" x2="120" y2="486" /><Line x1="260" y1="486" x2="260" y2="560" /><Line x1="80" y1="560" x2="80" y2="650" /><Line x1="230" y1="650" x2="230" y2="750" />
+        <Line x1="120" y1="454" x2="120" y2="486" /><Line x1="260" y1="486" x2="260" y2="560" /><Line x1="80" y1="560" x2="80" y2="650" /><Line x1="230" y1="650" x2="230" y2="750" />
       </G>}
-      <Rect x="0" y="426" width="368" height="8" fill="#C9A982" />
+      <Rect x="0" y="450" width="368" height="8" fill="#C9A982" />
       <Ellipse cx="184" cy="482" rx="166" ry="50" fill="#FFF8EE" stroke="#EADFCB" strokeWidth="3" />
       <HouseDecor equipped={decor} night={time?.night} positions={positions} />
       {time?.night && <Rect width="368" height="838" fill="#344461" opacity=".09" />}
