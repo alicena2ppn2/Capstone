@@ -1,3 +1,4 @@
+import HelpResources from '../components/HelpResources.jsx';
 import PhotoAlbum from '../components/PhotoAlbum.jsx';
 import { useEffect, useRef, useState } from 'react';
 import ScreenHeader from '../components/ScreenHeader.jsx';
@@ -39,6 +40,7 @@ function DiaryEntry({ date, day, game, onSave, onDelete, onDraft, onContinue, on
     <button type="button" className="pb diary-save" disabled={!draft.trim()||status==='saving'} onClick={save}>{status==='saving'?'저장 중…':status==='failed'?'다시 저장':hasJournal(game,date)?'수정 저장':'일기 저장'}</button></div></> : <>{journalEmotion(game,date)&&<p>{journalEmotion(game,date).emoji} {journalEmotion(game,date).label}</p>}<p className="diary-read-text">{game.journals?.[date] ?? '남긴 일기가 없어요.'}</p><small>지난 날짜의 일기는 수정할 수 없어요. 삭제는 가능해요.</small></>}
     {(hasJournal(game,date)||game.journalDrafts?.[date])&&<button type="button" className="pb ui-secondary diary-delete" disabled={status==='saving'} onClick={async()=>{if(!window.confirm('이 날짜의 일기와 초안을 삭제할까요? 삭제한 글은 복구할 수 없어요.'))return;try{const result=await onDelete(date);if(result?.ok===false)throw Error(result.message);onClose();}catch(error){setMessage(error.message||'삭제하지 못했어요.');}}}>일기 삭제</button>}
     <p role="status" aria-live="polite">{message}</p>
+    <HelpResources />
   </article>;
 }
 export default function Diary({ game, day, initialDate, onSave, onDelete, onDraft, onContinue, onHome }) {
