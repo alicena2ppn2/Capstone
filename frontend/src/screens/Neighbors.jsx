@@ -31,7 +31,7 @@ function Entries({ owner, me, entries, onChanged, canDelete }) {
 
 function Room({ room, size = 'large' }) {
   return <div className={`visitor-room neighbor-room is-${size}`}>
-    <RoomBackdrop decor={room.decor ?? {}} homeScene />
+    <RoomBackdrop decor={room.decor ?? {}} positions={room.positions ?? {}} homeScene />
     <div className="visitor-pet"><Mochi variant={room.character || 'potato'} outfit={CLOTHES.find(item => item.id === room.outfit)} full width={size === 'large' ? 170 : 120} height={size === 'large' ? 180 : 126} label={`${room.nickname}의 캐릭터`} /></div>
     {room.visits && <span className="neighbor-counter">TODAY <b>{room.visits.today}</b> · TOTAL <b>{room.visits.total}</b></span>}
   </div>;

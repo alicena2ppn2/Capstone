@@ -9,7 +9,7 @@ import CharacterShop from '../components/CharacterShop.jsx';
 import { CLOTHES } from '../../../shared/data/clothes.js';
 export { CLOTHES } from '../../../shared/data/clothes.js';
 
-export default function Shop({ game, level, onBuyCharacter, onEquipCharacter, onBuyDecor, onEquipDecor, petColor, coins, owned, outfit, onBuy, onWear, onBack }) {
+export default function Shop({ serverMode = false, game, level, onBuyCharacter, onEquipCharacter, onBuyDecor, onEquipDecor, petColor, coins, owned, outfit, onBuy, onWear, onBack }) {
   const [preview, setPreview] = useState(outfit);
   const [tab, setTab] = useState('all');
   const [message, setMessage] = useState('');
@@ -64,7 +64,7 @@ export default function Shop({ game, level, onBuyCharacter, onEquipCharacter, on
       {items.length === 0 && <div className="shop-empty">옷장이 아직 비어 있어요.<br />마음에 드는 첫 번째 옷을 골라보세요!</div>}
       </>}
       <p className="shop-message" role="status">{message}</p>
-      <p className="shop-disclaimer">컬렉션과 성장 기록은 이 브라우저에 저장돼요. 브라우저 데이터 삭제 시 초기화됩니다.</p>
+      {!serverMode && <p className="shop-disclaimer">컬렉션과 성장 기록은 이 브라우저에 저장돼요. 브라우저 데이터 삭제 시 초기화됩니다.</p>}
     </section>
   );
 }

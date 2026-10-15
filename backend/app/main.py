@@ -160,8 +160,17 @@ class EquipIn(BaseModel):
 
 
 class DecorIn(BaseModel):
-    slot: str = Field(..., description="lamp | carpet | frame | doll | scenery")
+    slot: str = Field(..., description="wallpaper | floor | lamp | carpet | frame | doll | scenery")
     item_id: str | None = Field(..., description="놓을 소품 id. null이면 그 자리 비우기")
+
+
+MOVABLE_SLOTS = ("lamp", "frame", "doll")   # 끌어서 옮길 수 있는 소품 (앱 shared/data/decor.js와 같음)
+MOVE_LIMIT = 160                             # 기본 자리에서 이만큼까지만 (방 그림 밖으로 안 나가게)
+
+
+class MoveIn(BaseModel):
+    dx: float = Field(..., ge=-MOVE_LIMIT, le=MOVE_LIMIT, description="가로로 옮긴 거리 (방 그림 좌표 368×500 기준)")
+    dy: float = Field(..., ge=-MOVE_LIMIT, le=MOVE_LIMIT, description="세로로 옮긴 거리")
 
 
 class GuestbookIn(BaseModel):
@@ -990,6 +999,7 @@ def room_view(conn, user_id: str) -> dict:
         "character": equipped["character_id"] or shop.DEFAULT_CHARACTER,
         "outfit": equipped["outfit_id"],
         "decor": {slot: placed.get(slot) for slot in shop.DECOR_SLOTS},
+        "positions": db.decor_positions(conn, user_id),
         "scenery_landscape": shop.CATALOG["decor"].get(placed.get("scenery", ""), {}).get("landscape"),
     }
 
@@ -1012,6 +1022,15 @@ def buy(user_id: str, body: BuyIn, date: str | None = DateQuery, conn=Depends(ge
     db.add_items(conn, user_id, [(body.type, body.item_id)], "bought")
     return {"bought": {"type": body.type, "id": body.item_id, "name": item["name"], "price": item["price"]},
             "coins": db.coin_balance(conn, user_id)}
+
+
+@app.put("/users/{user_id}/decor/{slot}/position", summary="소품 옮기기 — 놓여 있는 전등·액자·인형을 끌어서 옮긴 위치 저장")
+def move_decor(user_id: str, slot: str, body: MoveIn, conn=Depends(get_conn)):
+    if slot not in MOVABLE_SLOTS:
+        raise HTTPException(422, "이 소품은 자리가 정해져 있어요.")
+    if not db.move_decor(conn, user_id, slot, round(body.dx, 1), round(body.dy, 1)):
+        raise HTTPException(404, "그 자리에 놓인 소품이 없어요.")
+    return room_view(conn, user_id)
 
 
 @app.put("/users/{user_id}/decor", summary="집 꾸미기 배치 — 가진 소품을 맞는 자리에. item_id=null이면 그 자리 비우기")

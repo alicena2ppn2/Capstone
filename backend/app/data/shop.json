@@ -134,6 +134,8 @@
     }
   ],
   "decor_slots": {
+    "wallpaper": "벽지",
+    "floor": "바닥",
     "lamp": "전등",
     "carpet": "카페트",
     "frame": "액자",
@@ -260,6 +262,76 @@
       "level": 12,
       "price": 520,
       "landscape": "city"
+    },
+    {
+      "id": "wall-cream-dot",
+      "name": "크림 땡땡이 벽지",
+      "slot": "wallpaper",
+      "level": 1,
+      "price": 80
+    },
+    {
+      "id": "wall-mint-stripe",
+      "name": "민트 줄무늬 벽지",
+      "slot": "wallpaper",
+      "level": 1,
+      "price": 100
+    },
+    {
+      "id": "wall-peach-check",
+      "name": "복숭아 체크 벽지",
+      "slot": "wallpaper",
+      "level": 2,
+      "price": 140
+    },
+    {
+      "id": "wall-lavender-dot",
+      "name": "라벤더 땡땡이 벽지",
+      "slot": "wallpaper",
+      "level": 3,
+      "price": 160
+    },
+    {
+      "id": "wall-lemon-stripe",
+      "name": "레몬 세로줄 벽지",
+      "slot": "wallpaper",
+      "level": 4,
+      "price": 180
+    },
+    {
+      "id": "wall-night-star",
+      "name": "밤하늘 별 벽지",
+      "slot": "wallpaper",
+      "level": 6,
+      "price": 240
+    },
+    {
+      "id": "floor-walnut",
+      "name": "진한 원목 바닥",
+      "slot": "floor",
+      "level": 1,
+      "price": 100
+    },
+    {
+      "id": "floor-pink-wood",
+      "name": "벚꽃 마루",
+      "slot": "floor",
+      "level": 2,
+      "price": 140
+    },
+    {
+      "id": "floor-mint-tile",
+      "name": "민트 타일 바닥",
+      "slot": "floor",
+      "level": 3,
+      "price": 160
+    },
+    {
+      "id": "floor-checker",
+      "name": "체커보드 바닥",
+      "slot": "floor",
+      "level": 5,
+      "price": 200
     }
   ]
 }
