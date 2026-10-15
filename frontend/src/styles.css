@@ -883,3 +883,33 @@ button.pb, .ui-disclosure > summary { font-weight: 500; }
 .mission-moods .pb { flex: 1; min-height: 38px; border: 1px solid var(--color-border); border-radius: 12px; background: var(--color-surface); font-size: 20px; line-height: 1; }
 .mission-moods .pb:active { transform: translateY(1px); }
 .quest-preferences { margin-top: 12px; }
+
+.mission-top-right { display: inline-flex; align-items: center; gap: 6px; }
+.app .phone-shell .mission-reroll { width: 30px; min-height: 30px !important; padding: 0; border: 1px solid var(--color-border); border-radius: 50%; background: var(--color-surface); color: var(--color-muted); font-size: 15px; line-height: 1; box-shadow: none; }
+.mission-card .mission-desc { font-size: 13px; color: var(--color-muted); }
+
+/* 집 꾸미기 (방 꾸미기 게임처럼): 방 미리보기는 위에 고정, 아래 3열 타일 */
+.decor-studio { display: grid; gap: 10px; margin-top: 10px; }
+.decor-stage { position: sticky; top: 0; z-index: 4; display: grid; grid-template-columns: 132px minmax(0, 1fr); gap: 10px; align-items: center; padding: 8px; border: 1px solid var(--color-border); border-radius: 18px; background: var(--color-surface); box-shadow: 0 6px 14px rgba(31, 61, 58, .10); }
+/* 방 그림 전체(368:500)를 작게: 어디에 놓이는지 한눈에 */
+.decor-stage-room { position: relative; width: 132px; aspect-ratio: 368 / 500; overflow: hidden; border-radius: 12px; background: #EBCDA6; }
+.decor-stage-friend { position: absolute; left: 50%; bottom: 9%; transform: translateX(-50%); }
+.decor-stage-bar { display: grid; gap: 8px; align-content: center; min-width: 0; }
+.decor-stage-bar > div:first-child { display: grid; gap: 2px; min-width: 0; }
+.decor-stage-bar strong { font-size: 15px; }
+.decor-stage-bar small { color: var(--color-muted); font-size: 12px; line-height: 1.45; }
+.decor-stage-actions { display: grid; grid-template-columns: auto 1fr; gap: 6px; }
+.app .phone-shell .decor-stage-actions .pb { width: auto; min-height: 36px !important; padding: 4px 12px !important; font-size: 13px !important; }
+.app .phone-shell .decor-categories { display: flex; gap: 6px; overflow-x: auto; padding-bottom: 2px; scrollbar-width: none; }
+.app .phone-shell .decor-categories button { flex: 0 0 auto; white-space: nowrap; }
+.app .phone-shell .decor-categories button[aria-pressed=true]::before { content: none; }
+.decor-tiles { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 8px; }
+.app .phone-shell .decor-tile { position: relative; display: grid; justify-items: center; gap: 4px; min-height: 0 !important; padding: 8px 6px 10px; border: 2px solid transparent; border-radius: 16px; background: var(--color-surface); box-shadow: 0 2px 0 var(--color-border); text-align: center; }
+.app .phone-shell .decor-tile.is-selected { border-color: var(--color-primary); background: var(--color-primary-soft); }
+.decor-tile-art { display: flex; align-items: center; justify-content: center; width: 100%; aspect-ratio: 1; border-radius: 12px; font-size: 32px; overflow: hidden; }
+.decor-tile-art svg { width: 70%; height: auto; }
+.decor-tile.is-locked .decor-tile-art { filter: grayscale(.6); opacity: .6; }
+.decor-tile-name { font-size: 12px; font-weight: 600; line-height: 1.3; color: var(--color-ink); word-break: keep-all; }
+.decor-tile-state { padding: 1px 7px; border-radius: 8px; background: var(--color-accent-soft); font-size: 11px; color: var(--color-ink); font-variant-numeric: tabular-nums; }
+.decor-tile-state.is-owned { background: var(--color-disabled); color: var(--color-muted); }
+.decor-tile-state.is-placed { background: var(--color-primary); color: var(--color-surface); }

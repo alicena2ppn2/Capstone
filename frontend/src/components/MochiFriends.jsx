@@ -1,3 +1,4 @@
+import GarmentPattern, { garmentFill } from '../../../shared/art/GarmentPattern.jsx';
 import { useId } from 'react';
 import useFriendReaction from './useFriendReaction.js';
 import FriendEffects from './FriendEffects.jsx';
@@ -13,9 +14,11 @@ export default function MochiFriends({ variant, width, height, full, asleep, lab
   const a11y = label ? { role: 'img', 'aria-label': label } : { 'aria-hidden': true };
   const motif = outfit?.motif;
   const bodyClip = useId();
+  const patternId = `pat${bodyClip.replace(/[^a-zA-Z0-9]/g, '')}`;
   const torso = turtle ? 'M73 123 Q57 143 65 165 Q100 190 135 165 Q143 143 127 123Z' : variant === 'sky' ? 'M71 116 Q56 140 62 170 Q66 190 100 192 Q134 190 138 170 Q144 140 129 116Z' : 'M72 120 Q58 140 65 171 Q69 189 100 187 Q131 189 135 171 Q142 140 128 120Z';
   return <svg width={width} height={height} viewBox={full ? '0 0 200 210' : '15 0 170 146'} {...a11y} {...motion.props} className="friend-svg">
     <defs><clipPath id={bodyClip}><path d={torso} /></clipPath></defs>
+    <GarmentPattern outfit={outfit} id={patternId} />
     {full && <ellipse cx="100" cy="200" rx="57" ry="5" fill={line} opacity=".15" />}
     <g key={motion.reaction?.id ?? 'idle'} className={`friend-body${motion.reaction ? ` is-${motion.reaction.kind}` : ''}`}>
     <g stroke={line} strokeWidth="2.6" strokeLinecap="round" strokeLinejoin="round">
@@ -25,7 +28,7 @@ export default function MochiFriends({ variant, width, height, full, asleep, lab
         <path d={torso} fill={body} />
         <ellipse cx="100" cy="159" rx="26" ry="27" fill="#FFFDF4" stroke="none" />
         {outfit && <g stroke={outfit.trim} strokeWidth="2" clipPath={`url(#${bodyClip})`}>
-          <path d="M40 125 Q100 145 160 125 V205 H40Z" fill={outfit.color} />
+          <path d="M40 125 Q100 145 160 125 V205 H40Z" fill={garmentFill(outfit, patternId)} />
           <path d="M85 133 Q100 146 115 133" fill="none" />
           {motif === 'heart' && <path d="M100 170 C80 157 88 146 100 156 C112 146 120 157 100 170Z" fill="#FFF5F8" stroke="none" />}
           {motif === 'cloud' && <path d="M85 166 Q79 156 89 155 Q92 143 101 149 Q114 146 114 156 Q124 169 111 169 H90Z" fill="white" stroke="none" />}
@@ -35,7 +38,7 @@ export default function MochiFriends({ variant, width, height, full, asleep, lab
         <ellipse cx="61" cy="151" rx={variant === 'sky' ? 11 : 9} ry={variant === 'sky' ? 22 : 14} transform="rotate(25 61 151)" fill={body} />
         <ellipse cx="139" cy="151" rx={variant === 'sky' ? 11 : 9} ry={variant === 'sky' ? 22 : 14} transform="rotate(-25 139 151)" fill={body} />
         {outfit && [61, 139].map(x => <g key={x} transform={`rotate(${x === 61 ? 25 : -25} ${x} 151)`}>
-          <path d={`M${x - (variant === 'sky' ? 11 : 9)} 151 A${variant === 'sky' ? 11 : 9} ${variant === 'sky' ? 22 : 14} 0 0 1 ${x + (variant === 'sky' ? 11 : 9)} 151Z`} fill={outfit.color} stroke={outfit.trim} strokeWidth="2.6" />
+          <path d={`M${x - (variant === 'sky' ? 11 : 9)} 151 A${variant === 'sky' ? 11 : 9} ${variant === 'sky' ? 22 : 14} 0 0 1 ${x + (variant === 'sky' ? 11 : 9)} 151Z`} fill={garmentFill(outfit, patternId)} stroke={outfit.trim} strokeWidth="2.6" />
         </g>)}
         <ellipse cx="77" cy="187" rx={bunny ? 19 : 15} ry="10" fill={variant === 'sky' ? '#F2D2A3' : body} />
         <ellipse cx="123" cy="187" rx={bunny ? 19 : 15} ry="10" fill={variant === 'sky' ? '#F2D2A3' : body} />
