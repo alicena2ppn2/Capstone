@@ -44,7 +44,7 @@ export default function Settings({ petColor, petName, onPetName, onBack, prefere
         setNameDraft(name);
         setNameMessage(`이제 이름은 ${name}이에요!`);
       }}>
-        <h2 className="jua">함께하는 친구의 애칭</h2>
+        <h2 className="jua">캐릭터 별명</h2>
         <label className="settings-name-label" htmlFor="pet-name">현재 친구를 어떻게 부를까요?</label>
         <div className="settings-name-controls">
           <input id="pet-name" className="inp" type="text" maxLength={12} value={nameDraft} placeholder="모찌 이름 입력" onChange={(event) => { setNameDraft(event.target.value); setNameMessage(''); }} aria-describedby="pet-name-hint pet-name-status" />
