@@ -150,6 +150,22 @@ CREATE TABLE IF NOT EXISTS rests (            -- 쉬어 가기: 이 기간은 �
     start       TEXT NOT NULL,
     until       TEXT NOT NULL
 );
+CREATE TABLE IF NOT EXISTS mission_feedback (  -- 미션 소감: 해 보니 어땠는지 (QUEST_DESIGN ②·⑤). 미션 하나에 하나, 다시 쓰면 고침
+    user_id     TEXT NOT NULL,
+    date        TEXT NOT NULL,
+    mission_id  TEXT NOT NULL,
+    mood        INTEGER,                 -- 해 보니 어땠어? 1(힘들었어)~5(좋았어)
+    text        TEXT,                    -- 소감 한 줄
+    expected    INTEGER,                 -- 하기 전 예상한 어색함 1~5 (⑤ "예상보다 괜찮았어", 나중에 씀)
+    created_at  TEXT NOT NULL DEFAULT (datetime('now')),
+    updated_at  TEXT NOT NULL DEFAULT (datetime('now')),
+    PRIMARY KEY (user_id, date, mission_id)
+);
+CREATE TABLE IF NOT EXISTS surveys (          -- 처음 설문 답 (질문 id → 답). 미션 고르기에만 씀
+    user_id     TEXT PRIMARY KEY,
+    answers     TEXT NOT NULL,           -- JSON
+    updated_at  TEXT NOT NULL DEFAULT (datetime('now'))
+);
 CREATE TABLE IF NOT EXISTS weekly_progress (  -- 주간 미션: 하루에 한 번씩 채운 기록
     user_id     TEXT NOT NULL,
     week_start  TEXT NOT NULL,           -- 그 주 월요일
@@ -212,6 +228,11 @@ def connect(path: str | os.PathLike | None = None) -> sqlite3.Connection:
     for col in ("author_id", "date"):
         if col not in cols:
             conn.execute(f"ALTER TABLE guestbook ADD COLUMN {col} TEXT")
+    # Supabase 로그인 연결 칸이 없던 예전 사용자 테이블이면 추가 (ALTER로는 UNIQUE를 못 붙여 인덱스로)
+    cols = {r["name"] for r in conn.execute("PRAGMA table_info(users)")}
+    if "supabase_id" not in cols:
+        conn.execute("ALTER TABLE users ADD COLUMN supabase_id TEXT")
+    conn.execute("CREATE UNIQUE INDEX IF NOT EXISTS users_supabase_id ON users (supabase_id)")
     # 사진첩용 날짜·용도가 없던 예전 사진 테이블이면 추가
     cols = {r["name"] for r in conn.execute("PRAGMA table_info(photos)")}
     for col in ("date", "used_for", "taken_at"):
@@ -271,6 +292,16 @@ def create_user(conn, user_id: str, nickname: str) -> dict:
     return get_user(conn, user_id)
 
 
+def user_by_supabase(conn, supabase_id: str) -> dict | None:
+    row = conn.execute("SELECT id FROM users WHERE supabase_id = ?", (supabase_id,)).fetchone()
+    return get_user(conn, row["id"]) if row else None
+
+
+def link_supabase(conn, user_id: str, supabase_id: str) -> None:
+    conn.execute("UPDATE users SET supabase_id = ?, updated_at = datetime('now') WHERE id = ?", (supabase_id, user_id))
+    conn.commit()
+
+
 def get_user(conn, user_id: str) -> dict | None:
     row = conn.execute("SELECT id, nickname, game_center_id, created_at, updated_at FROM users WHERE id = ?", (user_id,)).fetchone()
     return dict(row) if row else None
@@ -315,6 +346,8 @@ def delete_user(conn, user_id: str) -> list[str]:
         "DELETE FROM reports WHERE reporter_id = ?",
         "DELETE FROM guestbook_bans WHERE user_id = ?",
         "DELETE FROM rests WHERE user_id = ?",
+        "DELETE FROM surveys WHERE user_id = ?",
+        "DELETE FROM mission_feedback WHERE user_id = ?",
         "DELETE FROM coin_ledger WHERE user_id = ?",
         "DELETE FROM photos WHERE user_id = ?",
         "DELETE FROM diary WHERE user_id = ?",
@@ -458,6 +491,17 @@ def save_completion(conn, user_id: str, date: str, mission_id: str, submission: 
         (user_id, date, mission_id, json.dumps(submission, ensure_ascii=False)),
     )
     conn.commit()
+
+
+def completion_history(conn, user_id: str, mission_ids: list[str]) -> list[str]:
+    """이 미션들을 완료한 기록 (날마다 한 줄, 같은 미션이 여러 번 나올 수 있음). 단계 사다리 계산용."""
+    if not mission_ids:
+        return []
+    marks = ",".join("?" * len(mission_ids))
+    rows = conn.execute(
+        f"SELECT mission_id FROM completions WHERE user_id = ? AND mission_id IN ({marks})", (user_id, *mission_ids)
+    ).fetchall()
+    return [r["mission_id"] for r in rows]
 
 
 def completed_ids(conn, user_id: str, date: str) -> set[str]:
@@ -621,27 +665,6 @@ def delete_diary(conn, user_id: str, date: str) -> bool:
 def diary_deleted(conn, user_id: str, date: str) -> bool:
     row = conn.execute("SELECT 1 FROM diary_deleted WHERE user_id = ? AND date = ?", (user_id, date)).fetchone()
     return row is not None
-
-
-def diary_days(conn, user_id: str, start: str, end: str) -> int:
-    row = conn.execute("SELECT COUNT(*) AS n FROM diary WHERE user_id = ? AND date BETWEEN ? AND ?", (user_id, start, end)).fetchone()
-    return int(row["n"])
-
-
-def completions_between(conn, user_id: str, start: str, end: str) -> list[str]:
-    """기간 안에 완료한 미션 id (날마다)."""
-    rows = conn.execute(
-        "SELECT mission_id FROM completions WHERE user_id = ? AND date BETWEEN ? AND ?", (user_id, start, end)
-    ).fetchall()
-    return [r["mission_id"] for r in rows]
-
-
-def weekly_count_between(conn, user_id: str, quest_id: str, start: str, end: str) -> int:
-    row = conn.execute(
-        "SELECT COUNT(*) AS n FROM weekly_progress WHERE user_id = ? AND quest_id = ? AND date BETWEEN ? AND ?",
-        (user_id, quest_id, start, end),
-    ).fetchone()
-    return int(row["n"])
 
 
 def _diary_row(row) -> dict:
@@ -999,6 +1022,57 @@ def end_rest(conn, user_id: str, last_day: str) -> None:
     """쉬어 가기를 last_day까지로 줄인다 (일찍 끝내기)."""
     conn.execute("UPDATE rests SET until = MIN(until, ?) WHERE user_id = ?", (last_day, user_id))
     conn.commit()
+
+
+# --- 미션 소감 ----------------------------------------------------------------------
+
+def set_feedback(conn, user_id: str, date: str, mission_id: str, mood: int | None, text: str | None, expected: int | None) -> None:
+    conn.execute(
+        "INSERT INTO mission_feedback (user_id, date, mission_id, mood, text, expected) VALUES (?, ?, ?, ?, ?, ?) "
+        "ON CONFLICT(user_id, date, mission_id) DO UPDATE SET mood = excluded.mood, text = excluded.text, "
+        "expected = excluded.expected, updated_at = datetime('now')",
+        (user_id, date, mission_id, mood, text, expected),
+    )
+    conn.commit()
+
+
+def feedback_between(conn, user_id: str, start: str, end: str) -> list[dict]:
+    rows = conn.execute(
+        "SELECT date, mission_id, mood, text, expected, updated_at FROM mission_feedback "
+        "WHERE user_id = ? AND date BETWEEN ? AND ? ORDER BY date DESC, created_at DESC",
+        (user_id, start, end),
+    ).fetchall()
+    return [dict(r) for r in rows]
+
+
+def feedback_ids(conn, user_id: str, date: str) -> set[str]:
+    rows = conn.execute("SELECT mission_id FROM mission_feedback WHERE user_id = ? AND date = ?", (user_id, date)).fetchall()
+    return {r["mission_id"] for r in rows}
+
+
+def feedback_stats(conn) -> list[dict]:
+    """미션별 소감 수와 평균 기분 (모든 사용자). 어떤 미션이 실제로 기분을 올리는지 보는 용도."""
+    rows = conn.execute(
+        "SELECT mission_id, COUNT(*) AS n, COUNT(mood) AS rated, ROUND(AVG(mood), 2) AS avg_mood "
+        "FROM mission_feedback GROUP BY mission_id ORDER BY avg_mood DESC, n DESC"
+    ).fetchall()
+    return [dict(r) for r in rows]
+
+
+# --- 처음 설문 ----------------------------------------------------------------------
+
+def set_survey(conn, user_id: str, answers: dict) -> None:
+    conn.execute(
+        "INSERT INTO surveys (user_id, answers) VALUES (?, ?) "
+        "ON CONFLICT(user_id) DO UPDATE SET answers = excluded.answers, updated_at = datetime('now')",
+        (user_id, json.dumps(answers, ensure_ascii=False)),
+    )
+    conn.commit()
+
+
+def get_survey(conn, user_id: str) -> dict | None:
+    row = conn.execute("SELECT answers, updated_at FROM surveys WHERE user_id = ?", (user_id,)).fetchone()
+    return {"answers": json.loads(row["answers"]), "updated_at": row["updated_at"]} if row else None
 
 
 # --- 다시 돌아온 사용자 ------------------------------------------------------------
