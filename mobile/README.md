@@ -228,8 +228,8 @@ mobile의 Android 전용 Firebase 인증 어댑터를 기존 로그인·로그�
 
 Android development EAS 빌드: https://expo.dev/accounts/sungshin/projects/capstone-mochi/builds/d07c38b1-8e68-47f6-96d9-e3413a24626e . 실제 원격 키스토어 Build Credentials JlS2DuEJ6M(default)를 사용해 제출됐으며 현재 빌드 결과 확인 중이다. 개발 APK는 설치 후 `npm run start:dev`로 최신 Metro 코드를 실행한다. 로컬 Android Hermes 번들 생성 통과. 실기기 Google 계정 선택·인증·재시작 복원은 아직 확인하지 않았다.
 
-### 현재 모바일 인증·사진 미션 (2026-10-12)
-mobile Google 인증은 Supabase 브라우저 OAuth/PKCE로 전환했다. Firebase 로컬 의존성·플러그인만 제거했고 원격 Firebase·Google 프로젝트와 서명 키는 유지한다. URL/publishable key는 EXPO_PUBLIC 환경 변수, 세션은 SecureStore이며 게임 AsyncStorage는 그대로다. 카카오/Apple와 게임 서버 동기화는 미연결. iOS 빌드 준비·현재 진행·사용자 직접 조작·재개 명령은 [SUPABASE_IOS_SETUP.md](../mobile/SUPABASE_IOS_SETUP.md)에 기록한다.
+### 현재 모바일 인증·사진 미션 (2026-10-15)
+Google과 Kakao는 Supabase 브라우저 OAuth/PKCE를 사용하고 같은 앱 callback·세션 검증·백엔드 계정 연결 흐름을 공유한다. Kakao 앱은 이메일·프로필 응답이 없어도 클라이언트에서 필수로 읽지 않으며, Supabase Kakao provider가 요구하는 기본 동의 scope 설정은 Kakao Developers에서 준비해야 한다. URL/publishable key는 EXPO_PUBLIC 환경 변수, 인증 세션은 SecureStore, 게임 기록은 기존 AsyncStorage다. 서버 주소가 없는 상태에서는 소셜 인증 후에도 백엔드 연결이 끝나지 않아 홈에 진입하지 않는다. Apple, Vite 웹 소셜 인증, 게임 데이터 동기화는 미연결이다. 인증 세부 사항은 [AUTH_BACKEND_SETUP.md](./AUTH_BACKEND_SETUP.md), iOS 빌드와 기기 등록은 [SUPABASE_IOS_SETUP.md](./SUPABASE_IOS_SETUP.md)를 참고한다.
 음악/볼륨 UI 제거, 사진 선택·촬영 미션과 일기 사진첩, 퀘스트/홈/상점 하단바, 간결한 6개 완료 요약을 웹·모바일에 적용했다. 웹 IndexedDB/앱 document 파일 + 기존 게임 metadata 저장; 사진 원본은 JSON 백업으로 타 기기에 전송되지 않는다. 기존 자산/기록 보존. Edge 작은 화면/저장 실패 재시도/앨범 복원 검증 및 웹 build·Android export 통과. 실제 카메라/권한은 미확인.
 
 ### 2026-10-14 홈 문장 표시

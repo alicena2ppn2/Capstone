@@ -49,12 +49,13 @@ export function createAuthBackendController({client,backend}) {
   }
   async function signIn(provider) {
     if(!active||attempt||pending||logoutBusy)return state;
-    clear('working','Google 로그인 연결 중이에요…');const current=new AbortController();attempt=current;
+    const providerLabel=provider==='kakao'?'카카오':'Google';
+    clear('working',`${providerLabel} 로그인 연결 중이에요…`);const current=new AbortController();attempt=current;
     try {
       await client.signIn(provider,{signal:current.signal});
       const session=await client.getSession({signal:current.signal});
       if(active&&!current.signal.aborted){if(session)await connect(undefined,{force:true,session});else clear('signed-out','로그인을 완료하지 못했어요. 다시 시도해 주세요.');}
-    }catch(error){if(active&&!current.signal.aborted)clear('signed-out',/카카오|취소/.test(error?.message??'')?error.message:'Google 로그인을 완료하지 못했어요. 다시 시도해 주세요.');}
+    }catch(error){if(active&&!current.signal.aborted){const detail=error?.message??'';clear('signed-out',/취소/.test(detail)?detail:`${providerLabel} 로그인을 완료하지 못했어요. 다시 시도해 주세요.`);}}
     finally{if(attempt===current)attempt=null;}
     return state;
   }
