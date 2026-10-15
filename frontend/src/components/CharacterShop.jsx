@@ -29,7 +29,6 @@ export default function CharacterShop({ game, level, collection, onBuy, onEquip,
           <div className="shop-item-art"><Mochi variant={item.id} color={item.color} full width={110} height={115.5} label={item.name} /></div>
           <strong className="character-name">{item.name}</strong><span className="shop-price">LV.{item.level} · {item.method ? '무료 보상' : `${item.price} 코인`}</span>
           <span className={`character-status is-${status}`}>{CHARACTER_STATUS[status]}</span>
-          <span className="character-personality">{intro?.personality}</span>
           <details className="ui-disclosure"><summary>친구 소개</summary><p>{intro?.introduction}</p>{intro?.likes && <p>좋아하는 것: {intro.likes}<br />작은 습관: {intro.habit}</p>}</details>
           {status === 'active' ? <>{item.id !== 'potato' && <button className="pb ui-secondary" onClick={() => onEquip('potato')}>함께하기 해제</button>}</> : has ? <button className="pb shop-buy" onClick={() => onEquip(item.id)}>함께하기</button> : <button className="pb shop-buy" disabled={status !== 'available'} onClick={() => purchase(item)}>{status === 'level' ? `LV.${item.level}` : status === 'coins' ? `${(item.price - game.coins).toLocaleString('ko-KR')}코인 더 필요` : status === 'special' ? '성장 보상으로 만나요' : <span className="price-tag"><UiIcon kind="coin" size={16} /> {item.price}</span>}</button>}
         </>}
