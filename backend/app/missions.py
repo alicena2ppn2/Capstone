@@ -1,8 +1,10 @@
 """오늘의 미션 고르기.
 
-복잡한 점수 대신 한 가지만 본다: 오늘(또는 어제) 밖에 나갔는가?
-- 안 나갔으면: 부담 없이 밖으로 한 발 나가게 하는 미션 + 집에서도 할 수 있는 미션
-- 나갔으면: 기록 + 집에서 할 것 + 찾아보기
+매일 바뀌는 3개 = 움직이기 1 + 집에서 할 일 1 + 이어지기 1 (QUEST_DESIGN ④ 단계 사다리)
+- 움직이기·이어지기는 단계가 있다: 1 혼자 → 2 한 명 → 3 여럿 (4단계 지역은 뺌)
+  지금 단계 미션을 3번 하면 다음 단계가 열리고, 내려가는 일은 없다.
+- 어제 안 나갔으면 움직이기는 한 단계 낮은 미션을 준다 (부담 없이 다시 한 발).
+- 처음 설문 답에 맞는 미션만 (예: 강아지가 있을 때만 "강아지 산책 5분 더").
 
 미션 목록은 app/data/missions.json 에 있다.
 
@@ -24,6 +26,7 @@ from datetime import date as Date, timedelta
 from pathlib import Path
 
 from . import diary
+from . import survey
 
 import numpy as np
 
@@ -46,6 +49,14 @@ COINS_DAILY, XP_DAILY = 10, 10            # 출석하기 (프론트에는 아직
 # 레벨: 처음엔 빨리, 갈수록 천천히 오른다.
 # LV.n → n+1 에 필요한 경험치 = LEVEL_BASE_XP + LEVEL_STEP_XP × (n − 1)  → 100, 250, 400, 550, …
 # 누적: LV.3 350 · LV.5 1,300 · LV.8 3,850 · LV.12 9,350 (하루 400 XP면 LV.12까지 약 24일)
+STAGE_BONUS_COINS = 10                    # 단계가 하나 오를 때마다 코인 +10 (어려운 단계에 도전할 동기)
+
+# 단계 사다리 (QUEST_DESIGN ④). 4단계(지역)는 뺌
+LADDER = {"move": "outdoor", "connect": "connect"}   # 갈래 → 미션 분류
+LADDER_STAGES = 3
+STAGE_UP_COUNT = 3                        # 지금 단계 미션을 이만큼 하면 다음 단계
+STAGE_NAMES = {1: "혼자", 2: "한 명", 3: "여럿"}
+
 LEVEL_BASE_XP = 100
 LEVEL_STEP_XP = 150
 
@@ -53,21 +64,21 @@ LEVEL_STEP_XP = 150
 CATALOG_PATH = Path(__file__).resolve().parent / "data" / "missions.json"
 
 # 분류 (missions.json의 category)
-#   outdoor : 밖으로 한 발 (걸음·밖에서 사진)
+#   outdoor : 밖으로 한 발 (걸음·밖에서 사진) — 단계 사다리 '움직이기' (stage 0은 사다리에 안 나옴)
+#   connect : 사람과 이어지기 — 단계 사다리 '이어지기', 미션마다 "이렇게 해 보세요" 팁(tip)
 #   home    : 집에서 할 수 있는 작은 행동
-#   explore : 직접 찾아보고 적기 (맛집·영화·음악…) — 나갈 계기를 만든다
+#   explore : 직접 찾아보고 적기 (맛집·영화·음악…) — 10/14부터 매일 미션에 안 나옴 (새 활동보다 하던 것 늘리기)
 #   record  : 하루 기록
 #   daily   : 매일 고정으로 나오는 미션 (출석하기, 걸음 8,000보, 지난주보다 많이 걷기, 오늘의 일기 쓰기, 친구 방 놀러 가기, 방명록 남기기). 하루 3개와 별도
-CATEGORIES = ("daily", "outdoor", "home", "explore", "record")
+CATEGORIES = ("daily", "outdoor", "home", "explore", "record", "connect")
 KINDS = ("steps", "text", "photo", "list", "diary", "checkin", "guestbook", "visit")
-STAY_HOME_PLAN = ("outdoor", "home", "explore")   # 안 나간 날
-WENT_OUT_PLAN = ("record", "home", "explore")     # 나간 날
+DAILY_PLAN = ("move", "home", "connect")          # 매일 바뀌는 3칸: 움직이기 · 집에서 할 일 · 이어지기
 
 
 @dataclass(frozen=True)
 class Mission:
     id: str
-    category: str      # outdoor | home | explore | record
+    category: str      # outdoor | home | explore | record | connect
     title: str
     desc: str
     kind: str          # steps | text | photo | list | diary(기록 탭 일기로 완료) | guestbook(다른 사람 방에 방명록) | visit(다른 사람 방 방문) | checkin(출석)
@@ -75,6 +86,9 @@ class Mission:
     min_count: int = 1 # list: 입력 개수, photo: 사진 장수, steps: 목표 걸음
     prompt: str = ""   # 입력 전에 먼저 묻는 것 (예: 사는 동네)
     goal_rule: str = "fixed"  # 걸음 목표: fixed(min_count 그대로) | yesterday(어제보다) | last_week(지난 7일 평균보다)
+    stage: int = 0     # 단계 사다리 1~3 (0 = 사다리에 안 나옴)
+    tip: str = ""      # "이렇게 해 보세요" (사회 기술 팁)
+    requires: str = "" # 처음 설문 답이 이럴 때만 나옴. "질문:답" (예: pets:dog)
 
     @property
     def coins(self) -> int:
@@ -82,7 +96,8 @@ class Mission:
             return COINS_DAILY
         if self.kind == "diary":
             return COINS_DIARY
-        return COINS_OUTDOOR if self.outdoor else COINS_HOME
+        base = COINS_OUTDOOR if self.outdoor else COINS_HOME
+        return base + STAGE_BONUS_COINS * max(self.stage - 1, 0)
 
     @property
     def xp(self) -> int:
@@ -108,12 +123,50 @@ def load_catalog(path: Path = CATALOG_PATH) -> dict[str, Mission]:
             raise ValueError(f"알 수 없는 종류: {m.id} → {m.kind}")
         if m.goal_rule not in ("fixed", "yesterday", "last_week"):
             raise ValueError(f"알 수 없는 걸음 목표 규칙: {m.id} → {m.goal_rule}")
+        if not 0 <= m.stage <= LADDER_STAGES or (m.category == "connect" and m.stage == 0):
+            raise ValueError(f"단계가 틀렸습니다: {m.id} → {m.stage}")
+        if m.requires:
+            q, _, a = m.requires.partition(":")
+            if q not in survey.BY_ID or a not in {o["id"] for o in survey.BY_ID[q]["options"]}:
+                raise ValueError(f"설문에 없는 조건입니다: {m.id} → {m.requires}")
         catalog[m.id] = m
     return catalog
 
 
 CATALOG: dict[str, Mission] = load_catalog()
 BY_CATEGORY: dict[str, list[str]] = {c: [m.id for m in CATALOG.values() if m.category == c] for c in CATEGORIES}
+BY_STAGE: dict[str, dict[int, list[str]]] = {
+    track: {s: [m for m in BY_CATEGORY[cat] if CATALOG[m].stage == s] for s in range(1, LADDER_STAGES + 1)}
+    for track, cat in LADDER.items()
+}
+
+
+def fits(mission: Mission, answers: dict | None) -> bool:
+    """처음 설문 답에 맞는 미션인지. 조건이 있는데 답이 없으면 안 맞는 것으로 본다."""
+    if not mission.requires:
+        return True
+    q, _, a = mission.requires.partition(":")
+    got = (answers or {}).get(q)
+    return a in got if isinstance(got, list) else got == a
+
+
+def ladder_progress(completed: list[str]) -> dict:
+    """지금까지 완료한 미션 id(날마다, 중복 가능) → 갈래별 지금 단계와 다음 단계까지.
+
+    지금 단계 미션을 STAGE_UP_COUNT번 하면 다음 단계. 마지막 단계(3)에서 멈춤. 내려가지 않음.
+    """
+    out = {}
+    for track in LADDER:
+        stage = 1
+        while True:
+            done = sum(1 for m in completed if m in BY_STAGE[track][stage])
+            if stage == LADDER_STAGES or done < STAGE_UP_COUNT:
+                break
+            stage += 1
+        top = stage == LADDER_STAGES
+        out[track] = {"stage": stage, "name": STAGE_NAMES[stage], "done": min(done, STAGE_UP_COUNT),
+                      "need": STAGE_UP_COUNT, "top": top}
+    return out
 
 
 def stayed_home(steps: float | None, usual_steps: float | None = None) -> bool | None:
@@ -151,37 +204,6 @@ WEEKLY_QUESTS = {
         "xp": 200,
     },
 }
-
-
-# --- 월간 목표 ---------------------------------------------------------------------
-# 따로 제출하지 않고 이번 달 기록으로 자동 집계한다. 다 채우면 받기(claim)로 보상 (앱 '이번 달' 목표와 같은 기준)
-MONTHLY_GOALS = {
-    "month_outdoor": {
-        "id": "month_outdoor",
-        "title": "이번 달 바깥 발견 8번",
-        "desc": "밖에 나가는 미션을 이번 달 8번 해 봐요.",
-        "count": "outdoor_missions",     # 이번 달 완료한 바깥 미션 수 (주간 산책 포함)
-        "target": 8,
-        "coins": 150,
-        "xp": 300,
-    },
-    "month_diary": {
-        "id": "month_diary",
-        "title": "이번 달 하루 기록 10일",
-        "desc": "서로 다른 날 일기를 10일 써 봐요.",
-        "count": "diary_days",           # 이번 달 일기를 쓴 날 수
-        "target": 10,
-        "coins": 150,
-        "xp": 300,
-    },
-}
-
-
-def month_range(d: Date) -> tuple[Date, Date]:
-    """그 달 1일과 마지막 날."""
-    first = d.replace(day=1)
-    nxt = (first + timedelta(days=32)).replace(day=1)
-    return first, nxt - timedelta(days=1)
 
 
 def week_start(d: Date) -> Date:
@@ -229,6 +251,9 @@ def pick_missions(
     usual_steps: float | None = None,
     recent: list[str] | None = None,
     last_week_steps: list[float] | None = None,
+    goes_out_often: bool | None = None,
+    stages: dict[str, int] | None = None,
+    answers: dict | None = None,
 ) -> dict:
     """오늘의 미션 3개를 고른다.
 
@@ -236,17 +261,36 @@ def pick_missions(
     usual_steps: 평소 걸음 중앙값 (있으면 "평소의 절반 미만"도 안 나간 날로 봄)
     recent: 최근에 줬던 미션 id. 가능하면 겹치지 않게 고른다.
     last_week_steps: 지난 7일 걸음 (있으면 "지난주보다 많이 걷기" 미션이 나올 수 있음)
+    goes_out_often: 처음 설문의 외출 빈도로 본 '자주 나가는 사람'인지. 걸음 기록이 없는 날에만 쓴다
+    stages: 갈래별 지금 단계 {"move": 2, "connect": 1} (없으면 1단계)
+    answers: 처음 설문 답 (조건 있는 미션 고르기)
     """
     baselines = step_baselines(steps, last_week_steps)
     home = stayed_home(steps, usual_steps)
-    plan = STAY_HOME_PLAN if home in (True, None) else WENT_OUT_PLAN
+    # 걸음 기록이 없으면(처음 며칠) 설문 답으로: 자주 나간다고 했으면 나간 날로 본다
+    went_out = home is False or (home is None and goes_out_often is True)
+    stages = {t: (stages or {}).get(t, 1) for t in LADDER}
+    if not went_out:
+        stages["move"] = max(stages["move"] - 1, 1)     # 안 나간 날은 한 단계 낮게
     rng = random.Random(f"{user_id}:{date}")
     recent = set(recent or [])
 
-    picked: list[str] = []
-    for category in plan:
+    def usable(mid: str) -> bool:
+        m = CATALOG[mid]
         # 기준 기록이 없는 걸음 미션(어제보다·지난주보다)은 후보에서 뺀다
-        options = [m for m in BY_CATEGORY[category] if CATALOG[m].goal_rule == "fixed" or CATALOG[m].goal_rule in baselines]
+        return (m.goal_rule == "fixed" or m.goal_rule in baselines) and fits(m, answers)
+
+    picked: list[str] = []
+    for slot in DAILY_PLAN:
+        if slot in LADDER:
+            # 지금 단계 미션. 조건에 맞는 게 없으면 아래 단계에서
+            options = []
+            for s in range(stages[slot], 0, -1):
+                options = [m for m in BY_STAGE[slot][s] if usable(m)]
+                if options:
+                    break
+        else:
+            options = [m for m in BY_CATEGORY[slot] if usable(m)]
         fresh = [m for m in options if m not in recent and m not in picked]
         choices = fresh or [m for m in options if m not in picked]
         picked.append(rng.choice(choices))
