@@ -110,9 +110,9 @@ export default function Home({ game, day, petName = 'MOCHI', petColor, onQuest, 
       </div>
       <div className="home-identity">
         <DailySentence now={now}/>
-        <div className="home-character-level"><strong>LV.{lv.level}</strong><progress value={lv.xp_in_level} max={lv.xp_for_level} aria-label="다음 레벨까지 경험치" /><span>{lv.xp_in_level} / {lv.xp_for_level} XP</span></div>
       </div>
     </div>
+    <div className="home-character-level home-level-dock"><strong>LV.{lv.level}</strong><progress value={lv.xp_in_level} max={lv.xp_for_level} aria-label="다음 레벨까지 경험치" /><span>{lv.xp_in_level} / {lv.xp_for_level} XP</span></div>
     {open && <button type="button" className="home-sheet-scrim" aria-label="오늘의 도전 닫기" onClick={() => setOpen(false)} />}
     <div className={`home-sheet${open ? ' is-open' : ''}`}>
     <button type="button" className="home-sheet-handle" aria-expanded={open} aria-controls="home-sheet-body" onClick={toggle} onPointerDown={dragStart} onPointerUp={dragEnd} onPointerCancel={() => { drag.current = null; }}>
