@@ -52,6 +52,8 @@ API를 직접 눌러 보려면 서버를 켜고 `http://localhost:8000/docs`.
 | 퀘스트 | 사진 미션: 사진 올리고 → 완료 | `POST /users/{id}/photos` (multipart `file`) → `photo_id` → `POST …/missions/{mission_id}/complete` `{photos: [photo_id]}`. 서버 확인에 걸리면 422 `detail` 문구를 그대로 보여 주면 됨 |
 | 퀘스트 | 찾아보기 미션 | `POST …/complete` `{items: [...], answer: "망원동"}` (`prompt`가 있으면 `answer` 필요) |
 | 퀘스트 | 걸음 미션 | `POST …/complete` `{}` (서버가 오늘 걸음으로 판정) |
+| 퀘스트 | 운동 미션 (`kind: "self"`, 윗몸일으키기 20회 등) | "했어요" 버튼 → `POST …/complete` `{}` |
+| 퀘스트 | **새로고침 버튼** (`rerollable: true`인 미션에만) | `POST /users/{id}/missions/{mission_id}/reroll` → 바뀐 오늘 미션 전체(`missions`)와 `rerolls_left`. 하루 3번, 다 쓰면 429 문구를 그대로 보여 주기 |
 | 퀘스트 | **소감 창** (완료 직후, 건너뛰기 가능) | `PUT /users/{id}/missions/{mission_id}/feedback?date=` `{mood: 1~5, text: "한 줄"}` — 둘 중 하나는 필요, 200자까지, 다시 보내면 고침, **보상 없음**. 그날 완료한 미션만(아니면 404). 글에 위기 표현이 있으면 `care` (일기와 같게 처리). 오늘의 미션 각 항목 `feedback: true`면 이미 씀 |
 | 기록 | 내 소감 모아 보기 | `GET /users/{id}/feedback?from=&to=` → `[{date, mission_id, title, mood, text}]` |
 | 기록(일기) | 오늘의 주제 | `GET /users/{id}/diary/topic` |
