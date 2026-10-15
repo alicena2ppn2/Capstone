@@ -77,7 +77,14 @@ backend/uploads/     사진 파일 (파일 이름 = photo_id, 주인은 photos �
 3. **배포 시 저장 공간** — DB 파일과 사진 폴더는 서버를 다시 켜도 남아 있어야 한다. Render 같은 곳은 기본 디스크가 재시작 때 지워지므로 따로 저장 공간(디스크)을 붙여야 함
 4. **백업** — 지금은 없음. 배포 후 DB 파일·사진 폴더를 주기적으로 복사해 두기
 
-## 로그인 연결 계획 (Supabase, 나중에)
+## 로그인 연결 (Supabase)
+
+**10/14 1단계 완료:** `POST /auth/supabase` — Supabase 사용자를 서버 사용자와 이어 줌 (`users.supabase_id`, 하나에 하나)
+- 서버 환경변수 `SUPABASE_URL`·`SUPABASE_KEY`(publishable key)가 있으면 토큰을 Supabase `/auth/v1/user`에 물어봐서 확인 (서명 방식 상관없이 동작). 없으면 개발·시연 모드로 본문 `supabase_id`를 믿음
+- `users.id`는 그대로 서버가 만든 id를 씀 (아래 표의 "Supabase id를 그대로 쓰기" 대신 연결 칸 방식 — 기존 사용자·시연 데이터를 바꾸지 않으려고)
+- 남은 일: 다른 API도 요청마다 토큰 확인 → 주소의 `{id}`와 토큰의 사용자가 같은지 확인
+
+### 처음 계획
 
 로그인·회원가입은 **프론트에서 Supabase Auth**로 한다 (2026-10-06 결정). 백엔드가 할 일:
 

@@ -20,13 +20,26 @@ uvicorn app.main:app --reload   # API 문서: http://localhost:8000/docs
 pytest                          # 테스트
 ```
 
+**휴대폰에서 접속 (같은 와이파이 시연)**
+
+```bash
+python scripts/serve.py         # 0.0.0.0:8000으로 띄우고, 앱에 넣을 EXPO_PUBLIC_API_URL=http://<노트북 IP>:8000 을 보여 줌
+```
+
+- 휴대폰과 노트북이 같은 와이파이여야 함. 처음 실행 때 Windows 방화벽 창이 뜨면 "개인 네트워크" 허용
+- 휴대폰 브라우저로 `http://<노트북 IP>:8000/health` → `{"ok":true}`면 연결됨
+
+**`backend/.env`** — `.env.example`을 복사해서 채우면 서버가 시작할 때 읽음 (Git에 안 올라감, 이미 있는 환경변수가 우선)
+
 환경변수 (모두 선택)
 
 | 이름 | 기본값 | 용도 |
 |---|---|---|
 | `CAPSTONE_DB` | `backend/app.db` | SQLite 파일 경로 |
 | `CAPSTONE_UPLOADS` | `backend/uploads/` | 사진 저장 폴더 |
-| `CORS_ORIGINS` | `http://localhost:5173` | 프론트 주소 (쉼표로 여러 개) |
+| `CORS_ORIGINS` | `http://localhost:5173,http://localhost:8081` | 웹에서 부를 때 허용할 주소 (Vite · Expo 웹). 휴대폰 앱은 상관없음 |
+| `SUPABASE_URL` · `SUPABASE_KEY` | 없음 (개발·시연 모드) | `POST /auth/supabase` 토큰 확인. 앱의 Supabase URL·publishable key와 같은 값 |
+| `ADMIN_TOKEN` | 없음 (관리자 API 꺼짐) | 위기 신호·소감 통계 API |
 
 ## 시연용 데이터
 
@@ -36,6 +49,9 @@ python scripts/seed_demo.py --date 2026-10-22 --days 21
 ```
 
 - 주인공 `demo-mochi`(모찌주인): 3주 전엔 하루 900보 정도로 거의 집에만 있다가 점점 9,000보까지 늘고, 미션 수행률도 35% → 90%로 오르는 회복 이야기
+- 주인공 설문: 쉬는 중, 가족과 살고 강아지가 있음, 거의 안 나감 → 강아지·가족 미션이 나옴
+- 단계 사다리: 3주 동안 움직이기·이어지기 모두 3단계까지 오름. 가끔 미션 새로고침
+- 미션 소감: 매일 바뀌는 미션 뒤 기분 1~5, 처음 평균 2.8 → 최근 4.1 정도로 좋아짐 (발표 그래프용, `GET /admin/feedback/stats`)
 - 친구 `demo-haneul`(하늘이) · `demo-walker`(산책왕) · `demo-slow`(느림보): 주인공 방에 놀러 오고 방명록을 남김
 - 실제 API를 호출해서 쌓기 때문에 코인·경험치·레벨·상점 지급이 실제 규칙대로 계산됨
 - 시연 당일 미션은 정해만 두고 수행하지 않음 → 발표 때 걸음 올리기·미션 완료를 직접 보여 줌
@@ -48,10 +64,12 @@ python scripts/seed_demo.py --date 2026-10-22 --days 21
 | `app/main.py` | FastAPI 라우트 |
 | `app/db.py` | SQLite 저장 (사용자·걸음·미션·완료·코인·사진·일기·방문·방명록) |
 | `app/missions.py` | 오늘의 미션 고르기, 완료 판정, 코인·경험치·레벨 계산 |
+| `app/auth.py` | Supabase 로그인 토큰 확인 (`SUPABASE_URL`·`SUPABASE_KEY`가 있을 때) |
+| `app/survey.py` | 처음 설문 질문·답 확인 |
 | `app/diary.py` | 오늘의 일기 주제 고르기 |
 | `app/shop.py` | 상점 규칙 (구매 조건, 무료 지급) |
 | `app/crisis.py` | 위기 표현 확인 (일기·미션 글) |
-| `app/data/missions.json` | **미션 목록 77개 (매일 고정 6개 포함) — 추가·수정은 이 파일만** |
+| `app/data/missions.json` | **미션 목록 92개 (매일 고정 6개, 이어지기 11개 포함) — 추가·수정은 이 파일만** |
 | `app/data/diary_topics.json` | **일기 주제 50개 — 추가·수정은 이 파일만** |
 | `app/data/crisis_lexicon.json` | **위기 표현 목록 103개 (위험도·분류·출처) — 서버 시작 때 DB `crisis_terms` 표로 옮김** |
 | `app/data/shop.json` | **상점 상품 (캐릭터 6·의상 4·집 꾸미기 16) — 프론트 `game.js`·`clothes.js`·`decor.js`와 같은 값** |
@@ -61,20 +79,27 @@ python scripts/seed_demo.py --date 2026-10-22 --days 21
 
 | API | 하는 일 |
 |---|---|
+| `POST /auth/supabase` | Supabase 로그인 → 서버 사용자. 이미 연결됐으면 200, 처음이면 `nickname`으로 만들어 201, 닉네임이 없으면 404 |
 | `POST /users` | 가입: 닉네임 → `id` (앱이 저장해 두고 모든 API에 사용) |
 | `GET /nicknames/check?nickname=` | 닉네임 쓸 수 있는지 확인 |
 | `GET /users/{id}` | 사용자 정보 (닉네임·레벨) |
 | `PATCH /users/{id}` | 닉네임 바꾸기 |
 | `DELETE /users/{id}` | 계정 삭제 — 걸음·미션·코인·사진·일기·방문·방명록까지 모두 삭제 (App Store 필수) |
+| `GET /survey/questions` | 처음 설문 질문과 답 목록 (직업·함께 사는 사람·반려동물·외출 빈도·관심 취미·평소 하는 일) |
+| `PUT /users/{id}/survey` | 처음 설문 답 저장 (모든 질문 건너뛸 수 있음, 다시 보내면 통째로 바뀜) |
+| `GET /users/{id}/survey` | 내 설문 답, `done=false`면 아직 안 함 |
 | `POST /users/{id}/steps` | 하루 걸음 수 올리기 (앱 만보기 → 서버) |
 | `GET /users/{id}/home` | 걸음, 걸음 목표(8,000보), 코인, 레벨, 출석 여부, 미션 진행, 말풍선, 오래 쉬다 돌아온 날이면 `welcome_back` |
-| `GET /users/{id}/missions/today` | 매일 고정(출석·걸음·지난주보다·일기·방문·방명록) + 매일 바뀌는 3개 (그날 처음 부를 때 정해지고 하루 동안 고정) |
-| `POST /users/{id}/missions/{mission_id}/complete` | 완료 판정 → 코인·경험치 지급 (중복 지급 없음), 레벨업 여부 |
+| `GET /users/{id}/missions/today` | 매일 고정(출석·걸음·지난주보다·일기·방문·방명록) + 매일 바뀌는 3개(움직이기·집·이어지기, 그날 처음 부를 때 정해지고 하루 동안 고정) + `ladder` |
+| `PUT /users/{id}/missions/{mission_id}/feedback` | 미션 소감 (기분 1~5·한 줄, 그날 완료한 미션만, 보상 없음, 위기 표현 확인) |
+| `GET /users/{id}/feedback?from=&to=` | 내 미션 소감 목록 |
+| `GET /admin/feedback/stats` | [관리자] 미션별 소감 수·평균 기분 (`X-Admin-Token`) |
+| `POST /users/{id}/missions/{mission_id}/reroll` | 미션 새로고침: 매일 바뀌는 미션을 같은 칸·같은 단계의 다른 미션으로 (하루 3번, 완료한 미션·매일 고정은 안 됨) |
+| `GET /users/{id}/ladder` | 단계 사다리: 움직이기·이어지기 지금 단계와 다음 단계까지 (`stage`·`done`/`need`·`top`) |
+| `POST /users/{id}/missions/{mission_id}/complete` | 완료 판정 → 코인·경험치 지급 (중복 지급 없음), 레벨업 여부, 단계가 오른 갈래 `stage_up` |
 | `POST /users/{id}/attendance` | 출석하기 (앱을 열 때 호출, 하루 한 번 보상) |
 | `GET /users/{id}/weekly` | 이번 주(월~일) 주간 미션과 진행도 |
 | `POST /users/{id}/weekly/{quest_id}/complete` | 주간 미션 하루 채우기 (사진). 서로 다른 날 목표 횟수를 채우면 보상 한 번 |
-| `GET /users/{id}/monthly` | 이번 달 목표와 진행도 (기록으로 자동 집계) |
-| `POST /users/{id}/monthly/{goal_id}/claim` | 월간 목표 보상 받기 (다 채웠을 때 달마다 한 번) |
 | `POST /users/{id}/photos` | 사진 업로드 → `photo_id` (jpeg·png·webp·heic, 10MB 이하). 촬영 일시는 서버에만 저장 |
 | `GET /photos/{photo_id}` | 사진 보기 |
 | `GET /users/{id}/album?from=&to=&page=&per_page=` | 사진첩: 내가 올린 사진, 날짜 최신순, 어떤 미션·일기에 올렸는지 |
@@ -124,9 +149,11 @@ python scripts/seed_demo.py --date 2026-10-22 --days 21
 - 하루에 한 번만 셈(같은 날 두 번째는 409), 오늘 찍은 내 사진만 인정, 사진첩에 "이번 주 자연 속 산책 2번"으로 표시
 - 근거: 자연에서 주 120분, 짧게 여러 번이어도 효과 (White 2019)
 
-**월간 목표** (그 달 1일~말일, 제출 없이 기록으로 집계 · `MONTHLY_GOALS`) — 다 채우면 `claim`으로 150코인 · 300XP
-- 이번 달 바깥 발견 8번: 완료한 바깥 미션(`outdoor: true`) + 주간 산책 사진
-- 이번 달 하루 기록 10일: 일기를 쓴 날 수 (지운 일기는 빠짐)
+**처음 설문** (`app/survey.py` `QUESTIONS`) — 10/12 면담 "처음에 현재 상태 묻기"
+- 직업(학생·취업 준비·직장인·아르바이트·쉬는 중·기타), 함께 사는 사람, 반려동물, 외출 빈도, 관심 취미(5개까지), 평소 하는 일(6개까지)
+- 쓰는 곳: ① **걸음 기록이 없는 날**(처음 며칠) 외출 빈도가 "거의 매일·주 2~3번"이면 나간 날로 봄 (걸음 기록이 있으면 걸음이 우선) ② 조건 있는 미션(`requires`)은 답이 맞을 때만 나옴 — 예: 강아지가 있을 때만 "강아지 산책 5분 더", 가족과 살 때만 "가족과 한 끼"
+- 관심 취미·평소 하는 일로 미션 고르기는 남음
+- 답은 미션 고르기에만 쓰고 다른 사람에게 보이지 않음. 계정 삭제 시 함께 삭제
 
 **매일 고정 6개** (`category: daily`)
 - 출석하기: 앱을 열 때 `POST /attendance`
@@ -136,20 +163,25 @@ python scripts/seed_demo.py --date 2026-10-22 --days 21
 - 친구 방 놀러 가기: 다른 사람 방을 방문하면 자동 완료
 - 방명록 남기기: **다른 사람 방**에 쓰면 자동 완료 (내 방에 쓴 건 제외)
 
-**매일 바뀌는 3개**
-- 어제 걸음이 1,000보 미만이거나 평소(최근 28일 중앙값)의 절반 미만이면 "안 나간 날"
-  - 안 나간 날: 밖으로 한 발 + 집에서 + 찾아보기
-  - 나간 날: 기록 + 집에서 + 찾아보기
+**매일 바뀌는 3개** = 움직이기(`outdoor`) + 집에서(`home`) + 이어지기(`connect`)
+- 움직이기·이어지기는 **단계 사다리** (QUEST_DESIGN ④, 4단계 지역은 뺌): 1 혼자 → 2 한 명 → 3 여럿
+  - 지금 단계 미션을 **3번** 하면 다음 단계가 열림 (`STAGE_UP_COUNT`). 내려가는 일은 없음. 완료 기록으로 계산
+  - 어제 걸음이 1,000보 미만이거나 평소(최근 28일 중앙값)의 절반 미만이면 "안 나간 날" → **움직이기만 한 단계 낮게** (이어지기는 그대로)
+  - 단계가 오를 때마다 코인 +10 (`STAGE_BONUS_COINS`). 예: 밖 1단계 50 · 2단계 60 · 3단계 70
+  - 이어지기 미션에는 `tip` ("이렇게 해 보세요" 사회 기술 팁)
+  - `outdoor` 중 `stage: 0`(안 가 본 길, 벽화, 노을 등 새 활동)과 `explore`·`record`는 매일 미션에 안 나옴 (10/12 면담: 새로운 것보다 하던 것 늘리기)
 - 같은 사람·같은 날은 항상 같은 미션, 최근 이틀 동안 준 미션은 가능하면 피함
+- **새로고침**: 마음에 안 들면 같은 칸·같은 단계의 다른 미션으로 바꿈. 하루 3번(`REROLLS_PER_DAY`), 무료. 끝낸 미션은 못 바꿈
 
 **분류** (`missions.json`의 `category`)
 
 | 분류 | 예시 |
 |---|---|
-| `outdoor` 밖으로 한 발 | 하늘 사진 올리기, 가까운 공원 가서 사진, 음료수 사 오기, 어제보다 많이 걷기 |
-| `home` 집에서 | 밥 사진, 창문 열고 환기한 사진, 이불 개기 |
-| `explore` 찾아보기 | 동네 맛집 찾아 적기, 상영 중인 영화, 좋아하는 음악 |
-| `record` 기록 | 감사한 일 세 가지, 오늘 기분 한 단어 |
+| `outdoor` 움직이기 | 1단계 문밖 한 걸음·하늘 사진·분리수거·어제보다 많이 걷기 · 2단계 집 앞 5분·음료수 사 오기·강아지 산책 5분 더 · 3단계 공원·도서관·카페·시장 |
+| `connect` 이어지기 | 1단계 방명록 읽기·이웃 방 구경·가족과 한 끼 · 2단계 짧은 인사·고마움 전하기·가족에게 한마디 · 3단계 관심사 질문·방명록 답하기·단골 가게 한마디·먼저 안부 |
+| `home` 집에서 | 설거지, 빨래 개기, 바닥 청소 5분, 이불 개기, 환기 · 운동(스스로 체크): 윗몸일으키기 20회, 스쿼트 20회, 팔굽혀펴기 10회, 플랭크 30초, 스트레칭 5분 |
+| `explore` 찾아보기 (지금 안 나옴) | 동네 맛집 찾아 적기, 상영 중인 영화, 좋아하는 음악 |
+| `record` 기록 (지금 안 나옴) | 감사한 일 세 가지, 오늘 기분 한 단어 |
 
 **완료 판정** (`kind`)
 
@@ -162,6 +194,7 @@ python scripts/seed_demo.py --date 2026-10-22 --days 21
 | `guestbook` | 그날 다른 사람 방에 방명록을 남긴 기록이 있음 (서버가 확인) |
 | `visit` | 그날 다른 사람 방을 방문한 기록이 있음 (서버가 확인) |
 | `checkin` | 출석 API 호출 |
+| `self` | 스스로 체크 (확인할 수 없는 운동 등). 누르면 완료, 보상은 작게 10코인 · 50XP |
 | `steps` | 서버에 올라온 오늘 걸음이 목표 이상 |
 
 **걸음 목표**
@@ -243,7 +276,8 @@ python scripts/seed_demo.py --date 2026-10-22 --days 21
 - [ ] 프론트와 API 연결 — 화면별 API는 FRONTEND_GUIDE.md에 정리함. 프론트 개발이 자리 잡으면 연결
 - [x] 레벨·XP·코인 수치를 프론트(`game.js`)와 맞추기
 - [x] 출석하기, 레벨·경험치
-- [ ] 이번 주·이번 달 퀘스트 — 프론트에는 있음 (산책 두 번, 기록 다섯 번 등). 백엔드에서 무엇으로 셀지 결정 필요
+- [x] 주간 퀘스트 (자연 속 산책 2번). 월간 목표는 10/14에 뺌
+- [x] 처음 설문 (10/14) — 관심 취미·평소 하는 일로 미션 고르기는 남음
 - [x] 사용자 등록 — 닉네임, 닉네임 변경, 계정 삭제
 - [ ] 로그인 — **Supabase로 프론트에서 하기로 결정** (10/6). 백엔드는 나중에 Supabase 토큰 확인을 붙임 ([DATABASE.md](DATABASE.md) "로그인 연결 계획")
 - [x] 위기 표현 확인 — 목록 기반 (high → 109 안내, medium → 안부)
