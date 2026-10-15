@@ -965,14 +965,15 @@ def place_decor(user_id: str, body: DecorIn, conn=Depends(get_conn)):
     return room_view(conn, user_id)
 
 
-@app.get("/users/{user_id}/room", summary="방 모습 (내 방·이웃 방 공통): 닉네임·레벨·캐릭터·옷·놓은 소품")
-def get_room(user_id: str, conn=Depends(get_conn)):
+@app.get("/users/{user_id}/room", summary="방 모습 (내 방·이웃 방 공통): 닉네임·레벨·캐릭터·옷·놓은 소품·방문자 수(오늘/전체)")
+def get_room(user_id: str, date: str | None = DateQuery, conn=Depends(get_conn)):
     user = db.get_user(conn, user_id)
     return {
         "user_id": user_id,
         "nickname": user["nickname"] if user else None,
         "level": ms.level_from_xp(db.xp_total(conn, user_id))["level"],
         **room_view(conn, user_id),
+        "visits": db.visit_counts(conn, user_id, day(date).isoformat()),
     }
 
 
@@ -1085,7 +1086,8 @@ def like_guestbook(user_id: str, entry_id: int, body: LikeIn, conn=Depends(get_c
     if entry["author_id"] and entry["author_id"] in db.block_related(conn, body.user_id):
         raise HTTPException(404, "방명록 글이 없습니다.")
     db.like_entry(conn, entry_id, body.user_id)
-    return {"entry_id": entry_id, **db.like_counts(conn, [entry_id], body.user_id)[entry_id]}
+    bond = grow_friendship(conn, body.user_id, entry["author_id"], seoul_today(), "like")   # 글쓴이와 친밀도 +1 (하루 한 번)
+    return {"entry_id": entry_id, **db.like_counts(conn, [entry_id], body.user_id)[entry_id], "friendship": bond}
 
 
 @app.delete("/users/{user_id}/guestbook/{entry_id}/like", summary="방명록 글 좋아요 취소")
@@ -1272,16 +1274,17 @@ def friend_cards(conn, user_id: str, entries: list[dict], today: Date) -> list[d
 
 
 def grow_friendship(conn, actor_id: str, friend_id: str, today: Date, kind: str) -> dict | None:
-    """친구에게 방명록·방문을 하면 친밀도를 올리고, 레벨이 오르면 두 사람 모두에게 코인을 준다.
-    친구가 아니면 None. 그날 같은 활동을 이미 했으면 점수는 그대로."""
-    if friend_id not in db.friend_ids(conn, actor_id):
+    """방명록·방문·좋아요를 하면 두 사람의 친밀도를 올린다. 레벨이 오를 때 코인은 친구 사이일 때만 두 사람 모두에게.
+    그날 같은 활동을 이미 했으면 점수는 그대로. 자기 자신에게 한 건 세지 않음 (None)."""
+    if not friend_id or actor_id == friend_id:
         return None
+    is_friend = friend_id in db.friend_ids(conn, actor_id)
     before = fs.level_from_points(db.friendship_points(conn, actor_id, [friend_id])[friend_id])
     counted = db.add_friendship_points(conn, actor_id, friend_id, today.isoformat(), kind, fs.POINTS[kind])
     after = fs.level_from_points(db.friendship_points(conn, actor_id, [friend_id])[friend_id])
 
     earned = 0
-    for level in range(before["level"] + 1, after["level"] + 1):
+    for level in range(before["level"] + 1, after["level"] + 1) if is_friend else ():
         coins = fs.reward_for(level)
         for me, other in ((actor_id, friend_id), (friend_id, actor_id)):
             item = fs.reward_item(other, level)
@@ -1295,7 +1298,15 @@ def grow_friendship(conn, actor_id: str, friend_id: str, today: Date, kind: str)
         "gained": fs.POINTS[kind] if counted else 0,
         "leveled_up": after["level"] > before["level"],
         "earned_coins": earned,
+        "is_friend": is_friend,
     }
+
+
+@app.get("/users/{user_id}/friendship/{other_id}", summary="두 사람의 친밀도: 레벨·점수·서로 한 방문·방명록·좋아요 횟수 (친구가 아니어도)")
+def get_friendship(user_id: str, other_id: str, conn=Depends(get_conn)):
+    points = db.friendship_points(conn, user_id, [other_id])[other_id]
+    return {"user_id": user_id, "other_id": other_id, "is_friend": other_id in db.friend_ids(conn, user_id),
+            **fs.level_from_points(points), "counts": db.friendship_counts(conn, user_id, other_id)}
 
 
 @app.post("/users/{user_id}/friends", status_code=201,
