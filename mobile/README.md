@@ -257,3 +257,9 @@ mobile Google 인증은 Supabase 브라우저 OAuth/PKCE로 전환했다. Fireba
 Supabase 토큰 반환, 서버 계정 연결과 닉네임 UI, 계정별ID/지연응답 보호 구현. Android 이전어댑터 백업·Supabase공유. 기존 게임/화면/미션 작업을 보존하고 서버는 수정하지 않음.
 
 이번 인증 검증(2026-10-14): 전체101테스트(인증 연결14·SDK 세션10 포함), 웹 build, 모바일 typecheck/lint 및 iOS/Android/Expo Web 로컬 export 통과. 별도 Edge에서 모의 응답으로 기존회원/신규 닉네임/409입력 유지/연속 제출1회/네트워크 오류·재시도/로그아웃/별도ID와 로컬 기록 보존,360/390/430px 화면 확인. 실제 Google 인증·실제 서버 POST·실기기 로그인은 서버 주소 미설정으로 확인하지 않았다. 모의 캡처는 artifacts/ui-review/auth-nickname-mock-*.png 및 auth-backend-error-mock-430.png이다.
+
+## 개발용 모바일 크기 미리보기
+
+Expo 웹 localhost:5183 실행 상태에서 mobile/에서 `npm run dev:preview`를 실행하고 http://localhost:5184/에 접속한다. 실제 앱을 390×844 CSS px iframe으로 불러오며, PC 창 높이/폭에 맞춰 바깥 표시만 균일 축소한다. 개발자 도구 없이 버튼·탭·스크롤을 사용할 수 있다. 실제 iPhone/기기 에뮬레이터가 아니며, 앱 레이아웃·CSS·저장 데이터를 변경하지 않는다. 별도 loopback 개발 서버이고 production 실행을 거절하며 앱 배포 entry에서 import하지 않는다.
+
+미리보기 검증: 임시 Edge 프로필에서 iframe 내부 390×844 유지, PC 1280×1000/1280×700/800×600 균일 축소·프레임 전체 표시, 실제 앱 홈/퀘스트/주간 탭 이동 및 콘솔 오류0 확인. 실제 iPhone·터치 센서·모바일 브라우저 에뮬레이션은 아님.
