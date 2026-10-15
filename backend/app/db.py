@@ -105,7 +105,7 @@ CREATE TABLE IF NOT EXISTS friendship_points (  -- 친밀도: 친구끼리 한 �
     user_b     TEXT NOT NULL,            -- 큰 쪽
     actor_id   TEXT NOT NULL,            -- 활동한 사람
     date       TEXT NOT NULL,
-    kind       TEXT NOT NULL,            -- guestbook | visit
+    kind       TEXT NOT NULL,            -- guestbook | visit | like
     points     INTEGER NOT NULL,
     PRIMARY KEY (user_a, user_b, actor_id, date, kind)
 );
@@ -334,6 +334,14 @@ def nicknames(conn, user_ids: list[str]) -> dict[str, str]:
     marks = ",".join("?" * len(user_ids))
     rows = conn.execute(f"SELECT id, nickname FROM users WHERE id IN ({marks})", tuple(user_ids)).fetchall()
     return {r["id"]: r["nickname"] for r in rows}
+
+
+def visit_counts(conn, owner_id: str, date: str) -> dict:
+    """방 방문자 수: 오늘(그날 놀러 온 사람 수)과 전체(날마다 한 번씩 센 누적). 미니홈피의 TODAY / TOTAL처럼."""
+    row = conn.execute(
+        "SELECT SUM(date = ?) AS today, COUNT(*) AS total FROM visits WHERE owner_id = ?", (date, owner_id)
+    ).fetchone()
+    return {"today": int(row["today"] or 0), "total": int(row["total"] or 0)}
 
 
 def delete_user(conn, user_id: str) -> list[str]:
@@ -902,6 +910,18 @@ def friendship_points(conn, user_id: str, friend_ids: list[str]) -> dict[str, in
         (user_id, user_id, *friend_ids, user_id, *friend_ids),
     ).fetchall()
     out.update({r["other"]: int(r["p"]) for r in rows})
+    return out
+
+
+def friendship_counts(conn, user_id: str, other_id: str) -> dict:
+    """두 사람 사이 교류 횟수 (날마다 한 번씩 센 것): 내가 한 것 / 상대가 한 것, 종류별."""
+    a, b = _pair(user_id, other_id)
+    rows = conn.execute(
+        "SELECT actor_id, kind, COUNT(*) AS n FROM friendship_points WHERE user_a = ? AND user_b = ? GROUP BY actor_id, kind", (a, b)
+    ).fetchall()
+    out = {"mine": {"visit": 0, "guestbook": 0, "like": 0}, "theirs": {"visit": 0, "guestbook": 0, "like": 0}}
+    for r in rows:
+        out["mine" if r["actor_id"] == user_id else "theirs"][r["kind"]] = int(r["n"])
     return out
 
 
