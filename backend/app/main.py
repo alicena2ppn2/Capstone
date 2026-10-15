@@ -59,7 +59,7 @@ async def lifespan(app: FastAPI):
 app = FastAPI(title="Capstone API", version="0.1.0", lifespan=lifespan)
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=os.environ.get("CORS_ORIGINS", "http://localhost:5173").split(","),
+    allow_origins=os.environ.get("CORS_ORIGINS", "http://localhost:5173,http://localhost:8081").split(","),   # 웹 프론트(Vite) · Expo 웹
     allow_methods=["*"],
     allow_headers=["*"],
 )

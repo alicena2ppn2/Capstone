@@ -4,6 +4,8 @@
 
 시나리오
 - 주인공(demo-mochi): 3주 전엔 거의 집에만 있다가, 조금씩 걷고 미션을 해내는 회복 이야기
+- 처음 설문: 주인공은 쉬는 중, 가족과 살고 강아지가 있음, 거의 안 나감 → 강아지·가족 미션이 나옴
+- 단계 사다리: 움직이기·이어지기 미션을 하며 단계가 오른다. 미션 뒤 소감(기분 1~5)이 점점 좋아진다
 - 친구 3명: 주인공 방에 놀러 오고 방명록을 남긴다. 주인공도 친구 방에 놀러 간다
 - 오늘(기준일)은 비워 둔다 → 시연 때 직접 걸음 올리기·미션 완료를 보여 준다
 
@@ -68,6 +70,27 @@ LISTS = {
 }
 ANSWERS = {"local_food": "망원동", "music": "인디·발라드", "cafes": "망원동", "bakeries": "망원동"}
 LIST_FALLBACK = ["첫 번째", "두 번째", "세 번째", "네 번째"]
+SURVEYS = {
+    "demo-mochi": {"occupation": "not_working", "living": "family", "pets": ["dog"], "outing": "rarely",
+                   "interests": ["game", "music", "cooking"], "routines": ["housework", "pet_walk"]},
+    "demo-haneul": {"occupation": "student", "living": "family", "outing": "daily", "interests": ["photo", "cafe"]},
+    "demo-walker": {"occupation": "employed", "living": "alone", "pets": ["dog"], "outing": "daily", "interests": ["exercise", "nature"]},
+    "demo-slow": {"occupation": "job_seeking", "living": "alone", "outing": "weekly", "interests": ["reading", "drawing"]},
+}
+CONNECT_TEXTS = {   # 이어지기 미션에 적는 한 줄
+    "c1_guestbook_read": "하늘이 방명록에 '천천히 해도 괜찮아요'가 좋았다",
+    "c1_room_like": "산책왕 방 창가 화분이 예뻤다",
+    "c1_family_meal": "엄마랑 김치찌개 먹었다",
+    "c2_greet": "편의점 직원분께 인사했다",
+    "c2_thanks": "동생한테 빨래 개 줘서 고맙다고 했다",
+    "c2_family_talk": "아빠한테 오늘 공원 간 얘기를 했다",
+    "c2_pet_neighbor": "같은 시간에 산책하는 분이랑 인사했다",
+    "c3_interest_q": "하늘이한테 요즘 듣는 노래 물어봤다",
+    "c3_reply": "느림보 글에 나도 그 영화 좋았다고 답했다",
+    "c3_regular_shop": "빵집 사장님께 오늘 춥네요 했다",
+    "c3_check_in": "고등학교 친구한테 먼저 안부 보냈다",
+}
+FEEDBACK = ["생각보다 할 만했다", "조금 떨렸지만 괜찮았다", "뿌듯", "다음에도 해 보고 싶다", "", ""]
 TEXTS = ["산책하면서 본 하늘이 예뻤다", "괜찮은 하루", "작은 일 하나 해냈다", "뿌듯", "내일은 조금 더"]
 
 
@@ -123,19 +146,36 @@ class Seeder:
                 pool = LISTS.get(m["id"], LIST_FALLBACK)
                 body["items"] = self.rng.sample(pool, k=min(len(pool), max(m["min_count"], 3)))
             elif kind == "text":
-                body["text"] = self.rng.choice(TEXTS)
+                body["text"] = CONNECT_TEXTS.get(m["id"]) or self.rng.choice(TEXTS)
             if m.get("prompt"):
                 body["answer"] = ANSWERS.get(m["id"], "서울")
             # 걸음 미션은 그날 걸음이 모자라면 422 → 실패한 날로 둔다
-            self.ok(self.c.post(f"/users/{user_id}/missions/{m['id']}/complete", params=q, json=body), 422)
+            r = self.ok(self.c.post(f"/users/{user_id}/missions/{m['id']}/complete", params=q, json=body), 422)
+            return r.status_code == 200
+        return True
 
-    def live_day(self, user_id: str, date: str, steps: int, do_rate: float, friends: list[str]):
-        """하루: 걸음 올리기 → 미션 받기 → do_rate 확률로 각 미션 수행."""
+    def feedback(self, user_id: str, m: dict, date: str, mood_center: float):
+        """미션 소감: 기분은 mood_center 근처 (1~5), 한 줄은 가끔."""
+        mood = min(5, max(1, round(self.rng.gauss(mood_center, 0.7))))
+        body = {"mood": mood, "text": self.rng.choice(FEEDBACK) or None}
+        self.ok(self.c.put(f"/users/{user_id}/missions/{m['id']}/feedback", params={"date": date}, json=body))
+
+    def live_day(self, user_id: str, date: str, steps: int, do_rate: float, friends: list[str],
+                 mood_center: float | None = None):
+        """하루: 걸음 올리기 → 미션 받기 → (가끔 새로고침) → do_rate 확률로 각 미션 수행 → 매일 바뀌는 미션엔 소감."""
         self.ok(self.c.post(f"/users/{user_id}/steps", json={"date": date, "steps": steps}))
-        missions = self.ok(self.c.get(f"/users/{user_id}/missions/today", params={"date": date})).json()["missions"]
+        today = self.ok(self.c.get(f"/users/{user_id}/missions/today", params={"date": date})).json()
+        missions = today["missions"]
+        rerollable = [m for m in missions if m["rerollable"]]
+        if rerollable and self.rng.random() < 0.2:
+            r = self.c.post(f"/users/{user_id}/missions/{self.rng.choice(rerollable)['id']}/reroll", params={"date": date})
+            if r.status_code == 200:
+                missions = r.json()["missions"]
         for m in missions:
             if m["kind"] == "checkin" or self.rng.random() < do_rate:
-                self.do_mission(user_id, m, date, friends)
+                done = self.do_mission(user_id, m, date, friends)
+                if done and mood_center is not None and m["category"] != "daily":
+                    self.feedback(user_id, m, date, mood_center)
 
 
 def hero_plan(days: int, rng: random.Random) -> list[tuple[int, float]]:
@@ -156,6 +196,7 @@ def seed(target: Date, days: int, seed_value: int = 22) -> dict:
         s = Seeder(client, rng)
         for uid, name in [HERO, *FRIENDS]:
             s.reset(uid, name)
+            s.ok(client.put(f"/users/{uid}/survey", json={"answers": SURVEYS[uid]}))
         friend_ids = [f[0] for f in FRIENDS]
         start = target - timedelta(days=days)
         hero = hero_plan(days, rng)
@@ -172,7 +213,8 @@ def seed(target: Date, days: int, seed_value: int = 22) -> dict:
                     s.ok(client.post(f"/users/{HERO[0]}/guestbook", params={"date": date},
                                      json={"text": rng.choice(GUESTBOOK), "author_id": uid}))
             steps, rate = hero[i]
-            s.live_day(HERO[0], date, steps, rate, friend_ids)
+            mood = 2.6 + 1.8 * i / max(1, days - 1)        # 소감 기분: 2.6 → 4.4 (점점 좋아짐)
+            s.live_day(HERO[0], date, steps, rate, friend_ids, mood_center=mood)
 
         # 시연 당일: 오늘 미션만 미리 정해 두고(어제 걸음 기준) 수행은 하지 않는다
         today = target.isoformat()
@@ -186,6 +228,8 @@ def seed(target: Date, days: int, seed_value: int = 22) -> dict:
             "diaries": len(client.get(f"/users/{HERO[0]}/diary", params={"from": start.isoformat(), "to": today}).json()["entries"]),
             "guestbook": len(client.get(f"/users/{HERO[0]}/guestbook", params={"per_page": 50}).json()["entries"]),
             "today_missions": [m["title"] for m in missions],
+            "ladder": client.get(f"/users/{HERO[0]}/ladder").json(),
+            "feedback": client.get(f"/users/{HERO[0]}/feedback", params={"from": start.isoformat(), "to": today}).json()["feedback"],
             "friends": [{"id": f[0], "nickname": f[1]} for f in FRIENDS],
         }
     return summary
@@ -206,6 +250,13 @@ def main():
     print(f"  보유 캐릭터: {', '.join(r['owned_characters'])}")
     print(f"  일기 {r['diaries']}편 · 받은 방명록 {r['guestbook']}개")
     print(f"  오늘 미션: {' / '.join(r['today_missions'])}")
+    lad = r["ladder"]
+    print(f"  단계: 움직이기 {lad['move']['stage']}단계({lad['move']['name']}) · 이어지기 {lad['connect']['stage']}단계({lad['connect']['name']})")
+    moods = [f["mood"] for f in r["feedback"] if f["mood"]]
+    if moods:
+        half = len(moods) // 2 or 1
+        old, new = moods[half:], moods[:half]          # 목록은 최신순
+        print(f"  소감 {len(moods)}개 · 기분 평균 처음 {sum(old) / len(old):.1f} → 최근 {sum(new) / len(new):.1f}")
     print("친구: " + ", ".join(f"{f['nickname']}({f['id']})" for f in r["friends"]))
 
 
