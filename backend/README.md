@@ -20,13 +20,26 @@ uvicorn app.main:app --reload   # API 문서: http://localhost:8000/docs
 pytest                          # 테스트
 ```
 
+**휴대폰에서 접속 (같은 와이파이 시연)**
+
+```bash
+python scripts/serve.py         # 0.0.0.0:8000으로 띄우고, 앱에 넣을 EXPO_PUBLIC_API_URL=http://<노트북 IP>:8000 을 보여 줌
+```
+
+- 휴대폰과 노트북이 같은 와이파이여야 함. 처음 실행 때 Windows 방화벽 창이 뜨면 "개인 네트워크" 허용
+- 휴대폰 브라우저로 `http://<노트북 IP>:8000/health` → `{"ok":true}`면 연결됨
+
+**`backend/.env`** — `.env.example`을 복사해서 채우면 서버가 시작할 때 읽음 (Git에 안 올라감, 이미 있는 환경변수가 우선)
+
 환경변수 (모두 선택)
 
 | 이름 | 기본값 | 용도 |
 |---|---|---|
 | `CAPSTONE_DB` | `backend/app.db` | SQLite 파일 경로 |
 | `CAPSTONE_UPLOADS` | `backend/uploads/` | 사진 저장 폴더 |
-| `CORS_ORIGINS` | `http://localhost:5173` | 프론트 주소 (쉼표로 여러 개) |
+| `CORS_ORIGINS` | `http://localhost:5173,http://localhost:8081` | 웹에서 부를 때 허용할 주소 (Vite · Expo 웹). 휴대폰 앱은 상관없음 |
+| `SUPABASE_URL` · `SUPABASE_KEY` | 없음 (개발·시연 모드) | `POST /auth/supabase` 토큰 확인. 앱의 Supabase URL·publishable key와 같은 값 |
+| `ADMIN_TOKEN` | 없음 (관리자 API 꺼짐) | 위기 신호·소감 통계 API |
 
 ## 시연용 데이터
 
@@ -36,6 +49,9 @@ python scripts/seed_demo.py --date 2026-10-22 --days 21
 ```
 
 - 주인공 `demo-mochi`(모찌주인): 3주 전엔 하루 900보 정도로 거의 집에만 있다가 점점 9,000보까지 늘고, 미션 수행률도 35% → 90%로 오르는 회복 이야기
+- 주인공 설문: 쉬는 중, 가족과 살고 강아지가 있음, 거의 안 나감 → 강아지·가족 미션이 나옴
+- 단계 사다리: 3주 동안 움직이기·이어지기 모두 3단계까지 오름. 가끔 미션 새로고침
+- 미션 소감: 매일 바뀌는 미션 뒤 기분 1~5, 처음 평균 2.8 → 최근 4.1 정도로 좋아짐 (발표 그래프용, `GET /admin/feedback/stats`)
 - 친구 `demo-haneul`(하늘이) · `demo-walker`(산책왕) · `demo-slow`(느림보): 주인공 방에 놀러 오고 방명록을 남김
 - 실제 API를 호출해서 쌓기 때문에 코인·경험치·레벨·상점 지급이 실제 규칙대로 계산됨
 - 시연 당일 미션은 정해만 두고 수행하지 않음 → 발표 때 걸음 올리기·미션 완료를 직접 보여 줌
