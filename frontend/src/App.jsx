@@ -154,7 +154,7 @@ export default function App() {
       {screen === 'shop' && !sv && <Shop onBuyDecor={id => setGame(value => buyDecor(value, id))} onEquipDecor={(slot, id) => setGame(value => equipDecor(value, slot, id))} game={game} level={level} onBuyCharacter={id => commitGame(value => buyCharacter(value, id))} onEquipCharacter={(id) => setGame((value) => equipCharacter(value, id))} petColor={petColor} coins={game.coins} owned={ownedClothes} outfit={wardrobe.outfit} onBuy={buy} onWear={wear} onBack={() => setScreen('home')} />}
       </div>
       <BottomNav screen={screen} onNavigate={destination => { if(destination==='quest') openQuest(); else setScreen(destination); }}/>
-      {attendanceAward && <RewardPanel receipt={attendanceAward} />}
+      {attendanceAward && <><div className="reward-scrim" aria-hidden="true" /><RewardPanel receipt={attendanceAward} /></>}
       <div className="iphone-home-indicator" aria-hidden="true"><span /></div>
       </div>
     </div>

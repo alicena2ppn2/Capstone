@@ -89,7 +89,7 @@ export default function Neighbors({ userId, myName, initialTab = 'rooms', onBack
   return <section className="visit-screen neighbors-screen">
     <ScreenHeader title={selected ? `${selected.room.nickname}의 방` : '이웃'} backLabel={selected ? '이웃 목록으로 돌아가기' : '내 집으로 돌아가기'} onBack={back} />
     {selected ? <>
-      <p className="visit-intro">LV.{selected.room.level} · 놀러 왔어요! 방명록에 한마디 남겨 보세요.</p>
+      <p className="visit-intro">LV.{selected.room.level}{selected.room.bio ? ` · “${selected.room.bio}”` : ' · 놀러 왔어요! 방명록에 한마디 남겨 보세요.'}</p>
       <Room room={selected.room} />
       <Bond bond={selected.bond} name={selected.room.nickname} />
       <section className="visit-guestbook" aria-labelledby="neighbor-book-title">

@@ -239,6 +239,9 @@ def connect(path: str | os.PathLike | None = None) -> sqlite3.Connection:
     cols = {r["name"] for r in conn.execute("PRAGMA table_info(mission_days)")}
     if "rerolls" not in cols:
         conn.execute("ALTER TABLE mission_days ADD COLUMN rerolls INTEGER NOT NULL DEFAULT 0")
+    # 한 줄 소개 칸이 없던 예전 사용자 테이블이면 추가
+    if "bio" not in {r["name"] for r in conn.execute("PRAGMA table_info(users)")}:
+        conn.execute("ALTER TABLE users ADD COLUMN bio TEXT")
     # Supabase 로그인 연결 칸이 없던 예전 사용자 테이블이면 추가 (ALTER로는 UNIQUE를 못 붙여 인덱스로)
     cols = {r["name"] for r in conn.execute("PRAGMA table_info(users)")}
     if "supabase_id" not in cols:
@@ -314,7 +317,7 @@ def link_supabase(conn, user_id: str, supabase_id: str) -> None:
 
 
 def get_user(conn, user_id: str) -> dict | None:
-    row = conn.execute("SELECT id, nickname, game_center_id, created_at, updated_at FROM users WHERE id = ?", (user_id,)).fetchone()
+    row = conn.execute("SELECT id, nickname, bio, game_center_id, created_at, updated_at FROM users WHERE id = ?", (user_id,)).fetchone()
     return dict(row) if row else None
 
 
@@ -331,6 +334,12 @@ def rename_user(conn, user_id: str, nickname: str) -> dict:
         "UPDATE users SET nickname = ?, nickname_key = ?, updated_at = datetime('now') WHERE id = ?",
         (nickname, nickname_key(nickname), user_id),
     )
+    conn.commit()
+    return get_user(conn, user_id)
+
+
+def set_bio(conn, user_id: str, bio: str | None) -> dict:
+    conn.execute("UPDATE users SET bio = ?, updated_at = datetime('now') WHERE id = ?", (bio, user_id))
     conn.commit()
     return get_user(conn, user_id)
 
