@@ -54,7 +54,8 @@ export function RoomBackdrop({ decor = {}, wallColor = '#D6EAF8', floorColor = '
   );
 }
 
-export default function Home({ game, day, petName = 'MOCHI', petColor, onQuest, onDiary, onGuestbook, onVisit, onSettings, onShop, outfit, decor, active, reactionId, onReactionConsumed }) {
+export default function Home({ game, day, petName = 'MOCHI', petColor, onQuest, onDiary, onGuestbook, onVisit, onSettings, onShop, outfit, decor, active, reactionId, onReactionConsumed, levelInfo }) {
+  const lv = levelInfo ?? { level: levelFor(game.xp), xp_in_level: game.xp % 100, xp_for_level: 100 };   // 서버가 있으면 서버 레벨
   const now = useRoomNow();
   const time = roomTime(now);
   const [open, setOpen] = useState(false);
@@ -82,7 +83,7 @@ export default function Home({ game, day, petName = 'MOCHI', petColor, onQuest, 
       </div>
       <div className="home-identity">
         <DailySentence now={now}/>
-        <div className="home-character-level"><strong>LV.{levelFor(game.xp)}</strong><progress value={game.xp % 100} max={100} aria-label="다음 레벨까지 경험치" /><span>{game.xp % 100} / 100 XP</span></div>
+        <div className="home-character-level"><strong>LV.{lv.level}</strong><progress value={lv.xp_in_level} max={lv.xp_for_level} aria-label="다음 레벨까지 경험치" /><span>{lv.xp_in_level} / {lv.xp_for_level} XP</span></div>
       </div>
     </div>
     {open && <button type="button" className="home-sheet-scrim" aria-label="오늘의 도전 닫기" onClick={() => setOpen(false)} />}

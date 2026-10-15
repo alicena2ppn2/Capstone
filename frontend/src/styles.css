@@ -913,3 +913,15 @@ button.pb, .ui-disclosure > summary { font-weight: 500; }
 .decor-tile-state { padding: 1px 7px; border-radius: 8px; background: var(--color-accent-soft); font-size: 11px; color: var(--color-ink); font-variant-numeric: tabular-nums; }
 .decor-tile-state.is-owned { background: var(--color-disabled); color: var(--color-muted); }
 .decor-tile-state.is-placed { background: var(--color-primary); color: var(--color-surface); }
+
+/* 서버 고정 미션 줄과 주간 미션 */
+.server-daily .routine-row { flex-wrap: wrap; }
+.server-daily .routine-row .mission-photo { flex: 0 0 auto; }
+.server-daily .routine-row .mission-photo-confirm { grid-template-columns: 48px auto; }
+.server-daily .routine-row .mission-photo-confirm img { width: 48px; height: 48px; }
+.server-daily .routine-row .mission-note { flex-basis: 100%; }
+.weekly-cards { margin-top: 12px; }
+.weekly-dots { display: flex; align-items: center; gap: 6px; }
+.weekly-dots span { width: 14px; height: 14px; border-radius: 50%; border: 2px solid var(--tone); }
+.weekly-dots span.is-on { background: var(--tone); }
+.weekly-dots small { margin-left: 4px; color: var(--color-muted); font-size: 12px; font-variant-numeric: tabular-nums; }

@@ -2,7 +2,7 @@ import MissionReplacement from '../components/MissionReplacement.jsx';
 import MissionPreferences from '../components/MissionPreferences.jsx';
 import { missionCriterion, missionTitle } from '../../../shared/features/missionGuidance.js';
 import PhotoMission from '../components/PhotoMission.jsx';
-import ServerMissions from '../components/ServerMissions.jsx';
+import ServerMissions, { ServerWeekly } from '../components/ServerMissions.jsx';
 import { useServerUserId } from '../api/missions.js';
 import UiIcon from '../components/UiIcon.jsx';
 import { useCallback, useEffect, useRef, useState } from 'react';
@@ -13,7 +13,7 @@ import { CATEGORIES } from '../../../shared/features/challenges.js';
 import { ROUTINES, routineDone, dailyActivities, dailyReward } from '../../../shared/features/dailyMissions.js';
 import { seoulDateKey } from '../../../shared/utils/seoulDate.js';
 
-export default function Quest({ onPreferences, game, focusId, onStart, onComplete, onPhotoSave, onPrepare, onPause, onReplace, onFeedback, onProfile, onDiary, onAttendance, onVisit, onGoal, petColor, onShop, onSettings, onHome }) {
+export default function Quest({ onServerChanged, onPreferences, game, focusId, onStart, onComplete, onPhotoSave, onPrepare, onPause, onReplace, onFeedback, onProfile, onDiary, onAttendance, onVisit, onGoal, petColor, onShop, onSettings, onHome }) {
   const [tab, setTab] = useState('day');
   const serverUserId = useServerUserId();   // 있으면 오늘의 활동 3가지를 서버 미션으로
   const [today, setToday] = useState(seoulDateKey);
@@ -72,19 +72,21 @@ export default function Quest({ onPreferences, game, focusId, onStart, onComplet
   };
   return <SubScreen backOnly title="오늘의 도전" plainTitle level={levelFor(game.xp)} petColor={petColor} onShop={onShop} onSettings={onSettings} onHome={onHome}>
     <div className="quest-ui">
-    <nav className="ui-period-tabs shop-tabs" aria-label="도전 기간">{[['day', '오늘'], ['week', '이번 주'], ['month', '이번 달']].map(([id, label]) => <button type="button" className="pb" key={id} aria-pressed={tab === id} onClick={() => setTab(id)}>{label}</button>)}</nav>
+    <nav className="ui-period-tabs shop-tabs" aria-label="도전 기간">{[['day', '오늘'], ['week', '이번 주'], ...(serverUserId ? [] : [['month', '이번 달']])].map(([id, label]) => <button type="button" className="pb" key={id} aria-pressed={tab === id} onClick={() => setTab(id)}>{label}</button>)}</nav>
     <div className="quest-utility"><button type="button" className="pb ui-secondary" aria-pressed={tab === 'records'} onClick={() => setTab('records')}>기록·취향</button><button type="button" className="pb quest-text-button" onClick={event => openSheet(event, { kind: 'rewards' })}>보상 안내</button></div>
     {tab === 'day' ? <>
+      {serverUserId ? <ServerMissions userId={serverUserId} onChanged={onServerChanged} onAttendance={onAttendance} onDiary={() => onDiary(today)} onVisit={onVisit}/> : <>
       <div className="daily-overview"><div><strong>오늘의 도전</strong><span>{ROUTINES.filter(q=>routineDone(game,q.id,today)).length+dailyActivities(game,today).filter(q=>game.completed.includes(`${today}:${q.id}`)).length}/6 완료</span></div><progress max={6} value={ROUTINES.filter(q=>routineDone(game,q.id,today)).length+dailyActivities(game,today).filter(q=>game.completed.includes(`${today}:${q.id}`)).length} aria-label="오늘 미션 완료 수"/></div>
       <p className="quest-inline-notice" role="status">{notice}</p>
       <section className="daily-routines"><h2><UiIcon kind="routine" /> 매일 하는 3가지 <small>{ROUTINES.filter(q=>routineDone(game,q.id,today)).length}/3 완료</small></h2>{ROUTINES.map(q=>{ const done=routineDone(game,q.id,today); return <article key={q.id} data-quest-id={q.id} tabIndex={-1} className={`routine-row${done?' is-completed':''}`}><div><strong>{q.name}</strong><small>{done?'완료 ✓':q.kind==='diary'?'+25 코인':q.kind==='attendance'?'출석 선물':'이웃 방에 한마디'}</small></div><button type="button" className={`pb ui-secondary${q.kind==='attendance'?' attendance-entry':''}`} onClick={()=>q.kind==='diary'?onDiary(today):q.kind==='attendance'?onAttendance():onVisit()}>{q.kind==='diary'&&done?'일기 보기':q.kind==='attendance'&&done?'출석표 보기':q.action}</button></article>;})}</section>
-      {serverUserId ? <ServerMissions userId={serverUserId}/> : <section className="daily-discoveries"><h2 className="quest-selection-heading" tabIndex={-1}><UiIcon kind="discover" /> 오늘의 활동 3가지 <small>{dailyActivities(game,today).filter(q=>game.completed.includes(`${today}:${q.id}`)).length}/3 완료</small></h2><div className="growth-quests">{dailyActivities(game,today).map(q=>card(q,{reason:q.reason,role:'오늘의 제안'},true))}</div></section>}
+      {<section className="daily-discoveries"><h2 className="quest-selection-heading" tabIndex={-1}><UiIcon kind="discover" /> 오늘의 활동 3가지 <small>{dailyActivities(game,today).filter(q=>game.completed.includes(`${today}:${q.id}`)).length}/3 완료</small></h2><div className="growth-quests">{dailyActivities(game,today).map(q=>card(q,{reason:q.reason,role:'오늘의 제안'},true))}</div></section>}
+      </>}
       {!game.preferences?.missions?.reviewed && <details className="ui-disclosure quest-preferences"><summary>내 취향 알려 주기 (선택) · 다음 추천에 반영돼요</summary><MissionPreferences preferences={game.preferences} onSave={onPreferences}/></details>}
     </> : tab === 'records' ? <>
       <MissionPreferences preferences={game.preferences} onSave={onPreferences}/><h2>취향 프로필</h2>{[['music', '좋아하는 음악'], ['food', '좋아하는 음식']].map(([id, label]) => <label className="profile-field" key={id}>{label}<input className="inp" maxLength={80} value={game.preferences?.[id] ?? ''} onChange={event => onProfile(id, event.target.value)} /></label>)}
       <h2>하루 기록</h2><button type="button" className="pb ui-secondary" onClick={()=>onDiary(today)}>오늘의 일기 쓰기</button>{Object.entries(game.journals ?? {}).sort(([a], [b]) => b.localeCompare(a)).map(([date, text]) => <article className="growth-quest" key={date}><strong>{date}</strong><p>{text.slice(0,100)}</p><button type="button" className="pb ui-secondary" onClick={()=>onDiary(date)}>일기 보기</button></article>)}
       <h2>활동 기록</h2>{Object.entries(CATEGORIES).map(([id, label]) => <details className="ui-disclosure" key={id}><summary>{label}</summary>{Object.values(game.activityRecords ?? {}).filter(r => r.category === id).sort((a, b) => b.day.localeCompare(a.day)).map(r => <p key={`${r.day}:${r.id}`}>{r.day} · {QUESTS.find(q => q.id === r.id)?.name ?? r.id}{r.mode && ` · ${r.mode==='light'?'더 가볍게':r.mode==='extend'?'조금 더':'기본 행동'}`}{r.criterion&&` · ${r.criterion}`}</p>)}</details>)}
-    </> : <div className="growth-quests">{QUESTS.filter(q => q.period === tab).map(q => { const count = goalProgress(game, q, today); const done = game.completed.includes(questCompletionKey(q, today)); return <article className="growth-quest" key={q.id}><strong>{q.name}</strong><p>{q.description} · 사용자 확인 기록 집계</p><progress value={Math.min(count, q.target)} max={q.target} aria-label={q.name} /><small>{count} / {q.target} · {q.xp} XP · {q.coins} 코인</small><button type="button" className="pb shop-buy" disabled={done || count < q.target} onClick={() => onGoal(q.id)}>{done ? '보상 받음 ✓' : '집계 보상 받기'}</button></article>; })}</div>}
+    </> : tab === 'week' && serverUserId ? <ServerWeekly userId={serverUserId} onChanged={onServerChanged}/> : <div className="growth-quests">{QUESTS.filter(q => q.period === tab).map(q => { const count = goalProgress(game, q, today); const done = game.completed.includes(questCompletionKey(q, today)); return <article className="growth-quest" key={q.id}><strong>{q.name}</strong><p>{q.description} · 사용자 확인 기록 집계</p><progress value={Math.min(count, q.target)} max={q.target} aria-label={q.name} /><small>{count} / {q.target} · {q.xp} XP · {q.coins} 코인</small><button type="button" className="pb shop-buy" disabled={done || count < q.target} onClick={() => onGoal(q.id)}>{done ? '보상 받음 ✓' : '집계 보상 받기'}</button></article>; })}</div>}
     <div className="quest-toast-region" role="status" aria-live="polite">{message && <div className="quest-reward-toast"><strong>{message.xp ? '보상을 받았어요!' : '활동을 기록했어요!'}</strong>{message.xp > 0 && <span>+{message.xp} XP · +{message.coins} 코인</span>}</div>}</div>
     </div>
     {sheet && <QuestSheet frame={sheet.frame} trigger={sheet.trigger} onClose={closeSheet} title={sheet.kind === 'swap' ? '다른 활동으로' : sheet.kind === 'rewards' ? '보상 안내' : sheet.kind === 'feedback' ? '어땠나요?' : '추천 이유'}>

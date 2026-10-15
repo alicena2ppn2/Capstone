@@ -290,6 +290,12 @@ await api(`/users/${userId}/home`, { token: session?.access_token });
 - 배포 주소는 정해지면 여기에 적는다
 - 프론트에서는 `VITE_API_URL` 같은 환경변수로 주소를 받는 것을 권장
 
+## 출석 (주간 출석표, 10/15)
+
+- `GET /users/{id}/attendance/week` → `{week_start, days: [{date, reward, claimed, today}], count, claimed_today}`. reward: `{type: coins|xp, amount}` 또는 `{type: outfit|decor, id, name}`
+- `POST /users/{id}/attendance` → `gift` (오늘 받은 선물, 이미 가진 옷·소품이면 `{type: coins, amount: 30, duplicate: 이름}`), `coins`, `level`, `week`
+- 웹 연결 예시: `frontend/src/api/game.js`
+
 ## 아직 없는 것
 
 - 로그인: Supabase 사용자 ↔ 서버 사용자 연결은 `POST /auth/supabase`로 됨. **다른 API는 아직 토큰 확인 없이 `id`만으로 동작** (출시 전에 붙임)
