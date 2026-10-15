@@ -14,7 +14,10 @@ JPEG = b"\xff\xd8\xff\xe0" + b"0" * 100
 def client(tmp_path, monkeypatch):
     monkeypatch.setenv("CAPSTONE_DB", str(tmp_path / "test.db"))
     monkeypatch.setenv("CAPSTONE_UPLOADS", str(tmp_path / "uploads"))
+    from app import main
     from app.main import app
+    # 테스트 사진(가짜 JPEG)에는 촬영 일시가 없다. 날짜 확인은 tests/test_photo_taken.py에서 따로 본다
+    monkeypatch.setattr(main, "ALLOW_PHOTO_WITHOUT_TAKEN_AT", True)
     with TestClient(app) as c:
         yield c
 

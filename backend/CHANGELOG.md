@@ -5,6 +5,15 @@
 
 ---
 
+## 2026-10-15 — CORS에 Expo 웹 5183 추가
+
+**브랜치** `backend-cors-expo-web`
+
+- 기본 허용 주소에 `http://localhost:5183` 추가 (팀이 Expo 웹을 5183으로 띄움, `mobile/dev-preview`도 5183을 씀). 브라우저에서 `/auth/supabase`를 부를 때 막히지 않게
+- 휴대폰 앱(개발 빌드·Expo Go)은 CORS와 상관없음
+
+---
+
 ## 2026-10-14 — 프론트 연결 준비: 휴대폰 접속, .env, 시연 데이터
 
 **브랜치** `backend-demo-ready`
