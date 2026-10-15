@@ -1,6 +1,6 @@
 # Supabase 세션 → 백엔드 사용자 연결
 
-최종 수정: 2026-10-14. 이번 작업은 로그인 연결·닉네임 등록 화면/요청 경로를 구현한 상태이며 실제 서버·Google 계정·실기기 검증 완료를 뜻하지 않는다.
+최종 수정: 2026-10-15. 모바일은 Google·Kakao Supabase OAuth/PKCE 연결을 구현했다. 실제 Kakao 설정과 실제 서버·모바일 기기 로그인 성공 여부는 각각 별도로 확인한다.
 
 ## 확인한 계약과 현재 환경
 
@@ -26,16 +26,26 @@ OAuth callback/인증 이벤트/복원은 같은 연결 작업을 공유한다. 
 
 ## 보존한 범위
 
-기존 로그인 디자인·Google OAuth/PKCE·SDK 세션 갱신·로그아웃·개발 미리보기 유지. Android의 남아 있던 미커밋 Firebase 어댑터는 artifacts/auth-backup-20261014/authClient.android.firebase-original.js에 백업하고 Supabase native 어댑터 공유로 바꿨다. 원격 Firebase/Google 프로젝트·키를 삭제하지 않았다. 라이브러리 install/uninstall 없음.
+기존 로그인 디자인·Google/Kakao OAuth/PKCE·SDK 세션 갱신·로그아웃·개발 미리보기를 유지한다. 두 provider는 같은 앱 복귀 주소와 Supabase 세션 검증·백엔드 계정 연결을 사용한다. 로그인 UI는 이메일·닉네임·프로필 이미지를 필수값으로 읽지 않는다.
 
-로컬 게임/옷장/일기/출석/사진/방명록을 초기화·계정에 업로드·자동 병합하지 않는다. 홈은 연결 후에도 기존 로컬 게임을 보여 준다. 서버 게임 데이터 동기화와 게스트 병합은 별도 합의/작업이다. 카카오/Apple 및 Vite 웹 소셜 인증을 임의로 추가하지 않았다. 웹은 동일 연결 컨트롤러·UI를 준비했지만 기존 인증 어댑터는 미설정이다.
+로컬 게임/옷장/일기/출석/사진/방명록을 초기화·계정에 업로드·자동 병합하지 않는다. 홈은 백엔드 연결 성공 뒤에만 진입한다. 서버 게임 데이터 동기화와 게스트 병합은 별도 합의/작업이다. Apple 및 Vite 웹 소셜 인증은 미연결이다.
+
+## Kakao 로그인 설정과 제한
+
+모바일 로그인 화면은 Kakao provider를 Google과 같은 브라우저 OAuth/PKCE·앱 복귀·세션 검증 흐름으로 연결한다. 앱은 Kakao 이메일·닉네임·프로필 이미지를 계정 식별 조건으로 사용하지 않으며, Supabase user ID로 백엔드 계정 연결을 시도한다.
+
+- Kakao Developers의 REST API key 설정에 등록할 Supabase provider callback: `https://vayotfrfmokgdbquvxhg.supabase.co/auth/v1/callback`
+- Supabase Authentication → URL Configuration의 앱 복귀 허용 주소: `capstone-mochi://auth/callback`
+- Supabase Kakao provider에 REST API key를 Client ID로, 활성화한 Kakao Login Client Secret을 Client Secret으로 입력한다. Client Secret은 모바일 환경 파일에 두지 않는다.
+- Supabase Auth Kakao provider는 기본 요청 scope로 `account_email`, `profile_image`, `profile_nickname`을 사용한다. 콘솔에서 프로필 동의 항목을 사용 가능하게 설정한다. 이메일 없이 사용자 허용은 이메일 응답이 비어 있는 계정의 처리를 돕지만, Kakao 앱에서 요청 scope 자체를 허용하지 않으면 OAuth가 시작 단계에서 실패할 수 있다. account_email을 설정할 수 없는 앱 유형이면 Kakao Developers의 앱 권한을 먼저 확인한다.
+- Kakao console 설정 완료는 사용자가 알려 준 내용이며, 실제 Supabase provider 값과 실기기 OAuth는 이 저장소에서 독립적으로 검증하지 않았다.
 
 ## 실제 연결을 위한 남은 설정
 
 1. 앱에서 접근 가능한 실제 백엔드 주소와 /auth/supabase 배포 여부를 팀에서 확인한다. 휴대폰의 localhost는 PC가 아니다.
 2. mobile/.env.local에 EXPO_PUBLIC_API_URL=<확인한 실제 주소>를 설정한다. 기기에 로그인 토큰을 보내는 서버이므로 배포 주소/소유를 확인한다. URL에 secret/key/자격 증명을 넣지 않는다.
 3. 서버는 같은 Supabase 프로젝트의 SUPABASE_URL/SUPABASE_KEY를 설정하고 Bearer 검증 분기를 사용한다. 변경은 백엔드 팀 몫이다.
-4. 환경값 변경 후 mobile에서 npm run start:dev로 개발 서버를 재시작하고 설치된 개발 앱에서 Google 로그인한다. 신규 회원은 닉네임, 기존 회원은 홈 진입, 로그아웃/재실행을 확인한다.
+4. 환경값 변경 후 mobile에서 npm run start:dev로 개발 서버를 재시작하고 설치된 development 앱에서 Google 또는 Kakao 로그인을 확인한다. 신규 회원은 닉네임, 기존 회원은 백엔드 연결 성공 뒤 홈 진입, 취소·재시도·로그아웃·재실행을 확인한다.
 5. EAS development 빌드에서도 EXPO_PUBLIC_API_URL을 해당 환경에 제공해야 한다. 이번에 클라우드 빌드를 실행하거나 서버 주소를 임의로 EAS에 등록하지 않았다.
 6. 실제 웹 인증을 추후 연결하면 VITE_API_URL과 서버 CORS 허용 origin을 설정한다. frontend/.env.example는 주소 이름만 안내한다.
 
