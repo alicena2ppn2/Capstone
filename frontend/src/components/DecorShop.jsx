@@ -21,7 +21,7 @@ export default function DecorShop({ game, level, onBuy, onEquip, outfit }) {
   const act = () => {
     if (!item) return;
     if (has) { onEquip(item.slot, active ? null : item.id); setMessage(active ? `${item.name}을 뺐어요.` : `${item.name}을 놓았어요!`); if (active) setPreview(null); }
-    else { onBuy(item.id); onEquip(item.slot, item.id); setMessage(`${item.name}을 사서 바로 놓았어요!`); }
+    else { Promise.resolve(onBuy(item.id)).then(() => onEquip(item.slot, item.id)); setMessage(`${item.name}을 사서 바로 놓았어요!`); }
   };
   const list = DECOR.filter(entry => category === 'all' || (category === 'owned' ? owned.includes(entry.id) : entry.slot === category));
   return <div className="decor-studio">
