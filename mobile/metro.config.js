@@ -1,7 +1,7 @@
 const path = require('path');
 const { getDefaultConfig } = require('expo/metro-config');
 const config = getDefaultConfig(__dirname);
-config.watchFolders = [path.resolve(__dirname, '..', 'frontend', 'src', 'utils'), path.resolve(__dirname, '..', 'frontend', 'src', 'components'), path.resolve(__dirname, '..', 'frontend', 'src', 'auth'), path.resolve(__dirname, '..', 'frontend', 'src', 'design')];
+config.watchFolders = [path.resolve(__dirname, '..', 'shared')];
 // Shared SVG JSX must use the app's React, not the web project's separate copy.
 config.resolver.resolveRequest = (context, moduleName, platform) => {
   if (moduleName === 'react' || moduleName.startsWith('react/')) {

@@ -1,16 +1,16 @@
-import { colors } from '../../../frontend/src/design/tokens.js';
-import useBriefFeedback from '../../../frontend/src/utils/useBriefFeedback.js';
+import { colors } from '../../../shared/theme/tokens.js';
+import useBriefFeedback from '../../../shared/hooks/useBriefFeedback.js';
 import React, { useRef, useState } from 'react';
 import { View } from 'react-native';
-import { Label, Button, Input, Card, styles, ScreenHeader } from '../ui';
-import Character from '../Character';
+import { Label, Button, Input, Card, styles, ScreenHeader } from '../components/ui';
+import Character from '../components/Character';
 import RoomBackdrop from '../art/RoomBackdrop';
-import { USERS, VISITOR_NOTES } from '../../../frontend/src/utils/visitors.js';
-import { CLOTHES } from '../../../frontend/src/utils/clothes.js';
-import { recordRoutine } from '../../../frontend/src/utils/dailyMissions.js';
-import { seoulDateKey } from '../../../frontend/src/utils/seoulDate.js';
-import { violation } from '../../../frontend/src/utils/guestModeration.js';
-import { visitNeighbor, favoriteNeighbor, isSampleNote } from '../../../frontend/src/utils/neighbors.js';
+import { USERS, VISITOR_NOTES } from '../../../shared/features/visitors.js';
+import { CLOTHES } from '../../../shared/data/clothes.js';
+import { recordRoutine } from '../../../shared/features/dailyMissions.js';
+import { seoulDateKey } from '../../../shared/utils/seoulDate.js';
+import { violation } from '../../../shared/features/guestModeration.js';
+import { visitNeighbor, favoriteNeighbor, isSampleNote } from '../../../shared/features/neighbors.js';
 
 export default function Visit({ onBack, state, setState, commitState, name, day }) {
   const [reactionFeedback,showReactionFeedback]=useBriefFeedback();

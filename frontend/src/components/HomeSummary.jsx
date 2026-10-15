@@ -1,4 +1,4 @@
-import { homeChallenges } from '../utils/homeSummary.js';
+import { homeChallenges } from '../../../shared/features/homeSummary.js';
 
 export default function HomeSummary({ game, day, onQuest }) {
   const challenges = homeChallenges(game, day);

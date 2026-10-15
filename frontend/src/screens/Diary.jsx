@@ -1,9 +1,9 @@
 import PhotoAlbum from '../components/PhotoAlbum.jsx';
 import { useEffect, useRef, useState } from 'react';
 import ScreenHeader from '../components/ScreenHeader.jsx';
-import { calendarDays, hasJournal, JOURNAL_LIMIT, JOURNAL_EMOTIONS, journalEmotion, shiftMonth } from '../utils/journal.js';
-import { DIARY_PROMPTS } from '../utils/diaryPrompts.js';
-import { seoulDateKey } from '../utils/seoulDate.js';
+import { calendarDays, hasJournal, JOURNAL_LIMIT, JOURNAL_EMOTIONS, journalEmotion, shiftMonth } from '../../../shared/features/journal.js';
+import { DIARY_PROMPTS } from '../../../shared/data/diaryPrompts.js';
+import { seoulDateKey } from '../../../shared/utils/seoulDate.js';
 function DiaryEntry({ date, day, game, onSave, onDelete, onDraft, onContinue, onClose, onOpen }) {
   const savedDraft = game.journalDrafts?.[date];
   const [draft, setDraft] = useState(savedDraft?.text ?? game.journals?.[date] ?? '');

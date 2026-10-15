@@ -1,11 +1,11 @@
-import PhotoAlbum from '../PhotoAlbum';
-import { colors } from '../../../frontend/src/design/tokens.js';
+import PhotoAlbum from './diary/PhotoAlbum';
+import { colors } from '../../../shared/theme/tokens.js';
 import React, { useRef, useState } from 'react';
 import { Alert, Platform, View } from 'react-native';
-import { Button, Card, Input, Label, styles, ScreenHeader } from '../ui';
-import { calendarDays, hasJournal, shiftMonth, JOURNAL_LIMIT, JOURNAL_EMOTIONS, journalEmotion } from '../../../frontend/src/utils/journal.js';
-import { DIARY_PROMPTS } from '../../../frontend/src/utils/diaryPrompts.js';
-import { seoulDateKey } from '../../../frontend/src/utils/seoulDate.js';
+import { Button, Card, Input, Label, styles, ScreenHeader } from '../components/ui';
+import { calendarDays, hasJournal, shiftMonth, JOURNAL_LIMIT, JOURNAL_EMOTIONS, journalEmotion } from '../../../shared/features/journal.js';
+import { DIARY_PROMPTS } from '../../../shared/data/diaryPrompts.js';
+import { seoulDateKey } from '../../../shared/utils/seoulDate.js';
 function Entry({date,day,game,onDraft,onSave,onDelete,onContinue,onOpen,onClose}) {
   const saved=game.journalDrafts?.[date];
   const [draft,setDraft]=useState(saved?.text??game.journals?.[date]??''),[emotion,setEmotion]=useState(saved?.emotion??journalEmotion(game,date)?.id??''),[prompt,setPrompt]=useState(saved?.prompt??0),[status,setStatus]=useState('idle'),[message,setMessage]=useState('');

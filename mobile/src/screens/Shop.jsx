@@ -1,13 +1,13 @@
-import { colors } from '../../../frontend/src/design/tokens.js';
+import { colors } from '../../../shared/theme/tokens.js';
 import React, { useState } from 'react';
 import { View } from 'react-native';
-import { Label, Button, Card, styles, ScreenHeader } from '../ui';
-import Character from '../Character';
+import { Label, Button, Card, styles, ScreenHeader } from '../components/ui';
+import Character from '../components/Character';
 import RoomBackdrop from '../art/RoomBackdrop';
-import { CHARACTERS, buyDecor, equipDecor } from '../../../frontend/src/utils/game.js';
-import { CLOTHES } from '../../../frontend/src/utils/clothes.js';
-import { DECOR } from '../../../frontend/src/utils/decor.js';
-import CharacterShop from '../CharacterShop';
+import { CHARACTERS, buyDecor, equipDecor } from '../../../shared/features/game.js';
+import { CLOTHES } from '../../../shared/data/clothes.js';
+import { DECOR } from '../../../shared/data/decor.js';
+import CharacterShop from './shop/CharacterShop';
 
 export default function Shop({ onBack, game, level, ownedClothes, outfit, update, buyClothes, wear, onBuyCharacter }) {
   const [tab, setTab] = useState('character'), [ownedOnly, setOwnedOnly] = useState(false), [slot, setSlot] = useState('all');
