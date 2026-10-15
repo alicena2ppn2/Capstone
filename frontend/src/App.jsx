@@ -12,7 +12,7 @@ import Home from './screens/Home.jsx';
 import Visit from './screens/Visit.jsx';
 import Neighbors from './screens/Neighbors.jsx';
 import { useServerUserId } from './api/missions.js';
-import { useServerGame, shopAsGame, buyItem, equip, placeDecor, checkIn, saveDiary as saveServerDiary, removeDiary as removeServerDiary } from './api/game.js';
+import { useServerGame, shopAsGame, buyItem, equip, placeDecor, moveDecor, checkIn, saveDiary as saveServerDiary, removeDiary as removeServerDiary } from './api/game.js';
 import Quest from './screens/Quest.jsx';
 import Guestbook from './screens/Guestbook.jsx';
 import Settings from './screens/Settings.jsx';
@@ -133,7 +133,9 @@ export default function App() {
       {screen === 'home' && <div className="home-wallet" aria-label={`보유 코인 ${coins}`}><UiIcon kind="coin" size={18} /><strong>{coins.toLocaleString('ko-KR')}</strong><span>코인</span></div>}
       </div>
       <div className={`phone-content${screen === 'quest' ? ' is-quest' : ''}`}>
-      <div className="phone-page" hidden={screen !== 'home'}><Home game={game} day={day} active={screen === 'home'} reactionId={potatoReaction} onReactionConsumed={consumePotatoReaction} petName={petName} petColor={petColor} onQuest={openQuest} onDiary={() => openDiary()} onGuestbook={() => setScreen('guest')} onVisit={() => setScreen('visit')} onSettings={() => setScreen('settings')} onShop={() => setScreen('shop')} coins={coins} outfit={outfit} decor={shownDecor} levelInfo={levelInfo} /></div>
+      <div className="phone-page" hidden={screen !== 'home'}><Home game={game} day={day} active={screen === 'home'} reactionId={potatoReaction} onReactionConsumed={consumePotatoReaction} petName={petName} petColor={petColor} onQuest={openQuest} onDiary={() => openDiary()} onGuestbook={() => setScreen('guest')} onVisit={() => setScreen('visit')} onSettings={() => setScreen('settings')} onShop={() => setScreen('shop')} coins={coins} outfit={outfit} decor={shownDecor} levelInfo={levelInfo}
+        positions={sv ? sv.home.room.positions ?? {} : game.decorPositions ?? {}}
+        onMoveDecor={(slot, pos) => sv ? serverAct(() => moveDecor(serverUserId, slot, pos)) : setGame(value => ({ ...value, decorPositions: { ...value.decorPositions, [slot]: pos } }))} /></div>
       {screen === 'diary' && <Diary game={game} day={day} initialDate={diaryDate} onSave={saveDiary} onDelete={deleteDiary} onDraft={saveDraft} onContinue={continueDraft} onHome={() => setScreen('home')} />}
       {screen === 'visit' && (serverUserId ? <Neighbors userId={serverUserId} myName={petName} onPosted={date => commitGame(value => recordRoutine(value, 'day-guestbook', date))} onBack={() => setScreen('home')} />
         : <Visit onPosted={date => commitGame(value => recordRoutine(value, 'day-guestbook', date))} onGuestbook={() => setScreen('guest')} visitorName={petName} visitorVariant={game.character ?? 'potato'} onBack={() => setScreen('home')} />)}
@@ -147,7 +149,7 @@ export default function App() {
       {screen === 'guest' && serverUserId && <Neighbors userId={serverUserId} myName={petName} initialTab="mine" onPosted={date => commitGame(value => recordRoutine(value, 'day-guestbook', date))} onBack={() => setScreen('home')} />}
       {screen === 'guest' && !serverUserId && <Guestbook petName={petName} level={level} petColor={petColor} onShop={() => setScreen('shop')} onSettings={() => setScreen('settings')} onHome={() => setScreen('home')} />}
       <div className="phone-page" hidden={screen !== 'settings'}><Settings preferences={game.preferences} onPreferences={answers => commitGame(value => saveMissionPreferences(value,answers))} key={game.character} petColor={petColor} petName={petName} onPetName={rename} onBack={() => setScreen('home')} /></div>
-      {screen === 'shop' && sv && <Shop game={{ ...game, ...shopAsGame(sv.shop) }} level={level} coins={sv.shop.coins} owned={shopAsGame(sv.shop).ownedClothes} outfit={sv.shop.equipped.outfit} petColor={petColor} onBack={() => setScreen('home')}
+      {screen === 'shop' && sv && <Shop serverMode game={{ ...game, ...shopAsGame(sv.shop) }} level={level} coins={sv.shop.coins} owned={shopAsGame(sv.shop).ownedClothes} outfit={sv.shop.equipped.outfit} petColor={petColor} onBack={() => setScreen('home')}
         onBuyCharacter={id => serverAct(() => buyItem(serverUserId, 'character', id))} onEquipCharacter={id => serverAct(() => equip(serverUserId, { character_id: id }))}
         onBuy={item => { void serverAct(() => buyItem(serverUserId, 'outfit', item.id)); return true; }} onWear={id => serverAct(() => equip(serverUserId, { outfit_id: id }))}
         onBuyDecor={id => serverAct(() => buyItem(serverUserId, 'decor', id))} onEquipDecor={(slot, id) => serverAct(() => placeDecor(serverUserId, slot, id))} />}
