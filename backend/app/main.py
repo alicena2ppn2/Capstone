@@ -822,10 +822,14 @@ async def save_photo(conn, user_id: str, file: UploadFile, client_taken_at: str 
         raise HTTPException(422, "빈 파일입니다.")
 
     photo_id = uuid.uuid4().hex
+    taken = photo_meta.taken_at(data) or photo_meta.parse_client_taken(client_taken_at)   # 파일 EXIF가 우선 (지우기 전에 읽음)
+    cleaned = photo_meta.clean_image(data, file.content_type)   # 위치(GPS)·기기 정보 지우고 저장 (10/15)
+    if cleaned is None:
+        raise HTTPException(422, "사진을 열 수 없어요. 다른 사진으로 올려 주세요.")
+    data, ext, content_type = cleaned
     filename = photo_id + ext
-    taken = photo_meta.taken_at(data) or photo_meta.parse_client_taken(client_taken_at)   # 파일 EXIF가 우선
     (upload_dir() / filename).write_bytes(data)
-    db.add_photo(conn, photo_id, user_id, filename, file.content_type, day(date).isoformat(), taken)
+    db.add_photo(conn, photo_id, user_id, filename, content_type, day(date).isoformat(), taken)
     return {"photo_id": photo_id, "url": f"/photos/{photo_id}"}   # 촬영 일시는 서버에만 저장 (응답에 안 넣음)
 
 
@@ -868,7 +872,7 @@ def delete_photo(user_id: str, photo_id: str, conn=Depends(get_conn)):
     return {"deleted": photo_id}
 
 
-@app.get("/photos/{photo_id}", summary="사진 보기")
+@app.get("/photos/{photo_id}", summary="사진 보기 (위치·기기 정보는 올릴 때 지움. 주소는 추측할 수 없는 무작위 id)")
 def get_photo(photo_id: str, conn=Depends(get_conn)):
     photo = db.get_photo(conn, photo_id)
     if photo is None:
