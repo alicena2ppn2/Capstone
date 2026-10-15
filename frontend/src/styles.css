@@ -1014,6 +1014,18 @@ button.pb, .ui-disclosure > summary { font-weight: 500; }
 .home-arrange-button[aria-pressed=true] { background: var(--color-primary) !important; color: var(--color-surface) !important; }
 .decor-swatch { width: 78% !important; height: auto; border-radius: 10px; }
 
+/* Help services: local overlay only; no diary submission. */
+.help-entry { background:transparent; color:var(--color-primary); border:0; box-shadow:none; text-decoration:underline; min-height:44px; font-size:14px; }
+.help-resources { line-height:1.65; overflow-wrap:anywhere; }
+.help-resources section { background:var(--color-surface); border:1px solid var(--color-border); border-radius:14px; padding:12px; margin:12px 0; display:flex; flex-direction:column; gap:8px; }
+.help-resources h3 { font-size:16px; margin:0; }
+.help-resources p { margin:4px 0; }
+.help-resources nav { display:flex; flex-wrap:wrap; gap:8px; }
+.help-resources nav a { display:flex; align-items:center; min-height:44px; color:var(--color-primary); }
+.help-resources .pb { white-space:normal; height:auto; min-height:44px; }
+.help-address,.help-region,.help-scope { font-size:13px; }
+.help-address { user-select:all; }
+
 /* 홈: 방은 위에 그대로 두고, LV 막대만 '오늘의 도전 펼치기' 바로 위로 내린다 (키 큰 휴대폰에서 LV 아래 빈 바닥이 넓던 것) */
 .home-screen.is-sheet-layout .home-level-dock { position: absolute; left: 50%; bottom: calc(var(--sheet-peek) + 6px); transform: translateX(-50%); z-index: 4; margin: 0; white-space: nowrap; }
 
