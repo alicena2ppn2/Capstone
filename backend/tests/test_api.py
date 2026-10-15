@@ -7,7 +7,15 @@ DAY = "2026-10-02"
 YESTERDAY = "2026-10-01"
 
 
-JPEG = b"\xff\xd8\xff\xe0" + b"0" * 100
+def _tiny_jpeg() -> bytes:
+    import io
+    from PIL import Image
+    buf = io.BytesIO()
+    Image.new("RGB", (8, 8), (168, 211, 244)).save(buf, "JPEG")
+    return buf.getvalue()
+
+
+JPEG = _tiny_jpeg()   # 서버가 메타데이터를 지우고 다시 저장하므로 진짜 그림이어야 함
 
 
 @pytest.fixture
@@ -153,7 +161,7 @@ def test_upload_and_view_photo(client):
     assert r.status_code == 200
     got = client.get(r.json()["url"])
     assert got.status_code == 200
-    assert got.content == JPEG
+    assert got.content[:2] == b"\xff\xd8"                  # 다시 저장된 JPEG (메타데이터 없음)
     assert got.headers["content-type"] == "image/jpeg"
 
 
