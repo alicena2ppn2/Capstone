@@ -37,7 +37,7 @@ python scripts/serve.py         # 0.0.0.0:8000으로 띄우고, 앱에 넣을 EX
 |---|---|---|
 | `CAPSTONE_DB` | `backend/app.db` | SQLite 파일 경로 |
 | `CAPSTONE_UPLOADS` | `backend/uploads/` | 사진 저장 폴더 |
-| `CORS_ORIGINS` | `http://localhost:5173,http://localhost:8081` | 웹에서 부를 때 허용할 주소 (Vite · Expo 웹). 휴대폰 앱은 상관없음 |
+| `CORS_ORIGINS` | `http://localhost:5173,http://localhost:8081,http://localhost:5183` | 웹에서 부를 때 허용할 주소 (Vite · Expo 웹 8081·5183). 휴대폰 앱은 상관없음 |
 | `SUPABASE_URL` · `SUPABASE_KEY` | 없음 (개발·시연 모드) | `POST /auth/supabase` 토큰 확인. 앱의 Supabase URL·publishable key와 같은 값 |
 | `ADMIN_TOKEN` | 없음 (관리자 API 꺼짐) | 위기 신호·소감 통계 API |
 

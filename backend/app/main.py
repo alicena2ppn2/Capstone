@@ -17,7 +17,7 @@ from datetime import date as Date, datetime, timedelta, timezone
 
 from pathlib import Path
 
-from fastapi import Depends, FastAPI, File, Header, HTTPException, Query, Request, Response, UploadFile
+from fastapi import Depends, FastAPI, File, Form, Header, HTTPException, Query, Request, Response, UploadFile
 from fastapi.responses import FileResponse, PlainTextResponse
 from fastapi.middleware.cors import CORSMiddleware
 from pydantic import BaseModel, Field
@@ -37,9 +37,11 @@ USUAL_STEPS_DAYS = 28   # 평소 걸음 = 최근 28일 걸음 중앙값
 
 # 사진 업로드
 MAX_PHOTO_BYTES = 10 * 1024 * 1024
-# 사진 미션은 오늘 찍은 사진만 인정한다 (촬영 일시가 있을 때).
-# 촬영 일시가 없는 사진(스크린샷·메신저 사진 등)은 일단 인정한다 → 막으려면 False로.
-ALLOW_PHOTO_WITHOUT_TAKEN_AT = True
+# 사진 미션은 미션 날짜에 찍은 사진만 인정한다 (10/15 결정: 사진 날짜가 미션 날짜와 맞아야 성공).
+# 촬영 일시는 파일의 EXIF → 없으면 앱이 보낸 taken_at 순서로 본다. 둘 다 없으면(스크린샷·받은 사진) 인정하지 않는다.
+ALLOW_PHOTO_WITHOUT_TAKEN_AT = False
+NO_TAKEN_AT_MESSAGE = "찍은 날짜를 알 수 없는 사진이에요. 카메라로 오늘 찍은 사진을 올려 주세요."
+NOT_TODAY_MESSAGE = "오늘 찍은 사진으로 다시 올려 주세요."
 PHOTO_TYPES = {"image/jpeg": ".jpg", "image/png": ".png", "image/webp": ".webp", "image/heic": ".heic", "image/heif": ".heif"}
 
 
@@ -59,7 +61,7 @@ async def lifespan(app: FastAPI):
 app = FastAPI(title="Capstone API", version="0.1.0", lifespan=lifespan)
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=os.environ.get("CORS_ORIGINS", "http://localhost:5173,http://localhost:8081").split(","),   # 웹 프론트(Vite) · Expo 웹
+    allow_origins=os.environ.get("CORS_ORIGINS", "http://localhost:5173,http://localhost:5180,http://127.0.0.1:5180,http://localhost:8081,http://localhost:5183").split(","),   # 웹(Vite 5173, 팀은 5180) · Expo 웹(8081, 팀은 5183)
     allow_methods=["*"],
     allow_headers=["*"],
 )
@@ -278,10 +280,10 @@ def check_taken_today(conn, photo_ids: list[str], today: Date) -> None:
     for taken in db.photo_taken_at(conn, photo_ids).values():
         if taken is None:
             if not ALLOW_PHOTO_WITHOUT_TAKEN_AT:
-                raise HTTPException(422, "오늘 찍은 사진으로 다시 올려 주세요.")
+                raise HTTPException(422, NO_TAKEN_AT_MESSAGE)
             continue
         if Date.fromisoformat(taken[:10]) != today:
-            raise HTTPException(422, "오늘 찍은 사진으로 다시 올려 주세요.")
+            raise HTTPException(422, NOT_TODAY_MESSAGE)
 
 
 def screen_text(conn, user_id: str, today: Date, source: str, text: str) -> dict | None:
@@ -545,6 +547,23 @@ def reroll_mission(user_id: str, mission_id: str, date: str | None = DateQuery, 
             **with_status(conn, user_id, db.get_mission_day(conn, user_id, today.isoformat()))}
 
 
+@app.post("/users/{user_id}/missions/{mission_id}/photo",
+          summary="사진 미션 한 번에: 사진 올리기 + 완료 (multipart file, 선택 taken_at). 미션 날짜에 찍은 사진이어야 성공")
+async def complete_with_photo(user_id: str, mission_id: str, file: UploadFile = File(...),
+                              taken_at: str | None = Form(None, description="파일에 EXIF가 없을 때 앱이 아는 촬영 일시"),
+                              answer: str | None = Form(None), date: str | None = DateQuery, conn=Depends(get_conn)):
+    today = day(date)
+    mission = next((m for m in todays_missions(conn, user_id, today)["missions"] if m["id"] == mission_id), None)
+    if mission is None:
+        raise HTTPException(404, f"오늘의 미션이 아닙니다: {mission_id}")
+    if mission["kind"] != "photo":
+        raise HTTPException(422, "사진으로 끝내는 미션이 아니에요.")
+    photo = await save_photo(conn, user_id, file, taken_at, today.isoformat())
+    result = complete_mission(user_id, mission_id, CompleteIn(photos=[photo["photo_id"]], answer=answer),
+                              date=today.isoformat(), conn=conn)
+    return {**result, "photo": photo}
+
+
 @app.get("/users/{user_id}/ladder", summary="단계 사다리: 움직이기·이어지기 지금 단계(1 혼자 · 2 한 명 · 3 여럿)와 다음 단계까지 남은 횟수")
 def get_ladder(user_id: str, conn=Depends(get_conn)):
     return ladder(conn, user_id)
@@ -714,7 +733,13 @@ def get_level(user_id: str, conn=Depends(get_conn)):
 
 
 @app.post("/users/{user_id}/photos", summary="사진 업로드 (카메라·앨범) → photo_id")
-async def upload_photo(user_id: str, file: UploadFile = File(...), date: str | None = DateQuery, conn=Depends(get_conn)):
+async def upload_photo(user_id: str, file: UploadFile = File(...),
+                       taken_at: str | None = Form(None, description="앱이 아는 촬영 일시 (예: ImagePicker exif.DateTimeOriginal '2026:10:15 14:05:00'). 파일에 EXIF가 없을 때만 씀"),
+                       date: str | None = DateQuery, conn=Depends(get_conn)):
+    return await save_photo(conn, user_id, file, taken_at, date)
+
+
+async def save_photo(conn, user_id: str, file: UploadFile, client_taken_at: str | None, date: str | None) -> dict:
     ext = PHOTO_TYPES.get(file.content_type or "")
     if ext is None:
         raise HTTPException(415, f"사진 파일만 올릴 수 있어요 (jpeg, png, webp, heic): {file.content_type}")
@@ -726,7 +751,7 @@ async def upload_photo(user_id: str, file: UploadFile = File(...), date: str | N
 
     photo_id = uuid.uuid4().hex
     filename = photo_id + ext
-    taken = photo_meta.taken_at(data)
+    taken = photo_meta.taken_at(data) or photo_meta.parse_client_taken(client_taken_at)   # 파일 EXIF가 우선
     (upload_dir() / filename).write_bytes(data)
     db.add_photo(conn, photo_id, user_id, filename, file.content_type, day(date).isoformat(), taken)
     return {"photo_id": photo_id, "url": f"/photos/{photo_id}"}   # 촬영 일시는 서버에만 저장 (응답에 안 넣음)

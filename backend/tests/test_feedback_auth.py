@@ -9,9 +9,9 @@ DAY = "2026-10-14"
 
 
 def done_mission(client, user="u1"):
-    """오늘 미션 중 글 미션 하나를 끝내고 그 미션을 돌려준다."""
+    """오늘 미션 중 이어지기 미션(사진) 하나를 끝내고 그 미션을 돌려준다."""
     missions = client.get(f"/users/{user}/missions/today", params={"date": DAY}).json()["missions"]
-    m = next(m for m in missions if m["kind"] == "text")
+    m = next(m for m in missions if m["category"] == "connect")
     r = client.post(f"/users/{user}/missions/{m['id']}/complete", params={"date": DAY}, json=submission_for(m, client, user))
     assert r.status_code == 200
     return m
@@ -39,7 +39,7 @@ def test_feedback_write_and_edit(client):
 
 def test_feedback_only_for_done_missions(client):
     missions = client.get("/users/u1/missions/today", params={"date": DAY}).json()["missions"]
-    m = next(m for m in missions if m["kind"] == "text")
+    m = next(m for m in missions if m["category"] == "connect")
     r = client.put(f"/users/u1/missions/{m['id']}/feedback", params={"date": DAY}, json={"mood": 3})
     assert r.status_code == 404
 
