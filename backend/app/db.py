@@ -32,7 +32,7 @@ CREATE TABLE IF NOT EXISTS inventory (
 );
 CREATE TABLE IF NOT EXISTS decor_placement (
     user_id TEXT NOT NULL,
-    slot    TEXT NOT NULL,                -- wallpaper | floor | lamp | carpet | frame | doll | scenery
+    slot    TEXT NOT NULL,                -- wallpaper | floor | sofa | drawer | lamp | carpet | frame | doll | scenery
     item_id TEXT NOT NULL,
     dx      REAL NOT NULL DEFAULT 0,      -- 끌어서 옮긴 거리 (방 그림 좌표, 기본 자리에서)
     dy      REAL NOT NULL DEFAULT 0,

@@ -136,6 +136,8 @@
   "decor_slots": {
     "wallpaper": "벽지",
     "floor": "바닥",
+    "sofa": "소파",
+    "drawer": "서랍장",
     "lamp": "전등",
     "carpet": "카페트",
     "frame": "액자",
@@ -332,6 +334,62 @@
       "slot": "floor",
       "level": 5,
       "price": 200
+    },
+    {
+      "id": "sofa-pink",
+      "name": "딸기 우유 소파",
+      "slot": "sofa",
+      "level": 1,
+      "price": 100
+    },
+    {
+      "id": "sofa-mint",
+      "name": "민트 소파",
+      "slot": "sofa",
+      "level": 1,
+      "price": 100
+    },
+    {
+      "id": "sofa-butter",
+      "name": "버터 소파",
+      "slot": "sofa",
+      "level": 1,
+      "price": 100
+    },
+    {
+      "id": "sofa-lavender",
+      "name": "라벤더 소파",
+      "slot": "sofa",
+      "level": 1,
+      "price": 100
+    },
+    {
+      "id": "drawer-white",
+      "name": "크림 서랍장",
+      "slot": "drawer",
+      "level": 1,
+      "price": 100
+    },
+    {
+      "id": "drawer-walnut",
+      "name": "호두나무 서랍장",
+      "slot": "drawer",
+      "level": 1,
+      "price": 100
+    },
+    {
+      "id": "drawer-mint",
+      "name": "민트 서랍장",
+      "slot": "drawer",
+      "level": 1,
+      "price": 100
+    },
+    {
+      "id": "drawer-pink",
+      "name": "벚꽃 서랍장",
+      "slot": "drawer",
+      "level": 1,
+      "price": 100
     }
   ]
 }

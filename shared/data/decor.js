@@ -25,8 +25,17 @@ export const DECOR = [
   { id: 'floor-walnut', name: '진한 원목 바닥', slot: 'floor', level: 1, price: 100, color: '#B98A5E', pattern: 'planks', ink: '#9C7049', icon: '🪵' },
   { id: 'floor-pink-wood', name: '벚꽃 마루', slot: 'floor', level: 2, price: 140, color: '#F1C9C2', pattern: 'planks', ink: '#E0A9A0', icon: '🌸' },
   { id: 'floor-mint-tile', name: '민트 타일 바닥', slot: 'floor', level: 3, price: 160, color: '#D4EEE6', pattern: 'gingham', ink: '#A9D9CB', icon: '🟩' },
+  // 소파·서랍장 색 (10/15): 방에 있는 소파·서랍장 색을 바꾼다. 모두 100코인. color = 겉, ink = 테두리
+  { id: 'sofa-pink', name: '딸기 우유 소파', slot: 'sofa', level: 1, price: 100, color: '#F4C2CF', ink: '#D995A6', icon: '🍓' },
+  { id: 'sofa-mint', name: '민트 소파', slot: 'sofa', level: 1, price: 100, color: '#BFE3D2', ink: '#86BDA4', icon: '🌿' },
+  { id: 'sofa-butter', name: '버터 소파', slot: 'sofa', level: 1, price: 100, color: '#F6E0A2', ink: '#D3B467', icon: '🧈' },
+  { id: 'sofa-lavender', name: '라벤더 소파', slot: 'sofa', level: 1, price: 100, color: '#D3C8EE', ink: '#A797D3', icon: '💜' },
+  { id: 'drawer-white', name: '크림 서랍장', slot: 'drawer', level: 1, price: 100, color: '#F7F3EA', ink: '#CFC4B0', icon: '🤍' },
+  { id: 'drawer-walnut', name: '호두나무 서랍장', slot: 'drawer', level: 1, price: 100, color: '#B98A5E', ink: '#8E6640', icon: '🌰' },
+  { id: 'drawer-mint', name: '민트 서랍장', slot: 'drawer', level: 1, price: 100, color: '#CBE7DA', ink: '#8FBFA8', icon: '🌿' },
+  { id: 'drawer-pink', name: '벚꽃 서랍장', slot: 'drawer', level: 1, price: 100, color: '#F4CFD6', ink: '#D49AA6', icon: '🌸' },
   { id: 'floor-checker', name: '체커보드 바닥', slot: 'floor', level: 5, price: 200, color: '#F6EEDF', pattern: 'checker', ink: '#D9C3A0', icon: '🏁' },
 ];
-export const DECOR_SLOTS = { wallpaper: '벽지', floor: '바닥', lamp: '전등', carpet: '카페트', frame: '액자', doll: '인형', scenery: '창밖 풍경' };
+export const DECOR_SLOTS = { wallpaper: '벽지', floor: '바닥', sofa: '소파', drawer: '서랍장', lamp: '전등', carpet: '카페트', frame: '액자', doll: '인형', scenery: '창밖 풍경' };
 // 손가락으로 끌어서 옮길 수 있는 소품 (카페트·창밖·벽지·바닥은 자리가 정해져 있음)
 export const MOVABLE_SLOTS = ['lamp', 'frame', 'doll'];
