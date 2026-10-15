@@ -125,6 +125,15 @@ class UserIn(BaseModel):
     nickname: str = Field(..., description=f"닉네임 {NICKNAME_MIN}~{NICKNAME_MAX}자")
 
 
+BIO_MAX = 40
+
+
+class ProfileIn(BaseModel):
+    """보낸 칸만 바꾼다."""
+    nickname: str | None = Field(None, description=f"닉네임 {NICKNAME_MIN}~{NICKNAME_MAX}자")
+    bio: str | None = Field(None, max_length=BIO_MAX, description=f"한 줄 소개 ({BIO_MAX}자까지, 빈 글이면 지움). 이웃이 내 방에서 봄")
+
+
 class SupabaseLoginIn(BaseModel):
     supabase_id: str | None = Field(None, description="개발·시연 모드에서만 사용 (서버에 SUPABASE_URL이 없을 때). 실제로는 Authorization 헤더의 토큰")
     nickname: str | None = Field(None, description="처음 로그인일 때만: 이 닉네임으로 서버 사용자를 만든다")
@@ -426,11 +435,19 @@ def get_user(user_id: str, conn=Depends(get_conn)):
     return {**user, "level": ms.level_from_xp(db.xp_total(conn, user_id))}
 
 
-@app.patch("/users/{user_id}", summary="닉네임 바꾸기")
-def rename_user(user_id: str, body: UserIn, conn=Depends(get_conn)):
+@app.patch("/users/{user_id}", summary="프로필 바꾸기: 닉네임·한 줄 소개 (보낸 칸만)")
+def rename_user(user_id: str, body: ProfileIn, conn=Depends(get_conn)):
     if db.get_user(conn, user_id) is None:
         raise HTTPException(404, "없는 사용자입니다.")
-    return db.rename_user(conn, user_id, clean_nickname(conn, body.nickname, except_id=user_id))
+    user = db.get_user(conn, user_id)
+    if body.nickname is not None:
+        user = db.rename_user(conn, user_id, clean_nickname(conn, body.nickname, except_id=user_id))
+    if "bio" in body.model_fields_set:
+        bio = " ".join((body.bio or "").split()) or None
+        if bio and not moderation.is_clean(bio):
+            raise HTTPException(422, "다른 소개 글로 바꿔 줄래요?")
+        user = db.set_bio(conn, user_id, bio)
+    return user
 
 
 @app.delete("/users/{user_id}", summary="계정 삭제 — 걸음·미션·코인·사진·일기·방문·방명록까지 모두 삭제")
@@ -1017,6 +1034,7 @@ def get_room(user_id: str, date: str | None = DateQuery, conn=Depends(get_conn))
     return {
         "user_id": user_id,
         "nickname": user["nickname"] if user else None,
+        "bio": user["bio"] if user else None,
         "level": ms.level_from_xp(db.xp_total(conn, user_id))["level"],
         **room_view(conn, user_id),
         "visits": db.visit_counts(conn, user_id, day(date).isoformat()),

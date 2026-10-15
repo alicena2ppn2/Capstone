@@ -537,3 +537,16 @@ def test_attendance_duplicate_item_becomes_coins(client, monkeypatch):
     second = client.post("/users/u1/attendance", params={"date": "2026-10-14"}).json()
     assert second["gift"]["type"] == "coins" and second["gift"]["amount"] == att.DUPLICATE_COINS
     assert second["coins"] == att.DUPLICATE_COINS
+
+
+
+def test_profile_nickname_and_bio(client):
+    uid = signup(client, "프로필")["id"]
+    r = client.patch(f"/users/{uid}", json={"bio": "  산책을 좋아해요  "})
+    assert r.status_code == 200 and (r.json()["nickname"], r.json()["bio"]) == ("프로필", "산책을 좋아해요")
+    assert client.get(f"/users/{uid}/room").json()["bio"] == "산책을 좋아해요"     # 이웃이 방에서 봄
+    r = client.patch(f"/users/{uid}", json={"nickname": "새이름"})
+    assert (r.json()["nickname"], r.json()["bio"]) == ("새이름", "산책을 좋아해요")   # 보낸 칸만 바뀜
+    assert client.patch(f"/users/{uid}", json={"bio": "가" * 41}).status_code == 422
+    assert client.patch(f"/users/{uid}", json={"bio": "시발"}).status_code == 422
+    assert client.patch(f"/users/{uid}", json={"bio": ""}).json()["bio"] is None

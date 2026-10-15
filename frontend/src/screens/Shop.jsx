@@ -56,7 +56,7 @@ export default function Shop({ game, level, onBuyCharacter, onEquipCharacter, on
                 setPreview(item.id);
                 if (has) { onWear(item.id); setMessage(`${item.name}을 입었어요!`); }
                 else if (onBuy(item)) { setMessage(`${item.name} 구매 완료! 옷장에서 입어보세요.`); }
-              }}>{locked ? `LV.${item.level} 해금` : wearing ? '착용 중 ✓' : has ? '입기' : insufficient ? `${(item.price - coins).toLocaleString('ko-KR')}코인 더 필요` : `${item.price} 코인에 사기`}</button>
+              }}>{locked ? `LV.${item.level} 해금` : wearing ? '착용 중 ✓' : has ? '입기' : insufficient ? `${(item.price - coins).toLocaleString('ko-KR')}코인 더 필요` : <span className="price-tag"><UiIcon kind="coin" size={16} /> {item.price}</span>}</button>
             </article>
           );
         })}

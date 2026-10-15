@@ -1,3 +1,4 @@
+import UiIcon from './UiIcon.jsx';
 import { useState } from 'react';
 import { DECOR, DECOR_SLOTS } from '../../../shared/data/decor.js';
 import { RoomBackdrop } from '../screens/Home.jsx';
@@ -32,9 +33,9 @@ export default function DecorShop({ game, level, onBuy, onEquip, outfit }) {
           <div><strong>{item.name}</strong><small>{DECOR_SLOTS[item.slot]} · {has ? (active ? '놓여 있어요' : '가지고 있어요') : locked ? `LV.${item.level}부터 살 수 있어요` : `${item.price} 코인`}</small></div>
           <div className="decor-stage-actions">
             <button type="button" className="pb ui-secondary" onClick={() => setPreview(null)}>취소</button>
-            <button type="button" className={`pb ${has && active ? 'ui-secondary' : 'shop-buy'}`} disabled={locked || short} onClick={act}>{has ? (active ? '빼기' : '놓기') : locked ? `LV.${item.level}` : short ? `${item.price - game.coins}코인 부족` : '사서 놓기'}</button>
+            <button type="button" className={`pb ${has && active ? 'ui-secondary' : 'shop-buy'}`} disabled={locked || short} onClick={act}>{has ? (active ? '빼기' : '놓기') : locked ? `LV.${item.level}` : short ? `${item.price - game.coins}코인 부족` : <span className="price-tag"><UiIcon kind="coin" size={16} /> {item.price}</span>}</button>
           </div>
-        </> : <div><strong>내 방</strong><small>{message || '아래에서 소품을 누르면 방에 놓아 볼 수 있어요.'}</small></div>}
+        </> : <div>{message && <small>{message}</small>}</div>}
       </div>
     </div>
     <div className="decor-categories" role="tablist" aria-label="꾸미기 분류">{[['all', '전체', '✨'], ...Object.entries(DECOR_SLOTS).map(([id, label]) => [id, label, SLOT_ICON[id] ?? '•']), ['owned', `내 소품 ${owned.length}`, '🎒']].map(([id, label, icon]) => <button type="button" role="tab" className="pb" key={id} aria-selected={category === id} aria-pressed={category === id} onClick={() => setCategory(id)}><span aria-hidden="true">{icon}</span> {label}</button>)}</div>
@@ -43,7 +44,7 @@ export default function DecorShop({ game, level, onBuy, onEquip, outfit }) {
       return <button type="button" key={entry.id} className={`pb decor-tile${preview === entry.id ? ' is-selected' : ''}${lock ? ' is-locked' : ''}`} aria-pressed={preview === entry.id} aria-label={`${entry.name}, ${placed ? '놓여 있음' : mine ? '보유' : lock ? `레벨 ${entry.level} 필요` : `${entry.price}코인`}`} onClick={() => setPreview(preview === entry.id ? null : entry.id)}>
         <span className="decor-tile-art" style={{ background: `${entry.color}44` }}>{entry.slot === 'scenery' ? <svg viewBox="124 160 120 170" aria-hidden="true"><Scenery item={entry} /></svg> : <span aria-hidden="true">{entry.icon}</span>}</span>
         <span className="decor-tile-name">{entry.name}</span>
-        <span className={`decor-tile-state${placed ? ' is-placed' : mine ? ' is-owned' : ''}`}>{placed ? '✓ 놓임' : mine ? '보유' : lock ? `🔒 LV.${entry.level}` : `${entry.price} 코인`}</span>
+        <span className={`decor-tile-state${placed ? ' is-placed' : mine ? ' is-owned' : ''}`}>{placed ? '✓ 놓임' : mine ? '보유' : lock ? `🔒 LV.${entry.level}` : <span className="price-tag"><UiIcon kind="coin" size={12} /> {entry.price}</span>}</span>
       </button>;
     })}</div>}
   </div>;
