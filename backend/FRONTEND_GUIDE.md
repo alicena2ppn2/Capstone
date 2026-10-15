@@ -18,7 +18,9 @@ API를 직접 눌러 보려면 서버를 켜고 `http://localhost:8000/docs`.
 |---|---|---|
 | 퀘스트 목록 | `game.js` `QUESTS` 고정 목록 (오늘 8 · 주간 3 · 월간 3) | `GET /missions/today` 가 주는 목록 그대로. 매일 고정 6개 + 매일 바뀌는 3개 |
 | 퀘스트 완료 | 버튼 누르면 완료 | 서버가 확인 (사진 업로드, 목록 입력, 걸음, 일기·방문·방명록 기록) |
-| 주간·월간 퀘스트 | 주간 3 · 월간 2 | 주간 `GET /weekly` (자연 속 산책 2번) · 월간 `GET /monthly` (바깥 8번, 일기 10일) → 받기 `POST /monthly/{id}/claim` |
+| 주간·월간 퀘스트 | 주간 3 · 월간 2 | 주간 `GET /weekly` (자연 속 산책 2번)만. **월간 목표는 없음** (10/14에 뺌) |
+| 단계 사다리 | 없음 | 매일 바뀌는 3개 = 움직이기 · 집 · 이어지기. 각 미션의 `stage`(1 혼자·2 한 명·3 여럿)와 이어지기 미션의 `tip`("이렇게 해 보세요")을 보여 주기. 진행도는 `missions/today`의 `ladder` 또는 `GET /ladder`, 완료 응답 `stage_up`이 있으면 "다음 단계가 열렸어요" |
+| 처음 설문 | 없음 | 가입 직후 `GET /users/{id}/survey`가 `done=false`면 `GET /survey/questions` 순서대로 보여 주고 `PUT /users/{id}/survey`로 저장. 모두 건너뛰기 가능 |
 | 출석 보상 | 무작위 (코인 10·20·30 또는 XP 20·35·50) | 고정 10 코인 · 10 XP |
 | 하루 펭귄 모찌 | 하루 퀘스트 아무거나 3개 | 매일 바뀌는 3개를 모두 완료 |
 | 시작 코인 | 540 | 0 |
@@ -30,8 +32,12 @@ API를 직접 눌러 보려면 서버를 켜고 `http://localhost:8000/docs`.
 
 ## 앱 시작 흐름
 
-1. localStorage에 사용자 `id`가 없으면 → 닉네임 입력 → `POST /users` → 받은 `id` 저장
+1. 저장된 사용자 `id`가 없으면 → **Supabase 로그인 뒤 `POST /auth/supabase`** (헤더 `Authorization: Bearer <Supabase access_token>`)
+   - 200 → `user.id` 저장 (이미 연결된 사용자)
+   - 404 → 처음 온 사람: 닉네임 입력 → 같은 요청에 `{nickname}`을 넣어 다시 → 201 `user.id` 저장
    - 입력 중 확인: `GET /nicknames/check?nickname=…` → `available`, `reason`
+   - 서버에 `SUPABASE_URL`이 없으면(개발·시연 모드) 토큰 대신 본문 `{supabase_id}`(Supabase `session.user.id`)를 믿음
+   - 로그인 없이 시연할 때는 예전처럼 `POST /users` `{nickname}`도 그대로 됨
 2. 앱을 열 때마다 `POST /users/{id}/attendance` (하루 한 번만 보상, 여러 번 불러도 됨)
 3. `GET /users/{id}/home` 으로 홈 그리기
 
@@ -46,6 +52,10 @@ API를 직접 눌러 보려면 서버를 켜고 `http://localhost:8000/docs`.
 | 퀘스트 | 사진 미션: 사진 올리고 → 완료 | `POST /users/{id}/photos` (multipart `file`) → `photo_id` → `POST …/missions/{mission_id}/complete` `{photos: [photo_id]}`. 서버 확인에 걸리면 422 `detail` 문구를 그대로 보여 주면 됨 |
 | 퀘스트 | 찾아보기 미션 | `POST …/complete` `{items: [...], answer: "망원동"}` (`prompt`가 있으면 `answer` 필요) |
 | 퀘스트 | 걸음 미션 | `POST …/complete` `{}` (서버가 오늘 걸음으로 판정) |
+| 퀘스트 | 운동 미션 (`kind: "self"`, 윗몸일으키기 20회 등) | "했어요" 버튼 → `POST …/complete` `{}` |
+| 퀘스트 | **새로고침 버튼** (`rerollable: true`인 미션에만) | `POST /users/{id}/missions/{mission_id}/reroll` → 바뀐 오늘 미션 전체(`missions`)와 `rerolls_left`. 하루 3번, 다 쓰면 429 문구를 그대로 보여 주기 |
+| 퀘스트 | **소감 창** (완료 직후, 건너뛰기 가능) | `PUT /users/{id}/missions/{mission_id}/feedback?date=` `{mood: 1~5, text: "한 줄"}` — 둘 중 하나는 필요, 200자까지, 다시 보내면 고침, **보상 없음**. 그날 완료한 미션만(아니면 404). 글에 위기 표현이 있으면 `care` (일기와 같게 처리). 오늘의 미션 각 항목 `feedback: true`면 이미 씀 |
+| 기록 | 내 소감 모아 보기 | `GET /users/{id}/feedback?from=&to=` → `[{date, mission_id, title, mood, text}]` |
 | 기록(일기) | 오늘의 주제 | `GET /users/{id}/diary/topic` |
 | 기록(일기) | 쓰기·고치기 | `PUT /users/{id}/diary/{YYYY-MM-DD}` `{text, use_topic, mood, photos}` → 일기 미션 자동 완료 |
 | 기록(일기) | 목록 | `GET /users/{id}/diary?from=…&to=…` |
@@ -274,12 +284,13 @@ await api(`/users/${userId}/home`, { token: session?.access_token });
 
 ## 서버 주소
 
-- 개발: `http://localhost:8000` (프론트 `http://localhost:5173`에서 호출 허용됨)
-- 프론트 포트가 다르면 서버 실행 시 `CORS_ORIGINS=http://127.0.0.1:5180` 처럼 지정
+- 개발: `http://localhost:8000` (웹 `http://localhost:5173`·Expo 웹 `http://localhost:8081`에서 호출 허용됨)
+- **휴대폰 앱 시연 (같은 와이파이)**: 백엔드에서 `python scripts/serve.py` → 화면에 나오는 `EXPO_PUBLIC_API_URL=http://<노트북 IP>:8000`을 `mobile/.env.local`에 넣고 앱 다시 시작
+- 프론트 포트가 다르면 서버 `backend/.env`에 `CORS_ORIGINS=http://127.0.0.1:5180` 처럼 지정
 - 배포 주소는 정해지면 여기에 적는다
 - 프론트에서는 `VITE_API_URL` 같은 환경변수로 주소를 받는 것을 권장
 
 ## 아직 없는 것
 
-- 로그인: **Supabase Auth로 프론트에서** 처리하기로 함. 백엔드 연결 후에는 요청마다 `Authorization: Bearer <Supabase 토큰>`을 보내야 함 (지금은 `id`만으로 동작)
+- 로그인: Supabase 사용자 ↔ 서버 사용자 연결은 `POST /auth/supabase`로 됨. **다른 API는 아직 토큰 확인 없이 `id`만으로 동작** (출시 전에 붙임)
 - 방명록 답글, 캐릭터 말풍선 AI
