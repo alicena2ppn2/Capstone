@@ -1,4 +1,4 @@
-import { useId, useRef, useState } from 'react';
+import { useEffect, useId, useRef, useState } from 'react';
 import GarmentPattern from '../../../shared/art/GarmentPattern.jsx';
 import { DECOR, MOVABLE_SLOTS } from '../../../shared/data/decor.js';
 import DailySentence from '../components/DailySentence.jsx';
@@ -13,7 +13,10 @@ import { levelFor } from '../../../shared/features/game.js';
 import { GearIcon, ShopIcon } from '../components/Icons.jsx';
 
 const MOVE_LIMIT = 160;   // 서버와 같은 한도 (방 밖으로 안 나가게)
-export function RoomBackdrop({ decor = {}, wallColor = '#D6EAF8', floorColor = '#EBCDA6', homeScene = false, now, positions = {}, arrange = false, onMoveEnd }) {
+const SHEET_PEEK = 40;   // styles.css의 --sheet-peek와 같게
+
+// rugDrop: 키 큰 화면에서 캐릭터를 내린 만큼 바닥 러그·카페트도 같이 내린다 (방 그림 좌표)
+export function RoomBackdrop({ decor = {}, wallColor = '#D6EAF8', floorColor = '#EBCDA6', homeScene = false, now, positions = {}, arrange = false, onMoveEnd, rugDrop = 0 }) {
   const time = now ? roomTime(now) : null;
   const uid = useId().replace(/[^a-zA-Z0-9]/g, '');
   const wall = DECOR.find(item => item.id === decor.wallpaper), floor = DECOR.find(item => item.id === decor.floor);
@@ -67,8 +70,8 @@ export function RoomBackdrop({ decor = {}, wallColor = '#D6EAF8', floorColor = '
         <line x1="120" y1="430" x2="120" y2="486" /><line x1="260" y1="486" x2="260" y2="560" /><line x1="80" y1="560" x2="80" y2="650" /><line x1="230" y1="650" x2="230" y2="750" />
       </g>}
       <rect x="0" y="426" width="368" height="8" fill="#C9A982" />
-      <ellipse cx="184" cy="482" rx="166" ry="50" fill="#FFF8EE" stroke="#EADFCB" strokeWidth="3" />
-      <HouseDecor equipped={decor} night={time?.night} positions={shown} onGrab={arrange ? grab : undefined} />
+      <ellipse cx="184" cy="482" rx="166" ry="50" fill="#FFF8EE" stroke="#EADFCB" strokeWidth="3" transform={`translate(0 ${rugDrop})`} />
+      <HouseDecor equipped={decor} night={time?.night} positions={{ ...shown, carpet: { dx: 0, dy: rugDrop } }} onGrab={arrange ? grab : undefined} />
       {time?.night && <rect width="368" height="838" fill="#344461" opacity=".09" />}
       {homeScene && time && <RoomTimeProps time={time} />}
     </svg>
@@ -82,6 +85,20 @@ export default function Home({ game, day, petName = 'MOCHI', petColor, onQuest, 
   const [open, setOpen] = useState(false);
   const [arranging, setArranging] = useState(false);   // 가구 배치 모드: 전등·액자·인형을 끌어서 옮긴다
   const movable = MOVABLE_SLOTS.some(slot => decor?.[slot]);
+  // 키 큰 휴대폰: 방 그림 아래 남는 높이의 3/4만큼 캐릭터·문구·러그를 내려 LV 막대와의 빈 바닥을 줄인다
+  const screen = useRef(null), [drop, setDrop] = useState({ px: 0, units: 0 });
+  useEffect(() => {
+    const el = screen.current;
+    if (!el || typeof ResizeObserver === 'undefined') return undefined;
+    const observer = new ResizeObserver(([entry]) => {
+      const { width, height } = entry.contentRect, avail = height - SHEET_PEEK;
+      const roomWidth = Math.min(width, avail * 368 / 500), gap = Math.max(0, avail - roomWidth * 500 / 368);
+      const px = Math.round(gap * .75);
+      setDrop(old => old.px === px ? old : { px, units: roomWidth ? px * 368 / roomWidth : 0 });
+    });
+    observer.observe(el);
+    return () => observer.disconnect();
+  }, []);
   const drag = useRef(null);
   // 손잡이를 위로 밀면 열고 아래로 내리면 닫는다. 누르기(마우스·터치·키보드·화면 읽기 프로그램)는 click으로 열고 닫기
   const dragged = useRef(false);
@@ -91,9 +108,9 @@ export default function Home({ game, day, petName = 'MOCHI', petColor, onQuest, 
   // 방 그림 바깥(화면이 길 때 남는 부분)도 고른 벽지·바닥 색으로
   const floorItem = DECOR.find(item => item.id === decor?.floor), wallItem = DECOR.find(item => item.id === decor?.wallpaper);
   const floor = floorItem?.color ?? (time.night ? '#DBC1A2' : '#EBCDA6');
-  return <section className="home-screen is-sheet-layout" aria-label="내 집" style={{ '--home-floor': floor, '--home-wall': wallItem?.color ?? '#D6EAF8' }}>
+  return <section ref={screen} className="home-screen is-sheet-layout" aria-label="내 집" style={{ '--home-floor': floor, '--home-wall': wallItem?.color ?? '#D6EAF8', '--room-drop': `${drop.px}px` }}>
     <div className={`home-room has-daily-sentence${arranging ? ' is-arranging' : ''}`} style={{backgroundColor:floor}}>
-      <div className="home-room-scenery"><RoomBackdrop decor={decor} homeScene now={now} positions={positions} arrange={arranging} onMoveEnd={onMoveDecor} /></div>
+      <div className="home-room-scenery"><RoomBackdrop decor={decor} homeScene now={now} positions={positions} arrange={arranging} onMoveEnd={onMoveDecor} rugDrop={drop.units} /></div>
       {arranging && <div className="arrange-bar" role="status"><span>전등·액자·인형을 끌어서 옮겨 보세요</span><button type="button" className="pb ui-primary" onClick={() => setArranging(false)}>완료</button></div>}
       <button type="button" className="pb home-settings" onClick={onSettings} aria-label="설정" title="설정"><GearIcon size={22} /></button>
       <time className="room-time-accessible" dateTime={now.toISOString()}>기기 현지 시간: {time.label}</time>
@@ -110,9 +127,9 @@ export default function Home({ game, day, petName = 'MOCHI', petColor, onQuest, 
       </div>
       <div className="home-identity">
         <DailySentence now={now}/>
-        <div className="home-character-level"><strong>LV.{lv.level}</strong><progress value={lv.xp_in_level} max={lv.xp_for_level} aria-label="다음 레벨까지 경험치" /><span>{lv.xp_in_level} / {lv.xp_for_level} XP</span></div>
       </div>
     </div>
+    <div className="home-character-level home-level-dock"><strong>LV.{lv.level}</strong><progress value={lv.xp_in_level} max={lv.xp_for_level} aria-label="다음 레벨까지 경험치" /><span>{lv.xp_in_level} / {lv.xp_for_level} XP</span></div>
     {open && <button type="button" className="home-sheet-scrim" aria-label="오늘의 도전 닫기" onClick={() => setOpen(false)} />}
     <div className={`home-sheet${open ? ' is-open' : ''}`}>
     <button type="button" className="home-sheet-handle" aria-expanded={open} aria-controls="home-sheet-body" onClick={toggle} onPointerDown={dragStart} onPointerUp={dragEnd} onPointerCancel={() => { drag.current = null; }}>
