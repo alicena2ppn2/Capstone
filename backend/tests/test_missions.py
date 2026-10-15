@@ -123,11 +123,12 @@ def test_avoids_recent_missions():
     assert ids[1] == ms.BY_CATEGORY["home"][-1]
 
 
-def test_walk_goal_is_daily_step_goal():
+def test_walk_is_a_photo_mission():
+    # 10/15: 앱에 만보기가 없어 '오늘 산책하기'는 걷다가 찍은 사진으로 확인 (걸음 기록 기반 미션만 걸음으로 남음)
     out = ms.pick_missions("u1", "2026-10-01", steps=300, usual_steps=4300)
     walk = out["missions"][1]
-    assert walk["id"] == "walk"
-    assert walk["min_count"] == ms.DAILY_STEP_GOAL == 8000
+    assert (walk["id"], walk["kind"], walk["min_count"]) == ("walk", "photo", 1)
+    assert {m.id for m in ms.CATALOG.values() if m.kind == "steps"} == {"beat_yesterday", "beat_last_week"}
 
 
 def test_load_catalog_rejects_duplicates(tmp_path):
@@ -139,8 +140,8 @@ def test_load_catalog_rejects_duplicates(tmp_path):
 
 
 @pytest.mark.parametrize("mid, submission, done", [
-    ("walk", {"steps": 8000}, True),
-    ("walk", {"steps": 7999}, False),
+    ("walk", {"photos": ["p1"]}, True),
+    ("walk", {}, False),
     ("diary", {"text": "산책했다"}, True),
     ("diary", {"text": "   "}, False),
     ("cook", {"photos": ["p1"]}, True),

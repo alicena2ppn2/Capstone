@@ -161,6 +161,13 @@ CREATE TABLE IF NOT EXISTS mission_feedback (  -- 미션 소감: 해 보니 어�
     updated_at  TEXT NOT NULL DEFAULT (datetime('now')),
     PRIMARY KEY (user_id, date, mission_id)
 );
+CREATE TABLE IF NOT EXISTS attendance_log (  -- 주간 출석표에서 받은 선물 (하루 한 번)
+    user_id     TEXT NOT NULL,
+    date        TEXT NOT NULL,
+    reward      TEXT NOT NULL,           -- JSON: {type: coins|xp|outfit|decor, amount|id, duplicate?}
+    created_at  TEXT NOT NULL DEFAULT (datetime('now')),
+    PRIMARY KEY (user_id, date)
+);
 CREATE TABLE IF NOT EXISTS surveys (          -- 처음 설문 답 (질문 id → 답). 미션 고르기에만 씀
     user_id     TEXT PRIMARY KEY,
     answers     TEXT NOT NULL,           -- JSON
@@ -359,6 +366,7 @@ def delete_user(conn, user_id: str) -> list[str]:
         "DELETE FROM guestbook_bans WHERE user_id = ?",
         "DELETE FROM rests WHERE user_id = ?",
         "DELETE FROM surveys WHERE user_id = ?",
+        "DELETE FROM attendance_log WHERE user_id = ?",
         "DELETE FROM mission_feedback WHERE user_id = ?",
         "DELETE FROM coin_ledger WHERE user_id = ?",
         "DELETE FROM photos WHERE user_id = ?",
@@ -1056,6 +1064,20 @@ def end_rest(conn, user_id: str, last_day: str) -> None:
     """쉬어 가기를 last_day까지로 줄인다 (일찍 끝내기)."""
     conn.execute("UPDATE rests SET until = MIN(until, ?) WHERE user_id = ?", (last_day, user_id))
     conn.commit()
+
+
+# --- 주간 출석표 --------------------------------------------------------------------
+
+def attendance_claims(conn, user_id: str, start: str, end: str) -> dict[str, dict]:
+    rows = conn.execute("SELECT date, reward FROM attendance_log WHERE user_id = ? AND date BETWEEN ? AND ?", (user_id, start, end)).fetchall()
+    return {r["date"]: json.loads(r["reward"]) for r in rows}
+
+
+def add_attendance(conn, user_id: str, date: str, reward: dict) -> bool:
+    cur = conn.execute("INSERT OR IGNORE INTO attendance_log (user_id, date, reward) VALUES (?, ?, ?)",
+                       (user_id, date, json.dumps(reward, ensure_ascii=False)))
+    conn.commit()
+    return cur.rowcount == 1
 
 
 # --- 미션 소감 ----------------------------------------------------------------------
