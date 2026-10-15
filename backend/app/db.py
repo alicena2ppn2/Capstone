@@ -32,8 +32,10 @@ CREATE TABLE IF NOT EXISTS inventory (
 );
 CREATE TABLE IF NOT EXISTS decor_placement (
     user_id TEXT NOT NULL,
-    slot    TEXT NOT NULL,                -- lamp | carpet | frame | doll | scenery
+    slot    TEXT NOT NULL,                -- wallpaper | floor | lamp | carpet | frame | doll | scenery
     item_id TEXT NOT NULL,
+    dx      REAL NOT NULL DEFAULT 0,      -- 끌어서 옮긴 거리 (방 그림 좌표, 기본 자리에서)
+    dy      REAL NOT NULL DEFAULT 0,
     PRIMARY KEY (user_id, slot)
 );
 CREATE TABLE IF NOT EXISTS equipped (
@@ -239,6 +241,11 @@ def connect(path: str | os.PathLike | None = None) -> sqlite3.Connection:
     cols = {r["name"] for r in conn.execute("PRAGMA table_info(mission_days)")}
     if "rerolls" not in cols:
         conn.execute("ALTER TABLE mission_days ADD COLUMN rerolls INTEGER NOT NULL DEFAULT 0")
+    # 소품 위치 칸이 없던 예전 배치 테이블이면 추가
+    cols = {r["name"] for r in conn.execute("PRAGMA table_info(decor_placement)")}
+    for col in ("dx", "dy"):
+        if col not in cols:
+            conn.execute(f"ALTER TABLE decor_placement ADD COLUMN {col} REAL NOT NULL DEFAULT 0")
     # 한 줄 소개 칸이 없던 예전 사용자 테이블이면 추가
     if "bio" not in {r["name"] for r in conn.execute("PRAGMA table_info(users)")}:
         conn.execute("ALTER TABLE users ADD COLUMN bio TEXT")
@@ -433,6 +440,18 @@ def get_decor(conn, user_id: str) -> dict[str, str]:
     """자리별로 놓은 소품 {slot: item_id}. 비어 있는 자리는 없음."""
     rows = conn.execute("SELECT slot, item_id FROM decor_placement WHERE user_id = ?", (user_id,)).fetchall()
     return {r["slot"]: r["item_id"] for r in rows}
+
+
+def decor_positions(conn, user_id: str) -> dict[str, dict]:
+    """옮겨 둔 소품 위치 {slot: {dx, dy}} (옮긴 것만)."""
+    rows = conn.execute("SELECT slot, dx, dy FROM decor_placement WHERE user_id = ? AND (dx != 0 OR dy != 0)", (user_id,)).fetchall()
+    return {r["slot"]: {"dx": r["dx"], "dy": r["dy"]} for r in rows}
+
+
+def move_decor(conn, user_id: str, slot: str, dx: float, dy: float) -> bool:
+    cur = conn.execute("UPDATE decor_placement SET dx = ?, dy = ? WHERE user_id = ? AND slot = ?", (dx, dy, user_id, slot))
+    conn.commit()
+    return cur.rowcount == 1
 
 
 def set_decor(conn, user_id: str, slot: str, item_id: str | None) -> dict[str, str]:

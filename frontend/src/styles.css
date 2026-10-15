@@ -762,7 +762,7 @@ button.pb, .ui-disclosure > summary { font-weight: 500; }
 .phone-shell.is-home .phone-page:not([hidden]) { height: 100%; }
 /* 방 그림(368:500)이 시트 손잡이 위 남은 높이에 통째로 들어가게: 높이가 모자라면 폭을 줄여 가운데 둔다 (캐릭터가 잘리지 않게) */
 .phone-shell.is-home .home-screen.is-sheet-layout { --sheet-peek: 40px; container-type: size; position: relative; height: 100% !important; min-height: 0; overflow: hidden;
-  background: linear-gradient(to bottom, #D6EAF8 0, #D6EAF8 calc((100% - var(--sheet-peek)) * .75), var(--home-floor, #EBCDA6) calc((100% - var(--sheet-peek)) * .75)) !important; }
+  background: linear-gradient(to bottom, var(--home-wall, #D6EAF8) 0, var(--home-wall, #D6EAF8) calc((100% - var(--sheet-peek)) * .75), var(--home-floor, #EBCDA6) calc((100% - var(--sheet-peek)) * .75)) !important; }
 .home-screen.is-sheet-layout .home-room { position: absolute; top: 0; left: 50%; transform: translateX(-50%); width: min(100cqw, (100cqh - var(--sheet-peek)) * 368 / 500); aspect-ratio: 368 / 500; }
 .home-sheet { --sheet-peek: 40px; position: absolute; left: 0; right: 0; bottom: 0; z-index: 6; display: flex; flex-direction: column; max-height: 84%; box-sizing: border-box; background: var(--color-background); border: 1px solid var(--color-border); border-bottom: 0; border-radius: 22px 22px 0 0; box-shadow: 0 -8px 24px rgba(31, 61, 58, .14); transform: translateY(calc(100% - var(--sheet-peek))); transition: transform .28s ease; }
 .home-sheet.is-open { transform: translateY(0); }
@@ -1002,3 +1002,14 @@ button.pb, .ui-disclosure > summary { font-weight: 500; }
 /* 출석표 팝업 뒤도 흐리게 */
 .attendance-dialog::backdrop { background: rgba(31, 61, 58, .22); backdrop-filter: blur(5px); -webkit-backdrop-filter: blur(5px); }
 @media (prefers-reduced-motion: reduce) { .phone-shell > .reward-scrim { animation: none; } }
+
+/* 가구 배치 모드: 방 그림이 맨 위로 와서 소품을 끌 수 있고, 캐릭터·말풍선은 흐리게 */
+.home-room.is-arranging .home-room-scenery { z-index: 5; }
+.home-room.is-arranging .home-character, .home-room.is-arranging .home-identity { opacity: .35; pointer-events: none; }
+.room-arranging .decor-movable { cursor: grab; }
+.room-arranging .decor-movable:active { cursor: grabbing; }
+.room-arranging .decor-movable > * { filter: drop-shadow(0 0 4px rgba(255, 255, 255, .95)) drop-shadow(0 2px 4px rgba(31, 61, 58, .35)); }
+.arrange-bar { position: absolute; left: 12px; right: 12px; bottom: 12px; z-index: 6; display: flex; align-items: center; justify-content: space-between; gap: 8px; padding: 8px 8px 8px 14px; border: 1px solid var(--color-border); border-radius: 16px; background: var(--color-surface); box-shadow: 0 6px 16px rgba(31, 61, 58, .16); font-size: 13px; }
+.app .phone-shell .arrange-bar .ui-primary { width: auto; min-height: 34px !important; padding: 4px 16px !important; }
+.home-arrange-button[aria-pressed=true] { background: var(--color-primary) !important; color: var(--color-surface) !important; }
+.decor-swatch { width: 78% !important; height: auto; border-radius: 10px; }
