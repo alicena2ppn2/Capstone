@@ -1,4 +1,6 @@
-import { useRef, useState } from 'react';
+import { useId, useRef, useState } from 'react';
+import GarmentPattern from '../../../shared/art/GarmentPattern.jsx';
+import { DECOR, MOVABLE_SLOTS } from '../../../shared/data/decor.js';
 import DailySentence from '../components/DailySentence.jsx';
 import RoomTimeProps from '../components/RoomTimeProps.jsx';
 import useRoomNow from '../components/useRoomNow.js';
@@ -10,15 +12,34 @@ import HouseDecor from '../components/HouseDecor.jsx';
 import { levelFor } from '../../../shared/features/game.js';
 import { GearIcon, ShopIcon } from '../components/Icons.jsx';
 
-export function RoomBackdrop({ decor = {}, wallColor = '#D6EAF8', floorColor = '#EBCDA6', homeScene = false, now }) {
+const MOVE_LIMIT = 160;   // 서버와 같은 한도 (방 밖으로 안 나가게)
+export function RoomBackdrop({ decor = {}, wallColor = '#D6EAF8', floorColor = '#EBCDA6', homeScene = false, now, positions = {}, arrange = false, onMoveEnd }) {
   const time = now ? roomTime(now) : null;
+  const uid = useId().replace(/[^a-zA-Z0-9]/g, '');
+  const wall = DECOR.find(item => item.id === decor.wallpaper), floor = DECOR.find(item => item.id === decor.floor);
+  // 끌어서 옮기기: 화면 좌표 이동을 방 그림 좌표로 바꿔 더한다
+  const svg = useRef(null), drag = useRef(null);
+  const [live, setLive] = useState(null);   // 끄는 중인 소품의 임시 위치
+  const shown = live ? { ...positions, [live.slot]: live.pos } : positions;
+  const clamp = v => Math.max(-MOVE_LIMIT, Math.min(MOVE_LIMIT, v));
+  const grab = (slot, event) => {
+    if (!arrange || !MOVABLE_SLOTS.includes(slot)) return;
+    event.preventDefault(); event.currentTarget.setPointerCapture?.(event.pointerId);
+    const ctm = svg.current.getScreenCTM();
+    drag.current = { slot, x: event.clientX, y: event.clientY, scale: ctm ? 1 / ctm.a : 1, base: positions[slot] ?? { dx: 0, dy: 0 } };
+    setLive({ slot, pos: drag.current.base });
+  };
+  const move = event => { const d = drag.current; if (!d) return; setLive({ slot: d.slot, pos: { dx: clamp(d.base.dx + (event.clientX - d.x) * d.scale), dy: clamp(d.base.dy + (event.clientY - d.y) * d.scale) } }); };
+  const drop = () => { const d = drag.current; if (!d) return; drag.current = null; const pos = live?.pos ?? d.base; setLive(null); onMoveEnd?.(d.slot, { dx: Math.round(pos.dx), dy: Math.round(pos.dy) }); };
   return (
-    <svg width="100%" height="100%" viewBox={homeScene ? '0 55 368 500' : '0 0 368 838'} preserveAspectRatio={homeScene ? 'xMidYMid meet' : 'none'} aria-hidden="true" style={{ position: 'absolute', inset: 0 }}>
-      <rect x="0" y="0" width="368" height="430" fill={wallColor} />
-      <g stroke="#C7DFF2" strokeWidth="10">
+    <svg ref={svg} width="100%" height="100%" viewBox={homeScene ? '0 55 368 500' : '0 0 368 838'} preserveAspectRatio={homeScene ? 'xMidYMid meet' : 'none'} aria-hidden={arrange ? undefined : 'true'} style={{ position: 'absolute', inset: 0, touchAction: arrange ? 'none' : undefined }}
+      className={arrange ? 'room-arranging' : undefined} onPointerMove={move} onPointerUp={drop} onPointerCancel={drop}>
+      {wall && <GarmentPattern outfit={wall} id={`wall${uid}`} />}{floor && <GarmentPattern outfit={floor} id={`floor${uid}`} />}
+      <rect x="0" y="0" width="368" height="430" fill={wall ? `url(#wall${uid})` : wallColor} />
+      {!wall && <g stroke="#C7DFF2" strokeWidth="10">
         <line x1="20" y1="0" x2="20" y2="430" /><line x1="60" y1="0" x2="60" y2="430" /><line x1="100" y1="0" x2="100" y2="430" />
         <line x1="268" y1="0" x2="268" y2="430" /><line x1="308" y1="0" x2="308" y2="430" /><line x1="348" y1="0" x2="348" y2="430" />
-      </g>
+      </g>}
       <rect x="114" y="150" width="140" height="190" rx="8" fill="#FFF6DD" stroke="#C9A982" strokeWidth="5" />
       <rect x="124" y="160" width="120" height="170" fill={time?.night ? '#344461' : '#D7ECF8'} />
       {time?.night ? <g><path d="M213 176 C192 172 183 201 207 208 C195 198 199 183 213 176Z" fill="#FFF3CC" /><path d="M142 179 v6 m-3 -3 h6 M226 212 v6 m-3 -3 h6 M163 216 v5 m-2.5 -2.5 h5" stroke="#FFF3CC" strokeWidth="1.5" /></g> : <g><circle cx="157" cy="190" r="17" fill="#FFF1B6" /><path d="M157 168 v-4 M157 212 v4 M135 190 h-4 M179 190 h4" stroke="#FFF1B6" strokeWidth="2" /></g>}
@@ -40,41 +61,47 @@ export function RoomBackdrop({ decor = {}, wallColor = '#D6EAF8', floorColor = '
       <rect x="282" y="372" width="74" height="58" rx="6" fill="#E9C9A0" stroke="#C49E73" strokeWidth="3" />
       <line x1="282" y1="400" x2="356" y2="400" stroke="#C49E73" strokeWidth="2.5" />
       <circle cx="319" cy="388" r="3" fill="#C49E73" /><circle cx="319" cy="414" r="3" fill="#C49E73" />
-      <rect x="0" y="430" width="368" height="408" fill={floorColor} />
-      <g stroke="#DDB98C" strokeWidth="2.5">
+      <rect x="0" y="430" width="368" height="408" fill={floor ? `url(#floor${uid})` : floorColor} />
+      {!floor && <g stroke="#DDB98C" strokeWidth="2.5">
         <line x1="0" y1="486" x2="368" y2="486" /><line x1="0" y1="560" x2="368" y2="560" /><line x1="0" y1="650" x2="368" y2="650" /><line x1="0" y1="750" x2="368" y2="750" />
         <line x1="120" y1="430" x2="120" y2="486" /><line x1="260" y1="486" x2="260" y2="560" /><line x1="80" y1="560" x2="80" y2="650" /><line x1="230" y1="650" x2="230" y2="750" />
-      </g>
+      </g>}
       <rect x="0" y="426" width="368" height="8" fill="#C9A982" />
       <ellipse cx="184" cy="482" rx="166" ry="50" fill="#FFF8EE" stroke="#EADFCB" strokeWidth="3" />
-      <HouseDecor equipped={decor} night={time?.night} />
+      <HouseDecor equipped={decor} night={time?.night} positions={shown} onGrab={arrange ? grab : undefined} />
       {time?.night && <rect width="368" height="838" fill="#344461" opacity=".09" />}
       {homeScene && time && <RoomTimeProps time={time} />}
     </svg>
   );
 }
 
-export default function Home({ game, day, petName = 'MOCHI', petColor, onQuest, onDiary, onGuestbook, onVisit, onSettings, onShop, outfit, decor, active, reactionId, onReactionConsumed, levelInfo }) {
+export default function Home({ game, day, petName = 'MOCHI', petColor, onQuest, onDiary, onGuestbook, onVisit, onSettings, onShop, outfit, decor, active, reactionId, onReactionConsumed, levelInfo, positions = {}, onMoveDecor }) {
   const lv = levelInfo ?? { level: levelFor(game.xp), xp_in_level: game.xp % 100, xp_for_level: 100 };   // 서버가 있으면 서버 레벨
   const now = useRoomNow();
   const time = roomTime(now);
   const [open, setOpen] = useState(false);
+  const [arranging, setArranging] = useState(false);   // 가구 배치 모드: 전등·액자·인형을 끌어서 옮긴다
+  const movable = MOVABLE_SLOTS.some(slot => decor?.[slot]);
   const drag = useRef(null);
   // 손잡이를 위로 밀면 열고 아래로 내리면 닫는다. 누르기(마우스·터치·키보드·화면 읽기 프로그램)는 click으로 열고 닫기
   const dragged = useRef(false);
   const dragStart = event => { drag.current = event.clientY; dragged.current = false; };
   const dragEnd = event => { if (drag.current === null) return; const moved = event.clientY - drag.current; drag.current = null; if (Math.abs(moved) > 24) { dragged.current = true; setOpen(moved < 0); } };
   const toggle = () => { if (dragged.current) { dragged.current = false; return; } setOpen(value => !value); };
-  const floor = time.night ? '#DBC1A2' : '#EBCDA6';
-  return <section className="home-screen is-sheet-layout" aria-label="내 집" style={{ '--home-floor': floor }}>
-    <div className="home-room has-daily-sentence" style={{backgroundColor:floor}}>
-      <div className="home-room-scenery"><RoomBackdrop decor={decor} homeScene now={now} /></div>
+  // 방 그림 바깥(화면이 길 때 남는 부분)도 고른 벽지·바닥 색으로
+  const floorItem = DECOR.find(item => item.id === decor?.floor), wallItem = DECOR.find(item => item.id === decor?.wallpaper);
+  const floor = floorItem?.color ?? (time.night ? '#DBC1A2' : '#EBCDA6');
+  return <section className="home-screen is-sheet-layout" aria-label="내 집" style={{ '--home-floor': floor, '--home-wall': wallItem?.color ?? '#D6EAF8' }}>
+    <div className={`home-room has-daily-sentence${arranging ? ' is-arranging' : ''}`} style={{backgroundColor:floor}}>
+      <div className="home-room-scenery"><RoomBackdrop decor={decor} homeScene now={now} positions={positions} arrange={arranging} onMoveEnd={onMoveDecor} /></div>
+      {arranging && <div className="arrange-bar" role="status"><span>전등·액자·인형을 끌어서 옮겨 보세요</span><button type="button" className="pb ui-primary" onClick={() => setArranging(false)}>완료</button></div>}
       <button type="button" className="pb home-settings" onClick={onSettings} aria-label="설정" title="설정"><GearIcon size={22} /></button>
       <time className="room-time-accessible" dateTime={now.toISOString()}>기기 현지 시간: {time.label}</time>
       <nav className="home-room-menus" aria-label="보조 메뉴">
         <button type="button" className="pb home-visit-button" onClick={onVisit} aria-label="이웃 방문과 방명록">
           <svg width="22" height="22" viewBox="0 0 24 24" aria-hidden="true"><path d="M3 11 L12 3 L21 11 M6 9 V21 H18 V9 M10 21 V14 H14 V21" fill="none" stroke="currentColor" strokeWidth="1.7" strokeLinejoin="round" /></svg>이웃 · 방명록
         </button>
+        {movable && onMoveDecor && <button type="button" className="pb home-arrange-button" aria-pressed={arranging} onClick={() => { setArranging(value => !value); setOpen(false); }}><span aria-hidden="true">🛋️</span>배치</button>}
         <button type="button" className="pb home-diary-button" onClick={onDiary}><svg width="22" height="22" viewBox="0 0 24 24" aria-hidden="true"><path d="M6 3 H20 V21 H6Z M3 6 H8 M3 11 H8 M3 16 H8 M11 8 H17 M11 12 H17" fill="var(--color-surface)" stroke="var(--color-primary)" strokeWidth="1.7" strokeLinejoin="round" /></svg>일기</button>
       </nav>
       <button type="button" className="pb home-friend-name" onClick={onSettings} aria-label={`${petName}, 이름 바꾸기`}>{petName}</button>

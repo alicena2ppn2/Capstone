@@ -20,6 +20,8 @@ export default function GarmentPattern({ outfit, id, elements }) {
     pinstripe: [6, 6, <Rect x="0" y="0" width="1.4" height="6" fill={ink} />],
     gingham: [10, 10, <><Rect x="0" y="0" width="5" height="10" fill={ink} opacity=".45" /><Rect x="0" y="0" width="10" height="5" fill={ink} opacity=".45" /></>],
     rainbow: [24, 24, <><Rect y="0" width="24" height="4" fill="#F7A8A8" /><Rect y="4" width="24" height="4" fill="#F9C98E" /><Rect y="8" width="24" height="4" fill="#F7E58E" /><Rect y="12" width="24" height="4" fill="#B6DFA3" /><Rect y="16" width="24" height="4" fill="#A8CFF2" /><Rect y="20" width="24" height="4" fill="#C9B4EC" /></>],
+    planks: [60, 18, <><Rect x="0" y="17" width="60" height="1.6" fill={ink} /><Rect x="28" y="0" width="1.6" height="18" fill={ink} opacity=".7" /></>],
+    checker: [24, 24, <><Rect x="0" y="0" width="12" height="12" fill={ink} /><Rect x="12" y="12" width="12" height="12" fill={ink} /></>],
     zigzag: [12, 8, <Path d="M0 6 L3 2 L6 6 L9 2 L12 6" fill="none" stroke={ink} strokeWidth="1.6" />],
     sprinkle: [14, 14, <><Rect x="2" y="3" width="4" height="1.6" rx=".8" fill={ink} transform="rotate(30 4 4)" /><Rect x="8" y="9" width="4" height="1.6" rx=".8" fill={alt} transform="rotate(-25 10 10)" /><Circle cx="11" cy="3" r="1.1" fill={alt} /><Circle cx="4" cy="11" r="1.1" fill={ink} /></>],
   };

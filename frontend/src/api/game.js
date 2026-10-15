@@ -8,6 +8,7 @@ export const homeOf = me => call(`/users/${u(me)}/home`);
 export const shopOf = me => call(`/users/${u(me)}/shop`);
 export const buyItem = (me, type, itemId) => call(`/users/${u(me)}/shop/buy`, { method: 'POST', body: { type, item_id: itemId } });
 export const equip = (me, change) => call(`/users/${u(me)}/equipped`, { method: 'PUT', body: change });   // { character_id } 또는 { outfit_id } (null = 벗기)
+export const moveDecor = (me, slot, { dx, dy }) => call(`/users/${u(me)}/decor/${slot}/position`, { method: 'PUT', body: { dx, dy } });
 export const placeDecor = (me, slot, itemId) => call(`/users/${u(me)}/decor`, { method: 'PUT', body: { slot, item_id: itemId } });
 export const attendanceWeek = me => call(`/users/${u(me)}/attendance/week`);
 export const checkIn = me => call(`/users/${u(me)}/attendance`, { method: 'POST' });
