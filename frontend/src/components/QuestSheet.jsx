@@ -30,7 +30,7 @@ export default function QuestSheet({ frame, trigger, title, children, onClose })
       if (scroll) scroll.style.overflow = overflow;
       document.body.style.overflow = bodyOverflow;
       document.removeEventListener('keydown', keydown, true);
-      if (trigger?.isConnected) trigger.focus();
+      if (trigger?.isConnected) trigger.focus({ preventScroll: true });
       else frame.querySelector('.quest-selection-heading')?.focus();
     };
   }, [frame, trigger, onClose]);
