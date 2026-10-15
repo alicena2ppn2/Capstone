@@ -78,18 +78,14 @@ def test_normal_and_low_show_nothing(client):
 
 
 def test_text_mission_is_screened(client):
-    for d in range(2, 29):
-        date = f"2026-11-{d:02d}"
-        # 글 미션(기록)은 '나간 날' 미션에 나오므로 전날 걸음을 넉넉히 올려 둔다
-        client.post("/users/u1/steps", json={"date": f"2026-11-{d - 1:02d}", "steps": 9000})
-        missions = client.get("/users/u1/missions/today", params={"date": date}).json()["missions"]
-        m = next((m for m in missions if m["kind"] == "text"), None)
-        if m:
-            r = client.post(f"/users/u1/missions/{m['id']}/complete", params={"date": date},
-                            json={"text": "다 포기하고 싶어", "answer": "x"}).json()
-            assert r["care"]["type"] == "check_in"
-            return
-    pytest.fail("글 미션이 나온 날이 없음")
+    # 10/15부터 매일 미션은 사진·걸음뿐이라 글 미션(기록)을 그날 미션으로 직접 넣고 확인 (글은 일기·소감에서도 확인)
+    from app import db
+    from app import missions as ms
+    from app.main import app
+    m = ms.CATALOG["good_moment"].to_dict()
+    db.save_mission_day(app.state.conn, "u1", {"date": DAY, "stayed_home": None, "missions": [m]})
+    r = client.post(f"/users/u1/missions/{m['id']}/complete", params={"date": DAY}, json={"text": "다 포기하고 싶어"}).json()
+    assert r["care"]["type"] == "check_in"
 
 
 def test_admin_signals_locked(client, monkeypatch):

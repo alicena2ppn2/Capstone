@@ -1,7 +1,7 @@
 """미션 새로고침, 스스로 체크(운동) 미션, 집 미션 정리."""
 
 from app import missions as ms
-from tests.test_api import client  # noqa: F401  (client는 fixture)
+from tests.test_api import client, submission_for  # noqa: F401  (client는 fixture)
 
 DAY = "2026-10-14"
 
@@ -41,7 +41,7 @@ def test_reroll_not_daily_or_done(client):
     assert client.post("/users/u1/missions/attendance/reroll", params={"date": DAY}).status_code == 422
     assert client.post("/users/u1/missions/nope/reroll", params={"date": DAY}).status_code == 404
     connect = next(m for m in rotating(out) if m["category"] == "connect")
-    client.post(f"/users/u1/missions/{connect['id']}/complete", params={"date": DAY}, json={"text": "인사했어요"})
+    client.post(f"/users/u1/missions/{connect['id']}/complete", params={"date": DAY}, json=submission_for(connect, client))
     assert client.post(f"/users/u1/missions/{connect['id']}/reroll", params={"date": DAY}).status_code == 409
     flags = {m["id"]: m["rerollable"] for m in today(client)["missions"]}
     assert flags["attendance"] is False and flags[connect["id"]] is False
@@ -56,12 +56,13 @@ def test_reroll_is_deterministic():
 
 
 def test_self_check_exercise_missions():
+    # 10/15: 걸음 말고는 모두 사진 → 운동도 운동한 자리 사진 (스스로 체크 종류 self는 남겨 둠)
     for mid in ("situps", "squats", "pushups", "plank", "stretch"):
         m = ms.CATALOG[mid]
-        assert (m.kind, m.category, m.coins, m.xp) == ("self", "home", ms.COINS_SELF, ms.XP_SELF)
-        assert ms.is_complete(m, {})
+        assert (m.kind, m.category, m.coins, m.xp) == ("photo", "home", ms.COINS_HOME, ms.XP_HOME)
+    assert ms.is_complete({"kind": "self", "min_count": 1}, {})
     run = ms.CATALOG["run_block"]
-    assert (run.kind, run.stage, run.min_count) == ("steps", 2, 2000)
+    assert (run.kind, run.stage) == ("photo", 2)
 
 
 def test_static_home_missions_removed():

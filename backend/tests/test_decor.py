@@ -10,8 +10,14 @@ def decor(view, item_id):
 
 def test_decor_catalog_matches_frontend():
     items = shop.CATALOG["decor"]
-    assert len(items) == 16
-    assert set(shop.DECOR_SLOTS) == {"lamp", "carpet", "frame", "doll", "scenery"}
+    assert len(items) == 26                                      # 10/15: 벽지 6 + 바닥 4 추가
+    assert set(shop.DECOR_SLOTS) == {"wallpaper", "floor", "lamp", "carpet", "frame", "doll", "scenery"}
+    # 앱 shared/data/decor.js와 같은 id·레벨·가격
+    import re
+    from pathlib import Path
+    front = Path(__file__).resolve().parents[2] / "shared" / "data" / "decor.js"
+    rows = re.findall(r"id: '([^']+)', name: '[^']+', slot: '([^']+)', level: (\d+), price: (\d+)", front.read_text(encoding="utf-8"))
+    assert {i: (s, int(lv), int(pr)) for i, s, lv, pr in rows} == {k: (v["slot"], v["level"], v["price"]) for k, v in items.items()}
     assert (items["lamp-moon"]["level"], items["lamp-moon"]["price"]) == (1, 90)
     assert (items["view-newyork"]["level"], items["view-newyork"]["price"]) == (12, 520)
     assert sum(1 for i in items.values() if i["slot"] == "scenery") == 8
@@ -75,3 +81,23 @@ def test_delete_account_clears_decor(client):
     client.put(f"/users/{me['id']}/decor", json={"slot": "carpet", "item_id": "carpet-peach"})
     client.delete(f"/users/{me['id']}")
     assert client.get(f"/users/{me['id']}/room").json()["decor"]["carpet"] is None
+
+
+
+def test_wallpaper_floor_and_moving_decor(client):
+    from tests.test_shop import give
+    give(client, "u1", coins=2000, xp=5000)
+    for item in ("wall-mint-stripe", "floor-walnut", "lamp-moon"):
+        assert client.post("/users/u1/shop/buy", json={"type": "decor", "item_id": item}).status_code == 200
+    for slot, item in (("wallpaper", "wall-mint-stripe"), ("floor", "floor-walnut"), ("lamp", "lamp-moon")):
+        assert client.put("/users/u1/decor", json={"slot": slot, "item_id": item}).status_code == 200
+    room = client.get("/users/u1/room").json()
+    assert (room["decor"]["wallpaper"], room["decor"]["floor"], room["positions"]) == ("wall-mint-stripe", "floor-walnut", {})
+    r = client.put("/users/u1/decor/lamp/position", json={"dx": 40.04, "dy": -12})
+    assert r.status_code == 200 and r.json()["positions"] == {"lamp": {"dx": 40.0, "dy": -12.0}}
+    assert client.get("/users/u1/room").json()["positions"]["lamp"] == {"dx": 40.0, "dy": -12.0}   # 이웃도 같은 자리로 봄
+    assert client.put("/users/u1/decor/carpet/position", json={"dx": 1, "dy": 1}).status_code == 422   # 카페트는 고정
+    assert client.put("/users/u1/decor/doll/position", json={"dx": 1, "dy": 1}).status_code == 404     # 놓인 인형 없음
+    assert client.put("/users/u1/decor/lamp/position", json={"dx": 999, "dy": 0}).status_code == 422   # 방 밖
+    client.put("/users/u1/decor", json={"slot": "lamp", "item_id": None})
+    assert client.get("/users/u1/room").json()["positions"] == {}

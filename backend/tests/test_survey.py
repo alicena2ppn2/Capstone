@@ -3,6 +3,7 @@ from fastapi.testclient import TestClient
 
 from app import missions as ms
 from app import survey as sv
+from tests.test_api import submission_for
 
 DAY = "2026-10-14"
 
@@ -11,7 +12,9 @@ DAY = "2026-10-14"
 def client(tmp_path, monkeypatch):
     monkeypatch.setenv("CAPSTONE_DB", str(tmp_path / "test.db"))
     monkeypatch.setenv("CAPSTONE_UPLOADS", str(tmp_path / "uploads"))
+    from app import main
     from app.main import app
+    monkeypatch.setattr(main, "ALLOW_PHOTO_WITHOUT_TAKEN_AT", True)   # 테스트 사진엔 촬영 일시가 없음
     with TestClient(app) as c:
         yield c
 
@@ -100,7 +103,7 @@ def test_ladder_stage_up_through_api(client):
         connect = next(m for m in out["missions"] if m["category"] == "connect")
         assert connect["stage"] == 1
         r = client.post(f"/users/{uid}/missions/{connect['id']}/complete", params={"date": date},
-                        json={"text": "방명록에 고양이 이야기가 좋았어요"}).json()
+                        json=submission_for(connect, client, uid)).json()
         ups = r["stage_up"]
         d += 1
     assert d - 1 == ms.STAGE_UP_COUNT and ups == ["connect"]
