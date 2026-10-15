@@ -1021,3 +1021,6 @@ button.pb, .ui-disclosure > summary { font-weight: 500; }
 .diary-emotions legend { white-space: nowrap; }
 .diary-emotions legend small { display: inline; margin-left: 4px; }
 .diary-entry textarea#diary-text { min-height: 130px; height: 130px; }
+/* 키 큰 휴대폰: 캐릭터·오늘의 문구를 --room-drop(남는 높이의 3/4, Home.jsx가 계산)만큼 내린다. 바닥 그림은 방 아래로 이어서 보이게 */
+.home-screen.is-sheet-layout :is(.home-character, .home-identity) { translate: 0 var(--room-drop, 0px); }
+.home-screen.is-sheet-layout .home-room-scenery svg { overflow: visible; }
