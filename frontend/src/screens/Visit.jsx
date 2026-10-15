@@ -1,14 +1,14 @@
-import useBriefFeedback from '../utils/useBriefFeedback.js';
+import useBriefFeedback from '../../../shared/hooks/useBriefFeedback.js';
 import ScreenHeader from '../components/ScreenHeader.jsx';
 import { useEffect, useState } from 'react';
 import Mochi from '../components/Mochi.jsx';
-import { USERS, dailyVisitors, VISITOR_NOTES } from '../utils/visitors.js';
-import { CLOTHES } from '../utils/clothes.js';
+import { USERS, dailyVisitors, VISITOR_NOTES } from '../../../shared/features/visitors.js';
+import { CLOTHES } from '../../../shared/data/clothes.js';
 import { RoomBackdrop } from './Home.jsx';
-import { seoulDateKey } from '../utils/seoulDate.js';
-import { initialConnections, visitNeighbor, favoriteNeighbor, isSampleNote } from '../utils/neighbors.js';
+import { seoulDateKey } from '../../../shared/utils/seoulDate.js';
+import { initialConnections, visitNeighbor, favoriteNeighbor, isSampleNote } from '../../../shared/features/neighbors.js';
 import { useGuestModeration, SafetyPanel, ModerationActions, writingMessage } from '../components/GuestbookSafety.jsx';
-import { SELF_AUTHOR, visibleNote, violation, suspensionUntil } from '../utils/guestModeration.js';
+import { SELF_AUTHOR, visibleNote, violation, suspensionUntil } from '../../../shared/features/guestModeration.js';
 
 function loadNotes() {
   try {

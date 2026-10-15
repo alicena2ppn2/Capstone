@@ -1,3 +1,4 @@
+import { Platform } from 'react-native';
 import Svg, { G, Path, Ellipse, Circle, Rect, Line, Defs, ClipPath, Text as SvgText } from 'react-native-svg';
 import { useId } from 'react';
 import useFriendReaction from './useFriendReaction.js';
@@ -11,7 +12,7 @@ export default function MochiFriends({ variant, width, height, full, asleep, lab
   const turtle = variant === 'mint';
   const body = bunny ? '#FFE4D9' : sheep ? '#F3EDFF' : turtle ? '#D9EDBC' : '#D9EAF5';
   const line = bunny ? '#BE958D' : sheep ? '#A79BBE' : turtle ? '#88A17B' : '#8FA9BC';
-  const a11y = { accessible: false };
+  const a11y = Platform.OS === 'web' ? { 'aria-hidden': true } : { accessible: false };
   const motif = outfit?.motif;
   const bodyClip = useId();
   const torso = turtle ? 'M73 123 Q57 143 65 165 Q100 190 135 165 Q143 143 127 123Z' : variant === 'sky' ? 'M71 116 Q56 140 62 170 Q66 190 100 192 Q134 190 138 170 Q144 140 129 116Z' : 'M72 120 Q58 140 65 171 Q69 189 100 187 Q131 189 135 171 Q142 140 128 120Z';

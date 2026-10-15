@@ -4,10 +4,10 @@ import Svg, { G, Path, Ellipse, Circle, Defs, ClipPath } from 'react-native-svg'
 import { router } from 'expo-router';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { useFonts } from 'expo-font';
-import { Button, Card, Label, styles, FontReadyContext } from '../ui';
+import { Button, Card, Label, styles, FontReadyContext } from '../components/ui';
 import RoomBackdrop from '../art/RoomBackdrop';
-import Drawing from '../../../frontend/src/components/IdentityReviewDrawing.jsx';
-import { IDENTITY_FRIENDS, IDENTITY_PLANS, IDENTITY_NOTES } from '../../../frontend/src/utils/identityReview.js';
+import Drawing from '../../../shared/art/IdentityReviewDrawing.jsx';
+import { IDENTITY_FRIENDS, IDENTITY_PLANS, IDENTITY_NOTES } from '../../../shared/data/identityReview.js';
 function Art({ friend, plan, size }) {
   return <Svg width={size} height={size * 1.05} viewBox="0 0 200 210" preserveAspectRatio="xMidYMid meet" accessibilityLabel={`${friend.name} ${plan}안`}><Drawing variant={friend.id} revision={plan} elements={{ G, Path, Ellipse, Circle, Defs, ClipPath }} /></Svg>;
 }

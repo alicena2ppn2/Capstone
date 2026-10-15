@@ -1,16 +1,16 @@
-import { BASIC_FRIEND_DRAFTS } from '../../../frontend/src/utils/characterExpansion.js';
+import { BASIC_FRIEND_DRAFTS } from '../../../shared/data/characterExpansion.js';
 import React, { useState } from 'react';
-import { CLOTHES } from '../../../frontend/src/utils/clothes.js';
-import Baseline from '../../../frontend/src/components/PrototypeFriendBaseline.jsx';
+import { CLOTHES } from '../../../shared/data/clothes.js';
+import Baseline from '../../../shared/art/PrototypeFriendBaseline.jsx';
 import Svg, { G, Path, Ellipse, Circle } from 'react-native-svg';
 import { ScrollView, View } from 'react-native';
 import { router } from 'expo-router';
 import { SafeAreaView } from 'react-native-safe-area-context';
-import { Button, Card, Label, styles, FontReadyContext } from '../ui';
+import { Button, Card, Label, styles, FontReadyContext } from '../components/ui';
 import { useFonts } from 'expo-font';
-import Character from '../Character';
+import Character from '../components/Character';
 import RoomBackdrop from '../art/RoomBackdrop';
-import { PROTOTYPE_FRIENDS } from '../../../frontend/src/utils/prototypeFriends.js';
+import { PROTOTYPE_FRIENDS } from '../../../shared/data/prototypeFriends.js';
 const FRIENDS = [{ id: 'mochi', name: '구름 모찌' }, { id: 'lavender', name: '달빛 양 모찌' }, ...PROTOTYPE_FRIENDS, ...BASIC_FRIEND_DRAFTS];
 export default function FriendPreview() {
   const [outfitId, setOutfitId] = useState('');

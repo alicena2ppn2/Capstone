@@ -1,6 +1,6 @@
 import { useCallback, useEffect, useState } from 'react';
 import QuestSheet from './QuestSheet.jsx';
-import { MODERATION_KEY, SELF_AUTHOR, REPORT_REASONS, restoreModeration, reportNote, blockAuthor, noteKey, suspensionUntil, writingError } from '../utils/guestModeration.js';
+import { MODERATION_KEY, SELF_AUTHOR, REPORT_REASONS, restoreModeration, reportNote, blockAuthor, noteKey, suspensionUntil, writingError } from '../../../shared/features/guestModeration.js';
 
 function load() { return restoreModeration(JSON.parse(localStorage.getItem(MODERATION_KEY) ?? 'null')); }
 export function useGuestModeration() {
@@ -29,14 +29,14 @@ export function useGuestModeration() {
   return { state, now, message, setMessage, report, block, validate };
 }
 export const writingMessage = error => error === 'suspended' ? '7일 작성 제한 중이라 방명록을 남길 수 없어요.' : error === 'storage' ? '안전 설정을 확인하지 못했어요. 브라우저 저장소를 확인해 주세요.' : '혐오 표현이나 욕설 없이 다시 적어 주세요.';
-export function SafetyPanel({ safety }) {
+export function SafetyPanel({ safety, showBlockedAuthors = false }) {
   const until = suspensionUntil(safety.state, SELF_AUTHOR, safety.now);
   return <section className="guest-safety" aria-label="방명록 안전 설정">
     <p>혐오·욕설 필터가 적용돼요. 신고된 글에서 혐오·욕설이 확인되면 글 삭제 및 작성 7일 제한.</p>
     <small>현재는 이 브라우저의 목업에만 적용돼요. 실제 사용자 신고 접수·제재는 서버 연결 전이에요.</small>
     {until && <p role="alert">방명록 작성이 제한되어 있어요. 해제: {new Intl.DateTimeFormat('ko-KR', { timeZone: 'Asia/Seoul', dateStyle: 'short', timeStyle: 'short' }).format(until)}</p>}
     <p role="status">{safety.message}</p>
-    <details className="ui-disclosure"><summary>차단한 작성자 {Object.keys(safety.state.blocked).length}명</summary>{Object.entries(safety.state.blocked).map(([id, entry]) => <div className="guest-blocked" key={id}><span>{entry.name}</span><button className="pb" type="button" onClick={() => safety.block(id, false)}>차단 해제</button></div>)}{!Object.keys(safety.state.blocked).length && <p>차단한 작성자가 없어요.</p>}</details>
+    {showBlockedAuthors && <details className="ui-disclosure"><summary>차단한 작성자 {Object.keys(safety.state.blocked).length}명</summary>{Object.entries(safety.state.blocked).map(([id, entry]) => <div className="guest-blocked" key={id}><span>{entry.name}</span><button className="pb" type="button" onClick={() => safety.block(id, false)}>차단 해제</button></div>)}{!Object.keys(safety.state.blocked).length && <p>차단한 작성자가 없어요.</p>}</details>}
   </section>;
 }
 export function ModerationActions({ entry, scope, safety, onRemove }) {

@@ -1,4 +1,4 @@
-import PrototypeFriendDrawing from './FinalPrototypeFriendDrawing.jsx';
+import PrototypeFriendDrawing from '../../../shared/art/FinalPrototypeFriendDrawing.jsx';
 import useFriendReaction from './useFriendReaction.js';
 import FriendEffects from './FriendEffects.jsx';
 export default function PrototypeFriends({ variant, width, height, label, outfit, interactive, active, reactionId, onReactionConsumed }) {

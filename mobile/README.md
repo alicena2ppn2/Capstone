@@ -1,8 +1,48 @@
 # 모찌와 친구들 — React Native
 
-최종 수정: 2026-10-09.
+## 리팩토링 마무리 검증 (2026-10-15)
 
-현재 모바일 프론트는 Expo SDK 57, React Native 0.86.3, React 19.2.3이다. `View`, `Text`, `Pressable`, `TextInput`, `ScrollView`, `Modal`과 StyleSheet로 화면을 구현한다. WebView로 Vite 화면을 감싼 앱이 아니다. 기존 웹은 `../frontend`에 보존하며, 게임 데이터/계산은 `../frontend/src/utils`를 공유한다.
+전체 테스트 122개 통과. 사진 완료 경로와 부담 응답의 현재 규칙에 맞춰 오래된 테스트를 강화했다. SVG는 웹 aria-hidden / 네이티브 accessible로 장식 숨김 의미를 유지하고 도형·모션은 보존한다. Expo 웹 콘솔 오류 0개와 기존 이동·저장·구매 흐름 확인. 실서버 인증·iPhone/Android 실기기·카메라·실제 키보드는 미검증이다. 자세한 이유·명령·공유 경계는 구조 문서에 기록한다.
+
+## 현재 소스 구조 (2026-10-15)
+
+모바일 진입점은 `expo-router/entry` → `src/app/_layout.jsx`이다. `src/app`은 기존 경로·레이아웃·인증 복귀/개발 미리보기 라우트만 유지하고, 내부 화면 전환은 GameApp에서 기존 방식대로 연결한다.
+
+- `mobile/src/GameApp.jsx`: 화면 연결과 게임 동작 전달.
+- `mobile/src/hooks/useGameState.js`: 한 곳에서 저장 복원·저장 큐·서울 날짜 갱신·출석 연출·축하 이벤트 관찰.
+- `mobile/src/screens/home`, `screens/quests`, `screens/login`: 화면별 UI와 전용 컴포넌트/스타일. 작은 나머지 화면은 `screens/*.jsx` 유지.
+- `mobile/src/components`: 공통 UI·아이콘·캐릭터 렌더러·하단바·보상 표시. `src/art`는 네이티브 SVG/모션 어댑터.
+- `mobile/src/auth`: Supabase native/Android 어댑터·세션 훅·AuthGate·닉네임 입력. `src/api/client.js`: EXPO_PUBLIC_API_URL 주입.
+- `mobile/src/storage/storage.js`: AsyncStorage/웹 백업 호환. 기존 저장 키와 형식 유지.
+- 루트 `shared/features`: 순수 미션·배정·교체·보상·상점·일기 규칙. `shared/data`: 캐릭터/미션/의상/가구/소개/문장 콘텐츠.
+- `shared/utils`: 날짜·시간·색 표시 함수. `shared/theme`: 색/타이포/아이콘 값. `shared/api`·`shared/auth`: 플랫폼 독립 HTTP/인증 계정 연결.
+- `shared/art`·`shared/hooks`·`shared/auth/AuthContext.js`: React를 사용하는 공유 렌더링/훅/컨텍스트 경계이며 순수 게임 규칙과 분리. SVG 태그를 웹/네이티브에서 주입한다.
+
+모바일은 이제 frontend/src를 직접 import하지 않는다. Metro는 shared만 감시하며 React를 모바일의 설치본으로 해석한다. Vite도 자신의 React를 사용한다. 실제 웹 UI·IndexedDB 사진 저장과 모바일 AsyncStorage·SecureStore·카메라·OAuth는 각각 유지한다. 모노레포 패키지 설치/의존성 변경 없이 상대 경로를 사용한다.
+
+자세한 변경 전후 구조와 검증/남은 문제는 [구조 문서](../mobile/ARCHITECTURE.md)를 참고한다.
+
+최종 수정: 2026-10-15.
+
+현재 모바일 프론트는 Expo SDK 57, React Native 0.86.3, React 19.2.3이다. `View`, `Text`, `Pressable`, `TextInput`, `ScrollView`, `Modal`과 StyleSheet로 화면을 구현한다. WebView로 Vite 화면을 감싼 앱이 아니다. 기존 웹은 `../frontend`에 보존하며, 게임 데이터/계산은 루트 `shared/`를 공유한다.
+
+## 현재 백엔드 로그인 연결
+
+모바일 Supabase getSession은 검증된 user.id와 실제 access_token을 반환한다. POST /auth/supabase에 조회{}·등록{nickname}을 보내고 알려진 신규회원404만 닉네임 입력으로 전환한다. 성공한 backendUserId는 Supabase ID와 분리해 메모리에 저장하며 requestUser가 서버ID·현재 토큰을 사용한다. 연결 실패/닉네임 오류/재시도/복원/중복콜백/로그아웃·계정전환을 처리한다. 연결 성공 전 홈에 들어가지 않으며 토큰 추가 저장·로컬 기록 자동 병합은 없다.
+
+현재 실제 서버 주소가 미설정이고 체크아웃의 backend에는 해당API가 없다. 원격 backend-onboarding-survey의 계약으로 코드와 모의 검증을 진행했다. Vite 웹 소셜 인증은 기존처럼 미연결이며 공유 연결 구조/UI만 준비했다. [설정·검증·재개 문서](AUTH_BACKEND_SETUP.md)에서 EXPO_PUBLIC_API_URL/백엔드 배포와 실기기 확인 항목을 본다.
+
+## 현재 퀘스트 추천과 수행 안내
+
+고정 출석/일기/방명록3개와 변동 활동3개를 유지한다. 세 가지 선택 질문은 건너뛸 수 있고 설정·기록/취향에서 같은 선호를 수정한다. 기존 preferences에 missions를 추가해 음악/음식과 자산을 보존한다. 익숙한 활동을 우선하며 정보가 없으면 기본 후보라고 안내한다. 같은 날짜 목록은 그대로, 제외 조건은 다음 배정과 명시적 교체에 반영한다. 같은 의미 그룹은 하루 중복하지 않으며 날짜 간 반복을 허용한다.
+
+미션 카드의 제목과 짧은 설명으로 행동·완료 기준을 안내한다. 방법 보기와 단계 나열/수행 수준 선택 UI는 제거했다. 기존 missionModes는 보존하고 진행 중/이미 선택한 조건은 criterion으로 고정한다. 신규 시작은 현재 짧은 조건을 기록한다. 사진·공통 일기·기존 걷기 목표 입력을 유지하며 활동 변경은 다른 활동으로로 통일한다. 완료 후 선택 피드백은 보상 조건이 아니고 자동 난도 상승에 사용하지 않는다. 방명록이 현실 교류 추천을 자동 변경하지 않는다. 실제 게임 서버 연결은 아직 없으며 보상/레벨/서버 확인 차이는 [협의 문서](../frontend/QUEST_BACKEND_AGREEMENT.md)를 따른다.
+
+검증용: mobile에서 npm test / npm run typecheck / npm run lint, 웹에서 npm run build. 웹 임시 Edge 검증은 frontend/scripts/check-mission-guidance.mjs를 사용하며 사용자 저장소를 사용하지 않는다.
+
+현재 교체: 카드 ‘다른 활동으로’ → 조건에 맞는 후보 확인 → 확정. 날짜별 passed/기존 replacements로 넘긴 활동을 모든 슬롯에서 기억한다. 비슷한 부담을 우선하며 자동 확대하지 않는다. 소진 시 기존 활동을 유지하고 명시적인 ‘살펴본 활동 다시 보기’에서만 지난 후보를 재검토한다. 다시 보기에서도 사용자 조건·오늘 완료·슬롯 중복 제한을 지킨다. 이미 저장된 작은 대안/확장 선택은 읽기 전용으로 보존하며 새 수행 수준 선택은 제공하지 않는다. 현재24개 후보/보상 슬롯만 사용한다.
+
+제한 예: 1분짜리 가장 작은 활동에서 교체하면 effort0/1분 이내 후보만 남는다. 이동·연락·사진 등을 제외하고 다른 슬롯/오늘 완료/넘긴 그룹까지 제외하면 후보가 없을 수 있다. 조건을 몰래 완화하거나 후보를 추가하지 않는다. 일자별 기록은 새 날짜에 가져오지 않지만 과거 이력은 보존한다.
 
 ## 색상과 공통 UI
 
@@ -80,7 +120,7 @@ npm.cmd run export
 
 서버 실제 계정·동기화·보상 권한·일기 삭제·주제 교체·인증·신고/차단·계정 삭제·알림·배포·스토어 제출은 별도 연결 필요. backend/는 이번 작업에서 읽기만 했다. 가격/XP/교체 정책의 충돌은 명세서의 현재 프론트/서버/추천안을 기준으로 팀과 결정한다.
 
-코드: GameApp.jsx 상태·저장·날짜·연결, screens 네이티브 UI, ui.jsx 공통 규칙, storage.js 백업/복원, actions.js 의상·반응, frontend/src/utils/dailyMissions.js 공유6개 미션/원장. 폰트/라이선스 [FONT_LICENSE.md](../frontend/FONT_LICENSE.md).
+코드: GameApp.jsx 화면 연결, hooks/useGameState.js 상태·저장·날짜, screens 네이티브 UI, components/ui.jsx 공통 규칙, storage/storage.js 백업/복원, shared/features/wardrobeActions.js 의상·반응, shared/features/dailyMissions.js 공유6개 미션/원장. 폰트/라이선스 [FONT_LICENSE.md](../frontend/FONT_LICENSE.md).
 
 ## 캐릭터 확장 · 총20종 목표
 전체 목표20종 중12종을 실제 상점에서 제공한다. 나머지8종은 제안만이며 상품으로 등록하지 않는다. 상세는 아래 최종6종 설명과 [구성안](../frontend/CHARACTER_EXPANSION.md)을 참고한다.
@@ -191,3 +231,29 @@ Android development EAS 빌드: https://expo.dev/accounts/sungshin/projects/caps
 ### 현재 모바일 인증·사진 미션 (2026-10-12)
 mobile Google 인증은 Supabase 브라우저 OAuth/PKCE로 전환했다. Firebase 로컬 의존성·플러그인만 제거했고 원격 Firebase·Google 프로젝트와 서명 키는 유지한다. URL/publishable key는 EXPO_PUBLIC 환경 변수, 세션은 SecureStore이며 게임 AsyncStorage는 그대로다. 카카오/Apple와 게임 서버 동기화는 미연결. iOS 빌드 준비·현재 진행·사용자 직접 조작·재개 명령은 [SUPABASE_IOS_SETUP.md](../mobile/SUPABASE_IOS_SETUP.md)에 기록한다.
 음악/볼륨 UI 제거, 사진 선택·촬영 미션과 일기 사진첩, 퀘스트/홈/상점 하단바, 간결한 6개 완료 요약을 웹·모바일에 적용했다. 웹 IndexedDB/앱 document 파일 + 기존 게임 metadata 저장; 사진 원본은 JSON 백업으로 타 기기에 전송되지 않는다. 기존 자산/기록 보존. Edge 작은 화면/저장 실패 재시도/앨범 복원 검증 및 웹 build·Android export 통과. 실제 카메라/권한은 미확인.
+
+### 2026-10-14 홈 문장 표시
+
+캐릭터 이름은 방 상단에, 날짜별 공통 문장은 캐릭터 아래 가로로 긴 말풍선에 표시한다. 웹·모바일 문장 글씨는 13px, 세로 여백은 7px로 간결하게 조정했다. 날짜 선정과 보상·저장 규칙은 변경하지 않는다.
+
+### 2026-10-14 변경 이력
+
+퀘스트 콘텐츠와 선택 질문3개, 익숙한 활동 우선 추천, 방법 보기/대안/명시적 확장, 기록 출처 구분을 반영. 보상/레벨/캐릭터 조건은 유지.
+
+이번 퀘스트 검증(2026-10-14): 관련 전체 테스트71개, 추가 추천/방법 테스트8개, 웹 build, 모바일 typecheck/lint, iOS 로컬 export 통과. 별도 Edge에서360/390/430px 목록·방법 보기, 짧은 높이, 질문 건너뛰기/선호 저장, 연락 예시, 가벼운 방법 기록, 연속 클릭1회 지급, 새로고침/오늘 목록 유지 확인. 실기기 iPhone/Android의 키보드·접근성 확대·안전 영역과 실제 게임 서버 연동은 미확인. 화면 캡처는 artifacts/ui-review/mission-guidance-list-*.png 및 mission-guidance-method-*.png.
+
+### 2026-10-14 교체 기능 변경 이력
+
+후보 미리보기/날짜별 넘김 이력/명시적 다시 보기/가벼운 대안 반복 방지. 전체80테스트(교체9 포함), 웹 build, 모바일 typecheck/lint 통과. 별도 Edge360/390/430px에서 소진/이력 복원/다시 보기/저장 실패 재시도/서울 자정/중복 보상 확인. 실기기 iPhone·Android 화면은 미확인.
+
+### 2026-10-14 간결한 퀘스트 카드
+
+웹/모바일 방법 보기 및 수행 수준 UI 제거, 짧은 행동·완료 문구와 교류 예시 적용. 과거 조건/모드 및 자산을 보존하며 명시적 교체·입력·완료·피드백은 유지.
+
+카드 UI 검증(2026-10-14): 전체85테스트(기존 조건 보존/신규 시작 조건 고정5개 포함), 웹 build, 모바일 typecheck/lint와 iOS 로컬 export 통과. 별도 Edge360/390/430px·짧은 화면에서 방법/수준 버튼 없음, 카드 문구·대화 예시, 이전 light 조건, 재접속·연속 완료1회 지급, 교체 소진/명시적 다시 보기/저장 실패 재시도/서울 자정 확인. 실기기 iPhone/Android의 실제 화면·카메라·키보드는 이번 실행에서 미확인. 캡처: artifacts/ui-review/quest-compact-cards-*.png.
+
+### 2026-10-14 인증 연결 변경 이력
+
+Supabase 토큰 반환, 서버 계정 연결과 닉네임 UI, 계정별ID/지연응답 보호 구현. Android 이전어댑터 백업·Supabase공유. 기존 게임/화면/미션 작업을 보존하고 서버는 수정하지 않음.
+
+이번 인증 검증(2026-10-14): 전체101테스트(인증 연결14·SDK 세션10 포함), 웹 build, 모바일 typecheck/lint 및 iOS/Android/Expo Web 로컬 export 통과. 별도 Edge에서 모의 응답으로 기존회원/신규 닉네임/409입력 유지/연속 제출1회/네트워크 오류·재시도/로그아웃/별도ID와 로컬 기록 보존,360/390/430px 화면 확인. 실제 Google 인증·실제 서버 POST·실기기 로그인은 서버 주소 미설정으로 확인하지 않았다. 모의 캡처는 artifacts/ui-review/auth-nickname-mock-*.png 및 auth-backend-error-mock-430.png이다.

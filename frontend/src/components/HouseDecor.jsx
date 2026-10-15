@@ -1,4 +1,4 @@
-import { DECOR } from '../utils/decor.js';
+import { DECOR } from '../../../shared/data/decor.js';
 
 export function Scenery({ item, night: roomNight }) {
   const kind = item?.landscape ?? 'coast';

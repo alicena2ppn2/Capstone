@@ -1,5 +1,5 @@
 import RoomTimeProps from './RoomTimeProps.jsx';
-import { roomTime } from '../../../frontend/src/utils/roomTime.js';
+import { roomTime } from '../../../shared/utils/roomTime.js';
 import Svg, { G, Path, Ellipse, Circle, Rect, Line, Defs, ClipPath, Text as SvgText } from 'react-native-svg';
 import HouseDecor from './HouseDecor.jsx';
 export default function RoomBackdrop({ decor = {}, wallColor = '#D6EAF8', floorColor = '#EBCDA6', homeScene = false, now }) {
