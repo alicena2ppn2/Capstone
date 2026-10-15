@@ -45,7 +45,8 @@ export default function Shop({ game, level, onBuyCharacter, onEquipCharacter, on
           const locked = !has && level < (item.level ?? 1);
           const insufficient = !has && coins < item.price;
           return (
-            <article className={`shop-item${preview === item.id ? ' is-preview' : ''}`} key={item.id}>
+            <article className={`shop-item${preview === item.id ? ' is-preview' : ''}${locked ? ' is-locked' : ''}`} key={item.id}>
+              {locked && <span className="shop-lock-badge">LV.{item.level ?? 1}</span>}
               <button type="button" className="pb shop-item-preview" aria-label={`${item.name} 미리보기`} aria-pressed={preview === item.id} onClick={() => setPreview(item.id)}>
                 <span className="shop-item-art" style={{ background: `${item.color}55` }}><Mochi color={petColor} width={110} height={104} full outfit={item} /></span>
                 <strong>{item.name}</strong>
@@ -55,7 +56,7 @@ export default function Shop({ game, level, onBuyCharacter, onEquipCharacter, on
                 setPreview(item.id);
                 if (has) { onWear(item.id); setMessage(`${item.name}을 입었어요!`); }
                 else if (onBuy(item)) { setMessage(`${item.name} 구매 완료! 옷장에서 입어보세요.`); }
-              }}>{locked ? `LV.${item.level} 해금` : wearing ? '착용 중 ✓' : has ? '입기' : insufficient ? '코인이 부족해요' : '구매하기'}</button>
+              }}>{locked ? `LV.${item.level} 해금` : wearing ? '착용 중 ✓' : has ? '입기' : insufficient ? `${(item.price - coins).toLocaleString('ko-KR')}코인 더 필요` : `${item.price} 코인에 사기`}</button>
             </article>
           );
         })}

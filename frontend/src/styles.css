@@ -799,3 +799,18 @@ button.pb, .ui-disclosure > summary { font-weight: 500; }
 .neighbors-screen .visit-like { min-height: 36px; padding: 4px 12px; border: 1px solid var(--color-border); border-radius: 18px; background: var(--color-surface); color: var(--color-ink); font-size: 13px; }
 .neighbors-screen .visit-like[aria-pressed=true] { border-color: #F2B69D; background: #FDEDE6; color: #B4553A; }
 .neighbors-screen .guest-safety-actions { display: flex; align-items: center; justify-content: flex-end; gap: 8px; flex-wrap: wrap; }
+
+/* 상점: 휴대폰에서도 2열 카드 (방 꾸미기 게임 상점처럼 한 화면에 여러 상품), 잠긴 상품은 흐리게 + LV 배지 */
+.shop-screen { container-type: inline-size; }
+.app .phone-shell .shop-screen .shop-grid, .shop-screen .shop-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 10px; }
+@container (max-width: 300px) { .app .phone-shell .shop-screen .shop-grid, .shop-screen .shop-grid { grid-template-columns: minmax(0, 1fr); } }
+
+.shop-screen .shop-item { position: relative; padding: 10px; gap: 6px; text-align: center; }
+.shop-screen .shop-item .shop-item-art svg, .shop-screen .shop-item-art > svg { max-width: 96px; height: auto; }
+.shop-screen .shop-item strong, .shop-screen .shop-item .character-name { font-size: 14px; }
+.shop-screen .shop-item .character-personality { font-size: 12px; color: var(--color-muted); line-height: 1.4; }
+.shop-screen .shop-item .ui-disclosure summary { font-size: 12px; min-height: 36px; }
+.shop-screen .shop-item .shop-buy, .shop-screen .shop-item .ui-secondary { width: 100%; min-height: 40px; padding: 6px 8px; font-size: 13px; }
+.shop-screen .shop-price { font-size: 12px; }
+.shop-item.is-locked .shop-item-art, .shop-item.is-locked .decor-item-icon, .shop-item.is-locked .scenery-thumb { filter: grayscale(.6); opacity: .65; }
+.shop-lock-badge { position: absolute; top: 8px; right: 8px; z-index: 1; padding: 2px 8px; border-radius: 10px; background: var(--color-ink); color: var(--color-surface); font-size: 11px; font-weight: 600; }
