@@ -5,6 +5,7 @@ import { useState } from 'react';
 import Mochi from '../components/Mochi.jsx';
 
 import BackupExport from '../components/BackupExport.jsx';
+import ProfileCard from '../components/ProfileCard.jsx';
 
 export default function Settings({ petColor, petName, onPetName, onBack, preferences, onPreferences }) {
   const auth = useAuthActions();
@@ -33,6 +34,7 @@ export default function Settings({ petColor, petName, onPetName, onBack, prefere
         <h2 className="jua">나에게 맞는 모찌 생활</h2>
         <p>편안하게, 내 취향대로 바꿔보세요.</p>
       </div>
+      <ProfileCard />
       <form className="settings-card" onSubmit={(event) => {
         event.preventDefault();
         const name = nameDraft.trim();

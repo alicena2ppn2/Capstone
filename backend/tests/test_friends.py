@@ -138,9 +138,28 @@ def test_both_sides_add_up_with_visits(client):
     assert (r["points"], r["level"]) == (4, 2)
 
 
-def test_not_friends_no_friendship(client):
+def test_not_friends_grow_friendship_without_coins(client):
+    """10/15: 친구가 아니어도 서로 교류하면 친밀도가 쌓인다. 레벨업 코인은 친구 사이만."""
     a, b = signup(client, "모르는"), signup(client, "사이임")
-    assert write(client, a["id"], b["id"], "2026-10-01") is None
+    for d in ("2026-10-01", "2026-10-02"):
+        bond = write(client, a["id"], b["id"], d)
+    assert (bond["points"], bond["level"], bond["is_friend"], bond["earned_coins"]) == (4, 2, False, 0)
+    assert client.get(f"/users/{a['id']}/coins").json()["coins"] == 0
+    client.post(f"/users/{a['id']}/visits", params={"date": "2026-10-02"}, json={"visitor_id": b["id"]})
+    f = client.get(f"/users/{b['id']}/friendship/{a['id']}").json()
+    assert (f["points"], f["level"], f["name"], f["is_friend"]) == (5, 2, "아는 사이", False)
+    assert f["counts"] == {"mine": {"visit": 1, "guestbook": 0, "like": 0}, "theirs": {"visit": 0, "guestbook": 2, "like": 0}}
+
+
+def test_like_grows_friendship_once_a_day(client):
+    a, b = signup(client, "글쓴이"), signup(client, "좋아요")
+    entry = client.post(f"/users/{b['id']}/guestbook", params={"date": "2026-10-01"}, json={"text": "안녕", "author_id": a["id"]}).json()["entry"]
+    r = client.post(f"/users/{b['id']}/guestbook/{entry['id']}/like", json={"user_id": b["id"]}).json()
+    assert r["friendship"]["gained"] == 1
+    client.delete(f"/users/{b['id']}/guestbook/{entry['id']}/like", params={"by": b["id"]})
+    again = client.post(f"/users/{b['id']}/guestbook/{entry['id']}/like", json={"user_id": b["id"]}).json()
+    assert again["friendship"]["gained"] == 0                       # 다시 눌러도 그날은 한 번만
+    assert client.get(f"/users/{a['id']}/friendship/{b['id']}").json()["counts"]["theirs"]["like"] == 1
 
 
 def test_friendship_reward_only_once_after_refriend(client):
@@ -161,3 +180,10 @@ def test_friendship_levels_table():
     assert [fs.level_from_points(p)["level"] for p in (0, 3, 4, 11, 12, 24, 39, 40, 999)] == [1, 1, 2, 2, 3, 4, 4, 5, 5]
     top = fs.level_from_points(40)
     assert (top["name"], top["next_level_at"], top["points_to_next"]) == ("베스트 프렌드", None, 0)
+
+
+def test_room_visit_counts(client):
+    for visitor, d in [("v1", "2026-10-14"), ("v2", "2026-10-15"), ("v1", "2026-10-15"), ("v1", "2026-10-15")]:
+        client.post("/users/owner/visits", params={"date": d}, json={"visitor_id": visitor})
+    assert client.get("/users/owner/room", params={"date": "2026-10-15"}).json()["visits"] == {"today": 2, "total": 3}
+    assert client.get("/users/nobody/room").json()["visits"] == {"today": 0, "total": 0}
