@@ -852,7 +852,7 @@ button.pb, .ui-disclosure > summary { font-weight: 500; }
 .mission-list h2 { display: flex; align-items: baseline; gap: 8px; margin: 2px 2px 10px !important; font-size: 17px !important; }
 .mission-list h2 small { color: var(--color-primary); font-weight: 600; font-variant-numeric: tabular-nums; }
 .mission-cards { display: grid; gap: 10px; margin: 0; padding: 0; list-style: none; }
-.mission-card { --tone: var(--color-primary); --tone-soft: var(--color-primary-soft); display: grid; gap: 8px; padding: 12px 14px; border: 1px solid var(--color-border); border-left: 5px solid var(--tone); border-radius: 16px; background: var(--color-surface); }
+.mission-card { --tone: var(--color-primary); --tone-soft: var(--color-primary-soft); display: grid; gap: 8px; padding: 12px 14px; border: 1px solid var(--color-border); border-radius: 16px; background: var(--color-surface); }
 .mission-card.is-move { --tone: #3E8F6E; --tone-soft: #E3F3EA; }
 .mission-card.is-home { --tone: #4F7FB3; --tone-soft: #E5EEF8; }
 .mission-card.is-connect { --tone: #D0805F; --tone-soft: #FBEBE3; }
