@@ -44,37 +44,37 @@
       "id": "proto-pebble",
       "name": "버터 곰 밀루",
       "level": 4,
-      "price": 120
+      "price": 300
     },
     {
       "id": "proto-pear",
       "name": "살구 강아지 라니",
       "level": 7,
-      "price": 150
+      "price": 350
     },
     {
       "id": "proto-quilt",
       "name": "솜귀 고양이 루루",
       "level": 10,
-      "price": 150
+      "price": 400
     },
     {
       "id": "draft-duck",
       "name": "버블 오리 포포",
       "level": 15,
-      "price": 300
+      "price": 450
     },
     {
       "id": "draft-deer",
       "name": "잎귀 사슴 메루",
       "level": 20,
-      "price": 350
+      "price": 500
     },
     {
       "id": "draft-hedgehog",
       "name": "밤톨 고슴도치 도토",
       "level": 25,
-      "price": 375
+      "price": 500
     }
   ],
   "outfits": [
