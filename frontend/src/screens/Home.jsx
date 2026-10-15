@@ -1,3 +1,4 @@
+import { useRef, useState } from 'react';
 import DailySentence from '../components/DailySentence.jsx';
 import RoomTimeProps from '../components/RoomTimeProps.jsx';
 import useRoomNow from '../components/useRoomNow.js';
@@ -56,17 +57,22 @@ export function RoomBackdrop({ decor = {}, wallColor = '#D6EAF8', floorColor = '
 export default function Home({ game, day, petName = 'MOCHI', petColor, onQuest, onDiary, onGuestbook, onVisit, onSettings, onShop, outfit, decor, active, reactionId, onReactionConsumed }) {
   const now = useRoomNow();
   const time = roomTime(now);
-  return <section className="home-screen" aria-label="내 집">
-    <div className="home-room has-daily-sentence" style={{backgroundColor:time.night?'#DBC1A2':'#EBCDA6'}}>
+  const [open, setOpen] = useState(false);
+  const drag = useRef(null);
+  // 손잡이를 위로 밀면 열고 아래로 내리면 닫는다. 누르기(마우스·터치·키보드·화면 읽기 프로그램)는 click으로 열고 닫기
+  const dragged = useRef(false);
+  const dragStart = event => { drag.current = event.clientY; dragged.current = false; };
+  const dragEnd = event => { if (drag.current === null) return; const moved = event.clientY - drag.current; drag.current = null; if (Math.abs(moved) > 24) { dragged.current = true; setOpen(moved < 0); } };
+  const toggle = () => { if (dragged.current) { dragged.current = false; return; } setOpen(value => !value); };
+  const floor = time.night ? '#DBC1A2' : '#EBCDA6';
+  return <section className="home-screen is-sheet-layout" aria-label="내 집" style={{ '--home-floor': floor }}>
+    <div className="home-room has-daily-sentence" style={{backgroundColor:floor}}>
       <div className="home-room-scenery"><RoomBackdrop decor={decor} homeScene now={now} /></div>
       <button type="button" className="pb home-settings" onClick={onSettings} aria-label="설정" title="설정"><GearIcon size={22} /></button>
       <time className="room-time-accessible" dateTime={now.toISOString()}>기기 현지 시간: {time.label}</time>
       <nav className="home-room-menus" aria-label="보조 메뉴">
-        <button type="button" className="pb home-visit-button" onClick={onVisit}>
-          <svg width="22" height="22" viewBox="0 0 24 24" aria-hidden="true"><path d="M3 11 L12 3 L21 11 M6 9 V21 H18 V9 M10 21 V14 H14 V21" fill="none" stroke="currentColor" strokeWidth="1.7" strokeLinejoin="round" /></svg>방문하기
-        </button>
-        <button type="button" className="pb home-guestbook-button" onClick={onGuestbook}>
-          <UiIcon kind="envelope" size={22} />방명록
+        <button type="button" className="pb home-visit-button" onClick={onVisit} aria-label="이웃 방문과 방명록">
+          <svg width="22" height="22" viewBox="0 0 24 24" aria-hidden="true"><path d="M3 11 L12 3 L21 11 M6 9 V21 H18 V9 M10 21 V14 H14 V21" fill="none" stroke="currentColor" strokeWidth="1.7" strokeLinejoin="round" /></svg>이웃 · 방명록
         </button>
         <button type="button" className="pb home-diary-button" onClick={onDiary}><svg width="22" height="22" viewBox="0 0 24 24" aria-hidden="true"><path d="M6 3 H20 V21 H6Z M3 6 H8 M3 11 H8 M3 16 H8 M11 8 H17 M11 12 H17" fill="var(--color-surface)" stroke="var(--color-primary)" strokeWidth="1.7" strokeLinejoin="round" /></svg>일기</button>
       </nav>
@@ -79,10 +85,16 @@ export default function Home({ game, day, petName = 'MOCHI', petColor, onQuest, 
         <div className="home-character-level"><strong>LV.{levelFor(game.xp)}</strong><progress value={game.xp % 100} max={100} aria-label="다음 레벨까지 경험치" /><span>{game.xp % 100} / 100 XP</span></div>
       </div>
     </div>
+    {open && <button type="button" className="home-sheet-scrim" aria-label="오늘의 도전 닫기" onClick={() => setOpen(false)} />}
+    <div className={`home-sheet${open ? ' is-open' : ''}`}>
+    <button type="button" className="home-sheet-handle" aria-expanded={open} aria-controls="home-sheet-body" onClick={toggle} onPointerDown={dragStart} onPointerUp={dragEnd} onPointerCancel={() => { drag.current = null; }}>
+      <span className="home-sheet-grip" aria-hidden="true" /><span>{open ? '오늘의 도전 접기' : '오늘의 도전 펼치기'}</span>
+    </button>
     <footer className="home-quest-actions">
       <button type="button" className="pb home-quest-start" onClick={onQuest}><svg width="24" height="24" viewBox="0 0 24 24" aria-hidden="true"><path d="M5 4 H19 V21 H5Z M9 2 H15 V6 H9Z M8 12 L10 14 L15 9 M8 18 H16" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinejoin="round" strokeLinecap="round" /></svg><span>오늘의 도전</span></button>
       <button type="button" className="pb home-decor-open" onClick={onShop}><ShopIcon width={24} height={24} /><span>꾸미기</span></button>
     </footer>
-    <HomeSummary game={game} day={day} onQuest={onQuest} />
+    <div id="home-sheet-body" className="home-sheet-body" inert={!open}><HomeSummary game={game} day={day} onQuest={onQuest} refreshKey={active} /></div>
+    </div>
   </section>;
 }
