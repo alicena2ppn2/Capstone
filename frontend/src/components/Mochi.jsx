@@ -1,3 +1,5 @@
+import GarmentPattern, { garmentFill } from '../../../shared/art/GarmentPattern.jsx';
+import { useId } from 'react';
 import ExpansionFriends from './ExpansionFriends.jsx';
 import { isBasicFriendDraft } from '../../../shared/data/characterExpansion.js';
 import { useContext } from 'react';
@@ -19,6 +21,7 @@ function Flower() {
 // cha1의 둥근 윤곽, 하늘색 귀와 꼬리, 꽃 장식을 표현한다.
 export default function Mochi({ color = '#FFF5E6', width, height, full = false, asleep = false, label, outfit, variant, interactive, active, reactionId, onReactionConsumed }) {
   const character = useContext(CharacterContext);
+  const patternId = `pat${useId().replace(/[^a-zA-Z0-9]/g, '')}`;   // 옷 무늬 id (훅이라 이른 return보다 위에)
   const motion = useFriendReaction({ interactive: interactive && (variant ?? character) === 'mochi', active, reactionId, onReactionConsumed });
   if (isBasicFriendDraft(variant ?? character)) return <ExpansionFriends variant={variant ?? character} width={width} height={height} label={label} outfit={outfit} interactive={interactive} active={active} reactionId={reactionId} onReactionConsumed={onReactionConsumed} />;
   if (['proto-pebble', 'proto-pear', 'proto-quilt'].includes(variant ?? character)) return <PrototypeFriends variant={variant ?? character} width={width} height={height} label={label} outfit={outfit} interactive={interactive} active={active} reactionId={reactionId} onReactionConsumed={onReactionConsumed} />;
@@ -28,6 +31,7 @@ export default function Mochi({ color = '#FFF5E6', width, height, full = false, 
   const line = '#91A6C5';
   return (
     <svg width={width} height={height} viewBox={full ? '0 0 200 210' : '15 0 170 146'} {...a11y} {...motion.props} className="friend-svg">
+      <GarmentPattern outfit={outfit} id={patternId} />
       {full && <ellipse cx="102" cy="200" rx="67" ry="6" fill="#AFC9E6" opacity=".22" />}
       <g key={motion.reaction?.id ?? 'idle'} className={`friend-body${motion.reaction ? ` is-${motion.reaction.kind}` : ''}`}>
       {full && <>
@@ -36,7 +40,7 @@ export default function Mochi({ color = '#FFF5E6', width, height, full = false, 
         <path d="M70 120 Q55 143 64 169 Q58 178 72 183 Q84 192 100 183 Q118 193 130 180 Q143 176 136 166 Q145 140 131 120Z" fill={color} stroke={line} strokeWidth="2.5" />
         <ellipse cx="100" cy="159" rx="26" ry="23" fill="#FFFCF5" opacity=".85" />
         {outfit ? <g stroke={outfit.trim} strokeWidth="2" strokeLinejoin="round">
-          <path d="M71 125 L53 141 L62 153 L69 148 L65 175 Q100 187 135 175 L131 148 L139 153 L148 141 L130 125 Q100 137 71 125Z" fill={outfit.color} />
+          <path d="M71 125 L53 141 L62 153 L69 148 L65 175 Q100 187 135 175 L131 148 L139 153 L148 141 L130 125 Q100 137 71 125Z" fill={garmentFill(outfit, patternId)} />
           <path d="M83 130 Q100 143 117 130" fill="none" />
           {outfit.motif === 'heart' && <path d="M100 169 C82 159 85 146 94 150 L100 155 L106 150 C115 146 118 159 100 169Z" fill="#FFF5F8" />}
           {outfit.motif === 'cloud' && <path d="M85 166 Q79 156 89 155 Q92 143 101 149 Q112 146 114 156 Q124 166 112 168 H90Z" fill="white" />}

@@ -55,16 +55,46 @@
       "price": 180
     },
     {
+      "id": "marine",
+      "name": "마린 스트라이프 티",
+      "level": 1,
+      "price": 200
+    },
+    {
       "id": "leaf",
       "name": "새싹 산책복",
-      "level": 3,
+      "level": 1,
       "price": 220
+    },
+    {
+      "id": "lemon",
+      "name": "레몬 깅엄 셔츠",
+      "level": 1,
+      "price": 240
     },
     {
       "id": "star",
       "name": "별빛 잠옷",
-      "level": 5,
+      "level": 1,
       "price": 300
+    },
+    {
+      "id": "choco",
+      "name": "초코칩 니트",
+      "level": 1,
+      "price": 280
+    },
+    {
+      "id": "mint-dot",
+      "name": "민트 땡땡이 원피스",
+      "level": 1,
+      "price": 320
+    },
+    {
+      "id": "rainbow",
+      "name": "무지개 스트라이프 후디",
+      "level": 1,
+      "price": 400
     }
   ],
   "decor_slots": {

@@ -26,7 +26,7 @@ export default function Shop({ game, level, onBuyCharacter, onEquipCharacter, on
         <div className="character-current"><Mochi color={petColor} full width={130} height={130} /><div><span>현재 함께하는 캐릭터</span><strong>{CHARACTERS.find((item) => item.id === game.character)?.name ?? '꼬질 감자 모찌'}</strong></div></div>
         <div className="shop-tabs"><button type="button" className="pb" aria-pressed={!collection} onClick={() => setCollection(false)}>모든 캐릭터</button><button type="button" className="pb" aria-pressed={collection} onClick={() => setCollection(true)}>내 컬렉션 {game.characters.length}</button></div>
         <CharacterShop game={game} level={level} collection={collection} onBuy={onBuyCharacter} onEquip={onEquipCharacter} onMessage={setMessage} />
-      </> : section === 'decor' ? <DecorShop game={game} level={level} onBuy={onBuyDecor} onEquip={onEquipDecor} /> : <>
+      </> : section === 'decor' ? <DecorShop game={game} level={level} onBuy={onBuyDecor} onEquip={onEquipDecor} outfit={CLOTHES.find(item => item.id === outfit)} /> : <>
       <div className="shop-preview">
         <span className="shop-tag">오늘은 어떤 옷을 입을까?</span>
         <Mochi color={petColor} width={180} height={180} full outfit={selected} label="옷 미리보기 모찌" />
@@ -42,7 +42,7 @@ export default function Shop({ game, level, onBuyCharacter, onEquipCharacter, on
         {items.map((item) => {
           const has = owned.includes(item.id);
           const wearing = outfit === item.id;
-          const locked = !has && level < (item.level ?? 1);
+          const locked = false;   // 옷은 레벨 제한 없이 코인으로만
           const insufficient = !has && coins < item.price;
           return (
             <article className={`shop-item${preview === item.id ? ' is-preview' : ''}${locked ? ' is-locked' : ''}`} key={item.id}>
@@ -51,7 +51,7 @@ export default function Shop({ game, level, onBuyCharacter, onEquipCharacter, on
                 <span className="shop-item-art" style={{ background: `${item.color}55` }}><Mochi color={petColor} width={110} height={104} full outfit={item} /></span>
                 <strong>{item.name}</strong>
               </button>
-              <span className="shop-price">{has ? (wearing ? '지금 입고 있어요' : '구매한 옷이에요') : `LV.${item.level ?? 1} · ${item.price} 코인`}</span>
+              <span className="shop-price">{has ? (wearing ? '지금 입고 있어요' : '구매한 옷이에요') : `${item.price} 코인`}</span>
               <button type="button" className={`pb shop-buy${wearing ? ' is-equipped' : ''}`} disabled={wearing || insufficient || locked} onClick={() => {
                 setPreview(item.id);
                 if (has) { onWear(item.id); setMessage(`${item.name}을 입었어요!`); }

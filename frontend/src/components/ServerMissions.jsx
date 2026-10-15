@@ -21,7 +21,7 @@ function PhotoPick({ busy, onUpload }) {
         <button type="button" className="pb shop-buy" disabled={busy} onClick={() => onUpload(file)}>{busy ? '날짜 확인 중…' : '이 사진으로 완료'}</button>
         <button type="button" className="pb mission-link" disabled={busy} onClick={() => input.current?.click()}>다른 사진 고르기</button>
       </div>
-    </div> : <button type="button" className="pb shop-buy mission-main" disabled={busy} onClick={() => input.current?.click()}><span aria-hidden="true">📷</span> 사진 찍어서 완료하기</button>}
+    </div> : <button type="button" className="pb shop-buy mission-main" disabled={busy} onClick={() => input.current?.click()}><span aria-hidden="true">📷</span> 오늘 찍은 사진으로 완료</button>}
   </div>;
 }
 
@@ -51,7 +51,10 @@ export default function ServerMissions({ userId }) {
     <ol className="mission-cards">{missions.map(m => { const [slot, tone] = SLOT[m.category] ?? ['오늘의 활동', 'is-home']; return <li data-quest-id={m.id} tabIndex={-1} key={m.id} className={`mission-card ${tone}${m.done ? ' is-done' : ''}`}>
       <div className="mission-card-top">
         <span className="mission-chip">{slot}{m.stage ? ` · ${STAGE[m.stage]}` : ''}</span>
-        <span className="mission-reward" aria-label={`보상 ${m.coins}코인, ${m.xp} XP`}>+{m.coins} 코인</span>
+        <span className="mission-top-right">
+          {!m.done && m.rerollable && <button type="button" className="pb mission-reroll" disabled={!!busy || data.rerolls_left < 1} aria-label={`다른 미션으로 바꾸기, ${data.rerolls_left}번 남음`} title={`다른 미션으로 (${data.rerolls_left}번 남음)`} onClick={() => run(m.id, () => rerollMission(userId, m.id))}>↻</button>}
+          <span className="mission-reward" aria-label={`보상 ${m.coins}코인, ${m.xp} XP`}>+{m.coins} 코인</span>
+        </span>
       </div>
       <div className="mission-card-title"><span className="mission-check" aria-hidden="true">{m.done ? '✓' : ''}</span><strong>{m.title}</strong></div>
       {m.done ? <div className="mission-done">
@@ -64,10 +67,6 @@ export default function ServerMissions({ userId }) {
           : m.kind === 'steps' ? <button type="button" className="pb shop-buy mission-main" disabled={!!busy} onClick={() => run(m.id, () => completeSteps(userId, m.id))}><span aria-hidden="true">👟</span> 오늘 걸음으로 확인 · {m.min_count.toLocaleString('ko-KR')}보</button>
           : <small>앱에서 아직 지원하지 않는 미션이에요.</small>}
         <p role="status" className="mission-note">{notes[m.id]}</p>
-        <div className="mission-card-foot">
-          <small>{m.kind === 'photo' ? '오늘 찍은 사진만 인정돼요' : '서버에 올라온 오늘 걸음으로 확인해요'}</small>
-          {m.rerollable && <button type="button" className="pb mission-link" disabled={!!busy || data.rerolls_left < 1} onClick={() => run(m.id, () => rerollMission(userId, m.id))}>↻ 다른 미션 ({data.rerolls_left})</button>}
-        </div>
       </>}
     </li>; })}</ol>
     <div className="quest-toast-region" role="status" aria-live="polite">{toast && <div className="quest-reward-toast"><strong>{toast.earned_total || toast.earned_xp ? '미션 완료!' : '완료했어요!'}</strong>{(toast.earned_total > 0 || toast.earned_xp > 0) && <span>+{toast.earned_xp} XP · +{toast.earned_total} 코인</span>}</div>}</div>

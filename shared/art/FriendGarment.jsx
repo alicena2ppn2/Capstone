@@ -1,10 +1,11 @@
+import GarmentPattern, { garmentFill } from './GarmentPattern.jsx';
 // Each silhouette supplies its own body/arm outlines. Clothing never reshapes it.
 export default function FriendGarment({ outfit, bodyPath, arms, prefix, sleeves = false, elements = {} }) {
   const { G = 'g', Path = 'path', Defs = 'defs', ClipPath = 'clipPath' } = elements;
   if (!outfit) return null;
-  const clip = `${prefix}-${sleeves ? 'arms' : 'body'}-clothes`;
-  return <><Defs><ClipPath id={clip}>{sleeves ? arms.map((d, i) => <Path key={i} d={d} />) : <Path d={bodyPath} />}</ClipPath></Defs>
-    <G data-part={sleeves ? 'sleeves' : 'outfit'} clipPath={`url(#${clip})`} fill={outfit.color} stroke={outfit.trim} strokeWidth="1.8" strokeLinejoin="round">
+  const clip = `${prefix}-${sleeves ? 'arms' : 'body'}-clothes`, pat = `${prefix}-${sleeves ? 'arms' : 'body'}-pattern`;
+  return <><GarmentPattern outfit={outfit} id={pat} elements={elements} /><Defs><ClipPath id={clip}>{sleeves ? arms.map((d, i) => <Path key={i} d={d} />) : <Path d={bodyPath} />}</ClipPath></Defs>
+    <G data-part={sleeves ? 'sleeves' : 'outfit'} clipPath={`url(#${clip})`} fill={garmentFill(outfit, pat, elements)} stroke={outfit.trim} strokeWidth="1.8" strokeLinejoin="round">
       {sleeves ? <Path d="M47 124 H86 L80 151 Q68 161 49 149Z M114 124 H155 L153 148 Q135 160 120 148Z" /> : <>
         <Path d="M53 124 Q100 145 147 124 L149 181 Q100 196 51 181Z" />
         <Path d="M78 132 Q100 148 122 132 M65 175 Q100 189 135 175" fill="none" />
