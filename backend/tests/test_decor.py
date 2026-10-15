@@ -10,8 +10,8 @@ def decor(view, item_id):
 
 def test_decor_catalog_matches_frontend():
     items = shop.CATALOG["decor"]
-    assert len(items) == 26                                      # 10/15: 벽지 6 + 바닥 4 추가
-    assert set(shop.DECOR_SLOTS) == {"wallpaper", "floor", "lamp", "carpet", "frame", "doll", "scenery"}
+    assert len(items) == 34                                      # 10/15: 벽지 6 + 바닥 4, 소파·서랍장 색 8 추가
+    assert set(shop.DECOR_SLOTS) == {"wallpaper", "floor", "sofa", "drawer", "lamp", "carpet", "frame", "doll", "scenery"}
     # 앱 shared/data/decor.js와 같은 id·레벨·가격
     import re
     from pathlib import Path
@@ -101,3 +101,17 @@ def test_wallpaper_floor_and_moving_decor(client):
     assert client.put("/users/u1/decor/lamp/position", json={"dx": 999, "dy": 0}).status_code == 422   # 방 밖
     client.put("/users/u1/decor", json={"slot": "lamp", "item_id": None})
     assert client.get("/users/u1/room").json()["positions"] == {}
+
+
+def test_sofa_and_drawer_colors_cost_100(client):
+    from tests.test_shop import give
+    give(client, "u1", coins=250)
+    colors = [item for item in shop.CATALOG["decor"].values() if item["slot"] in ("sofa", "drawer")]
+    assert len(colors) == 8 and all(item["price"] == 100 and item["level"] == 1 for item in colors)
+    for slot, item in (("sofa", "sofa-mint"), ("drawer", "drawer-walnut")):
+        assert client.post("/users/u1/shop/buy", json={"type": "decor", "item_id": item}).status_code == 200
+        assert client.put("/users/u1/decor", json={"slot": slot, "item_id": item}).status_code == 200
+    assert client.get("/users/u1/home").json()["coins"] == 50
+    room = client.get("/users/u1/room").json()
+    assert (room["decor"]["sofa"], room["decor"]["drawer"]) == ("sofa-mint", "drawer-walnut")
+    assert client.put("/users/u1/decor/sofa/position", json={"dx": 1, "dy": 1}).status_code == 422   # 소파·서랍장은 제자리
