@@ -10,6 +10,9 @@ import Diary from './screens/Diary.jsx';
 import { ensureDailyMissions, startDailyMission, finishDailyMission, pauseDailyMission, replaceDailyMission, saveDiaryMission, deleteDiaryMission, recordRoutine } from '../../shared/features/dailyMissions.js';
 import Home from './screens/Home.jsx';
 import Visit from './screens/Visit.jsx';
+import Neighbors from './screens/Neighbors.jsx';
+import { useServerUserId } from './api/missions.js';
+import { useServerGame, shopAsGame, buyItem, equip, placeDecor, checkIn, saveDiary as saveServerDiary, removeDiary as removeServerDiary } from './api/game.js';
 import Quest from './screens/Quest.jsx';
 import Guestbook from './screens/Guestbook.jsx';
 import Settings from './screens/Settings.jsx';
@@ -23,6 +26,7 @@ import { seoulDateKey } from '../../shared/utils/seoulDate.js';
 
 export default function App() {
   const [screen, setScreen] = useState('home');
+  const serverUserId = useServerUserId();   // 있으면 이웃·방명록을 서버로
   const [attendanceAward, setAttendanceAward] = useState(null);
   useEffect(() => { if (!attendanceAward) return; const timer = setTimeout(() => setAttendanceAward(null), 1000); return () => clearTimeout(timer); }, [attendanceAward]);
   const [questFocus, setQuestFocus] = useState(null);
@@ -52,7 +56,14 @@ export default function App() {
   useEffect(() => { const refresh = () => setDay(seoulDateKey()); const timer = setInterval(refresh, 1000); document.addEventListener('visibilitychange', refresh); return () => { clearInterval(timer); document.removeEventListener('visibilitychange', refresh); }; }, []);
   useEffect(() => prepareChallenges(day), [day, prepareChallenges]);
   const prepareAttendance = useCallback(date => setGame(value => ensureAttendanceWeek(value, date)), []);
-  const level = levelFor(game.xp);
+  const server = useServerGame(serverUserId), sv = server.state;
+  const level = sv ? sv.shop.level.level : levelFor(game.xp);
+  const levelInfo = sv ? sv.home.level : { level, xp_in_level: game.xp % 100, xp_for_level: 100 };
+  const coins = sv ? sv.home.coins : game.coins;
+  const shownCharacter = sv ? sv.home.equipped.character ?? 'potato' : game.character ?? 'potato';
+  const shownDecor = sv ? sv.home.room.decor : game.decor ?? {};
+  // 서버 행동: 결과를 기다린 뒤 서버 상태를 다시 불러온다
+  const serverAct = async job => { try { await job(); await server.refresh(); return { ok: true, changed: true }; } catch (e) { return { ok: false, message: e.message }; } };
   const gameRef = useRef(game); gameRef.current = game;
   const commitGame = transform => {
     try {
@@ -64,9 +75,11 @@ export default function App() {
   };
   const saveDiary = async (date, text, emotion) => {
     if (date !== seoulDateKey() || !text.trim()) return { ok:false, message:'당일의 공백 아닌 일기만 저장할 수 있어요.' };
-    return commitGame(value => saveDiaryMission(value, date, text, new Date(), emotion));
+    const saved = commitGame(value => saveDiaryMission(value, date, text, new Date(), emotion));
+    if (saved.ok && serverUserId) saveServerDiary(serverUserId, date, text.trim()).then(() => server.refresh()).catch(() => {});   // 서버 일기 미션도 완료
+    return saved;
   };
-  const deleteDiary = async date => commitGame(value => deleteDiaryMission(value,date));
+  const deleteDiary = async date => { const done = commitGame(value => deleteDiaryMission(value,date)); if (done.ok && serverUserId) removeServerDiary(serverUserId, date).catch(() => {}); return done; };
   const continueDraft = (source, target, draft, choice) => { let moved; const result=commitGame(value=>{moved=continueJournalDraft(value,source,target,draft,choice);return moved.game;});return {...moved,...result,ok:result.ok&&moved.ok}; };
   const saveDraft = (date, draft) => commitGame(value => ({ ...value, journalDrafts: { ...value.journalDrafts, [date]:draft } }));
   const [wardrobe, setWardrobe] = useState(() => {
@@ -80,7 +93,7 @@ export default function App() {
     setGame(value => ({ ...value, nicknames: { ...value.nicknames, [value.character]: name.trim().slice(0, 12) } }));
   };
   const ownedClothes = [...new Set([...wardrobe.owned, ...(game.attendanceClothes ?? [])])];
-  const outfit = CLOTHES.find((item) => item.id === wardrobe.outfit);
+  const outfit = CLOTHES.find((item) => item.id === (sv ? sv.home.equipped.outfit : wardrobe.outfit));
   const buy = (item) => {
     if (game.coins < item.price || level < (item.level ?? 1) || ownedClothes.includes(item.id)) return false;
     setGame((value) => ({ ...value, coins: value.coins - item.price }));
@@ -104,35 +117,44 @@ export default function App() {
 
 
   return (
-    <CharacterContext.Provider value={game.character ?? 'potato'}>
+    <CharacterContext.Provider value={shownCharacter}>
     <div className="app">
       <div className={`phone-shell${screen === 'home' ? ' is-home' : screen === 'shop' ? ' is-shop' : screen === 'quest' ? ' is-quest' : ''}`}>
       <IPhoneChrome />
       <div className="status-header">
-      <Attendance records={game.attendance} plans={game.attendancePlans ?? {}} onPrepare={prepareAttendance} onClaim={date => { const previous = gameRef.current; const result = commitGame(value => {
+      {sv ? <Attendance records={Object.fromEntries(sv.week.days.filter(d => d.claimed).map(d => [d.date, d.claimed.duplicate ? { ...d.claimed, duplicateOutfit: d.claimed.duplicate } : d.claimed]))}
+        plans={{ [sv.week.week_start]: Object.fromEntries(sv.week.days.map(d => [d.date, d.reward])) }} onPrepare={() => {}}
+        onClaim={async () => { try { const r = await checkIn(serverUserId); await server.refresh(); const receipt = r.gift && (r.gift.duplicate ? { ...r.gift, duplicateOutfit: r.gift.duplicate } : r.gift); if (receipt) setAttendanceAward(receipt); return { ok: true, receipt }; } catch (e) { return { ok: false, message: e.message }; } }} />
+      : <Attendance records={game.attendance} plans={game.attendancePlans ?? {}} onPrepare={prepareAttendance} onClaim={date => { const previous = gameRef.current; const result = commitGame(value => {
         if(date !== seoulDateKey()) return value;
         return recordRoutine(claimAttendance({ ...ensureAttendanceWeek(value, date), attendanceClothes: ownedClothes }, date), 'day-attendance', date);
-      }); const receipt = result.ok ? newAttendanceReward(previous, gameRef.current, date) : null; if (receipt) setAttendanceAward(receipt); return { ...result, receipt }; }} />
-      {screen !== 'home' && <div className="growth-bar"><strong>LV.{level}</strong><progress value={game.xp % 100} max="100" aria-label="다음 레벨까지 경험치" /><span>{game.xp % 100} / 100 XP</span><button type="button" className="pb" onClick={() => setScreen('quest')}>퀘스트 →</button></div>}
-      {screen === 'home' && <div className="home-wallet" aria-label={`보유 코인 ${game.coins}`}><UiIcon kind="coin" size={18} /><strong>{game.coins.toLocaleString('ko-KR')}</strong><span>코인</span></div>}
+      }); const receipt = result.ok ? newAttendanceReward(previous, gameRef.current, date) : null; if (receipt) setAttendanceAward(receipt); return { ...result, receipt }; }} />}
+      {screen !== 'home' && <div className="growth-bar"><strong>LV.{level}</strong><progress value={levelInfo.xp_in_level} max={levelInfo.xp_for_level} aria-label="다음 레벨까지 경험치" /><span>{levelInfo.xp_in_level} / {levelInfo.xp_for_level} XP</span><button type="button" className="pb" onClick={() => setScreen('quest')}>퀘스트 →</button></div>}
+      {screen === 'home' && <div className="home-wallet" aria-label={`보유 코인 ${coins}`}><UiIcon kind="coin" size={18} /><strong>{coins.toLocaleString('ko-KR')}</strong><span>코인</span></div>}
       </div>
       <div className={`phone-content${screen === 'quest' ? ' is-quest' : ''}`}>
-      <div className="phone-page" hidden={screen !== 'home'}><Home game={game} day={day} active={screen === 'home'} reactionId={potatoReaction} onReactionConsumed={consumePotatoReaction} petName={petName} petColor={petColor} onQuest={openQuest} onDiary={() => openDiary()} onGuestbook={() => setScreen('guest')} onVisit={() => setScreen('visit')} onSettings={() => setScreen('settings')} onShop={() => setScreen('shop')} coins={game.coins} outfit={outfit} decor={game.decor ?? {}} /></div>
+      <div className="phone-page" hidden={screen !== 'home'}><Home game={game} day={day} active={screen === 'home'} reactionId={potatoReaction} onReactionConsumed={consumePotatoReaction} petName={petName} petColor={petColor} onQuest={openQuest} onDiary={() => openDiary()} onGuestbook={() => setScreen('guest')} onVisit={() => setScreen('visit')} onSettings={() => setScreen('settings')} onShop={() => setScreen('shop')} coins={coins} outfit={outfit} decor={shownDecor} levelInfo={levelInfo} /></div>
       {screen === 'diary' && <Diary game={game} day={day} initialDate={diaryDate} onSave={saveDiary} onDelete={deleteDiary} onDraft={saveDraft} onContinue={continueDraft} onHome={() => setScreen('home')} />}
-      {screen === 'visit' && <Visit onPosted={date => commitGame(value => recordRoutine(value, 'day-guestbook', date))} visitorName={petName} visitorVariant={game.character ?? 'potato'} onBack={() => setScreen('home')} />}
-      {screen === 'quest' && <Quest onPreferences={answers => commitGame(value => saveMissionPreferences(value,answers))} game={game} focusId={questFocus} onDiary={openDiary} onVisit={() => setScreen('visit')} onAttendance={() => document.querySelector('.attendance-open')?.click()}
+      {screen === 'visit' && (serverUserId ? <Neighbors userId={serverUserId} myName={petName} onPosted={date => commitGame(value => recordRoutine(value, 'day-guestbook', date))} onBack={() => setScreen('home')} />
+        : <Visit onPosted={date => commitGame(value => recordRoutine(value, 'day-guestbook', date))} onGuestbook={() => setScreen('guest')} visitorName={petName} visitorVariant={game.character ?? 'potato'} onBack={() => setScreen('home')} />)}
+      {screen === 'quest' && <Quest onServerChanged={server.refresh} onPreferences={answers => commitGame(value => saveMissionPreferences(value,answers))} game={game} focusId={questFocus} onDiary={openDiary} onVisit={() => setScreen('visit')} onAttendance={() => document.querySelector('.attendance-open')?.click()}
         onPrepare={prepareChallenges}
         onReplace={(id, date, options) => date===seoulDateKey()?commitGame(value => replaceDailyMission(value, id, date, options)):{ok:false,message:'날짜가 바뀌었어요. 오늘 목록에서 다시 확인해 주세요.'}}
         onPause={(id, date, reason) => setGame(value => pauseDailyMission(value, id, date, reason))}
         onFeedback={(key, response) => setGame(value => ({ ...value, feedback: { ...value.feedback, [key]: response } }))}
         onProfile={(field, text, key) => setGame(value => field === 'choice' ? ({ ...value, challengeChoices: { ...value.challengeChoices, [key]: text } }) : ({ ...value, preferences: { ...value.preferences, [field]: text.slice(0, 80) } }))}
         onGoal={id => setGame(value => claimGoal(value, id))} onStart={id => setGame(value => startDailyMission(value, id))} onPhotoSave={(id, date, photo) => commitGame(value => completePhotoMission(value, id, date, photo))} onComplete={(id, answer) => setGame((value) => finishDailyMission(value, id, new Date()))} petColor={petColor} onShop={() => setScreen('shop')} onSettings={() => setScreen('settings')} onHome={() => setScreen('home')} />}
-      {screen === 'guest' && <Guestbook petName={petName} level={level} petColor={petColor} onShop={() => setScreen('shop')} onSettings={() => setScreen('settings')} onHome={() => setScreen('home')} />}
+      {screen === 'guest' && serverUserId && <Neighbors userId={serverUserId} myName={petName} initialTab="mine" onPosted={date => commitGame(value => recordRoutine(value, 'day-guestbook', date))} onBack={() => setScreen('home')} />}
+      {screen === 'guest' && !serverUserId && <Guestbook petName={petName} level={level} petColor={petColor} onShop={() => setScreen('shop')} onSettings={() => setScreen('settings')} onHome={() => setScreen('home')} />}
       <div className="phone-page" hidden={screen !== 'settings'}><Settings preferences={game.preferences} onPreferences={answers => commitGame(value => saveMissionPreferences(value,answers))} key={game.character} petColor={petColor} petName={petName} onPetName={rename} onBack={() => setScreen('home')} /></div>
-      {screen === 'shop' && <Shop onBuyDecor={id => setGame(value => buyDecor(value, id))} onEquipDecor={(slot, id) => setGame(value => equipDecor(value, slot, id))} game={game} level={level} onBuyCharacter={id => commitGame(value => buyCharacter(value, id))} onEquipCharacter={(id) => setGame((value) => equipCharacter(value, id))} petColor={petColor} coins={game.coins} owned={ownedClothes} outfit={wardrobe.outfit} onBuy={buy} onWear={wear} onBack={() => setScreen('home')} />}
+      {screen === 'shop' && sv && <Shop game={{ ...game, ...shopAsGame(sv.shop) }} level={level} coins={sv.shop.coins} owned={shopAsGame(sv.shop).ownedClothes} outfit={sv.shop.equipped.outfit} petColor={petColor} onBack={() => setScreen('home')}
+        onBuyCharacter={id => serverAct(() => buyItem(serverUserId, 'character', id))} onEquipCharacter={id => serverAct(() => equip(serverUserId, { character_id: id }))}
+        onBuy={item => { void serverAct(() => buyItem(serverUserId, 'outfit', item.id)); return true; }} onWear={id => serverAct(() => equip(serverUserId, { outfit_id: id }))}
+        onBuyDecor={id => serverAct(() => buyItem(serverUserId, 'decor', id))} onEquipDecor={(slot, id) => serverAct(() => placeDecor(serverUserId, slot, id))} />}
+      {screen === 'shop' && !sv && <Shop onBuyDecor={id => setGame(value => buyDecor(value, id))} onEquipDecor={(slot, id) => setGame(value => equipDecor(value, slot, id))} game={game} level={level} onBuyCharacter={id => commitGame(value => buyCharacter(value, id))} onEquipCharacter={(id) => setGame((value) => equipCharacter(value, id))} petColor={petColor} coins={game.coins} owned={ownedClothes} outfit={wardrobe.outfit} onBuy={buy} onWear={wear} onBack={() => setScreen('home')} />}
       </div>
       <BottomNav screen={screen} onNavigate={destination => { if(destination==='quest') openQuest(); else setScreen(destination); }}/>
-      {attendanceAward && <RewardPanel receipt={attendanceAward} />}
+      {attendanceAward && <><div className="reward-scrim" aria-hidden="true" /><RewardPanel receipt={attendanceAward} /></>}
       <div className="iphone-home-indicator" aria-hidden="true"><span /></div>
       </div>
     </div>

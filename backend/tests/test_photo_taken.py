@@ -1,5 +1,7 @@
 import io
 
+import pytest
+
 from PIL import Image
 
 from app import photo_meta
@@ -55,20 +57,71 @@ def test_photo_mission_needs_photo_taken_today(client):
     assert r.status_code == 200, r.text
 
 
-def test_photo_without_taken_at_is_allowed_by_default(client):
-    date, m = find_photo_day(client, "u1")
-    p = up(client, jpeg_taken(None), date=date)["photo_id"]
-    r = client.post(f"/users/u1/missions/{m['id']}/complete", params={"date": date}, json={"photos": [p]})
-    assert r.status_code == 200
-
-
-def test_can_block_photos_without_taken_at(client, monkeypatch):
+def test_photo_without_taken_at_is_blocked_by_default(client, monkeypatch):
     from app import main
-    monkeypatch.setattr(main, "ALLOW_PHOTO_WITHOUT_TAKEN_AT", False)
+    monkeypatch.setattr(main, "ALLOW_PHOTO_WITHOUT_TAKEN_AT", False)   # 서버 기본값 (client fixture만 True로 바꿔 둠)
     date, m = find_photo_day(client, "u1")
     p = up(client, jpeg_taken(None), date=date)["photo_id"]
     r = client.post(f"/users/u1/missions/{m['id']}/complete", params={"date": date}, json={"photos": [p]})
     assert r.status_code == 422
+    assert r.json()["detail"] == main.NO_TAKEN_AT_MESSAGE
+
+
+def test_default_is_strict():
+    import importlib
+    from app import main
+    assert importlib.reload(main).ALLOW_PHOTO_WITHOUT_TAKEN_AT is False
+
+
+def test_app_sent_taken_at_used_when_file_has_none(client, monkeypatch):
+    from app import main
+    monkeypatch.setattr(main, "ALLOW_PHOTO_WITHOUT_TAKEN_AT", False)
+    date, m = find_photo_day(client, "u1")
+    y, mo, d = date.split("-")
+
+    def send(data, taken):
+        return client.post("/users/u1/photos", params={"date": date}, data={"taken_at": taken},
+                           files={"file": ("p.jpg", data, "image/jpeg")}).json()["photo_id"]
+
+    p = send(jpeg_taken(None), f"{y}:{mo}:{d} 09:00:00")              # 앱이 보낸 EXIF 형식
+    assert stored_taken_at(p) == f"{date}T09:00:00"
+    assert client.post(f"/users/u1/missions/{m['id']}/complete", params={"date": date}, json={"photos": [p]}).status_code == 200
+    # 파일 EXIF가 있으면 앱 값보다 파일이 우선
+    q = send(jpeg_taken("2026:01:15 09:00:00"), f"{y}:{mo}:{d} 09:00:00")
+    assert stored_taken_at(q) == "2026-01-15T09:00:00"
+
+
+@pytest.mark.parametrize("value, expected", [
+    ("2026:10:15 14:05:00", "2026-10-15T14:05:00"),
+    ("2026-10-15T14:05:00", "2026-10-15T14:05:00"),
+    ("2026-10-15T00:30:00Z", "2026-10-15T09:30:00"),          # UTC → 서울
+    ("2026-10-14T20:00:00+00:00", "2026-10-15T05:00:00"),     # 서울로 바꾸면 다음 날
+    ("", None), (None, None), ("어제", None),
+])
+def test_parse_client_taken(value, expected):
+    assert photo_meta.parse_client_taken(value) == expected
+
+
+def test_one_shot_photo_complete(client, monkeypatch):
+    from app import main
+    monkeypatch.setattr(main, "ALLOW_PHOTO_WITHOUT_TAKEN_AT", False)
+    date, m = find_photo_day(client, "u1")
+    y, mo, d = date.split("-")
+    url = f"/users/u1/missions/{m['id']}/photo"
+    r = client.post(url, params={"date": date}, files={"file": ("p.jpg", jpeg_taken("2026:01:15 09:00:00"), "image/jpeg")})
+    assert r.status_code == 422 and r.json()["detail"] == main.NOT_TODAY_MESSAGE
+    r = client.post(url, params={"date": date}, files={"file": ("p.jpg", jpeg_taken(f"{y}:{mo}:{d} 10:00:00"), "image/jpeg")})
+    assert r.status_code == 200, r.text
+    assert r.json()["mission_id"] == m["id"] and r.json()["earned_total"] == m["coins"] and r.json()["photo"]["photo_id"]
+    # 사진첩에 미션 이름으로
+    pid = r.json()["photo"]["photo_id"]
+    photo = next(p for p in client.get("/users/u1/album").json()["photos"] if p["photo_id"] == pid)
+    assert photo["used_for"]["title"] == m["title"]
+    # 사진 미션이 아니면 422, 오늘 미션이 아니면 404
+    assert client.post("/users/u1/missions/attendance/photo", params={"date": date},
+                       files={"file": ("p.jpg", jpeg_taken(None), "image/jpeg")}).status_code == 422
+    assert client.post("/users/u1/missions/nope/photo", params={"date": date},
+                       files={"file": ("p.jpg", jpeg_taken(None), "image/jpeg")}).status_code == 404
 
 
 def test_diary_accepts_old_photos_and_album_hides_taken_at(client):

@@ -1,7 +1,9 @@
 import { useEffect, useId, useState } from 'react';
+import GarmentPattern, { garmentFill } from '../../../shared/art/GarmentPattern.jsx';
 
 export default function Potato({ width, height, label, asleep, outfit, full, interactive = false, active = false, reactionId, onReactionConsumed }) {
   const clipId = useId();
+  const patternId = `pat${clipId.replace(/[^a-zA-Z0-9]/g, '')}`;
   const [reaction, setReaction] = useState(null);
   const [blinking, setBlinking] = useState(false);
   const enabled = interactive && active;
@@ -41,7 +43,8 @@ export default function Potato({ width, height, label, asleep, outfit, full, int
     <path d="M60 66 Q66 33 96 29" fill="none" stroke="#F8DAB0" strokeWidth="9" strokeLinecap="round" opacity=".6" />
     <g fill="#AC8459" opacity=".55"><ellipse cx="126" cy="55" rx="5" ry="3" /><ellipse cx="60" cy="137" rx="8" ry="4" /><ellipse cx="133" cy="157" rx="10" ry="5" /><ellipse cx="90" cy="177" rx="6" ry="3" /><circle cx="136" cy="94" r="3" /><circle cx="78" cy="52" r="2" /></g>
     {full && outfit && <>
-      <g fill={outfit.color} stroke={outfit.trim} strokeWidth="2.3" strokeLinejoin="round">
+      <GarmentPattern outfit={outfit} id={patternId} />
+      <g fill={garmentFill(outfit, patternId)} stroke={outfit.trim} strokeWidth="2.3" strokeLinejoin="round">
         <path d="M46 128 L29 123 Q20 131 28 141 L48 150 M151 128 L171 122 Q180 130 173 140 L152 149" />
         <g clipPath={`url(#${clipId})`}>
           <path d="M15 125 Q100 150 185 125 V210 H15Z" />
