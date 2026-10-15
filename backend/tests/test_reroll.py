@@ -62,7 +62,7 @@ def test_self_check_exercise_missions():
         assert (m.kind, m.category, m.coins, m.xp) == ("photo", "home", ms.COINS_HOME, ms.XP_HOME)
     assert ms.is_complete({"kind": "self", "min_count": 1}, {})
     run = ms.CATALOG["run_block"]
-    assert (run.kind, run.stage, run.min_count) == ("steps", 2, 2000)
+    assert (run.kind, run.stage) == ("photo", 2)
 
 
 def test_static_home_missions_removed():

@@ -22,6 +22,7 @@ from fastapi.responses import FileResponse, PlainTextResponse
 from fastapi.middleware.cors import CORSMiddleware
 from pydantic import BaseModel, Field
 
+from . import attendance as att
 from . import auth
 from . import crisis
 from . import db
@@ -718,13 +719,58 @@ def complete_weekly(user_id: str, quest_id: str, body: CompleteIn, date: str | N
     }
 
 
-@app.post("/users/{user_id}/attendance", summary="출석하기 (앱을 열 때 호출)")
+def attendance_week(conn, user_id: str, today: Date) -> dict:
+    """이번 주 출석표: 날짜마다 정해진 선물, 받은 선물, 오늘인지."""
+    monday = att.week_start(today)
+    plan = att.week_plan(user_id, monday, list(shop.CATALOG["outfit"]), list(shop.CATALOG["decor"]))
+    claims = db.attendance_claims(conn, user_id, monday.isoformat(), (monday + timedelta(days=6)).isoformat())
+
+    def named(reward: dict) -> dict:
+        kind = reward["type"]
+        if kind in ("outfit", "decor"):
+            return {**reward, "name": shop.CATALOG[kind].get(reward["id"], {}).get("name")}
+        return reward
+    days = [{"date": d, "reward": named(r), "claimed": named(claims[d]) if d in claims else None, "today": d == today.isoformat()}
+            for d, r in plan.items()]
+    return {"week_start": monday.isoformat(), "days": days, "count": len(claims), "claimed_today": today.isoformat() in claims}
+
+
+@app.get("/users/{user_id}/attendance/week", summary="이번 주 출석표 (월~일, 날마다 정해진 선물과 받은 선물)")
+def get_attendance_week(user_id: str, date: str | None = DateQuery, conn=Depends(get_conn)):
+    return attendance_week(conn, user_id, day(date))
+
+
+@app.post("/users/{user_id}/attendance", summary="출석하기 — 이번 주 출석표의 오늘 선물을 받는다 (하루 한 번, 가진 옷·소품이면 30코인)")
 def check_in(user_id: str, date: str | None = DateQuery, conn=Depends(get_conn)):
     today = day(date)
     day_ = todays_missions(conn, user_id, today)
     already = "attendance" in db.completed_ids(conn, user_id, today.isoformat())
-    settle = finish_and_pay(conn, user_id, today, day_, "attendance", {"checked_in": True})
-    return {"date": today.isoformat(), "already_checked_in": already, **rewards(conn, user_id, settle)}
+    before = ms.level_from_xp(db.xp_total(conn, user_id))["level"]
+    settle = finish_and_pay(conn, user_id, today, day_, "attendance", {"checked_in": True})   # 출석 미션 완료 (보상 0)
+    gift = None
+    planned = next(d["reward"] for d in attendance_week(conn, user_id, today)["days"] if d["today"])
+    reward = {k: v for k, v in planned.items() if k != "name"}
+    if reward["type"] in ("outfit", "decor"):
+        if (reward["type"], reward["id"]) in db.owned_items(conn, user_id):
+            reward = {"type": "coins", "amount": att.DUPLICATE_COINS, "duplicate": planned.get("name")}
+    if db.add_attendance(conn, user_id, today.isoformat(), reward):
+        gift = reward
+        if reward["type"] in ("coins", "xp"):
+            db.add_coins(conn, user_id, today.isoformat(), [{"id": f"attendance:{today.isoformat()}",
+                         "coins": reward["amount"] if reward["type"] == "coins" else 0,
+                         "xp": reward["amount"] if reward["type"] == "xp" else 0}])
+        else:
+            db.add_items(conn, user_id, [(reward["type"], reward["id"])], "attendance")
+    out = rewards(conn, user_id, settle)
+    level = ms.level_from_xp(db.xp_total(conn, user_id))
+    gained = gift or {}
+    if gift and gift["type"] in ("outfit", "decor"):
+        gift = {**gift, "name": shop.CATALOG[gift["type"]][gift["id"]]["name"]}
+    return {"date": today.isoformat(), "already_checked_in": already, **out,
+            "earned_total": out["earned_total"] + (gained.get("amount", 0) if gained.get("type") == "coins" else 0),
+            "earned_xp": out["earned_xp"] + (gained.get("amount", 0) if gained.get("type") == "xp" else 0),
+            "coins": db.coin_balance(conn, user_id), "level": level, "leveled_up": level["level"] > before,
+            "gift": gift, "week": attendance_week(conn, user_id, today)}
 
 
 @app.get("/users/{user_id}/level", summary="레벨·경험치")
