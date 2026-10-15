@@ -21,9 +21,11 @@ def item(view, kind, item_id):
 
 
 def test_catalog_matches_frontend():
-    assert [c["id"] for c in shop.CATALOG["character"].values()] == ["potato", "pink", "mochi", "lavender", "mint", "sky"]
+    assert [c["id"] for c in shop.CATALOG["character"].values()] == ["potato", "pink", "mochi", "lavender", "mint", "sky",
+        "proto-pebble", "proto-pear", "proto-quilt", "draft-duck", "draft-deer", "draft-hedgehog"]   # 앱의 최종 6종 (10/15)
     assert {i["id"]: (i["level"], i["price"]) for i in shop.CATALOG["outfit"].values()} == {
-        "sky": (1, 120), "berry": (1, 180), "leaf": (3, 220), "star": (5, 300)}
+        "sky": (1, 120), "berry": (1, 180), "marine": (1, 200), "leaf": (1, 220), "lemon": (1, 240),
+        "star": (1, 300), "choco": (1, 280), "mint-dot": (1, 320), "rainbow": (1, 400)}   # 10/15: 옷은 레벨 제한 없이 코인으로만
     assert shop.CATALOG["character"]["mochi"]["price"] == 300
 
 
@@ -38,15 +40,15 @@ def test_new_user_has_starter_and_secrets_are_hidden(client):
     sky = item(v, "character", "sky")
     assert sky["status"] == "hidden" and sky["name"] is None and sky["level"] is None
     assert item(v, "outfit", "sky")["status"] == "no_coins"
-    assert item(v, "outfit", "star")["status"] == "locked"
-    assert item(v, "outfit", "star")["name"] == "별빛 잠옷"            # 옷은 잠겨도 이름 보임 (프론트와 같음)
+    assert item(v, "outfit", "star")["status"] == "no_coins"          # 옷은 레벨로 잠기지 않음 (코인만)
+    assert item(v, "outfit", "star")["name"] == "별빛 잠옷"
 
 
 def test_buy_checks_coins_level_and_duplicates(client):
     r = client.post("/users/u1/shop/buy", json={"type": "outfit", "item_id": "sky"})
     assert r.status_code == 422 and "코인" in r.json()["detail"]
     give(client, "u1", coins=1000)
-    assert client.post("/users/u1/shop/buy", json={"type": "outfit", "item_id": "star"}).status_code == 422   # LV.5 필요
+    assert client.post("/users/u1/shop/buy", json={"type": "character", "item_id": "lavender"}).status_code == 422   # 캐릭터는 여전히 LV.8 필요
     assert client.post("/users/u1/shop/buy", json={"type": "outfit", "item_id": "nope"}).status_code == 404
     assert client.post("/users/u1/shop/buy", json={"type": "character", "item_id": "pink"}).status_code in (409, 422)
 

@@ -32,8 +32,10 @@ CREATE TABLE IF NOT EXISTS inventory (
 );
 CREATE TABLE IF NOT EXISTS decor_placement (
     user_id TEXT NOT NULL,
-    slot    TEXT NOT NULL,                -- lamp | carpet | frame | doll | scenery
+    slot    TEXT NOT NULL,                -- wallpaper | floor | lamp | carpet | frame | doll | scenery
     item_id TEXT NOT NULL,
+    dx      REAL NOT NULL DEFAULT 0,      -- 끌어서 옮긴 거리 (방 그림 좌표, 기본 자리에서)
+    dy      REAL NOT NULL DEFAULT 0,
     PRIMARY KEY (user_id, slot)
 );
 CREATE TABLE IF NOT EXISTS equipped (
@@ -105,7 +107,7 @@ CREATE TABLE IF NOT EXISTS friendship_points (  -- 친밀도: 친구끼리 한 �
     user_b     TEXT NOT NULL,            -- 큰 쪽
     actor_id   TEXT NOT NULL,            -- 활동한 사람
     date       TEXT NOT NULL,
-    kind       TEXT NOT NULL,            -- guestbook | visit
+    kind       TEXT NOT NULL,            -- guestbook | visit | like
     points     INTEGER NOT NULL,
     PRIMARY KEY (user_a, user_b, actor_id, date, kind)
 );
@@ -160,6 +162,13 @@ CREATE TABLE IF NOT EXISTS mission_feedback (  -- 미션 소감: 해 보니 어�
     created_at  TEXT NOT NULL DEFAULT (datetime('now')),
     updated_at  TEXT NOT NULL DEFAULT (datetime('now')),
     PRIMARY KEY (user_id, date, mission_id)
+);
+CREATE TABLE IF NOT EXISTS attendance_log (  -- 주간 출석표에서 받은 선물 (하루 한 번)
+    user_id     TEXT NOT NULL,
+    date        TEXT NOT NULL,
+    reward      TEXT NOT NULL,           -- JSON: {type: coins|xp|outfit|decor, amount|id, duplicate?}
+    created_at  TEXT NOT NULL DEFAULT (datetime('now')),
+    PRIMARY KEY (user_id, date)
 );
 CREATE TABLE IF NOT EXISTS surveys (          -- 처음 설문 답 (질문 id → 답). 미션 고르기에만 씀
     user_id     TEXT PRIMARY KEY,
@@ -232,6 +241,14 @@ def connect(path: str | os.PathLike | None = None) -> sqlite3.Connection:
     cols = {r["name"] for r in conn.execute("PRAGMA table_info(mission_days)")}
     if "rerolls" not in cols:
         conn.execute("ALTER TABLE mission_days ADD COLUMN rerolls INTEGER NOT NULL DEFAULT 0")
+    # 소품 위치 칸이 없던 예전 배치 테이블이면 추가
+    cols = {r["name"] for r in conn.execute("PRAGMA table_info(decor_placement)")}
+    for col in ("dx", "dy"):
+        if col not in cols:
+            conn.execute(f"ALTER TABLE decor_placement ADD COLUMN {col} REAL NOT NULL DEFAULT 0")
+    # 한 줄 소개 칸이 없던 예전 사용자 테이블이면 추가
+    if "bio" not in {r["name"] for r in conn.execute("PRAGMA table_info(users)")}:
+        conn.execute("ALTER TABLE users ADD COLUMN bio TEXT")
     # Supabase 로그인 연결 칸이 없던 예전 사용자 테이블이면 추가 (ALTER로는 UNIQUE를 못 붙여 인덱스로)
     cols = {r["name"] for r in conn.execute("PRAGMA table_info(users)")}
     if "supabase_id" not in cols:
@@ -307,7 +324,7 @@ def link_supabase(conn, user_id: str, supabase_id: str) -> None:
 
 
 def get_user(conn, user_id: str) -> dict | None:
-    row = conn.execute("SELECT id, nickname, game_center_id, created_at, updated_at FROM users WHERE id = ?", (user_id,)).fetchone()
+    row = conn.execute("SELECT id, nickname, bio, game_center_id, created_at, updated_at FROM users WHERE id = ?", (user_id,)).fetchone()
     return dict(row) if row else None
 
 
@@ -328,12 +345,26 @@ def rename_user(conn, user_id: str, nickname: str) -> dict:
     return get_user(conn, user_id)
 
 
+def set_bio(conn, user_id: str, bio: str | None) -> dict:
+    conn.execute("UPDATE users SET bio = ?, updated_at = datetime('now') WHERE id = ?", (bio, user_id))
+    conn.commit()
+    return get_user(conn, user_id)
+
+
 def nicknames(conn, user_ids: list[str]) -> dict[str, str]:
     if not user_ids:
         return {}
     marks = ",".join("?" * len(user_ids))
     rows = conn.execute(f"SELECT id, nickname FROM users WHERE id IN ({marks})", tuple(user_ids)).fetchall()
     return {r["id"]: r["nickname"] for r in rows}
+
+
+def visit_counts(conn, owner_id: str, date: str) -> dict:
+    """방 방문자 수: 오늘(그날 놀러 온 사람 수)과 전체(날마다 한 번씩 센 누적). 미니홈피의 TODAY / TOTAL처럼."""
+    row = conn.execute(
+        "SELECT SUM(date = ?) AS today, COUNT(*) AS total FROM visits WHERE owner_id = ?", (date, owner_id)
+    ).fetchone()
+    return {"today": int(row["today"] or 0), "total": int(row["total"] or 0)}
 
 
 def delete_user(conn, user_id: str) -> list[str]:
@@ -351,6 +382,7 @@ def delete_user(conn, user_id: str) -> list[str]:
         "DELETE FROM guestbook_bans WHERE user_id = ?",
         "DELETE FROM rests WHERE user_id = ?",
         "DELETE FROM surveys WHERE user_id = ?",
+        "DELETE FROM attendance_log WHERE user_id = ?",
         "DELETE FROM mission_feedback WHERE user_id = ?",
         "DELETE FROM coin_ledger WHERE user_id = ?",
         "DELETE FROM photos WHERE user_id = ?",
@@ -408,6 +440,18 @@ def get_decor(conn, user_id: str) -> dict[str, str]:
     """자리별로 놓은 소품 {slot: item_id}. 비어 있는 자리는 없음."""
     rows = conn.execute("SELECT slot, item_id FROM decor_placement WHERE user_id = ?", (user_id,)).fetchall()
     return {r["slot"]: r["item_id"] for r in rows}
+
+
+def decor_positions(conn, user_id: str) -> dict[str, dict]:
+    """옮겨 둔 소품 위치 {slot: {dx, dy}} (옮긴 것만)."""
+    rows = conn.execute("SELECT slot, dx, dy FROM decor_placement WHERE user_id = ? AND (dx != 0 OR dy != 0)", (user_id,)).fetchall()
+    return {r["slot"]: {"dx": r["dx"], "dy": r["dy"]} for r in rows}
+
+
+def move_decor(conn, user_id: str, slot: str, dx: float, dy: float) -> bool:
+    cur = conn.execute("UPDATE decor_placement SET dx = ?, dy = ? WHERE user_id = ? AND slot = ?", (dx, dy, user_id, slot))
+    conn.commit()
+    return cur.rowcount == 1
 
 
 def set_decor(conn, user_id: str, slot: str, item_id: str | None) -> dict[str, str]:
@@ -905,6 +949,18 @@ def friendship_points(conn, user_id: str, friend_ids: list[str]) -> dict[str, in
     return out
 
 
+def friendship_counts(conn, user_id: str, other_id: str) -> dict:
+    """두 사람 사이 교류 횟수 (날마다 한 번씩 센 것): 내가 한 것 / 상대가 한 것, 종류별."""
+    a, b = _pair(user_id, other_id)
+    rows = conn.execute(
+        "SELECT actor_id, kind, COUNT(*) AS n FROM friendship_points WHERE user_a = ? AND user_b = ? GROUP BY actor_id, kind", (a, b)
+    ).fetchall()
+    out = {"mine": {"visit": 0, "guestbook": 0, "like": 0}, "theirs": {"visit": 0, "guestbook": 0, "like": 0}}
+    for r in rows:
+        out["mine" if r["actor_id"] == user_id else "theirs"][r["kind"]] = int(r["n"])
+    return out
+
+
 def paid_ever(conn, user_id: str, item_id: str) -> bool:
     """이 항목으로 보상을 받은 적이 있는지 (날짜 상관없이)."""
     row = conn.execute("SELECT 1 FROM coin_ledger WHERE user_id = ? AND item_id = ? LIMIT 1", (user_id, item_id)).fetchone()
@@ -1036,6 +1092,20 @@ def end_rest(conn, user_id: str, last_day: str) -> None:
     """쉬어 가기를 last_day까지로 줄인다 (일찍 끝내기)."""
     conn.execute("UPDATE rests SET until = MIN(until, ?) WHERE user_id = ?", (last_day, user_id))
     conn.commit()
+
+
+# --- 주간 출석표 --------------------------------------------------------------------
+
+def attendance_claims(conn, user_id: str, start: str, end: str) -> dict[str, dict]:
+    rows = conn.execute("SELECT date, reward FROM attendance_log WHERE user_id = ? AND date BETWEEN ? AND ?", (user_id, start, end)).fetchall()
+    return {r["date"]: json.loads(r["reward"]) for r in rows}
+
+
+def add_attendance(conn, user_id: str, date: str, reward: dict) -> bool:
+    cur = conn.execute("INSERT OR IGNORE INTO attendance_log (user_id, date, reward) VALUES (?, ?, ?)",
+                       (user_id, date, json.dumps(reward, ensure_ascii=False)))
+    conn.commit()
+    return cur.rowcount == 1
 
 
 # --- 미션 소감 ----------------------------------------------------------------------

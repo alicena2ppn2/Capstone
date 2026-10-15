@@ -71,9 +71,10 @@ export default function Attendance({ records, plans, onPrepare, onClaim }) {
       <button type="button" className="pb ui-primary attendance-claim" disabled={!!receipt} onClick={() => {
         const current = new Date();
         setNow(current);
-        const result=onClaim(seoulDateKey(current));
-        setError(result?.ok===false?'출석을 저장하지 못했어요. 다시 시도해 주세요.':'');
-        if (result?.ok && result.receipt) setOpen(false);
+        Promise.resolve(onClaim(seoulDateKey(current))).then(result => {   // 서버 출석이면 응답을 기다린다
+          setError(result?.ok===false?(result.message||'출석을 저장하지 못했어요. 다시 시도해 주세요.'):'');
+          if (result?.ok && result.receipt) setOpen(false);
+        });
       }}>{receipt ? '출석 완료 ✓' : '출석하기'}</button>
       {error&&<p role="alert">{error}</p>}
       <button type="button" className="pb ui-secondary attendance-later" onClick={() => setOpen(false)}>닫기</button>

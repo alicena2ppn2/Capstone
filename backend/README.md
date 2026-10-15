@@ -37,7 +37,7 @@ python scripts/serve.py         # 0.0.0.0:8000으로 띄우고, 앱에 넣을 EX
 |---|---|---|
 | `CAPSTONE_DB` | `backend/app.db` | SQLite 파일 경로 |
 | `CAPSTONE_UPLOADS` | `backend/uploads/` | 사진 저장 폴더 |
-| `CORS_ORIGINS` | `http://localhost:5173,http://localhost:8081` | 웹에서 부를 때 허용할 주소 (Vite · Expo 웹). 휴대폰 앱은 상관없음 |
+| `CORS_ORIGINS` | `http://localhost:5173,http://localhost:8081,http://localhost:5183` | 웹에서 부를 때 허용할 주소 (Vite · Expo 웹 8081·5183). 휴대폰 앱은 상관없음 |
 | `SUPABASE_URL` · `SUPABASE_KEY` | 없음 (개발·시연 모드) | `POST /auth/supabase` 토큰 확인. 앱의 Supabase URL·publishable key와 같은 값 |
 | `ADMIN_TOKEN` | 없음 (관리자 API 꺼짐) | 위기 신호·소감 통계 API |
 
@@ -300,3 +300,11 @@ python scripts/seed_demo.py --date 2026-10-22 --days 21
 
 - **규칙 엔진 v0.2** (PR #4, `backend-rules` 브랜치): 지표 → 점수 → 단계(관찰·주의·적극적 넛지·지원 연결 고려) 판정. 미션 중심으로 단순화하면서 지금은 쓰지 않지만, 다른 기능으로 쓸 수 있어 열어 둠
 - 합성 데이터 200명 재생성, 복지 사업 RAG, 심사위원용 점수 조회 API — 처음 계획에 있던 항목
+
+## 비밀 값 커밋 막기
+
+`.githooks/pre-commit`이 `.env` 파일, Supabase secret/service_role 키, 개인 키, `backend/.env`에 있는 실제 값이 커밋에 들어가면 커밋을 막는다. 클론마다 한 번 켠다:
+
+```bash
+git config core.hooksPath .githooks
+```
