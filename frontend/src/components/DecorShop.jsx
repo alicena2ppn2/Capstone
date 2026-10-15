@@ -21,7 +21,8 @@ export default function DecorShop({ game, level, onBuy, onEquip }) {
       const has = owned.includes(item.id);
       const locked = !has && level < item.level;
       const active = equipped[item.slot] === item.id;
-      return <article className={`shop-item${active ? ' is-preview' : ''}`} key={item.id}>
+      return <article className={`shop-item${active ? ' is-preview' : ''}${locked ? ' is-locked' : ''}`} key={item.id}>
+        {locked && <span className="shop-lock-badge">LV.{item.level}</span>}
         <>
           <button type="button" className="pb decor-item-preview" aria-label={`${item.name} 미리보기`} aria-pressed={preview === item.id} onClick={() => setPreview(item.id)}>
             {item.slot === 'scenery' ? <svg className="scenery-thumb" viewBox="124 160 120 170" aria-hidden="true"><Scenery item={item} /></svg> : <span className="decor-item-icon" style={{ background: `${item.color}55` }} aria-hidden="true">{item.icon}</span>}
@@ -31,7 +32,7 @@ export default function DecorShop({ game, level, onBuy, onEquip }) {
           <button type="button" className={`pb shop-buy${active ? ' is-release' : ''}`} disabled={locked || (!has && game.coins < item.price)} onClick={() => {
             if (has) { onEquip(item.slot, active ? null : item.id); setPreview(null); setMessage(active ? '기본 모습으로 돌아왔어요.' : `${item.name}을 배치했어요.`); }
             else { onBuy(item.id); setMessage(`${item.name}을 소품함에 추가했어요. 직접 배치해보세요!`); }
-          }}>{locked ? `LV.${item.level} 해금` : has ? active ? '배치 해제' : '배치하기' : game.coins < item.price ? '코인이 부족해요' : '구매하기'}</button>
+          }}>{locked ? `LV.${item.level} 해금` : has ? active ? '배치 해제' : '배치하기' : game.coins < item.price ? `${(item.price - game.coins).toLocaleString('ko-KR')}코인 더 필요` : `${item.price} 코인에 사기`}</button>
         </>
       </article>;
     })}</div>
