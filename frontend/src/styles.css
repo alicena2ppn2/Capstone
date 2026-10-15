@@ -762,7 +762,7 @@ button.pb, .ui-disclosure > summary { font-weight: 500; }
 .phone-shell.is-home .phone-page:not([hidden]) { height: 100%; }
 /* 방 그림(368:500)이 시트 손잡이 위 남은 높이에 통째로 들어가게: 높이가 모자라면 폭을 줄여 가운데 둔다 (캐릭터가 잘리지 않게) */
 .phone-shell.is-home .home-screen.is-sheet-layout { --sheet-peek: 40px; container-type: size; position: relative; height: 100% !important; min-height: 0; overflow: hidden;
-  background: linear-gradient(to bottom, var(--home-wall, #D6EAF8) 0, var(--home-wall, #D6EAF8) calc((100% - var(--sheet-peek)) * .75), var(--home-floor, #EBCDA6) calc((100% - var(--sheet-peek)) * .75)) !important; }
+  background: linear-gradient(to bottom, var(--home-wall, #D6EAF8) 0, var(--home-wall, #D6EAF8) calc((100% - var(--sheet-peek)) * .798), var(--home-floor, #EBCDA6) calc((100% - var(--sheet-peek)) * .798)) !important; }
 .home-screen.is-sheet-layout .home-room { position: absolute; top: 0; left: 50%; transform: translateX(-50%); width: min(100cqw, (100cqh - var(--sheet-peek)) * 368 / 500); aspect-ratio: 368 / 500; }
 .home-sheet { --sheet-peek: 40px; position: absolute; left: 0; right: 0; bottom: 0; z-index: 6; display: flex; flex-direction: column; max-height: 84%; box-sizing: border-box; background: var(--color-background); border: 1px solid var(--color-border); border-bottom: 0; border-radius: 22px 22px 0 0; box-shadow: 0 -8px 24px rgba(31, 61, 58, .14); transform: translateY(calc(100% - var(--sheet-peek))); transition: transform .28s ease; }
 .home-sheet.is-open { transform: translateY(0); }
