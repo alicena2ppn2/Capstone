@@ -33,7 +33,7 @@ def stored_taken_at(photo_id):
 def test_reads_taken_at():
     assert photo_meta.taken_at(jpeg_taken("2026:11:03 14:05:00")) == "2026-11-03T14:05:00"
     assert photo_meta.taken_at(jpeg_taken(None)) is None
-    assert photo_meta.taken_at(JPEG) is None                 # 깨진 파일
+    assert photo_meta.taken_at(b"\xff\xd8\xff\xe0" + b"0" * 100) is None   # 깨진 파일
     assert photo_meta.taken_at(b"not an image") is None
 
 
@@ -129,3 +129,38 @@ def test_diary_accepts_old_photos_and_album_hides_taken_at(client):
     assert client.put("/users/u1/diary/2026-12-01", json={"text": "옛날 사진", "photos": [p]}).status_code == 200
     photo = client.get("/users/u1/album").json()["photos"][0]
     assert photo["photo_id"] == p and "taken_at" not in photo
+
+
+
+def test_upload_strips_gps_and_device_but_keeps_taken_date(client):
+    """10/15: 사진의 위치(GPS)·기기 정보는 지우고, 촬영 일시는 DB에만 남긴다."""
+    from app import main
+    exif = Image.Exif()
+    exif[photo_meta.EXIF_IFD] = {photo_meta.DATETIME_ORIGINAL: "2026:10:15 09:30:00"}
+    exif[0x8825] = {1: "N", 2: (37.0, 33.0, 0.0), 3: "E", 4: (126.0, 58.0, 0.0)}   # GPS
+    exif[0x010F] = "Apple"                                                          # 기기 회사
+    buf = io.BytesIO()
+    Image.new("RGB", (40, 20), (200, 100, 50)).save(buf, "JPEG", exif=exif)
+    assert Image.open(io.BytesIO(buf.getvalue())).getexif().get_ifd(0x8825)           # 원본엔 GPS 있음
+    r = client.post("/users/u1/photos", files={"file": ("p.jpg", buf.getvalue(), "image/jpeg")}).json()
+    stored = client.get(r["url"]).content
+    saved = Image.open(io.BytesIO(stored)).getexif()
+    assert not saved.get_ifd(0x8825) and 0x010F not in saved                         # 위치·기기 정보 없음
+    assert stored_taken_at(r["photo_id"]) == "2026-10-15T09:30:00"                   # 촬영 일시는 DB에
+
+
+def test_rotation_baked_in_and_big_photo_shrunk():
+    exif = Image.Exif()
+    exif[0x0112] = 6                                    # 90도 돌려서 보라는 정보
+    buf = io.BytesIO()
+    Image.new("RGB", (4000, 1000), (10, 20, 30)).save(buf, "JPEG", exif=exif)
+    data, ext, mime = photo_meta.clean_image(buf.getvalue(), "image/jpeg")
+    img = Image.open(io.BytesIO(data))
+    assert (ext, mime) == (".jpg", "image/jpeg")
+    assert img.size == (512, 2048)                      # 돌려서 세로로, 긴 변 2048로 줄임
+    assert 0x0112 not in img.getexif()
+
+
+def test_not_a_photo_is_rejected(client):
+    r = client.post("/users/u1/photos", files={"file": ("x.jpg", b"not an image", "image/jpeg")})
+    assert r.status_code == 422
