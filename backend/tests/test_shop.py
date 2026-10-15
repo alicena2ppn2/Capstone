@@ -21,7 +21,8 @@ def item(view, kind, item_id):
 
 
 def test_catalog_matches_frontend():
-    assert [c["id"] for c in shop.CATALOG["character"].values()] == ["potato", "pink", "mochi", "lavender", "mint", "sky"]
+    assert [c["id"] for c in shop.CATALOG["character"].values()] == ["potato", "pink", "mochi", "lavender", "mint", "sky",
+        "proto-pebble", "proto-pear", "proto-quilt", "draft-duck", "draft-deer", "draft-hedgehog"]   # 앱의 최종 6종 (10/15)
     assert {i["id"]: (i["level"], i["price"]) for i in shop.CATALOG["outfit"].values()} == {
         "sky": (1, 120), "berry": (1, 180), "marine": (1, 200), "leaf": (1, 220), "lemon": (1, 240),
         "star": (1, 300), "choco": (1, 280), "mint-dot": (1, 320), "rainbow": (1, 400)}   # 10/15: 옷은 레벨 제한 없이 코인으로만

@@ -1,0 +1,50 @@
+#!/bin/sh
+# 비밀 값이 커밋에 들어가지 않게 막는다 (.env 파일, Supabase secret/service_role 키, 개인 키, backend/.env에 있는 실제 값).
+# 켜기 (클론마다 한 번):  git config core.hooksPath .githooks
+# 정말 예외일 때만:      git commit --no-verify  (키가 없는 걸 직접 확인한 뒤)
+
+fail=0
+staged=$(git diff --cached --name-only --diff-filter=ACMR)
+
+# 1) env 파일 자체 (.env.example 같은 빈 예시는 허용)
+for f in $staged; do
+  case "$f" in
+    *.env.example|*.env.sample) ;;
+    .env|*/.env|.env.*|*/.env.*)
+      echo "❌ 커밋 막음: env 파일은 올리면 안 돼요 → $f"
+      fail=1 ;;
+  esac
+done
+
+# 2) 새로 들어가는 줄에 비밀 값 모양이 있는지 (예시 파일·이 훅 제외)
+added=$(git diff --cached -U0 --diff-filter=ACMR -- . ':(exclude)*.env.example' ':(exclude).githooks/*' | grep '^+' | grep -v '^+++')
+check() {
+  if printf '%s\n' "$added" | grep -Eq -- "$1"; then
+    echo "❌ 커밋 막음: $2 이(가) 들어 있어요"
+    fail=1
+  fi
+}
+check 'sb_secret_[A-Za-z0-9_-]{10,}' 'Supabase secret 키'
+check 'service_role[^ ]*["'"'"' :=]+eyJ' 'Supabase service_role 키'
+check 'sb_publishable_[A-Za-z0-9_-]{16,}' 'Supabase 키 값 (공개용이어도 env에만 두기)'
+check '-----BEGIN [A-Z ]*PRIVATE KEY-----' '개인 키(private key)'
+check 'eyJ[A-Za-z0-9_-]{20,}\.eyJ[A-Za-z0-9_-]{20,}\.' '로그인 토큰(JWT)'
+
+# 3) backend/.env에 실제로 적힌 값이 그대로 들어갔는지 (값은 출력하지 않음)
+if [ -f backend/.env ]; then
+  values=$(tr -d '\r' < backend/.env | grep -v '^#' | grep '=' | cut -d= -f2- | sed -e 's/^["'"'"']//' -e 's/["'"'"']$//')
+  for value in $values; do
+    [ ${#value} -ge 8 ] || continue
+    if printf '%s\n' "$added" | grep -qF -- "$value"; then
+      echo "❌ 커밋 막음: backend/.env에 있는 값이 들어 있어요"
+      fail=1
+      break
+    fi
+  done
+fi
+
+if [ "$fail" -ne 0 ]; then
+  echo "   → 해당 파일·줄을 빼고 다시 커밋해 주세요 (git restore --staged <파일>)."
+  exit 1
+fi
+exit 0
