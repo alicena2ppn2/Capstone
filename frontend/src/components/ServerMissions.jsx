@@ -22,7 +22,7 @@ function PhotoPick({ busy, onUpload, compact = false }) {
         <button type="button" className="pb shop-buy" disabled={busy} onClick={() => onUpload(file)}>{busy ? '날짜 확인 중…' : '이 사진으로 완료'}</button>
         <button type="button" className="pb mission-link" disabled={busy} onClick={() => input.current?.click()}>다른 사진 고르기</button>
       </div>
-    </div> : <button type="button" className={`pb ${compact ? 'ui-secondary' : 'shop-buy mission-main'}`} disabled={busy} onClick={() => input.current?.click()}><span aria-hidden="true">📷</span> {compact ? '사진' : '오늘 찍은 사진으로 완료'}</button>}
+    </div> : <button type="button" className={`pb ${compact ? 'ui-secondary' : 'shop-buy mission-main'}`} disabled={busy} onClick={() => input.current?.click()}><span aria-hidden="true">📷</span> {compact ? '사진' : '사진 업로드하기'}</button>}
   </div>;
 }
 
