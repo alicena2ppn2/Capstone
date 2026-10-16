@@ -14,13 +14,18 @@ export function useServerUserId() {
   return serverConfigured ? auth?.backendUserId || devUserId : null;
 }
 
+// 로그인 토큰을 주는 함수 (useMobileAuthEntry가 로그인 컨트롤러를 만들 때 한 번 등록). 서버는 토큰 주인 = 주소의 {id}일 때만 허용
+let tokenSource = null;
+export function setTokenSource(source) { tokenSource = source; }
+
 export async function call(path, { method = 'GET', body, form } = {}) {
   if (!BASE) throw new Error('서버 주소(EXPO_PUBLIC_API_URL)가 설정되지 않았어요.');
+  const token = await tokenSource?.().catch(() => null);
   let response;
   try {
     response = await fetch(`${BASE}${path}`, {
       method,
-      headers: body !== undefined ? { 'Content-Type': 'application/json' } : undefined,
+      headers: { ...(token ? { Authorization: `Bearer ${token}` } : {}), ...(body !== undefined ? { 'Content-Type': 'application/json' } : {}) },
       body: form ?? (body === undefined ? undefined : JSON.stringify(body)),
     });
   } catch { throw new Error('서버에 연결하지 못했어요. 와이파이와 서버가 켜져 있는지 확인해 주세요.'); }
