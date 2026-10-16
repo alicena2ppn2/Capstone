@@ -437,8 +437,18 @@ button, input, select, textarea, details, summary {
 .quest-ui .quest-compact .quest-state { flex: 0 0 auto; font-size: 12px; font-weight: 400; line-height: 1.5; color: var(--color-muted); }
 .quest-ui .is-started .quest-state, .quest-ui .is-completed .quest-state { padding: 2px 6px; border-radius: 7px; background: var(--color-primary-soft); color: var(--color-muted); }
 .quest-ui .quest-compact p { margin: 6px 0; font-size: 14px; line-height: 1.5; }
-.quest-ui .quest-card-reward { display: flex; justify-content: space-between; align-items: center; gap: 6px; }
-.quest-ui .quest-card-reward small { color: var(--color-muted); }
+  .quest-ui .quest-card-reward { display: flex; justify-content: flex-start; align-items: center; flex-wrap: wrap; gap: 6px; }
+  .quest-ui .quest-card-reward small { color: var(--color-muted); }
+  .quest-ui .quest-reward-icons { display: inline-flex; align-items: center; flex-wrap: wrap; gap: 8px; padding: 4px 7px; border-radius: 8px; background: var(--color-accent-soft); color: var(--color-ink); font-size: 12px; line-height: 1.4; font-weight: 500; font-variant-numeric: tabular-nums; }
+  .quest-ui .quest-reward-token { display: inline-flex; align-items: center; gap: 4px; white-space: nowrap; }
+  .quest-ui .quest-reward-token .ui-section-icon { flex: none; color: #B38D36; }
+  .quest-ui .quest-xp-icon { flex: none; width: 17px; height: 17px; }
+  .quest-ui .quest-xp-icon path { fill: #C6B2E9; stroke: #927AB8; stroke-width: 1.5; }
+  .quest-ui .quest-xp-icon text { fill: #FFF; font: 600 8px A2z, system-ui, sans-serif; }
+  .quest-ui .quest-reward-empty { color: var(--color-muted); font-size: 12px; }
+  .quest-ui .quest-routine-reward { width: fit-content; }
+  .quest-ui .quest-goal-reward-line { display: flex; align-items: center; flex-wrap: wrap; gap: 7px; }
+  .quest-ui .quest-toast-reward { justify-content: center; background: transparent; padding: 0; }
 .quest-ui .quest-info { flex-shrink: 0; min-width: 44px; min-height: 44px; border: 0; background: transparent; color: var(--color-ink); font-size: 14px; font-weight: 500; }
 .quest-ui .quest-compact .quest-card-actions { display: block; margin-top: 8px; }
 .quest-ui .quest-compact .quest-card-actions .shop-buy { width: 100%; min-height: 44px; margin: 0; padding: 9px 12px; }
@@ -629,7 +639,7 @@ button.pb, .ui-disclosure > summary { font-weight: 500; }
 .shop-buy.is-release { background: var(--ui-card); color: var(--color-ink); border-color: var(--color-border); }
 .ui-primary:focus-visible, .ui-screen-header button:focus-visible, .home-summary button:focus-visible, .growth-quest:focus-visible { outline: 3px solid var(--color-primary); outline-offset: 2px; }
 .ui-card, .shop-item, .growth-quest, .settings-card { background: var(--ui-card); border: 1px solid var(--ui-border); border-radius: 18px; box-shadow: none; }
-.shop-price, .quest-card-reward > small { background: var(--color-accent-soft); border-radius: 8px; padding: 4px 7px; color: var(--color-muted); }
+  .shop-price { background: var(--color-accent-soft); border-radius: 8px; padding: 4px 7px; color: var(--color-muted); }
 .shop-tabs button[aria-pressed='true'], .decor-categories button[aria-pressed='true'], .diary-tabs button[aria-pressed='true'] { background: var(--ui-selected); border-color: var(--ui-selected-border); color: var(--color-ink); }
 .decor-categories button, .visit-like, .growth-quest select { min-height: var(--ui-touch); }
 .quest-ui .ui-period-tabs { flex-wrap: nowrap; margin: 0; }
@@ -859,7 +869,7 @@ button.pb, .ui-disclosure > summary { font-weight: 500; }
 .mission-card:focus-visible { outline: 3px solid var(--color-primary); outline-offset: 2px; }
 .mission-card-top { display: flex; align-items: center; justify-content: space-between; gap: 8px; }
 .mission-chip { padding: 2px 9px; border-radius: 10px; background: var(--tone-soft); color: var(--tone); font-size: 12px; font-weight: 600; }
-.mission-reward { padding: 2px 9px; border-radius: 10px; background: var(--color-accent-soft); color: var(--color-ink); font-size: 12px; font-weight: 600; font-variant-numeric: tabular-nums; }
+  .mission-reward { flex: 0 0 auto; }
 .mission-card-title { display: flex; align-items: center; gap: 8px; }
 .mission-card-title strong { font-size: 16px; line-height: 1.4; }
 .mission-check { flex: 0 0 22px; width: 22px; height: 22px; box-sizing: border-box; border: 2px solid var(--tone); border-radius: 50%; display: inline-flex; align-items: center; justify-content: center; color: #fff; font-size: 13px; font-weight: 700; }
