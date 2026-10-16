@@ -162,7 +162,7 @@ class EquipIn(BaseModel):
 
 
 class DecorIn(BaseModel):
-    slot: str = Field(..., description="wallpaper | floor | sofa | drawer | lamp | carpet | frame | doll | scenery")
+    slot: str = Field(..., description="wallpaper | floor | sofa | drawer | curtain | lamp | carpet | frame | doll | scenery")
     item_id: str | None = Field(..., description="놓을 소품 id. null이면 그 자리 비우기")
 
 
