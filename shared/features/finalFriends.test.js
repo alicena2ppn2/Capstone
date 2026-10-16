@@ -1,6 +1,6 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
-import { initialGame, CHARACTERS, buyCharacter, equipCharacter, grantMilestone, levelFor, migrateQuestProgress } from './game.js';
+import { initialGame, CHARACTERS, buyCharacter, equipCharacter, grantMilestone, levelFor, xpThresholdForLevel, migrateQuestProgress } from './game.js';
 import { FINAL_FRIENDS, characterAvailability } from './finalFriends.js';
 import { FRIEND_INTROS } from '../data/catalog.js';
 import { CHARACTER_PROFILES } from '../data/characterProfiles.js';
@@ -11,7 +11,7 @@ test('12 unique products, only six new products, approved revisions and level or
   assert.deepEqual(FINAL_FRIENDS.map(f=>[f.level,f.price,f.revision]),[[4,300,'B'],[7,350,'A'],[10,450,'A'],[15,600,'C'],[20,625,'A-no-spots'],[25,650,'B']]);
   assert(CHARACTERS.every((f,i)=>i===0||CHARACTERS[i-1].level<=f.level));
   assert(FINAL_FRIENDS.every(f=>!f.method&&FRIEND_INTROS[f.id].personality));
-  assert.equal(levelFor(10000),101);
+  assert.equal(levelFor(10000),102);
 });
 test('표시 이름과 세 친구 소개를 갱신하되 ID·상점 상품 수는 유지한다', () => {
   const expected = {
@@ -55,7 +55,7 @@ test('eight requested profiles and short shop copy are stored separately from ap
   assert.equal(CHARACTER_VOICE_DRAFTS.sky.length,5);
 });
 for(const friend of FINAL_FRIENDS) test(`${friend.name}: boundary, insufficient funds, one deduction, no auto equip, JSON restore`,()=>{
-  const original={...initialGame(),xp:(friend.level-1)*100,coins:friend.price,nicknames:{potato:'내 감자'},characters:['potato','mochi'],character:'mochi',decor:{lamp:'lamp-moon'},completed:['2026-10-01:day-walk'],custom:'preserve'};
+  const original={...initialGame(),xp:xpThresholdForLevel(friend.level),coins:friend.price,nicknames:{potato:'내 감자'},characters:['potato','mochi'],character:'mochi',decor:{lamp:'lamp-moon'},completed:['2026-10-01:day-walk'],custom:'preserve'};
   assert.equal(buyCharacter({...original,xp:original.xp-1},friend.id).characters.length,2);
   assert.equal(buyCharacter({...original,coins:friend.price-1},friend.id).coins,friend.price-1);
   assert.equal(characterAvailability({...original,xp:original.xp-1},friend),'level');

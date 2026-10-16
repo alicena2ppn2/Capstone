@@ -3,9 +3,10 @@ import { CLOTHES } from '../data/clothes.js';
 import { DECOR } from '../data/decor.js';
 import { deletedJournal, saveJournal } from './journal.js';
 import { CHALLENGES, migrateChallenges, ensureChallenges, previewReward, goalProgress } from './challenges.js';
+import { levelFor } from './levelProgression.js';
+export { EARLY_LEVEL_THRESHOLDS, XP_PER_LEVEL, levelFor, levelProgress, xpThresholdForLevel } from './levelProgression.js';
 export { selectChallenge, pauseChallenge, replaceChallenge, ensureChallenges, goalProgress, previewReward } from './challenges.js';
 
-export const XP_PER_LEVEL = 100;
 import { CHARACTERS } from '../data/characters.js';
 export { CHARACTERS } from '../data/characters.js';
 // Keep retired weekly/monthly IDs only for one-time compatibility migration.
@@ -14,7 +15,6 @@ const LEGACY_QUESTS = [
   ...['month-place', 'month-rhythm', 'month-diary'].map(id => ({ id, period: 'month' })),
 ];
 export const QUESTS = CHALLENGES;
-export const levelFor = (xp) => 1 + Math.floor(xp / XP_PER_LEVEL);
 export const initialGame = ({ demo = false } = {}) => migrateChallenges({ xp: 0, coins: demo ? 540 : 90, completed: [], started: [], questPeriodsMigrated: true, characters: ['potato'], character: 'potato', attendance: {}, questAnswers: {} });
 export function questCompletionKey(quest, dayKey = seoulDateKey()) {
   const period = quest.period === 'week' ? attendanceWeek(dayKey)[0] : quest.period === 'month' ? dayKey.slice(0, 7) : dayKey;
