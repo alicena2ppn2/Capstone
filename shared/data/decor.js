@@ -3,6 +3,12 @@ export const DECOR = [
   { id: 'lamp-flower', name: '꽃잎 전등', slot: 'lamp', level: 4, price: 180, color: '#F3BDD0', icon: '🌷' },
   { id: 'carpet-peach', name: '복숭아 카페트', slot: 'carpet', level: 1, price: 100, color: '#F1BAC6', icon: '🍑' },
   { id: 'carpet-sea', name: '파도 카페트', slot: 'carpet', level: 5, price: 220, color: '#98CEDC', icon: '🌊' },
+  // 무늬 러그 (10/16): 땡땡이·줄무늬·체크·무지개·지그재그
+  { id: 'carpet-mint-dot', name: '민트 땡땡이 러그', slot: 'carpet', level: 1, price: 120, color: '#CFEBDD', pattern: 'dots', ink: '#9FD2B9', icon: '🟢' },
+  { id: 'carpet-lemon-stripe', name: '레몬 줄무늬 러그', slot: 'carpet', level: 2, price: 140, color: '#FFF0B3', pattern: 'stripes', ink: '#F2D774', icon: '🍋' },
+  { id: 'carpet-lavender-check', name: '라벤더 체크 러그', slot: 'carpet', level: 3, price: 160, color: '#E7DFF8', pattern: 'gingham', ink: '#C4B4EC', icon: '💜' },
+  { id: 'carpet-rainbow', name: '무지개 러그', slot: 'carpet', level: 4, price: 200, color: '#FFFFFF', pattern: 'rainbow', ink: '#F7A8A8', icon: '🌈' },
+  { id: 'carpet-choco-zigzag', name: '초코 지그재그 러그', slot: 'carpet', level: 5, price: 220, color: '#D9B99B', pattern: 'zigzag', ink: '#A97B57', icon: '🍫' },
   { id: 'frame-flower', name: '꽃밭 액자', slot: 'frame', level: 2, price: 120, color: '#C2D8AD', icon: '🌼' },
   { id: 'frame-night', name: '별밤 액자', slot: 'frame', level: 6, price: 250, color: '#9A9DC6', icon: '🌌' },
   { id: 'doll-bear', name: '포근 곰 인형', slot: 'doll', level: 2, price: 140, color: '#D6B18B', icon: '🧸' },
@@ -48,3 +54,6 @@ export const DECOR = [
 export const DECOR_SLOTS = { wallpaper: '벽지', floor: '바닥', sofa: '소파', drawer: '서랍장', curtain: '커튼', lamp: '전등', carpet: '카페트', frame: '액자', doll: '인형', scenery: '창밖 풍경' };
 // 손가락으로 끌어서 옮길 수 있는 소품 (카페트·창밖·벽지·바닥은 자리가 정해져 있음)
 export const MOVABLE_SLOTS = ['lamp', 'frame', 'doll'];
+// 상점 분류: 액자·인형은 '소품' 하나로 묶어 보여 준다 (방의 자리는 frame·doll 그대로)
+export const SHOP_CATEGORIES = Object.fromEntries(Object.entries(DECOR_SLOTS).filter(([slot]) => slot !== 'doll').map(([slot, name]) => slot === 'frame' ? ['props', '소품'] : [slot, name]));
+export const categoryOf = slot => slot === 'frame' || slot === 'doll' ? 'props' : slot;

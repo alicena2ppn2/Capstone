@@ -440,6 +440,41 @@
       "slot": "curtain",
       "level": 1,
       "price": 100
+    },
+    {
+      "id": "carpet-mint-dot",
+      "name": "민트 땡땡이 러그",
+      "slot": "carpet",
+      "level": 1,
+      "price": 120
+    },
+    {
+      "id": "carpet-lemon-stripe",
+      "name": "레몬 줄무늬 러그",
+      "slot": "carpet",
+      "level": 2,
+      "price": 140
+    },
+    {
+      "id": "carpet-lavender-check",
+      "name": "라벤더 체크 러그",
+      "slot": "carpet",
+      "level": 3,
+      "price": 160
+    },
+    {
+      "id": "carpet-rainbow",
+      "name": "무지개 러그",
+      "slot": "carpet",
+      "level": 4,
+      "price": 200
+    },
+    {
+      "id": "carpet-choco-zigzag",
+      "name": "초코 지그재그 러그",
+      "slot": "carpet",
+      "level": 5,
+      "price": 220
     }
   ]
 }
