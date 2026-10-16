@@ -55,18 +55,24 @@ export default function Attendance({ records, plans, onPrepare, onClaim }) {
       <button type="button" className="pb attendance-close" aria-label="출석표 닫기" onClick={() => setOpen(false)}>×</button>
       <h2 id="attendance-title">이번주의 출석표</h2>
       <div className="attendance-week-label">{shortDate(week[0])} — {shortDate(week[6])}</div>
-      <div className="attendance-stamps" aria-label="이번 주 출석표">
-        {week.map((key, index) => <div key={key} className={`attendance-day${key === today ? ' is-today' : ''}`}>
-          <span>{DAYS[index]}</span>
-          <div className={`attendance-stamp${records[key] ? ' is-checked' : ''}`} aria-label={`${shortDate(key)} ${rewardLabel(records[key] ?? plan[key])} ${records[key] ? '출석 완료' : key === today ? '오늘' : key < today ? '쉬어간 날' : '예정'}`}>
-            <RewardIcon reward={records[key] ?? plan[key]} />
-            {records[key] && <span className="attendance-check">✓</span>}
-          </div>
-          <small className="attendance-reward-label" title={rewardLabel(records[key] ?? plan[key])}>{(records[key] ?? plan[key])?.type === 'outfit' ? '의상' : (records[key] ?? plan[key])?.type === 'decor' ? '소품' : rewardLabel(records[key] ?? plan[key])}</small>
-          <small>{Number(key.slice(5, 7))}/{Number(key.slice(8, 10))}</small>
-        </div>)}
-      </div>
+      {/* 다른 모바일 게임 출석부처럼: 날짜마다 카드 하나. 받은 날은 도장, 오늘은 강조, 지난 날은 '쉬어감' */}
+      <div className="attendance-progress" aria-hidden="true"><span style={{ width: `${count / 7 * 100}%` }} /></div>
+      <ol className="attendance-cards" aria-label="이번 주 출석표">
+        {week.map((key, index) => {
+          const reward = records[key] ?? plan[key], state = records[key] ? 'done' : key === today ? 'today' : key < today ? 'missed' : 'later';
+          const label = reward?.type === 'outfit' ? '의상' : reward?.type === 'decor' ? '소품' : rewardLabel(reward);
+          return <li key={key} className={`attendance-card is-${state}`} aria-label={`${DAYS[index]}요일 ${shortDate(key)}, ${rewardLabel(reward)}, ${{ done: '출석 완료', today: '오늘', missed: '쉬어간 날', later: '예정' }[state]}`}>
+            <span className="attendance-card-day">{state === 'today' ? '오늘' : DAYS[index]}</span>
+            <span className="attendance-card-icon"><RewardIcon reward={reward} /></span>
+            <span className="attendance-card-reward" title={rewardLabel(reward)}>{label}</span>
+            <span className="attendance-card-date">{Number(key.slice(5, 7))}/{Number(key.slice(8, 10))}</span>
+            {state === 'done' && <span className="attendance-card-stamp" aria-hidden="true">✓</span>}
+            {state === 'missed' && <span className="attendance-card-note" aria-hidden="true">쉬어감</span>}
+          </li>;
+        })}
+      </ol>
       <p id="attendance-description" className="attendance-count">이번 주 <strong>{count}일</strong> 함께했어요. 언제든 반가워요.</p>
+      {!receipt && plan[today] && <div className="attendance-today-gift"><span>오늘 받을 선물</span><RewardIcon reward={plan[today]} /><strong>{rewardLabel(plan[today])}</strong></div>}
       {receipt && <div className="attendance-receipt" role="status">{receipt.type === 'outfit' ? '옷장에 추가 · ' : receipt.type === 'decor' ? '소품함에 추가 · ' : '+'}{rewardLabel(receipt)}{receipt.duplicateOutfit ? ' (보유 의상 대신)' : receipt.duplicateDecor ? ' (보유 소품 대신)' : ''}</div>}
       <button type="button" className="pb ui-primary attendance-claim" disabled={!!receipt} onClick={() => {
         const current = new Date();
@@ -75,7 +81,7 @@ export default function Attendance({ records, plans, onPrepare, onClaim }) {
           setError(result?.ok===false?(result.message||'출석을 저장하지 못했어요. 다시 시도해 주세요.'):'');
           if (result?.ok && result.receipt) setOpen(false);
         });
-      }}>{receipt ? '출석 완료 ✓' : '출석하기'}</button>
+      }}>{receipt ? '오늘 출석 완료 ✓' : '출석하고 선물 받기'}</button>
       {error&&<p role="alert">{error}</p>}
       <button type="button" className="pb ui-secondary attendance-later" onClick={() => setOpen(false)}>닫기</button>
     </dialog>
