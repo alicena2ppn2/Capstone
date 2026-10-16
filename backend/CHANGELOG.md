@@ -5,6 +5,22 @@
 
 ---
 
+## 2026-10-16 — 모든 API 로그인 토큰 확인
+
+**브랜치** `api-token-auth`
+
+- `app/access.py`: 앱 전체에 한 번에 거는 확인(`FastAPI(dependencies=[Depends(guard)])`). 주소에 `{user_id}`가 있으면 토큰 주인(서버 id) == user_id일 때만 허용 → 남의 코인·일기·출석을 건드리면 403, 토큰 없으면 401
+- 남의 방에서 하는 일(놀러 가기·방명록 쓰기·좋아요·취소·지우기·신고)은 '하는 사람' 값(visitor_id·author_id·user_id·by·reporter_id)이 토큰 주인인지 확인. 방명록 author_id를 비우면 토큰 주인으로 채움 (익명·사칭 글 막기)
+- 누구나: 서버 상태, 닉네임 확인, 설문 질문, 이웃 방 보기, 방명록 읽기, 사진 주소(추측 불가 id라 img로 열 수 있게). 관리자 API는 기존 X-Admin-Token, `/auth/supabase`는 auth.py가 확인
+- 로그인 없이 `POST /users`로 계정 만들기는 막음 (토큰 확인 모드일 때)
+- 모드 `CAPSTONE_AUTH`: Supabase가 설정돼 있으면 기본 `required`, 내 컴퓨터에서 시연 계정으로 개발할 때 `dev`(토큰 없으면 통과, 있으면 확인), Supabase가 없으면 `off`(테스트 그대로)
+- 같은 토큰은 60초 동안 기억해서 요청마다 Supabase에 묻지 않음 (토큰 원문 대신 해시)
+- 앱·웹 `call()`이 로그인 컨트롤러의 `accessToken()`으로 매 요청 토큰을 붙임
+- 테스트 6개 추가 (260)
+- 남은 것: 실제 Supabase 토큰으로 휴대폰·웹 끝까지 확인 (서버 배포 후)
+
+---
+
 ## 2026-10-15 — 방 꾸미기: 소파·서랍장 색 (각 100코인)
 
 **브랜치** `home-room-tweaks` (#45)

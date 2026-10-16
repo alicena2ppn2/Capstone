@@ -22,6 +22,7 @@ from fastapi.responses import FileResponse, PlainTextResponse
 from fastapi.middleware.cors import CORSMiddleware
 from pydantic import BaseModel, Field
 
+from . import access
 from . import attendance as att
 from . import auth
 from . import crisis
@@ -59,7 +60,8 @@ async def lifespan(app: FastAPI):
     app.state.conn.close()
 
 
-app = FastAPI(title="Capstone API", version="0.1.0", lifespan=lifespan)
+app = FastAPI(title="Capstone API", version="0.1.0", lifespan=lifespan,
+              dependencies=[Depends(access.guard)])   # 모든 API: 토큰 주인만 자기 정보 (access.py)
 app.add_middleware(
     CORSMiddleware,
     allow_origins=os.environ.get("CORS_ORIGINS", "http://localhost:5173,http://localhost:5180,http://127.0.0.1:5180,http://localhost:8081,http://localhost:5183").split(","),   # 웹(Vite 5173, 팀은 5180) · Expo 웹(8081, 팀은 5183)
@@ -1099,7 +1101,8 @@ def get_coins(user_id: str, conn=Depends(get_conn)):
 
 
 @app.post("/users/{user_id}/visits", summary="친구 방 놀러 가기 (user_id = 방 주인). 방문한 사람의 방문 미션 자동 완료")
-def post_visit(user_id: str, body: VisitIn, date: str | None = DateQuery, conn=Depends(get_conn)):
+def post_visit(user_id: str, body: VisitIn, request: Request, date: str | None = DateQuery, conn=Depends(get_conn)):
+    body.visitor_id = access.actor(request, body.visitor_id)
     today = day(date)
     if body.visitor_id == user_id:
         raise HTTPException(422, "내 방은 방문으로 치지 않아요.")
@@ -1168,7 +1171,8 @@ def guestbook_entry_or_404(conn, owner_id: str, entry_id: int) -> dict:
 
 
 @app.post("/users/{user_id}/guestbook/{entry_id}/like", summary="방명록 글 좋아요 (한 사람이 한 번)")
-def like_guestbook(user_id: str, entry_id: int, body: LikeIn, conn=Depends(get_conn)):
+def like_guestbook(user_id: str, entry_id: int, body: LikeIn, request: Request, conn=Depends(get_conn)):
+    body.user_id = access.actor(request, body.user_id)
     entry = guestbook_entry_or_404(conn, user_id, entry_id)
     if entry["author_id"] and entry["author_id"] in db.block_related(conn, body.user_id):
         raise HTTPException(404, "방명록 글이 없습니다.")
@@ -1178,15 +1182,17 @@ def like_guestbook(user_id: str, entry_id: int, body: LikeIn, conn=Depends(get_c
 
 
 @app.delete("/users/{user_id}/guestbook/{entry_id}/like", summary="방명록 글 좋아요 취소")
-def unlike_guestbook(user_id: str, entry_id: int, by: str = Query(..., description="좋아요를 취소하는 사람 user id"),
+def unlike_guestbook(user_id: str, entry_id: int, request: Request, by: str = Query(..., description="좋아요를 취소하는 사람 user id"),
                      conn=Depends(get_conn)):
+    by = access.actor(request, by)
     guestbook_entry_or_404(conn, user_id, entry_id)
     db.unlike_entry(conn, entry_id, by)
     return {"entry_id": entry_id, **db.like_counts(conn, [entry_id], by)[entry_id]}
 
 
 @app.delete("/users/{user_id}/guestbook/{entry_id}", summary="방명록 글 지우기 (방 주인 또는 쓴 사람)")
-def delete_guestbook(user_id: str, entry_id: int, by: str = Query(..., description="지우는 사람 user id"), conn=Depends(get_conn)):
+def delete_guestbook(user_id: str, entry_id: int, request: Request, by: str = Query(..., description="지우는 사람 user id"), conn=Depends(get_conn)):
+    by = access.actor(request, by)
     entry = db.get_guestbook_entry(conn, entry_id)
     if entry is None or entry["owner_id"] != user_id:
         raise HTTPException(404, "방명록 글이 없습니다.")
@@ -1197,7 +1203,8 @@ def delete_guestbook(user_id: str, entry_id: int, by: str = Query(..., descripti
 
 
 @app.post("/users/{user_id}/guestbook", summary="방명록 남기기 (user_id = 방 주인). author_id를 넣으면 쓴 사람의 방명록 미션 자동 완료")
-def post_guestbook(user_id: str, body: GuestbookIn, date: str | None = DateQuery, conn=Depends(get_conn)):
+def post_guestbook(user_id: str, body: GuestbookIn, request: Request, date: str | None = DateQuery, conn=Depends(get_conn)):
+    body.author_id = access.actor(request, body.author_id)   # 로그인했으면 쓴 사람 = 토큰 주인 (익명 글 불가)
     today = day(date)
     author = (body.author or "").strip()
     if not author and body.author_id:
@@ -1269,7 +1276,8 @@ def counts_for_hiding(conn, reporter_id: str, today: Date) -> bool:
 
 
 @app.post("/reports", status_code=201, summary="신고하기 — 신고한 사람에게는 바로 숨기고, 여러 명이 신고하면 모두에게 숨김")
-def report(body: ReportIn, date: str | None = DateQuery, conn=Depends(get_conn)):
+def report(body: ReportIn, request: Request, date: str | None = DateQuery, conn=Depends(get_conn)):
+    body.reporter_id = access.actor(request, body.reporter_id)
     today = day(date)
     if body.target_type not in moderation.REPORT_TARGETS:
         raise HTTPException(422, f"신고 대상은 {', '.join(moderation.REPORT_TARGETS)} 중 하나예요.")
