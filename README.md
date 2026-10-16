@@ -2,7 +2,7 @@
 
 > 모찌 친구와 함께, 매일 작은 미션으로 **밖에 한 발 나가고 · 하루를 기록하고 · 사람과 가볍게 이어지는** 게임형 앱
 
-캡스톤 프로젝트 · 발표 2026-10-22 · 목표: App Store 출시 · 최종 갱신 2026-10-16
+캡스톤 프로젝트 · 최종 발표 2026-10-22 · 목표: App Store 출시 · 최종 갱신 2026-10-16
 
 | 문서 | 내용 |
 |---|---|
@@ -13,6 +13,22 @@
 | [PROGRESS.md](PROGRESS.md) | 작업 기록과 **출시 전 남은 일** 체크리스트 |
 | [INITIAL_PLAN.md](INITIAL_PLAN.md) | 초기 기획 (생활 리듬 기반 사회적 고립 조기 개입 AI 에이전트) |
 | [backend/](backend/) · [mobile/](mobile/) · [frontend/](frontend/) | 서버 · 앱 · 웹 각자의 README·변경 기록 |
+
+---
+
+## 화면
+
+앱(Expo, iPhone 크기 390×844) · 시연 계정 기준 · 2026-10-16
+
+| **홈 — 모찌와 내 방** | **연속 출석 (1~7일차)** | **오늘의 도전 — 데일리 미션** |
+|---|---|---|
+| <img src="docs/screenshots/01-home.png" width="240" alt="홈 — 모찌와 내 방"> | <img src="docs/screenshots/02-attendance.png" width="240" alt="연속 출석 (1~7일차)"> | <img src="docs/screenshots/03-quest.png" width="240" alt="오늘의 도전 — 데일리 미션"> |
+| **오늘의 활동 — 사진으로 완료** | **상점 — 친구 캐릭터** | **상점 — 집 꾸미기** |
+| <img src="docs/screenshots/04-quest-activities.png" width="240" alt="오늘의 활동 — 사진으로 완료"> | <img src="docs/screenshots/05-shop-friends.png" width="240" alt="상점 — 친구 캐릭터"> | <img src="docs/screenshots/06-shop-decor.png" width="240" alt="상점 — 집 꾸미기"> |
+| **이웃 — 비슷한 레벨 추천** | **친구 코드로 찾기·신청** | **이웃 방 놀러 가기·친밀도** |
+| <img src="docs/screenshots/07-neighbors.png" width="240" alt="이웃 — 비슷한 레벨 추천"> | <img src="docs/screenshots/08-friends.png" width="240" alt="친구 코드로 찾기·신청"> | <img src="docs/screenshots/09-visit-room.png" width="240" alt="이웃 방 놀러 가기·친밀도"> |
+| **방명록 신고 창** | **일기** | **설정 — 내 프로필** |
+| <img src="docs/screenshots/10-report.png" width="240" alt="방명록 신고 창"> | <img src="docs/screenshots/11-diary.png" width="240" alt="일기"> | <img src="docs/screenshots/12-settings.png" width="240" alt="설정 — 내 프로필"> |
 
 ---
 
