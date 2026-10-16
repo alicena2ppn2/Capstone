@@ -75,11 +75,11 @@ def test_stay_home_lowers_move_stage_only():
 
 
 def test_stage_coins_go_up():
-    assert ms.CATALOG["sky_photo"].coins == 50                 # 1단계 밖
-    assert ms.CATALOG["drink_run"].coins == 60                 # 2단계 밖
-    assert ms.CATALOG["parks"].coins == 70                     # 3단계 밖
-    assert ms.CATALOG["c1_family_meal"].coins == 30            # 1단계 이어지기 (집)
-    assert ms.CATALOG["c3_regular_shop"].coins == 70           # 3단계 이어지기 (밖)
+    assert ms.CATALOG["sky_photo"].coins == 20                 # 1단계 밖
+    assert ms.CATALOG["drink_run"].coins == 25                 # 2단계 밖 (+5)
+    assert ms.CATALOG["parks"].coins == 30                     # 3단계 밖
+    assert ms.CATALOG["c1_family_meal"].coins == 12            # 1단계 이어지기 (집)
+    assert ms.CATALOG["c3_regular_shop"].coins == 30           # 3단계 이어지기 (밖)
 
 
 def test_requires_survey_answer():
@@ -157,13 +157,13 @@ def test_is_complete(mid, submission, done):
 # --- 코인 ------------------------------------------------------------------------
 
 def test_rewards_match_frontend_day_quests():
-    # frontend/src/utils/game.js: 오늘 퀘스트 100 XP · 30 코인, 기록하기 40 코인
-    # 밖에 나가는 미션은 코인 50 (외출을 이끌기 위해 집 미션보다 많이)
-    assert (ms.CATALOG["sky_photo"].coins, ms.CATALOG["sky_photo"].xp) == (50, 100)
-    assert (ms.CATALOG["cook"].coins, ms.CATALOG["cook"].xp) == (30, 100)
-    assert (ms.CATALOG["diary"].coins, ms.CATALOG["diary"].xp) == (40, 100)
-    assert (ms.CATALOG["guestbook"].coins, ms.CATALOG["guestbook"].xp) == (30, 100)
-    assert ms.CATALOG["walk"].to_dict()["coins"] == 50
+    # 경제 밸런스 (10/16, ECONOMY.md): 밖 20 · 집 12 · 일기 15 코인, 50 XP
+    # 밖에 나가는 미션은 집 미션보다 코인이 많다 (외출을 이끌기 위해)
+    assert (ms.CATALOG["sky_photo"].coins, ms.CATALOG["sky_photo"].xp) == (20, 50)
+    assert (ms.CATALOG["cook"].coins, ms.CATALOG["cook"].xp) == (12, 50)
+    assert (ms.CATALOG["diary"].coins, ms.CATALOG["diary"].xp) == (15, 50)
+    assert (ms.CATALOG["guestbook"].coins, ms.CATALOG["guestbook"].xp) == (12, 50)
+    assert ms.CATALOG["walk"].to_dict()["coins"] == 20
 
 
 def today_missions():
@@ -172,14 +172,14 @@ def today_missions():
 
 def test_settle_partial():
     r = ms.settle_coins(today_missions(), {"sky_photo"})
-    assert r == {"items": [{"id": "sky_photo", "coins": 50, "xp": 100}], "total": 50, "xp": 100, "all_done": False}
+    assert r == {"items": [{"id": "sky_photo", "coins": 20, "xp": 50}], "total": 20, "xp": 50, "all_done": False}
 
 
 def test_settle_all_done_has_no_coin_bonus():
     # 3개 완료 보상은 코인이 아니라 특별 캐릭터 (상점 기능에서 지급)
     r = ms.settle_coins(today_missions(), {"sky_photo", "cook", "movies"})
     assert r["all_done"]
-    assert r["total"] == 50 + 30 + 30                 # 밖(하늘) 50 + 집 30 + 집 30
+    assert r["total"] == 20 + 12 + 12                 # 밖(하늘) 20 + 집 12 + 집 12
     assert [i["id"] for i in r["items"]] == ["sky_photo", "cook", "movies"]
 
 
@@ -349,7 +349,7 @@ def test_guestbook_mission_needs_server_check():
 
 def test_visit_mission_needs_server_check():
     v = ms.CATALOG["visit"]
-    assert (v.category, v.coins, v.xp) == ("daily", 30, 100)
+    assert (v.category, v.coins, v.xp) == ("daily", 12, 50)
     assert ms.is_complete(v, {"visited": True})
     assert not ms.is_complete(v, {})
 
