@@ -25,6 +25,15 @@ export const DECOR = [
   { id: 'floor-walnut', name: '진한 원목 바닥', slot: 'floor', level: 1, price: 100, color: '#B98A5E', pattern: 'planks', ink: '#9C7049', icon: '🪵' },
   { id: 'floor-pink-wood', name: '벚꽃 마루', slot: 'floor', level: 2, price: 140, color: '#F1C9C2', pattern: 'planks', ink: '#E0A9A0', icon: '🌸' },
   { id: 'floor-mint-tile', name: '민트 타일 바닥', slot: 'floor', level: 3, price: 160, color: '#D4EEE6', pattern: 'gingham', ink: '#A9D9CB', icon: '🟩' },
+  // 바닥 무늬 더 (10/16)
+  { id: 'floor-gray-tile', name: '회색 타일 바닥', slot: 'floor', level: 1, price: 120, color: '#E6E6E3', pattern: 'gingham', ink: '#C9C9C4', icon: '⬜' },
+  { id: 'floor-honey-zigzag', name: '꿀색 지그재그 마루', slot: 'floor', level: 2, price: 140, color: '#E9C38F', pattern: 'zigzag', ink: '#C99A5E', icon: '🍯' },
+  { id: 'floor-cream-dot', name: '크림 땡땡이 카펫 바닥', slot: 'floor', level: 3, price: 160, color: '#FBF1DE', pattern: 'dots', ink: '#E8D3AD', icon: '🟡' },
+  // 커튼 색 (10/16): 창문 양쪽 커튼. 모두 100코인. color = 천, ink = 테두리
+  { id: 'curtain-pink', name: '분홍 커튼', slot: 'curtain', level: 1, price: 100, color: '#F8D3DC', ink: '#E0A6B4', icon: '🎀' },
+  { id: 'curtain-mint', name: '민트 커튼', slot: 'curtain', level: 1, price: 100, color: '#D3EEE2', ink: '#9CCBB5', icon: '🌿' },
+  { id: 'curtain-lemon', name: '레몬 커튼', slot: 'curtain', level: 1, price: 100, color: '#FFF0B8', ink: '#E3C96E', icon: '🍋' },
+  { id: 'curtain-navy', name: '밤하늘 커튼', slot: 'curtain', level: 1, price: 100, color: '#5C6A9C', ink: '#3F4B78', icon: '🌙' },
   // 소파·서랍장 색 (10/15): 방에 있는 소파·서랍장 색을 바꾼다. 모두 100코인. color = 겉, ink = 테두리
   { id: 'sofa-pink', name: '딸기 우유 소파', slot: 'sofa', level: 1, price: 100, color: '#F4C2CF', ink: '#D995A6', icon: '🍓' },
   { id: 'sofa-mint', name: '민트 소파', slot: 'sofa', level: 1, price: 100, color: '#BFE3D2', ink: '#86BDA4', icon: '🌿' },
@@ -36,6 +45,6 @@ export const DECOR = [
   { id: 'drawer-pink', name: '벚꽃 서랍장', slot: 'drawer', level: 1, price: 100, color: '#F4CFD6', ink: '#D49AA6', icon: '🌸' },
   { id: 'floor-checker', name: '체커보드 바닥', slot: 'floor', level: 5, price: 200, color: '#F6EEDF', pattern: 'checker', ink: '#D9C3A0', icon: '🏁' },
 ];
-export const DECOR_SLOTS = { wallpaper: '벽지', floor: '바닥', sofa: '소파', drawer: '서랍장', lamp: '전등', carpet: '카페트', frame: '액자', doll: '인형', scenery: '창밖 풍경' };
+export const DECOR_SLOTS = { wallpaper: '벽지', floor: '바닥', sofa: '소파', drawer: '서랍장', curtain: '커튼', lamp: '전등', carpet: '카페트', frame: '액자', doll: '인형', scenery: '창밖 풍경' };
 // 손가락으로 끌어서 옮길 수 있는 소품 (카페트·창밖·벽지·바닥은 자리가 정해져 있음)
 export const MOVABLE_SLOTS = ['lamp', 'frame', 'doll'];
