@@ -22,6 +22,7 @@ from fastapi.responses import FileResponse, PlainTextResponse
 from fastapi.middleware.cors import CORSMiddleware
 from pydantic import BaseModel, Field
 
+from . import access
 from . import attendance as att
 from . import auth
 from . import crisis
@@ -59,7 +60,8 @@ async def lifespan(app: FastAPI):
     app.state.conn.close()
 
 
-app = FastAPI(title="Capstone API", version="0.1.0", lifespan=lifespan)
+app = FastAPI(title="Capstone API", version="0.1.0", lifespan=lifespan,
+              dependencies=[Depends(access.guard)])   # 모든 API: 토큰 주인만 자기 정보 (access.py)
 app.add_middleware(
     CORSMiddleware,
     allow_origins=os.environ.get("CORS_ORIGINS", "http://localhost:5173,http://localhost:5180,http://127.0.0.1:5180,http://localhost:8081,http://localhost:5183").split(","),   # 웹(Vite 5173, 팀은 5180) · Expo 웹(8081, 팀은 5183)
@@ -552,7 +554,7 @@ def reroll_mission(user_id: str, mission_id: str, date: str | None = DateQuery, 
     if mission is None:
         raise HTTPException(404, f"오늘의 미션이 아닙니다: {mission_id}")
     if ms.slot_of(mission) is None:
-        raise HTTPException(422, "매일 하는 미션은 바꿀 수 없어요.")
+        raise HTTPException(422, "데일리 미션은 바꿀 수 없어요.")
     if mission_id in db.completed_ids(conn, user_id, today.isoformat()):
         raise HTTPException(409, "이미 끝낸 미션이에요.")
     used = day_.get("rerolls", 0)
@@ -746,27 +748,35 @@ def complete_weekly(user_id: str, quest_id: str, body: CompleteIn, date: str | N
 
 
 def attendance_week(conn, user_id: str, today: Date) -> dict:
-    """이번 주 출석표: 날짜마다 정해진 선물, 받은 선물, 오늘인지."""
-    monday = att.week_start(today)
-    plan = att.week_plan(user_id, monday, list(shop.CATALOG["outfit"]), list(shop.CATALOG["decor"]))
-    claims = db.attendance_claims(conn, user_id, monday.isoformat(), (monday + timedelta(days=6)).isoformat())
+    """연속 출석표 (이번 바퀴 1~7일차): 칸마다 날짜·선물·받은 선물·오늘인지 + 연속 일수.
+
+    주소·모양은 예전 '주간 출석표'와 같다(days 7칸, count, claimed_today). week_start = 이번 바퀴 1일차 날짜.
+    """
+    claimed = db.attendance_claims(conn, user_id, "0000-01-01", today.isoformat())
+    pos = att.position(set(claimed), today)
+    plan = att.cycle_plan(user_id, pos["start"], list(shop.CATALOG["outfit"]), list(shop.CATALOG["decor"]))
 
     def named(reward: dict) -> dict:
         kind = reward["type"]
         if kind in ("outfit", "decor"):
             return {**reward, "name": shop.CATALOG[kind].get(reward["id"], {}).get("name")}
         return reward
-    days = [{"date": d, "reward": named(r), "claimed": named(claims[d]) if d in claims else None, "today": d == today.isoformat()}
-            for d, r in plan.items()]
-    return {"week_start": monday.isoformat(), "days": days, "count": len(claims), "claimed_today": today.isoformat() in claims}
+    days = []
+    for i, reward in enumerate(plan):
+        d = (pos["start"] + timedelta(days=i)).isoformat()
+        days.append({"day": i + 1, "date": d, "reward": named(reward), "claimed": named(claimed[d]) if d in claimed else None,
+                     "today": d == today.isoformat(), "special": i == att.CYCLE - 1})
+    return {"week_start": pos["start"].isoformat(), "days": days, "count": sum(1 for x in days if x["claimed"]),
+            "claimed_today": today.isoformat() in claimed, "today_day": pos["index"] + 1,
+            "streak": pos["streak"], "reset": pos["reset"]}
 
 
-@app.get("/users/{user_id}/attendance/week", summary="이번 주 출석표 (월~일, 날마다 정해진 선물과 받은 선물)")
+@app.get("/users/{user_id}/attendance/week", summary="연속 출석표 (1~7일차 칸, 하루라도 빠지면 1일차부터, 7일차 다음은 새 바퀴)")
 def get_attendance_week(user_id: str, date: str | None = DateQuery, conn=Depends(get_conn)):
     return attendance_week(conn, user_id, day(date))
 
 
-@app.post("/users/{user_id}/attendance", summary="출석하기 — 이번 주 출석표의 오늘 선물을 받는다 (하루 한 번, 가진 옷·소품이면 30코인)")
+@app.post("/users/{user_id}/attendance", summary="출석하기 — 연속 출석표의 오늘 칸 선물을 받는다 (하루 한 번, 가진 옷·소품이면 30코인)")
 def check_in(user_id: str, date: str | None = DateQuery, conn=Depends(get_conn)):
     today = day(date)
     day_ = todays_missions(conn, user_id, today)
@@ -1099,7 +1109,8 @@ def get_coins(user_id: str, conn=Depends(get_conn)):
 
 
 @app.post("/users/{user_id}/visits", summary="친구 방 놀러 가기 (user_id = 방 주인). 방문한 사람의 방문 미션 자동 완료")
-def post_visit(user_id: str, body: VisitIn, date: str | None = DateQuery, conn=Depends(get_conn)):
+def post_visit(user_id: str, body: VisitIn, request: Request, date: str | None = DateQuery, conn=Depends(get_conn)):
+    body.visitor_id = access.actor(request, body.visitor_id)
     today = day(date)
     if body.visitor_id == user_id:
         raise HTTPException(422, "내 방은 방문으로 치지 않아요.")
@@ -1168,7 +1179,8 @@ def guestbook_entry_or_404(conn, owner_id: str, entry_id: int) -> dict:
 
 
 @app.post("/users/{user_id}/guestbook/{entry_id}/like", summary="방명록 글 좋아요 (한 사람이 한 번)")
-def like_guestbook(user_id: str, entry_id: int, body: LikeIn, conn=Depends(get_conn)):
+def like_guestbook(user_id: str, entry_id: int, body: LikeIn, request: Request, conn=Depends(get_conn)):
+    body.user_id = access.actor(request, body.user_id)
     entry = guestbook_entry_or_404(conn, user_id, entry_id)
     if entry["author_id"] and entry["author_id"] in db.block_related(conn, body.user_id):
         raise HTTPException(404, "방명록 글이 없습니다.")
@@ -1178,15 +1190,17 @@ def like_guestbook(user_id: str, entry_id: int, body: LikeIn, conn=Depends(get_c
 
 
 @app.delete("/users/{user_id}/guestbook/{entry_id}/like", summary="방명록 글 좋아요 취소")
-def unlike_guestbook(user_id: str, entry_id: int, by: str = Query(..., description="좋아요를 취소하는 사람 user id"),
+def unlike_guestbook(user_id: str, entry_id: int, request: Request, by: str = Query(..., description="좋아요를 취소하는 사람 user id"),
                      conn=Depends(get_conn)):
+    by = access.actor(request, by)
     guestbook_entry_or_404(conn, user_id, entry_id)
     db.unlike_entry(conn, entry_id, by)
     return {"entry_id": entry_id, **db.like_counts(conn, [entry_id], by)[entry_id]}
 
 
 @app.delete("/users/{user_id}/guestbook/{entry_id}", summary="방명록 글 지우기 (방 주인 또는 쓴 사람)")
-def delete_guestbook(user_id: str, entry_id: int, by: str = Query(..., description="지우는 사람 user id"), conn=Depends(get_conn)):
+def delete_guestbook(user_id: str, entry_id: int, request: Request, by: str = Query(..., description="지우는 사람 user id"), conn=Depends(get_conn)):
+    by = access.actor(request, by)
     entry = db.get_guestbook_entry(conn, entry_id)
     if entry is None or entry["owner_id"] != user_id:
         raise HTTPException(404, "방명록 글이 없습니다.")
@@ -1197,7 +1211,8 @@ def delete_guestbook(user_id: str, entry_id: int, by: str = Query(..., descripti
 
 
 @app.post("/users/{user_id}/guestbook", summary="방명록 남기기 (user_id = 방 주인). author_id를 넣으면 쓴 사람의 방명록 미션 자동 완료")
-def post_guestbook(user_id: str, body: GuestbookIn, date: str | None = DateQuery, conn=Depends(get_conn)):
+def post_guestbook(user_id: str, body: GuestbookIn, request: Request, date: str | None = DateQuery, conn=Depends(get_conn)):
+    body.author_id = access.actor(request, body.author_id)   # 로그인했으면 쓴 사람 = 토큰 주인 (익명 글 불가)
     today = day(date)
     author = (body.author or "").strip()
     if not author and body.author_id:
@@ -1269,7 +1284,8 @@ def counts_for_hiding(conn, reporter_id: str, today: Date) -> bool:
 
 
 @app.post("/reports", status_code=201, summary="신고하기 — 신고한 사람에게는 바로 숨기고, 여러 명이 신고하면 모두에게 숨김")
-def report(body: ReportIn, date: str | None = DateQuery, conn=Depends(get_conn)):
+def report(body: ReportIn, request: Request, date: str | None = DateQuery, conn=Depends(get_conn)):
+    body.reporter_id = access.actor(request, body.reporter_id)
     today = day(date)
     if body.target_type not in moderation.REPORT_TARGETS:
         raise HTTPException(422, f"신고 대상은 {', '.join(moderation.REPORT_TARGETS)} 중 하나예요.")

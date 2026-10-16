@@ -28,7 +28,7 @@ export function decodeBackup(raw) {
     visitors: read('mochi.visitors.v1') ?? null,
     visitNotes: read('mochi.visitNotes.v1') ?? {}, visitLikes: read('mochi.visitLikes.v1') ?? {},
     homeNotes: read('mochi.homeGuestbook.v1') ?? [], homeLikes: read('mochi.homeGuestLikes.v1') ?? {},
-    settings: read('mochi.settings.v1') ?? { music: false, effects: false, reminders: false },
+    settings: read('mochi.settings.v1') ?? { music: false, effects: false, reminders: true },
   };
 }
 export function encodeBackup(state) {
