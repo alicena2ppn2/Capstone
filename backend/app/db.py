@@ -32,7 +32,7 @@ CREATE TABLE IF NOT EXISTS inventory (
 );
 CREATE TABLE IF NOT EXISTS decor_placement (
     user_id TEXT NOT NULL,
-    slot    TEXT NOT NULL,                -- wallpaper | floor | sofa | drawer | lamp | carpet | frame | doll | scenery
+    slot    TEXT NOT NULL,                -- wallpaper | floor | sofa | drawer | curtain | lamp | carpet | frame | doll | scenery
     item_id TEXT NOT NULL,
     dx      REAL NOT NULL DEFAULT 0,      -- 끌어서 옮긴 거리 (방 그림 좌표, 기본 자리에서)
     dy      REAL NOT NULL DEFAULT 0,
@@ -163,7 +163,7 @@ CREATE TABLE IF NOT EXISTS mission_feedback (  -- 미션 소감: 해 보니 어�
     updated_at  TEXT NOT NULL DEFAULT (datetime('now')),
     PRIMARY KEY (user_id, date, mission_id)
 );
-CREATE TABLE IF NOT EXISTS attendance_log (  -- 주간 출석표에서 받은 선물 (하루 한 번)
+CREATE TABLE IF NOT EXISTS attendance_log (  -- 연속 출석표에서 받은 선물 (하루 한 번)
     user_id     TEXT NOT NULL,
     date        TEXT NOT NULL,
     reward      TEXT NOT NULL,           -- JSON: {type: coins|xp|outfit|decor, amount|id, duplicate?}

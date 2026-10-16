@@ -1,9 +1,10 @@
-"""주간 출석표 (앱 shared/features/game.js의 출석표와 같은 규칙, 10/15 결정: 출석은 앱 방식).
+"""연속 출석표 — 모바일 게임처럼 '1일차 → 7일차' 사다리 (10/16 결정).
 
-- 월요일마다 그 주 7일의 선물을 미리 정해 둔다: 코인 10/20/30 · XP 5/8/10 (80%), 옷 (10%), 집 소품 (10%)
-- 사람·주마다 같은 선물 (같은 주에 다시 열어도 바뀌지 않음). 바로 전날과 같은 선물이면 다른 종류로 바꿈
-- 하루 한 번 받는다. 이미 가진 옷·소품이면 30코인으로 대신 준다
-- 결석·연속 출석 조건·지난 날 소급은 없다 (앱과 같음)
+- 매일 출석하면 한 칸씩 올라간다. 7일차를 받으면 다음 날은 다시 1일차 (새 바퀴)
+- 하루라도 빠지면 연속이 끊겨 다음 출석은 1일차부터 다시
+- 선물은 칸마다 정해져 있고 뒤로 갈수록 커진다: 1~6일차는 코인·XP, 7일차는 특별 선물(옷 또는 집 소품)
+  7일차 선물은 사람·바퀴(시작한 날)마다 정해짐 → 같은 바퀴에서 다시 열어도 바뀌지 않음
+- 하루 한 번. 이미 가진 옷·소품이면 30코인으로 대신 준다
 """
 
 from __future__ import annotations
@@ -11,31 +12,45 @@ from __future__ import annotations
 import random
 from datetime import date as Date, timedelta
 
-REWARDS = [
-    {"type": "coins", "amount": 10}, {"type": "coins", "amount": 20}, {"type": "coins", "amount": 30},
-    {"type": "xp", "amount": 5}, {"type": "xp", "amount": 8}, {"type": "xp", "amount": 10},
+CYCLE = 7
+DAY_REWARDS = [
+    {"type": "coins", "amount": 10}, {"type": "xp", "amount": 5}, {"type": "coins", "amount": 20},
+    {"type": "xp", "amount": 8}, {"type": "coins", "amount": 30}, {"type": "xp", "amount": 10},
 ]
+SPECIAL_FALLBACK = {"type": "coins", "amount": 50}   # 옷·소품 목록이 비었을 때
 DUPLICATE_COINS = 30
 
 
-def week_start(d: Date) -> Date:
-    return d - timedelta(days=d.weekday())
+def cycle_plan(user_id: str, start: Date, outfits: list[str], decor: list[str]) -> list[dict]:
+    """이번 바퀴 1~7일차 선물. 7일차만 사람·바퀴마다 정해지는 특별 선물."""
+    rng = random.Random(f"{user_id}:{start.isoformat()}:attendance")
+    pool = [("outfit", i) for i in outfits] + [("decor", i) for i in decor]
+    if pool:
+        kind, item = rng.choice(pool)
+        special = {"type": kind, "id": item}
+    else:
+        special = dict(SPECIAL_FALLBACK)
+    return [dict(r) for r in DAY_REWARDS] + [special]
 
 
-def week_plan(user_id: str, monday: Date, outfits: list[str], decor: list[str]) -> dict[str, dict]:
-    """그 주 날짜 → 선물. 같은 사람·같은 주면 항상 같다."""
-    rng = random.Random(f"{user_id}:{monday.isoformat()}:attendance")
-    plan, previous = {}, None
-    for i in range(7):
-        roll = rng.random()
-        if roll < .1 and outfits:
-            reward = {"type": "outfit", "id": rng.choice(outfits)}
-        elif roll < .2 and decor:
-            reward = {"type": "decor", "id": rng.choice(decor)}
-        else:
-            reward = dict(rng.choice(REWARDS))
-        if previous == reward:
-            reward = dict(next(r for r in REWARDS if r["type"] != previous["type"]))
-        plan[(monday + timedelta(days=i)).isoformat()] = reward
-        previous = reward
-    return plan
+def position(claimed: set[str], today: Date) -> dict:
+    """오늘이 이번 바퀴 몇 일차인지.
+
+    claimed: 출석한 날짜들(YYYY-MM-DD). 반환: start(이번 바퀴 1일차 날짜), index(오늘 칸 0~6),
+    streak(어제까지 또는 오늘까지 이어진 연속 일수), reset(연속이 끊겨 1일차로 돌아왔는지)
+    """
+    def run_back(end: Date) -> int:
+        n = 0
+        while (end - timedelta(days=n)).isoformat() in claimed:
+            n += 1
+        return n
+
+    if today.isoformat() in claimed:
+        streak = run_back(today)
+        index = (streak - 1) % CYCLE
+        reset = False
+    else:
+        streak = run_back(today - timedelta(days=1))
+        index = streak % CYCLE
+        reset = streak == 0 and any(d < today.isoformat() for d in claimed)   # 전에 출석했는데 어제는 안 옴
+    return {"start": today - timedelta(days=index), "index": index, "streak": streak, "reset": reset}

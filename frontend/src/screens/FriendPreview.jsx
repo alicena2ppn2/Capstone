@@ -5,7 +5,7 @@ import { CLOTHES } from '../../../shared/data/clothes.js';
 import Mochi from '../components/Mochi.jsx';
 import { RoomBackdrop } from './Home.jsx';
 import { PROTOTYPE_FRIENDS } from '../../../shared/data/prototypeFriends.js';
-const FRIENDS = [{ id: 'mochi', name: '구름 모찌' }, { id: 'lavender', name: '달빛 양 모찌' }, ...PROTOTYPE_FRIENDS, ...BASIC_FRIEND_DRAFTS];
+const FRIENDS = [{ id: 'mochi', name: '구름 모찌' }, { id: 'lavender', name: '달빛 양' }, ...PROTOTYPE_FRIENDS, ...BASIC_FRIEND_DRAFTS];
 export default function FriendPreview() {
   const [size, setSize] = useState(200);
   const [outfitId, setOutfitId] = useState('');
