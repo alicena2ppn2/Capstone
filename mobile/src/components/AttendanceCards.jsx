@@ -62,7 +62,7 @@ const s = StyleSheet.create({
   dayStrip: { alignSelf: 'stretch', alignItems: 'center', paddingVertical: 3, borderTopLeftRadius: 13, borderTopRightRadius: 13, backgroundColor: colors.background },
   day: { fontFamily: 'A2z-600', fontSize: 11, lineHeight: 15 },
   dayName: { fontSize: 11, lineHeight: 15, color: colors.muted },
-  body: { alignItems: 'center', gap: 2, paddingTop: 4 },
+  body: { alignSelf: 'stretch', alignItems: 'center', gap: 2, paddingTop: 4 },   // 카드 폭 전체 (아이콘 폭에 맞춰 보상 글자가 잘리던 것)
   wideBody: { flexDirection: 'row', alignItems: 'center', justifyContent: 'center', gap: 8, paddingTop: 6, minHeight: 52 },
   icon: { fontSize: 26, lineHeight: 34 },
   reward: { maxWidth: '96%', paddingHorizontal: 7, borderRadius: 999, overflow: 'hidden', backgroundColor: GOLD_SOFT, fontFamily: 'A2z-600', fontSize: 11, lineHeight: 16 },
