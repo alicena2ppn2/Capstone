@@ -20,7 +20,7 @@ export function RoomBackdrop({ decor = {}, wallColor = '#D6EAF8', floorColor = '
   const time = now ? roomTime(now) : null;
   const uid = useId().replace(/[^a-zA-Z0-9]/g, '');
   const wall = DECOR.find(item => item.id === decor.wallpaper), floor = DECOR.find(item => item.id === decor.floor);
-  const sofa = DECOR.find(item => item.id === decor.sofa), drawer = DECOR.find(item => item.id === decor.drawer);
+  const sofa = DECOR.find(item => item.id === decor.sofa), drawer = DECOR.find(item => item.id === decor.drawer), curtain = DECOR.find(item => item.id === decor.curtain);
   // 끌어서 옮기기: 화면 좌표 이동을 방 그림 좌표로 바꿔 더한다
   const svg = useRef(null), drag = useRef(null);
   const [live, setLive] = useState(null);   // 끄는 중인 소품의 임시 위치
@@ -49,8 +49,8 @@ export function RoomBackdrop({ decor = {}, wallColor = '#D6EAF8', floorColor = '
       {time?.night ? <g><path d="M213 176 C192 172 183 201 207 208 C195 198 199 183 213 176Z" fill="#FFF3CC" /><path d="M142 179 v6 m-3 -3 h6 M226 212 v6 m-3 -3 h6 M163 216 v5 m-2.5 -2.5 h5" stroke="#FFF3CC" strokeWidth="1.5" /></g> : <g><circle cx="157" cy="190" r="17" fill="#FFF1B6" /><path d="M157 168 v-4 M157 212 v4 M135 190 h-4 M179 190 h4" stroke="#FFF1B6" strokeWidth="2" /></g>}
       <line x1="184" y1="160" x2="184" y2="330" stroke="#C9A982" strokeWidth="4" />
       <line x1="124" y1="245" x2="244" y2="245" stroke="#C9A982" strokeWidth="4" />
-      <path d="M104 146 C112 200 112 280 122 346 L104 346 Z" fill="#FFF3E2" stroke="#E2CDB3" strokeWidth="3" />
-      <path d="M264 146 C256 200 256 280 246 346 L264 346 Z" fill="#FFF3E2" stroke="#E2CDB3" strokeWidth="3" />
+      <path d="M104 146 C112 200 112 280 122 346 L104 346 Z" fill={curtain?.color ?? '#FFF3E2'} stroke={curtain?.ink ?? '#E2CDB3'} strokeWidth="3" />
+      <path d="M264 146 C256 200 256 280 246 346 L264 346 Z" fill={curtain?.color ?? '#FFF3E2'} stroke={curtain?.ink ?? '#E2CDB3'} strokeWidth="3" />
       <rect x="96" y="140" width="176" height="9" rx="4" fill="#C9A982" />
       {/* 벽 선반 두 개(달력 뒤·시계 아래)와 위의 소품: 살짝 아래로 */}<g transform="translate(0 22)">
       <rect x="8" y="232" width="78" height="9" rx="3" fill="#C9A982" />
@@ -62,7 +62,7 @@ export function RoomBackdrop({ decor = {}, wallColor = '#D6EAF8', floorColor = '
       <path d="M320 216 c8 0 8 12 0 12" fill="none" stroke="#9CC7EC" strokeWidth="2.5" />
       <rect x="330" y="202" width="20" height="30" rx="4" fill="#C9E6C2" stroke="#7FB277" strokeWidth="2" />
       </g>
-      {/* 벽을 조금 높이고 바닥을 줄였다 (바닥선 430→454). 소파·서랍장은 바닥 쪽으로 조금 더 내리고, 고른 색으로 */}<g transform="translate(0 36)"><path d="M18 360 h70 a10 10 0 0 1 10 10 v52 h-90 v-52 a10 10 0 0 1 10 -10z" fill={sofa?.color ?? '#A9CBEB'} stroke={sofa?.ink ?? '#7FA9D1'} strokeWidth="3" />
+      {/* 벽을 조금 높이고 바닥을 줄였다 (바닥선 430→454). 소파·서랍장은 바닥 쪽으로 조금 더 내리고, 고른 색으로 */}<g transform="translate(0 24)"><path d="M18 360 h70 a10 10 0 0 1 10 10 v52 h-90 v-52 a10 10 0 0 1 10 -10z" fill={sofa?.color ?? '#A9CBEB'} stroke={sofa?.ink ?? '#7FA9D1'} strokeWidth="3" />
       <rect x="4" y="390" width="22" height="40" rx="8" fill={sofa?.color ?? '#A9CBEB'} stroke={sofa?.ink ?? '#7FA9D1'} strokeWidth="3" />
       <rect x="282" y="372" width="74" height="58" rx="6" fill={drawer?.color ?? '#E9C9A0'} stroke={drawer?.ink ?? '#C49E73'} strokeWidth="3" />
       <line x1="282" y1="400" x2="356" y2="400" stroke={drawer?.ink ?? '#C49E73'} strokeWidth="2.5" />
