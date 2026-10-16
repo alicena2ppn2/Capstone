@@ -9,7 +9,7 @@ import './character-state-preview.css';
 
 const STATE_KEY = 'mochi.dev.character-state.v1';
 const BACKUP_KEY = 'mochi.dev.character-state.backup.v1';
-const XP_FOR_LEVEL_25 = 2400;
+const XP_FOR_LEVEL_25 = 2275;
 
 function validGame(value) {
   return value && Number.isFinite(value.xp) && Array.isArray(value.characters);
