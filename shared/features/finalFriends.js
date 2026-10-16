@@ -1,5 +1,6 @@
 import { PROTOTYPE_FRIENDS } from '../data/prototypeFriends.js';
 import { BASIC_FRIEND_DRAFTS } from '../data/characterExpansion.js';
+import { levelFor } from './levelProgression.js';
 // Stable preview IDs become ordinary coin products, never automatic grants.
 export const FINAL_FRIENDS = [
   { ...PROTOTYPE_FRIENDS[0], level: 4, price: 300, revision: 'B', faceY: 88, gesture: 'nod' },
@@ -13,7 +14,7 @@ export const finalFriend = id => FINAL_FRIENDS.find(friend => friend.id === id);
 export function characterAvailability(game, item) {
   if (game.characters.includes(item.id)) return game.character === item.id ? 'active' : 'owned';
   if (item.method) return 'special';
-  if (1 + Math.floor(game.xp / 100) < item.level) return 'level';
+  if (levelFor(game.xp) < item.level) return 'level';
   return game.coins < item.price ? 'coins' : 'available';
 }
 export const CHARACTER_STATUS = { active: '함께하는 중 ✓', owned: '보유 중', special: '보상으로 만나요', level: '레벨 미달', coins: '코인 부족', available: '구매 가능' };

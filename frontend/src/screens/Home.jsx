@@ -9,7 +9,7 @@ import UiIcon from '../components/UiIcon.jsx';
 import HomeSummary from '../components/HomeSummary.jsx';
 import Mochi from '../components/Mochi.jsx';
 import HouseDecor from '../components/HouseDecor.jsx';
-import { levelFor } from '../../../shared/features/game.js';
+import { levelProgress } from '../../../shared/features/game.js';
 import { GearIcon, ShopIcon } from '../components/Icons.jsx';
 
 const MOVE_LIMIT = 160;   // 서버와 같은 한도 (방 밖으로 안 나가게)
@@ -82,7 +82,7 @@ export function RoomBackdrop({ decor = {}, wallColor = '#D6EAF8', floorColor = '
 }
 
 export default function Home({ game, day, petName = 'MOCHI', petColor, onQuest, onDiary, onGuestbook, onVisit, onSettings, onShop, outfit, decor, active, reactionId, onReactionConsumed, levelInfo, positions = {}, onMoveDecor }) {
-  const lv = levelInfo ?? { level: levelFor(game.xp), xp_in_level: game.xp % 100, xp_for_level: 100 };   // 서버가 있으면 서버 레벨
+  const lv = levelInfo ?? levelProgress(game.xp);   // 서버가 있으면 서버 레벨
   const now = useRoomNow();
   const time = roomTime(now);
   const [open, setOpen] = useState(false);
