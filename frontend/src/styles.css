@@ -1046,6 +1046,6 @@ button.pb, .ui-disclosure > summary { font-weight: 500; }
 .report-dialog fieldset { display: grid; grid-template-columns: 1fr 1fr; gap: 6px; margin: 0; padding: 0; border: 0; }
 .report-dialog legend { margin-bottom: 6px; font-size: 13px; font-weight: 600; }
 .report-dialog fieldset button { min-height: 40px; font-size: 13px; }
-.report-dialog fieldset button[aria-pressed='true'] { background: var(--color-primary-soft); border-color: var(--color-primary); font-weight: 600; }
+.report-dialog fieldset button[aria-pressed='true'] { background: var(--color-primary-soft) !important; border-color: var(--color-primary) !important; color: var(--color-ink) !important; font-weight: 600; }
 .report-hint { margin: 10px 0 12px; font-size: 12px; color: var(--color-muted); line-height: 1.5; }
 .report-actions { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; }
