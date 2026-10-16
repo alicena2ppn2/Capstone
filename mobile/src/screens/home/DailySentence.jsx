@@ -4,8 +4,8 @@ import { dailySentence } from '../../../../shared/features/dailySentence.js';
 import { colors } from '../../../../shared/theme/tokens.js';
 import { Label } from '../../components/ui';
 
-export default function DailySentence({ now, width, onHeight }) {
-  const sentence = dailySentence(now);
+export default function DailySentence({ now, width, onHeight, characterId }) {
+  const sentence = dailySentence(now, characterId);
   const [opacity] = useState(() => new Animated.Value(1));
   const [reduce, setReduce] = useState(true);
   const introduced = useRef(false);

@@ -129,7 +129,7 @@ export default function Home({ game, day, petName = 'MOCHI', petColor, onQuest, 
         <Mochi color={petColor} width="100%" height="100%" full asleep={false} label={petName} outfit={outfit} interactive active={active} reactionId={reactionId} onReactionConsumed={onReactionConsumed} />
       </div>
       <div className="home-identity">
-        <DailySentence now={now}/>
+        <DailySentence now={now} characterId={game.character}/>
       </div>
     </div>
     <div className="home-character-level home-level-dock"><strong>LV.{lv.level}</strong><progress value={lv.xp_in_level} max={lv.xp_for_level} aria-label="다음 레벨까지 경험치" /><span>{lv.xp_in_level} / {lv.xp_for_level} XP</span></div>
