@@ -4,6 +4,8 @@ import * as ImagePicker from 'expo-image-picker';
 import { colors } from '../../../../shared/theme/tokens.js';
 import { Button, Card, Label, Progress, styles } from '../../components/ui';
 import { todayMissions, completeWithPhoto, completeSteps, rerollMission, sendFeedback, weeklyQuests, completeWeekly } from '../../api/server';
+import { stepsAvailable } from '../../health/steps';
+import { connectSteps, stepsConnected, stepsSource, syncSteps } from '../../health/syncSteps';
 
 // 서버 미션 (웹 frontend/src/components/ServerMissions.jsx와 같은 흐름).
 // 사진은 오늘 찍은 것만 성공: 서버가 촬영 일시(EXIF, 없으면 앱이 보낸 taken_at)를 미션 날짜와 비교한다.
@@ -18,7 +20,8 @@ function PhotoPick({ busy, onUpload, compact = false }) {
       if (camera) { const permission = await ImagePicker.requestCameraPermissionsAsync(); if (!permission.granted) { setNote('카메라 권한이 필요해요. 앨범에서 골라도 돼요.'); return; } }
       // exif:true → 촬영 일시를 같이 받아 서버에 보낸다 (고른 파일에서 EXIF가 빠지는 경우 대비)
       const result = await (camera ? ImagePicker.launchCameraAsync : ImagePicker.launchImageLibraryAsync)({ mediaTypes: ['images'], quality: .8, exif: true, allowsMultipleSelection: false });
-      if (!result.canceled) setAsset(result.assets[0]);
+      // 카메라로 막 찍은 사진인데 EXIF에 촬영 일시가 없으면(일부 기기) 찍은 시각을 같이 보낸다
+      if (!result.canceled) setAsset(camera ? { ...result.assets[0], capturedAt: new Date() } : result.assets[0]);
     } catch { setNote('사진을 열지 못했어요. 다시 시도해 주세요.'); }
   };
   if (asset) return <View style={s.confirm}><Image source={{ uri: asset.uri }} accessibilityLabel="올릴 사진 미리보기" style={s.thumb} /><View style={{ flex: 1, gap: 4 }}><Button primary disabled={busy} onPress={() => onUpload(asset)}>{busy ? '날짜 확인 중…' : '이 사진으로 완료'}</Button><Button variant="text" disabled={busy} onPress={() => setAsset(null)}>다른 사진 고르기</Button></View></View>;
@@ -36,9 +39,33 @@ export default function ServerMissions({ userId, onChanged, onAttendance, onDiar
   const [notes, setNotes] = useState({}), [toast, setToast] = useState(null);
   const live = useRef(true);
   useEffect(() => { live.current = true; return () => { live.current = false; }; }, []);
+  // 걸음 수: 건강 앱(Apple 건강·Health Connect)을 한 번 연결하면, 화면을 열 때마다 최근 8일 걸음을 서버에 올리고 미션을 불러온다
+  const [steps, setSteps] = useState({ available: false, connected: false, today: null, note: '' });
   const load = useCallback(async () => { try { const next = await todayMissions(userId); if (live.current) { setData(next); setError(''); } } catch (e) { if (live.current) setError(e.message); } }, [userId]);
   // 서버에서 불러오기: 비동기 응답을 받은 뒤에 상태를 바꾼다 (앱의 다른 화면과 같은 방식)
-  useEffect(() => { void load(); }, [load]);
+  useEffect(() => {
+    let on = true;
+    (async () => {
+      const [available, connected] = await Promise.all([stepsAvailable(), stepsConnected()]);
+      const synced = available && connected ? await syncSteps(userId) : null;
+      if (on) setSteps({ available, connected: available && connected, today: synced?.ok ? synced.today : null, note: synced && !synced.ok ? synced.message : '' });
+      await load();
+    })();
+    return () => { on = false; };
+  }, [load, userId]);
+  const connect = async () => {
+    setSteps(v => ({ ...v, note: '' }));
+    const r = await connectSteps(userId);
+    setSteps(v => ({ ...v, connected: r.ok || v.connected, today: r.ok ? r.today : v.today, note: r.ok ? '' : r.message }));
+    if (r.ok) { await load(); onChanged?.(); }
+  };
+  // '걸음 확인': 건강 앱에서 오늘 걸음을 다시 읽어 올린 뒤 서버가 확인
+  const checkSteps = id => run(id, async () => {
+    const r = steps.connected ? await syncSteps(userId) : await connectSteps(userId);
+    if (!r.ok) throw new Error(r.message);
+    setSteps(v => ({ ...v, connected: true, today: r.today }));
+    return completeSteps(userId, id);
+  });
   useEffect(() => { if (!toast) return undefined; const timer = setTimeout(() => setToast(null), 2200); return () => clearTimeout(timer); }, [toast]);
   const run = async (id, job) => {
     if (busy) return; setBusy(id); setNotes(value => ({ ...value, [id]: '' }));
@@ -52,13 +79,17 @@ export default function ServerMissions({ userId, onChanged, onAttendance, onDiar
   const all = data.missions.filter(m => m.done).length;
   const go = m => m.kind === 'checkin' ? ['출석표', onAttendance] : m.kind === 'diary' ? ['일기 쓰기', onDiary] : ['이웃 가기', onVisit];
   return <>
+    {steps.available && <Card style={{ gap: 6 }}>{steps.connected
+      ? <View style={styles.row}><Label style={[styles.flex, { fontFamily: 'A2z-500' }]}>👟 오늘 {steps.today === null ? '…' : steps.today.toLocaleString('ko-KR')}걸음</Label><Label style={styles.small}>{stepsSource}</Label></View>
+      : <><Label style={{ fontFamily: 'A2z-500' }}>👟 걸음 수 연결하기</Label><Label style={styles.small}>{stepsSource}의 걸음 수를 읽어 걸음 미션을 확인해요. 걸음 수 말고는 읽지 않아요.</Label><Button primary onPress={connect}>{stepsSource} 연결</Button></>}
+      {!!steps.note && <Label style={styles.small}>{steps.note}</Label>}</Card>}
     <Card><View style={styles.row}><Label style={[styles.cardTitle, styles.flex]}>오늘의 도전</Label><Label style={styles.small}>{all}/{data.missions.length} 완료</Label></View><Progress value={all} max={data.missions.length} /></Card>
     <Card style={{ backgroundColor: colors.background }}>
       <View style={styles.row}><Label style={[styles.cardTitle, styles.flex]}>데일리 미션</Label><Label style={styles.small}>{daily.filter(m => m.done).length}/{daily.length}</Label></View>
       {daily.map(m => <View key={m.id} style={s.dailyRow}>
         <View style={styles.row}>
           <View style={[styles.flex, { gap: 2 }]}><Label style={{ fontFamily: 'A2z-500', fontSize: 15, color: m.done ? colors.muted : colors.ink }}>{m.done ? '✓ ' : ''}{m.title}</Label><Label style={styles.small}>{m.done ? '완료' : m.kind === 'photo' ? `오늘 찍은 사진 · +${m.coins} 코인` : m.coins ? `+${m.coins} 코인` : '출석 선물'}</Label></View>
-          {!m.done && m.kind !== 'photo' && (m.kind === 'steps' ? <Button disabled={!!busy} onPress={() => run(m.id, () => completeSteps(userId, m.id))}>걸음 확인</Button> : <Button onPress={() => go(m)[1]?.()}>{go(m)[0]}</Button>)}
+          {!m.done && m.kind !== 'photo' && (m.kind === 'steps' ? <Button disabled={!!busy} onPress={() => checkSteps(m.id)}>걸음 확인</Button> : <Button onPress={() => go(m)[1]?.()}>{go(m)[0]}</Button>)}
         </View>
         {!m.done && m.kind === 'photo' && <PhotoPick compact busy={busy === m.id} onUpload={asset => run(m.id, () => completeWithPhoto(userId, m.id, asset))} />}
         {!!notes[m.id] && <Label style={s.note}>{notes[m.id]}</Label>}
@@ -81,7 +112,7 @@ export default function ServerMissions({ userId, onChanged, onAttendance, onDiar
           <Label style={[styles.body, { color: colors.muted }]}>{m.desc}</Label>
           {!!m.tip && <Label style={[styles.small, s.tip, { backgroundColor: soft, color: colors.ink }]}>💡 {m.tip}</Label>}
           {m.kind === 'photo' ? <PhotoPick busy={busy === m.id} onUpload={asset => run(m.id, () => completeWithPhoto(userId, m.id, asset))} />
-            : m.kind === 'steps' ? <Button primary disabled={!!busy} onPress={() => run(m.id, () => completeSteps(userId, m.id))}>👟 오늘 걸음으로 확인 · {m.min_count.toLocaleString('ko-KR')}보</Button>
+            : m.kind === 'steps' ? <Button primary disabled={!!busy} onPress={() => checkSteps(m.id)}>👟 오늘 걸음으로 확인 · {m.min_count.toLocaleString('ko-KR')}보</Button>
             : <Label style={styles.small}>앱에서 아직 지원하지 않는 미션이에요.</Label>}
           {!!notes[m.id] && <Label style={s.note}>{notes[m.id]}</Label>}
         </>}
