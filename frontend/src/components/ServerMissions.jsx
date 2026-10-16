@@ -1,6 +1,7 @@
 import { useCallback, useEffect, useRef, useState } from 'react';
 import { todayMissions, completeWithPhoto, completeSteps, rerollMission, sendFeedback } from '../api/missions.js';
 import { weeklyQuests, completeWeekly } from '../api/game.js';
+import QuestRewards from './QuestRewards.jsx';
 
 // 서버가 정한 오늘의 미션 3개 (움직이기 · 집 · 이어지기). 걸음 미션 말고는 오늘 찍은 사진을 올리면 서버가 날짜를 확인해 완료한다.
 // 카드 하나에 행동 하나: 사진 올리기(또는 걸음 확인) → 완료 → 기분 고르기. Habitica 할 일 목록처럼 보상은 카드 오른쪽 위에.
@@ -55,7 +56,7 @@ export default function ServerMissions({ userId, onChanged, onAttendance, onDiar
   <div className="daily-overview"><div><strong>오늘의 도전</strong><span>{all}/{data.missions.length} 완료</span></div><progress max={data.missions.length} value={all} aria-label="오늘 미션 완료 수"/></div>
   <section className="daily-routines server-daily"><h2>데일리 미션 <small>{daily.filter(m => m.done).length}/{daily.length}</small></h2>
     {daily.map(m => <article key={m.id} data-quest-id={m.id} tabIndex={-1} className={`routine-row${m.done ? ' is-completed' : ''}`}>
-      <div><strong>{m.done ? '✓ ' : ''}{m.title}</strong><small>{m.done ? '완료' : m.kind === 'photo' ? `오늘 찍은 사진 · +${m.coins} 코인` : m.coins ? `+${m.coins} 코인` : '출석 선물'}</small></div>
+      <div><strong>{m.done ? '✓ ' : ''}{m.title}</strong>{m.done?<small>완료</small>:m.kind==='photo'?<div className="server-routine-reward"><small>오늘 찍은 사진</small><QuestRewards xp={m.xp} coins={m.coins}/></div>:m.coins||m.xp?<QuestRewards xp={m.xp} coins={m.coins}/>:<small>출석 선물</small>}</div>
       {!m.done && (m.kind === 'photo' ? <PhotoPick compact busy={busy === m.id} onUpload={file => run(m.id, () => completeWithPhoto(userId, m.id, file))}/>
         : m.kind === 'steps' ? <button type="button" className="pb ui-secondary" disabled={!!busy} onClick={() => run(m.id, () => completeSteps(userId, m.id))}>걸음 확인</button>
         : <button type="button" className="pb ui-secondary" onClick={() => go(m)[1]?.()}>{go(m)[0]}</button>)}
@@ -69,7 +70,7 @@ export default function ServerMissions({ userId, onChanged, onAttendance, onDiar
         <span className="mission-chip">{slot}{m.stage ? ` · ${STAGE[m.stage]}` : ''}</span>
         <span className="mission-top-right">
           {!m.done && m.rerollable && <button type="button" className="pb mission-reroll" disabled={!!busy || data.rerolls_left < 1} aria-label={`다른 미션으로 바꾸기, ${data.rerolls_left}번 남음`} title={`다른 미션으로 (${data.rerolls_left}번 남음)`} onClick={() => run(m.id, () => rerollMission(userId, m.id))}>↻</button>}
-          <span className="mission-reward" aria-label={`보상 ${m.coins}코인, ${m.xp} XP`}>+{m.coins} 코인</span>
+          <QuestRewards xp={m.xp} coins={m.coins} className="mission-reward" />
         </span>
       </div>
       <div className="mission-card-title"><span className="mission-check" aria-hidden="true">{m.done ? '✓' : ''}</span><strong>{m.title}</strong></div>
@@ -85,7 +86,7 @@ export default function ServerMissions({ userId, onChanged, onAttendance, onDiar
         <p role="status" className="mission-note">{notes[m.id]}</p>
       </>}
     </li>; })}</ol>
-    <div className="quest-toast-region" role="status" aria-live="polite">{toast && <div className="quest-reward-toast"><strong>{toast.earned_total || toast.earned_xp ? '미션 완료!' : '완료했어요!'}</strong>{(toast.earned_total > 0 || toast.earned_xp > 0) && <span>+{toast.earned_xp} XP · +{toast.earned_total} 코인</span>}</div>}</div>
+    <div className="quest-toast-region" role="status" aria-live="polite">{toast && <div className="quest-reward-toast"><strong>{toast.earned_total || toast.earned_xp ? '미션 완료!' : '완료했어요!'}</strong>{(toast.earned_total > 0 || toast.earned_xp > 0) && <QuestRewards xp={toast.earned_xp} coins={toast.earned_total} className="quest-toast-reward"/>}</div>}</div>
   </section>
   </>;
 }
@@ -97,7 +98,7 @@ export function ServerWeekly({ userId, onChanged }) {
   useEffect(() => { void load(); }, [load]);
   if (!data) return <p role="status">{note.all || '이번 주 미션을 불러오는 중…'}</p>;
   return <ol className="mission-cards weekly-cards">{data.quests.map(q => <li key={q.id} className={`mission-card is-move${q.completed ? ' is-done' : ''}`}>
-    <div className="mission-card-top"><span className="mission-chip">이번 주 · {q.goal_days}번</span><span className="mission-reward">+{q.coins} 코인</span></div>
+    <div className="mission-card-top"><span className="mission-chip">이번 주 · {q.goal_days}번</span><QuestRewards xp={q.xp} coins={q.coins} className="mission-reward" /></div>
     <div className="mission-card-title"><span className="mission-check" aria-hidden="true">{q.completed ? '✓' : ''}</span><strong>{q.title}</strong></div>
     <div className="weekly-dots" aria-label={`${q.progress}/${q.goal_days}번 채움`}>{Array.from({ length: q.goal_days }, (_, i) => <span key={i} className={i < q.progress ? 'is-on' : ''} />)}<small>{q.progress}/{q.goal_days}</small></div>
     {q.completed ? <small>이번 주 완료! 보상을 받았어요.</small> : q.done_today ? <small>오늘은 채웠어요. 다른 날 한 번 더!</small> : <>
