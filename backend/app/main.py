@@ -552,7 +552,7 @@ def reroll_mission(user_id: str, mission_id: str, date: str | None = DateQuery, 
     if mission is None:
         raise HTTPException(404, f"오늘의 미션이 아닙니다: {mission_id}")
     if ms.slot_of(mission) is None:
-        raise HTTPException(422, "매일 하는 미션은 바꿀 수 없어요.")
+        raise HTTPException(422, "데일리 미션은 바꿀 수 없어요.")
     if mission_id in db.completed_ids(conn, user_id, today.isoformat()):
         raise HTTPException(409, "이미 끝낸 미션이에요.")
     used = day_.get("rerolls", 0)
@@ -746,27 +746,35 @@ def complete_weekly(user_id: str, quest_id: str, body: CompleteIn, date: str | N
 
 
 def attendance_week(conn, user_id: str, today: Date) -> dict:
-    """이번 주 출석표: 날짜마다 정해진 선물, 받은 선물, 오늘인지."""
-    monday = att.week_start(today)
-    plan = att.week_plan(user_id, monday, list(shop.CATALOG["outfit"]), list(shop.CATALOG["decor"]))
-    claims = db.attendance_claims(conn, user_id, monday.isoformat(), (monday + timedelta(days=6)).isoformat())
+    """연속 출석표 (이번 바퀴 1~7일차): 칸마다 날짜·선물·받은 선물·오늘인지 + 연속 일수.
+
+    주소·모양은 예전 '주간 출석표'와 같다(days 7칸, count, claimed_today). week_start = 이번 바퀴 1일차 날짜.
+    """
+    claimed = db.attendance_claims(conn, user_id, "0000-01-01", today.isoformat())
+    pos = att.position(set(claimed), today)
+    plan = att.cycle_plan(user_id, pos["start"], list(shop.CATALOG["outfit"]), list(shop.CATALOG["decor"]))
 
     def named(reward: dict) -> dict:
         kind = reward["type"]
         if kind in ("outfit", "decor"):
             return {**reward, "name": shop.CATALOG[kind].get(reward["id"], {}).get("name")}
         return reward
-    days = [{"date": d, "reward": named(r), "claimed": named(claims[d]) if d in claims else None, "today": d == today.isoformat()}
-            for d, r in plan.items()]
-    return {"week_start": monday.isoformat(), "days": days, "count": len(claims), "claimed_today": today.isoformat() in claims}
+    days = []
+    for i, reward in enumerate(plan):
+        d = (pos["start"] + timedelta(days=i)).isoformat()
+        days.append({"day": i + 1, "date": d, "reward": named(reward), "claimed": named(claimed[d]) if d in claimed else None,
+                     "today": d == today.isoformat(), "special": i == att.CYCLE - 1})
+    return {"week_start": pos["start"].isoformat(), "days": days, "count": sum(1 for x in days if x["claimed"]),
+            "claimed_today": today.isoformat() in claimed, "today_day": pos["index"] + 1,
+            "streak": pos["streak"], "reset": pos["reset"]}
 
 
-@app.get("/users/{user_id}/attendance/week", summary="이번 주 출석표 (월~일, 날마다 정해진 선물과 받은 선물)")
+@app.get("/users/{user_id}/attendance/week", summary="연속 출석표 (1~7일차 칸, 하루라도 빠지면 1일차부터, 7일차 다음은 새 바퀴)")
 def get_attendance_week(user_id: str, date: str | None = DateQuery, conn=Depends(get_conn)):
     return attendance_week(conn, user_id, day(date))
 
 
-@app.post("/users/{user_id}/attendance", summary="출석하기 — 이번 주 출석표의 오늘 선물을 받는다 (하루 한 번, 가진 옷·소품이면 30코인)")
+@app.post("/users/{user_id}/attendance", summary="출석하기 — 연속 출석표의 오늘 칸 선물을 받는다 (하루 한 번, 가진 옷·소품이면 30코인)")
 def check_in(user_id: str, date: str | None = DateQuery, conn=Depends(get_conn)):
     today = day(date)
     day_ = todays_missions(conn, user_id, today)

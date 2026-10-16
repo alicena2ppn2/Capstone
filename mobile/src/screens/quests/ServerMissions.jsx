@@ -54,7 +54,7 @@ export default function ServerMissions({ userId, onChanged, onAttendance, onDiar
   return <>
     <Card><View style={styles.row}><Label style={[styles.cardTitle, styles.flex]}>오늘의 도전</Label><Label style={styles.small}>{all}/{data.missions.length} 완료</Label></View><Progress value={all} max={data.missions.length} /></Card>
     <Card style={{ backgroundColor: colors.background }}>
-      <View style={styles.row}><Label style={[styles.cardTitle, styles.flex]}>매일 하는 미션</Label><Label style={styles.small}>{daily.filter(m => m.done).length}/{daily.length}</Label></View>
+      <View style={styles.row}><Label style={[styles.cardTitle, styles.flex]}>데일리 미션</Label><Label style={styles.small}>{daily.filter(m => m.done).length}/{daily.length}</Label></View>
       {daily.map(m => <View key={m.id} style={s.dailyRow}>
         <View style={styles.row}>
           <View style={[styles.flex, { gap: 2 }]}><Label style={{ fontFamily: 'A2z-500', fontSize: 15, color: m.done ? colors.muted : colors.ink }}>{m.done ? '✓ ' : ''}{m.title}</Label><Label style={styles.small}>{m.done ? '완료' : m.kind === 'photo' ? `오늘 찍은 사진 · +${m.coins} 코인` : m.coins ? `+${m.coins} 코인` : '출석 선물'}</Label></View>

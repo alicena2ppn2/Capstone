@@ -129,7 +129,7 @@ API를 직접 눌러 보려면 서버를 켜고 `http://localhost:8000/docs`.
 {"earned": [{"id": "sky_photo", "coins": 30, "xp": 100}], "earned_total": 30, "earned_xp": 100,
  "coins": 340, "level": {"level": 3, "xp": 410, "xp_in_level": 60, "xp_to_next": 340, "xp_for_level": 400},
  "leveled_up": true, "all_done": false,
- "new_items": [{"type": "character", "id": "pink", "name": "복숭아 토끼 모찌"}]}
+ "new_items": [{"type": "character", "id": "pink", "name": "복숭아 토끼"}]}
 ```
 
 - `earned`가 비어 있으면 이미 받은 보상 (중복 지급 없음)
