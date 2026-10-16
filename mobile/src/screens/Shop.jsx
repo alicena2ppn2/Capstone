@@ -6,15 +6,15 @@ import Character from '../components/Character';
 import RoomBackdrop from '../art/RoomBackdrop';
 import { CHARACTERS, buyDecor, equipDecor } from '../../../shared/features/game.js';
 import { CLOTHES } from '../../../shared/data/clothes.js';
-import { DECOR } from '../../../shared/data/decor.js';
+import { DECOR, categoryOf } from '../../../shared/data/decor.js';
 import CharacterShop from './shop/CharacterShop';
 
 export default function Shop({ onBack, game, level, ownedClothes, outfit, update, buyClothes, wear, onBuyCharacter }) {
   const [tab, setTab] = useState('character'), [ownedOnly, setOwnedOnly] = useState(false), [slot, setSlot] = useState('all');
   const allItems = tab === 'character' ? CHARACTERS : tab === 'clothes' ? CLOTHES : DECOR;
   const ownedIds = tab === 'character' ? game.characters : tab === 'clothes' ? ownedClothes : game.ownedDecor ?? [];
-  const items = allItems.filter(item => (!ownedOnly || ownedIds.includes(item.id)) && (tab !== 'decor' || slot === 'all' || item.slot === slot));
-  return <><ScreenHeader title="모찌 상점" onBack={onBack} /><View style={styles.wrap}>{[['character', '친구들'], ['clothes', '옷 꾸미기'], ['decor', '집 꾸미기']].map(([id, text]) => <Button key={id} selected={tab === id} onPress={() => setTab(id)}>{text}</Button>)}</View><View style={styles.wrap}><Button selected={!ownedOnly} onPress={() => setOwnedOnly(false)}>모든 상품</Button><Button selected={ownedOnly} onPress={() => setOwnedOnly(true)}>보유 아이템 {ownedIds.length}</Button></View>{tab === 'decor' && <View style={styles.wrap}>{[['all', '전체'], ['wallpaper', '벽지'], ['floor', '바닥'], ['sofa', '소파'], ['drawer', '서랍장'], ['curtain', '커튼'], ['lamp', '전등'], ['carpet', '카페트'], ['frame', '액자'], ['doll', '인형'], ['scenery', '창밖 풍경']].map(([id, name]) => <Button key={id} selected={slot === id} onPress={() => setSlot(id)}>{name}</Button>)}</View>}{tab === 'character' ? <CharacterShop game={game} level={level} ownedOnly={ownedOnly} update={update} onBuy={onBuyCharacter} /> : items.map(item => {
+  const items = allItems.filter(item => (!ownedOnly || ownedIds.includes(item.id)) && (tab !== 'decor' || slot === 'all' || categoryOf(item.slot) === slot));
+  return <><ScreenHeader title="모찌 상점" onBack={onBack} /><View style={styles.wrap}>{[['character', '친구들'], ['clothes', '옷 꾸미기'], ['decor', '집 꾸미기']].map(([id, text]) => <Button key={id} selected={tab === id} onPress={() => setTab(id)}>{text}</Button>)}</View><View style={styles.wrap}><Button selected={!ownedOnly} onPress={() => setOwnedOnly(false)}>모든 상품</Button><Button selected={ownedOnly} onPress={() => setOwnedOnly(true)}>보유 아이템 {ownedIds.length}</Button></View>{tab === 'decor' && <View style={styles.wrap}>{[['all', '전체'], ['wallpaper', '벽지'], ['floor', '바닥'], ['sofa', '소파'], ['drawer', '서랍장'], ['curtain', '커튼'], ['lamp', '전등'], ['carpet', '카페트'], ['props', '소품'], ['scenery', '창밖 풍경']].map(([id, name]) => <Button key={id} selected={slot === id} onPress={() => setSlot(id)}>{name}</Button>)}</View>}{tab === 'character' ? <CharacterShop game={game} level={level} ownedOnly={ownedOnly} update={update} onBuy={onBuyCharacter} /> : items.map(item => {
     const owned = (tab === 'clothes' ? ownedClothes : game.ownedDecor ?? []).includes(item.id);
     const equipped = tab === 'clothes' ? outfit === item.id : game.decor?.[item.slot] === item.id;
     const locked = level < (item.level ?? 1);

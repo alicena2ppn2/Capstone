@@ -10,7 +10,7 @@ def decor(view, item_id):
 
 def test_decor_catalog_matches_frontend():
     items = shop.CATALOG["decor"]
-    assert len(items) == 41                                      # 10/15: 벽지 6 + 바닥 4, 소파·서랍장 색 8 / 10/16: 바닥 3 + 커튼 4
+    assert len(items) == 46                                      # 10/15: 벽지 6 + 바닥 4, 소파·서랍장 색 8 / 10/16: 바닥 3 + 커튼 4 + 무늬 러그 5
     assert set(shop.DECOR_SLOTS) == {"wallpaper", "floor", "sofa", "drawer", "curtain", "lamp", "carpet", "frame", "doll", "scenery"}
     # 앱 shared/data/decor.js와 같은 id·레벨·가격
     import re

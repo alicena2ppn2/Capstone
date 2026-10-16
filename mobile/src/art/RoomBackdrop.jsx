@@ -39,7 +39,7 @@ export default function RoomBackdrop({ decor = {}, wallColor = '#D6EAF8', floorC
       <Path d="M320 216 c8 0 8 12 0 12" fill="none" stroke="#9CC7EC" strokeWidth="2.5" />
       <Rect x="330" y="202" width="20" height="30" rx="4" fill="#C9E6C2" stroke="#7FB277" strokeWidth="2" />
       </G>
-      {/* 벽을 조금 높이고 바닥을 줄였다 (바닥선 430→454). 소파·서랍장은 바닥 쪽으로 조금 더 내리고, 고른 색으로 */}<G transform="translate(0 30)"><Path d="M18 360 h70 a10 10 0 0 1 10 10 v52 h-90 v-52 a10 10 0 0 1 10 -10z" fill={sofa?.color ?? '#A9CBEB'} stroke={sofa?.ink ?? '#7FA9D1'} strokeWidth="3" />
+      {/* 벽을 조금 높이고 바닥을 줄였다 (바닥선 430→454). 소파·서랍장은 바닥 쪽으로 조금 더 내리고, 고른 색으로 */}<G transform="translate(0 24)"><Path d="M18 360 h70 a10 10 0 0 1 10 10 v52 h-90 v-52 a10 10 0 0 1 10 -10z" fill={sofa?.color ?? '#A9CBEB'} stroke={sofa?.ink ?? '#7FA9D1'} strokeWidth="3" />
       <Rect x="4" y="390" width="22" height="40" rx="8" fill={sofa?.color ?? '#A9CBEB'} stroke={sofa?.ink ?? '#7FA9D1'} strokeWidth="3" />
       <Rect x="282" y="372" width="74" height="58" rx="6" fill={drawer?.color ?? '#E9C9A0'} stroke={drawer?.ink ?? '#C49E73'} strokeWidth="3" />
       <Line x1="282" y1="400" x2="356" y2="400" stroke={drawer?.ink ?? '#C49E73'} strokeWidth="2.5" />
