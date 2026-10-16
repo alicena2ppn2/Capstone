@@ -3,7 +3,7 @@
 GitHub의 PR·커밋 기록을 바탕으로 정리. 최종 갱신: 2026-10-16 (출시 전 남은 일 정리)
 
 - 기간: 9/17~9/30 · 10/1~10/4 · 10/5~10/6 · 10/7~10/8 · 10/9~10/10 · 10/11~10/13 · 발표 10/22 · **목표: App Store 출시**
-- 담당: 백엔드·데이터 `alicena2ppn2` · 프론트·데이터 `yeongju217`
+- 담당: PM·백엔드·데이터 `alicena2ppn2` · 프론트·데이터 `yeongju217`
 - 백엔드 [backend/CHANGELOG.md](backend/CHANGELOG.md) 변경 이력
 - 프론트 [frontend/FEATURE_SPEC.md](frontend/FEATURE_SPEC.md) 변경 이력
 - 퀘스트 설계 근거 [QUEST_DESIGN.md](QUEST_DESIGN.md)

@@ -100,7 +100,7 @@
 
 - 개발할 때 `backend/.env`에 `CAPSTONE_AUTH=dev`를 넣으면 로그인 없이 시연 계정(demo-mochi)으로 볼 수 있다. 시연 데이터: `backend/scripts/seed_demo.py`
 - **`.env`·키는 절대 커밋하지 않는다** (`.githooks/pre-commit`이 막음). PR은 기능별로 나눈다.
-- 담당: 백엔드·데이터 `alicena2ppn2` · 프론트·데이터 `yeongju217`
+- 담당: PM·백엔드·데이터 `alicena2ppn2` · 프론트·데이터 `yeongju217`
 
 ## 6. 기능별 구현
 
