@@ -187,3 +187,42 @@ def test_room_visit_counts(client):
         client.post("/users/owner/visits", params={"date": d}, json={"visitor_id": visitor})
     assert client.get("/users/owner/room", params={"date": "2026-10-15"}).json()["visits"] == {"today": 2, "total": 3}
     assert client.get("/users/nobody/room").json()["visits"] == {"today": 0, "total": 0}
+
+
+# --- 친구 코드 (10/16) -------------------------------------------------------------
+
+def test_friend_code_unique_and_shown(client):
+    a, b = signup(client, "코드하나"), signup(client, "코드둘")
+    ca = client.get(f"/users/{a['id']}").json()["friend_code"]
+    cb = client.get(f"/users/{b['id']}/room").json()["friend_code"]          # 이웃이 방에서 봄
+    assert len(ca) == 6 and ca != cb and not set(ca) & set("01IO")
+
+
+def test_search_and_add_by_code(client):
+    a, b = signup(client, "찾는사람"), signup(client, "찾을사람")
+    code = client.get(f"/users/{b['id']}").json()["friend_code"]
+    messy = "#" + code[:3].lower() + "-" + code[3:] + " "                     # #·소문자·- 괜찮음
+    found = client.get(f"/users/{a['id']}/friends/search", params={"code": messy}).json()
+    assert (found["id"], found["nickname"], found["status"]) == (b["id"], "찾을사람", "none")
+    assert client.get(f"/users/{a['id']}/friends/search", params={"code": "ZZZZZZ"}).status_code == 404
+    me = client.get(f"/users/{a['id']}/friends/search", params={"code": client.get(f"/users/{a['id']}").json()["friend_code"]}).json()
+    assert me["status"] == "me"
+    r = client.post(f"/users/{a['id']}/friends", json={"code": messy})
+    assert r.status_code == 201 and r.json()["status"] == "pending"
+    assert client.get(f"/users/{a['id']}/friends/search", params={"code": code}).json()["status"] == "sent"
+    assert client.get(f"/users/{b['id']}/friends/search", params={"code": client.get(f"/users/{a['id']}").json()["friend_code"]}).json()["status"] == "received"
+    assert client.post(f"/users/{a['id']}/friends", json={}).status_code == 422
+    assert client.post(f"/users/{a['id']}/friends", json={"code": "ZZZZZZ"}).status_code == 404
+
+
+def test_recommended_refresh_mixes_neighbors(client):
+    me = signup(client, "새로고침")["id"]
+    others = [signup(client, f"이웃{i}")["id"] for i in range(8)]
+    for uid in [me] + others:
+        client.post(f"/users/{uid}/attendance", params={"date": DAY})                   # 최근 활동한 사람만 추천
+    first = client.get(f"/users/{me}/rooms/recommended", params={"date": DAY, "limit": 3}).json()
+    assert first["refresh"] == 0 and len(first["rooms"]) == 3
+    seen = {tuple(r["id"] for r in client.get(f"/users/{me}/rooms/recommended", params={"date": DAY, "limit": 3, "refresh": n}).json()["rooms"]) for n in range(1, 6)}
+    assert len(seen) > 1                                                                   # 새로고침하면 다른 이웃
+    again = client.get(f"/users/{me}/rooms/recommended", params={"date": DAY, "limit": 3, "refresh": 2}).json()
+    assert again == client.get(f"/users/{me}/rooms/recommended", params={"date": DAY, "limit": 3, "refresh": 2}).json()

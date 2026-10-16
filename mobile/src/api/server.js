@@ -80,7 +80,8 @@ export const saveDiary = (me, date, text) => call(`/users/${u(me)}/diary/${date}
 export const removeDiary = (me, date) => call(`/users/${u(me)}/diary/${date}`, { method: 'DELETE' });
 
 // 이웃·방명록
-export const recommendedRooms = me => call(`/users/${u(me)}/rooms/recommended`);
+// refresh: 새로고침 횟수 (0 = 레벨 가까운 순, 1부터 비슷한 레벨 후보 중 다른 조합)
+export const recommendedRooms = (me, refresh = 0) => call(`/users/${u(me)}/rooms/recommended?refresh=${refresh}`);
 export const roomOf = owner => call(`/users/${u(owner)}/room`);
 export const visitRoom = (owner, me) => call(`/users/${u(owner)}/visits`, { method: 'POST', body: { visitor_id: me } });
 export const todayVisitors = owner => call(`/users/${u(owner)}/visits`);
@@ -92,6 +93,12 @@ export const likeEntry = (owner, entryId, me, liked) => liked
 export const deleteEntry = (owner, entryId, me) => call(`/users/${u(owner)}/guestbook/${entryId}?by=${u(me)}`, { method: 'DELETE' });
 export const reportEntry = (me, entryId, reason) => call('/reports', { method: 'POST', body: { reporter_id: me, target_type: 'guestbook', target_id: String(entryId), reason } });
 export const friendshipWith = (me, other) => call(`/users/${u(me)}/friendship/${u(other)}`);
+// 친구 (10/16): 친구 코드(6자리)로 찾고 신청 → 상대가 수락
+export const friendsOf = me => call(`/users/${u(me)}/friends`);
+export const searchFriend = (me, code) => call(`/users/${u(me)}/friends/search?code=${encodeURIComponent(code)}`);
+export const requestFriend = (me, code) => call(`/users/${u(me)}/friends`, { method: 'POST', body: { code } });
+export const acceptFriend = (me, other) => call(`/users/${u(me)}/friends/${u(other)}/accept`, { method: 'POST' });
+export const removeFriend = (me, other) => call(`/users/${u(me)}/friends/${u(other)}`, { method: 'DELETE' });
 
 // 프로필
 export const profileOf = me => call(`/users/${u(me)}`);
