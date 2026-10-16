@@ -65,6 +65,14 @@
 검증: 로직 67개 테스트, 웹 build, 모바일 lint/typecheck·iOS/Android/Web export 통과. 임시 Edge에서 출석 4종/중복 대체/실패/재열기/재진입, 이웃 반응 성공/실패/선택 상태, 과거 초안 충돌/합치기와 과거 삭제를 확인했다. 실제 iPhone/Android 화면·실기기 안전 영역/키보드는 미확인이며 실제 사용자 인증/서버 보상/상대 전달은 미연결이다.
 
 
+## 걸음 수 · 건강 앱 연결 (2026-10-16)
+
+- iPhone은 Apple 건강(HealthKit), Android는 Health Connect에서 **하루 걸음 합계만 읽는다**(쓰지 않음). 코드: `src/health/steps.ios.js`·`steps.android.js`, 웹 미리보기는 `steps.js`(연결 안 함)
+- 퀘스트 화면의 '걸음 수 연결하기'를 한 번 누르면 권한을 묻고, 그 뒤로는 화면을 열 때와 '걸음 확인' 전에 오늘과 지난 7일 걸음을 `POST /users/{id}/steps`로 올린다(`src/health/syncSteps.js`). 서버가 이 값으로 '어제보다·지난주보다 더 걷기'를 정하고 확인한다
+- 네이티브 모듈이라 **Expo Go에서는 안 되고 개발 빌드(EAS)가 필요**하다: `npx eas-cli@latest build --profile development --platform ios|android`
+- 설정은 `app.json` 플러그인: `@kingstinct/react-native-healthkit`(권한 문구·HealthKit 권한), `react-native-health-connect`(READ_STEPS·권한 설명 화면), `expo-build-properties`(Android minSdk 26)
+- 출시 전: App Store는 건강 데이터를 쓰는 이유와 개인정보처리방침, Google Play는 Health Connect 사용 신고(Play Console '건강 앱' 양식)가 필요하다. Android 기기에 Health Connect 앱이 없으면(Android 13 이하) 연결 버튼이 나오지 않는다
+
 ## 첫 진입 · 로그인 연결 범위
 
 MY MOCHI 로그인/가입 화면에서 시작한다. 청록·크림 UI와 기존 친구 렌더러, 공식 카카오 로그인·Google 버튼 이미지를 사용한다. A2z 400~600을 유지하며 공급자 버튼 글씨는 공식 PNG에 포함된 스타일이다. 세션 확인 중 홈을 마운트하지 않는다. 설정의 로그아웃은 signOut 성공 후 로그인 화면으로 돌아가며 개발 미리보기도 종료한다. 실패 시 설정에서 다시 시도할 수 있고 게임 저장 데이터는 삭제하지 않는다. 현재 인증 어댑터는 미연결로, 사용자 ID나 임의 토큰을 로그인으로 취급하지 않는다. 실패/취소 시 재시도하고 진행 중 중복 입력을 막는다. 게임 데이터는 초기화하지 않는다.
