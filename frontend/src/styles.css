@@ -1036,3 +1036,53 @@ button.pb, .ui-disclosure > summary { font-weight: 500; }
 /* 키 큰 휴대폰: 캐릭터·오늘의 문구를 --room-drop(남는 높이의 3/4, Home.jsx가 계산)만큼 내린다. 바닥 그림은 방 아래로 이어서 보이게 */
 .home-screen.is-sheet-layout :is(.home-character, .home-identity) { translate: 0 var(--room-drop, 0px); }
 .home-screen.is-sheet-layout .home-room-scenery svg { overflow: visible; }
+
+/* 출석표 (10/16): 모바일 게임 출석부처럼. 선물 배너 → 진행 막대 → 'n일차' 카드(일요일은 큰 카드) → 오늘 받을 선물 → 큰 버튼
+   받은 날 = 흐린 카드 + 빨간 '출석' 도장, 오늘 = 금색 빛 테두리 + '오늘' 꼬리표, 지난 날 = 점선 + '쉬어감' */
+.attendance-dialog { --att-gold: #F2B544; --att-gold-soft: #FFF4D6; --att-stamp: #E0695E; }
+.attendance-dialog .attendance-close { z-index: 2; }
+.attendance-head { display: flex; align-items: center; gap: 10px; margin: -6px -2px 12px; padding: 12px 14px; border-radius: 18px; padding-right: 44px; background: linear-gradient(135deg, var(--color-primary-soft), var(--att-gold-soft)); text-align: left; }
+.attendance-head-gift { display: grid; place-items: center; flex: 0 0 auto; width: 44px; height: 44px; border-radius: 14px; background: var(--color-surface); font-size: 26px; box-shadow: 0 2px 0 rgba(31, 61, 58, .12); animation: att-bob 2.4s ease-in-out infinite; }
+.attendance-head h2 { margin: 0 !important; font-size: 19px !important; line-height: 1.3; }
+.attendance-head small { display: block; color: var(--color-muted); font-size: 11px; }
+.attendance-progress-row { display: flex; align-items: center; gap: 8px; margin: 0 2px 14px; }
+.attendance-progress-row b { font-size: 12px; color: var(--color-primary); font-variant-numeric: tabular-nums; }
+.attendance-progress { flex: 1; height: 8px; margin: 0; border-radius: 4px; background: var(--color-border); overflow: hidden; }
+.attendance-progress span { display: block; height: 100%; border-radius: 4px; background: linear-gradient(90deg, var(--color-primary), var(--att-gold)); transition: width .4s; }
+.attendance-cards { list-style: none; margin: 0; padding: 4px 0 0; display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 9px 7px; }
+.attendance-card { position: relative; display: flex; flex-direction: column; align-items: center; gap: 3px; min-width: 0; padding: 0 2px 7px; border: 2px solid var(--color-border); border-radius: 16px; background: var(--color-surface); color: var(--color-ink); box-shadow: 0 2px 0 var(--color-border); }
+.attendance-card-day { align-self: stretch; margin: 0 -2px 2px; padding: 3px 0; border-radius: 13px 13px 0 0; background: var(--color-background); font-size: 11px; font-weight: 700; color: var(--color-ink); white-space: nowrap; }
+.attendance-card-day em { font-style: normal; font-weight: 500; color: var(--color-muted); }
+.attendance-card-icon { display: grid; place-items: center; width: 40px; height: 40px; }
+.attendance-card-icon svg { width: 34px; height: 34px; }
+.attendance-card-icon > span { font-size: 28px !important; }
+.attendance-card-reward { max-width: 100%; padding: 1px 7px; box-sizing: border-box; border-radius: 999px; background: var(--att-gold-soft); overflow: hidden; text-overflow: ellipsis; white-space: nowrap; font-size: 11px; font-weight: 700; }
+/* 일요일: 가로로 긴 큰 카드 */
+.attendance-card:last-child { grid-column: span 2; flex-direction: row; flex-wrap: wrap; justify-content: center; align-content: flex-start; column-gap: 8px; }
+.attendance-card:last-child .attendance-card-day { flex-basis: calc(100% + 4px); }
+.attendance-card:last-child .attendance-card-icon { width: 46px; height: 46px; }
+.attendance-card:last-child .attendance-card-icon svg { width: 40px; height: 40px; }
+/* 오늘 */
+.attendance-card.is-today { border-color: var(--att-gold); background: var(--att-gold-soft); box-shadow: 0 2px 0 var(--att-gold), 0 0 0 4px rgba(242, 181, 68, .25); animation: att-glow 1.8s ease-in-out infinite; }
+.attendance-card.is-today .attendance-card-day { background: var(--att-gold); color: #fff; }
+.attendance-card.is-today .attendance-card-day em { color: #fff; }
+.attendance-card.is-today .attendance-card-reward { background: var(--color-surface); }
+.attendance-card-tag { position: absolute; top: -11px; left: 50%; z-index: 1; transform: translateX(-50%); padding: 1px 8px; border-radius: 999px; background: var(--att-stamp); color: #fff; font-size: 10px; font-weight: 700; white-space: nowrap; box-shadow: 0 2px 0 rgba(0, 0, 0, .1); }
+.attendance-card-tag.is-special { background: var(--att-gold); }
+/* 받은 날: '출석' 도장 */
+.attendance-card.is-done { background: var(--color-background); box-shadow: none; }
+.attendance-card.is-done > :not(.attendance-card-stamp) { opacity: .4; }
+.attendance-card-stamp { position: absolute; inset: 18px 0 0; display: grid; place-items: center; pointer-events: none; }
+.attendance-card-stamp span { display: grid; place-items: center; width: 44px; height: 44px; border: 3px solid var(--att-stamp); border-radius: 50%; background: rgba(255, 255, 255, .7); color: var(--att-stamp); font-size: 13px; font-weight: 800; letter-spacing: 1px; transform: rotate(-14deg); }
+/* 지난 날 */
+.attendance-card.is-missed { border-style: dashed; box-shadow: none; }
+.attendance-card.is-missed > :not(.attendance-card-note) { opacity: .4; }
+.attendance-card-note { position: absolute; bottom: 7px; left: 50%; transform: translateX(-50%); padding: 1px 6px; border-radius: 6px; background: var(--color-disabled); font-size: 10px; color: var(--color-muted); white-space: nowrap; }
+.attendance-today-gift { display: flex; align-items: center; justify-content: center; gap: 8px; margin: 4px 0 10px; padding: 10px; border: 2px dashed var(--att-gold); border-radius: 16px; background: var(--att-gold-soft); font-size: 13px; }
+.attendance-today-gift strong { font-size: 16px; }
+.attendance-today-gift svg { width: 28px; height: 28px; }
+.attendance-dialog .attendance-count { margin: 12px 0 6px; text-align: center; }
+.attendance-dialog .attendance-claim:not(:disabled) { min-height: 50px; font-size: 16px; }
+@keyframes att-glow { 50% { box-shadow: 0 2px 0 var(--att-gold), 0 0 0 7px rgba(242, 181, 68, .12); } }
+@keyframes att-bob { 50% { transform: translateY(-3px) rotate(-4deg); } }
+@media (prefers-reduced-motion: reduce) { .attendance-card.is-today, .attendance-head-gift { animation: none; } }

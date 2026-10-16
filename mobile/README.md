@@ -192,7 +192,7 @@ npm.cmd run export
 
 이전 개발 시안 설명: ## 정면 시안 미리보기
 
-개발 /friend-preview는 GameApp·AsyncStorage·출석을 우회한다. 버터 곰 밀루/살구 강아지 라니/솜귀 고양이 루루 기본 SVG를 구름/달빛 양과200/110/64/40px·같은 방에서 비교. 웹 ?preview=friends와 같은 PrototypeFriendDrawing 도형을 react-native-svg 어댑터로 표시한다. 밀루·라니·루루는 승인된 기본과 의상·모션을 유지한다. 추가 메루·도토·포포는 ExpansionFriendDrawing 공유 기본 SVG만 표시하며 의상·모션·상점·지급은 연결하지 않는다. 이름/서사는 초안이다.
+개발 /friend-preview는 GameApp·AsyncStorage·출석을 우회한다. 버터 곰/살구 강아지 라니/솜귀 고양이 루루 기본 SVG를 구름/달빛 양과200/110/64/40px·같은 방에서 비교. 웹 ?preview=friends와 같은 PrototypeFriendDrawing 도형을 react-native-svg 어댑터로 표시한다. 밀루·라니·루루는 승인된 기본과 의상·모션을 유지한다. 추가 메루·도토·포포는 ExpansionFriendDrawing 공유 기본 SVG만 표시하며 의상·모션·상점·지급은 연결하지 않는다. 이름/서사는 초안이다.
 
 ### 2026-10-09 변경 이력
 - 첫 진입 로그인·가입 화면과 웹/네이티브 인증 어댑터 연결 지점 추가. 실제 OAuth 미연결, 배포용 로그인 우회 없음. 기존 로컬 기록 보존.
