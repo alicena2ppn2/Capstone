@@ -3,14 +3,14 @@
   "characters": [
     {
       "id": "potato",
-      "name": "꼬질 감자 모찌",
+      "name": "꼬질 감자",
       "level": 1,
       "price": 0,
       "method": "starter"
     },
     {
       "id": "pink",
-      "name": "복숭아 토끼 모찌",
+      "name": "복숭아 토끼",
       "level": 3,
       "price": 0,
       "method": "milestone"
@@ -23,7 +23,7 @@
     },
     {
       "id": "lavender",
-      "name": "달빛 양 모찌",
+      "name": "달빛 양",
       "level": 8,
       "price": 450
     },
@@ -42,7 +42,7 @@
     },
     {
       "id": "proto-pebble",
-      "name": "버터 곰 밀루",
+      "name": "버터 곰",
       "level": 4,
       "price": 300
     },
