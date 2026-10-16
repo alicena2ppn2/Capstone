@@ -35,6 +35,7 @@ const localIso = ms => { const d = new Date(ms); return `${d.getFullYear()}-${pa
 
 // ImagePicker 결과(asset) → 업로드 폼. 서버는 파일 EXIF 촬영 일시를 먼저 보고, 없으면 taken_at을 쓴다.
 // iOS는 고른 사진 파일에 EXIF가 빠질 수 있어 exif:true로 받은 DateTimeOriginal을 같이 보낸다.
+// 카메라로 막 찍은 사진에 촬영 일시가 없으면(일부 Android) 앱이 찍은 시각(capturedAt)을 보낸다.
 export async function photoForm(asset) {
   const form = new FormData();
   const name = asset.fileName || 'photo.jpg', type = asset.mimeType || 'image/jpeg';
@@ -44,7 +45,7 @@ export async function photoForm(asset) {
   } else {
     form.append('file', { uri: asset.uri, name, type });
   }
-  const taken = asset.exif?.DateTimeOriginal || asset.exif?.DateTimeDigitized || asset.exif?.DateTime || (asset.file?.lastModified ? localIso(asset.file.lastModified) : null);
+  const taken = asset.exif?.DateTimeOriginal || asset.exif?.DateTimeDigitized || asset.exif?.DateTime || (asset.capturedAt ? localIso(asset.capturedAt.getTime()) : null) || (asset.file?.lastModified ? localIso(asset.file.lastModified) : null);
   if (taken) form.append('taken_at', String(taken));
   return form;
 }
