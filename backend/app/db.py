@@ -254,6 +254,12 @@ def connect(path: str | os.PathLike | None = None) -> sqlite3.Connection:
     if "supabase_id" not in cols:
         conn.execute("ALTER TABLE users ADD COLUMN supabase_id TEXT")
     conn.execute("CREATE UNIQUE INDEX IF NOT EXISTS users_supabase_id ON users (supabase_id)")
+    # 친구 코드 (게임의 '플레이어 태그'처럼 짧고 고유한 코드, 예: 7KQ2MX). 예전 사용자에게도 채운다
+    if "friend_code" not in {r["name"] for r in conn.execute("PRAGMA table_info(users)")}:
+        conn.execute("ALTER TABLE users ADD COLUMN friend_code TEXT")
+    conn.execute("CREATE UNIQUE INDEX IF NOT EXISTS users_friend_code ON users (friend_code)")
+    for row in conn.execute("SELECT id FROM users WHERE friend_code IS NULL").fetchall():
+        conn.execute("UPDATE users SET friend_code = ? WHERE id = ?", (new_friend_code(conn), row["id"]))
     # 사진첩용 날짜·용도가 없던 예전 사진 테이블이면 추가
     cols = {r["name"] for r in conn.execute("PRAGMA table_info(photos)")}
     for col in ("date", "used_for", "taken_at"):
@@ -304,10 +310,33 @@ def nickname_key(nickname: str) -> str:
     return "".join(nickname.split()).lower()
 
 
+FRIEND_CODE_LETTERS = "ABCDEFGHJKLMNPQRSTUVWXYZ23456789"   # 헷갈리는 0·O·1·I 뺌
+FRIEND_CODE_LENGTH = 6
+
+
+def new_friend_code(conn) -> str:
+    """아직 아무도 안 쓰는 친구 코드 (32자 × 6자리 ≈ 10억 가지)."""
+    import secrets
+    while True:
+        code = "".join(secrets.choice(FRIEND_CODE_LETTERS) for _ in range(FRIEND_CODE_LENGTH))
+        if conn.execute("SELECT 1 FROM users WHERE friend_code = ?", (code,)).fetchone() is None:
+            return code
+
+
+def normalize_friend_code(text: str) -> str:
+    """'#7kq-2mx ' → '7KQ2MX' (#·띄어쓰기·- 무시, 소문자도 됨)"""
+    return "".join(ch for ch in (text or "").upper() if ch in FRIEND_CODE_LETTERS)
+
+
+def user_by_friend_code(conn, code: str) -> dict | None:
+    row = conn.execute("SELECT id FROM users WHERE friend_code = ?", (normalize_friend_code(code),)).fetchone()
+    return get_user(conn, row["id"]) if row else None
+
+
 def create_user(conn, user_id: str, nickname: str) -> dict:
     conn.execute(
-        "INSERT INTO users (id, nickname, nickname_key) VALUES (?, ?, ?)",
-        (user_id, nickname, nickname_key(nickname)),
+        "INSERT INTO users (id, nickname, nickname_key, friend_code) VALUES (?, ?, ?, ?)",
+        (user_id, nickname, nickname_key(nickname), new_friend_code(conn)),
     )
     conn.commit()
     return get_user(conn, user_id)
@@ -324,7 +353,7 @@ def link_supabase(conn, user_id: str, supabase_id: str) -> None:
 
 
 def get_user(conn, user_id: str) -> dict | None:
-    row = conn.execute("SELECT id, nickname, bio, game_center_id, created_at, updated_at FROM users WHERE id = ?", (user_id,)).fetchone()
+    row = conn.execute("SELECT id, nickname, bio, friend_code, game_center_id, created_at, updated_at FROM users WHERE id = ?", (user_id,)).fetchone()
     return dict(row) if row else None
 
 

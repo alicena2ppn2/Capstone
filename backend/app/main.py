@@ -1068,6 +1068,7 @@ def get_room(user_id: str, date: str | None = DateQuery, conn=Depends(get_conn))
         "user_id": user_id,
         "nickname": user["nickname"] if user else None,
         "bio": user["bio"] if user else None,
+        "friend_code": user["friend_code"] if user else None,
         "level": ms.level_from_xp(db.xp_total(conn, user_id))["level"],
         **room_view(conn, user_id),
         "visits": db.visit_counts(conn, user_id, day(date).isoformat()),
@@ -1137,7 +1138,9 @@ SIMILAR_LEVEL_RANGE = 2      # 레벨 차이가 이 안이면 "비슷한 레벨"
 
 @app.get("/users/{user_id}/rooms/recommended",
          summary="놀러 갈 만한 친구 방 — 최근 7일 안에 앱을 쓴 사람 중 내 레벨과 가까운 순")
-def recommended_rooms(user_id: str, date: str | None = DateQuery, limit: int = Query(5, ge=1, le=20), conn=Depends(get_conn)):
+def recommended_rooms(user_id: str, date: str | None = DateQuery, limit: int = Query(5, ge=1, le=20),
+                      refresh: int = Query(0, ge=0, description="새로고침 횟수. 0이면 가까운 레벨 순, 1부터는 비슷한 레벨 후보 중에서 다른 이웃을 섞어서"),
+                      conn=Depends(get_conn)):
     today = day(date)
     since = (today - timedelta(days=7)).isoformat()
     my_level = ms.level_from_xp(db.xp_total(conn, user_id))["level"]
@@ -1147,7 +1150,13 @@ def recommended_rooms(user_id: str, date: str | None = DateQuery, limit: int = Q
     candidates = [u for u in db.active_users(conn, since, user_id, RECOMMEND_CANDIDATES) if u not in blocked]
     xps = db.xp_totals(conn, candidates)
     levels = {u: ms.level_from_xp(xps[u])["level"] for u in candidates}
-    ranked = sorted(candidates, key=lambda u: (abs(levels[u] - my_level), candidates.index(u)))[:limit]
+    ranked = sorted(candidates, key=lambda u: (abs(levels[u] - my_level), candidates.index(u)))
+    if refresh:   # 새로고침: 레벨이 가까운 후보(보여 줄 수의 3배) 중에서 매번 다른 조합 (같은 날·같은 횟수면 같은 결과)
+        import random
+        pool = ranked[:limit * 3]
+        picked = set(random.Random(f"{user_id}:{today.isoformat()}:{refresh}").sample(pool, min(limit, len(pool))))
+        ranked = [u for u in ranked if u in picked]
+    ranked = ranked[:limit]
 
     friends = db.friend_ids(conn, user_id)
     rooms = []
@@ -1155,7 +1164,7 @@ def recommended_rooms(user_id: str, date: str | None = DateQuery, limit: int = Q
         diff = levels[room["id"]] - my_level
         rooms.append({**room, "level": levels[room["id"]], "level_diff": diff,
                       "similar": abs(diff) <= SIMILAR_LEVEL_RANGE, "is_friend": room["id"] in friends})
-    return {"my_level": my_level, "rooms": rooms}
+    return {"my_level": my_level, "refresh": refresh, "rooms": rooms}
 
 
 @app.get("/users/{user_id}/guestbook", summary="방명록 목록 (신고가 쌓인 글·차단한 사람 글은 빠짐)")
@@ -1354,7 +1363,8 @@ FRIEND_LIMIT = 100        # 친구 최대 수 (받은·보낸 요청 포함)
 
 
 class FriendIn(BaseModel):
-    nickname: str = Field(..., min_length=1, description="친구로 추가할 사람의 닉네임 (대소문자·띄어쓰기 무시)")
+    nickname: str | None = Field(None, min_length=1, description="친구로 추가할 사람의 닉네임 (대소문자·띄어쓰기 무시)")
+    code: str | None = Field(None, min_length=1, description="친구 코드 (예: 7KQ2MX, #·소문자 괜찮음). 닉네임 대신")
 
 
 def friend_cards(conn, user_id: str, entries: list[dict], today: Date) -> list[dict]:
@@ -1413,17 +1423,19 @@ def get_friendship(user_id: str, other_id: str, conn=Depends(get_conn)):
 
 
 @app.post("/users/{user_id}/friends", status_code=201,
-          summary="친구 추가 (닉네임으로 요청). 상대가 이미 나에게 요청했으면 바로 친구")
+          summary="친구 신청 (친구 코드 또는 닉네임). 상대가 이미 나에게 신청했으면 바로 친구")
 def add_friend(user_id: str, body: FriendIn, date: str | None = DateQuery, conn=Depends(get_conn)):
-    target = db.find_user_by_nickname(conn, body.nickname)
+    if not body.code and not body.nickname:
+        raise HTTPException(422, "친구 코드나 닉네임을 넣어 주세요.")
+    target = db.user_by_friend_code(conn, body.code) if body.code else db.find_user_by_nickname(conn, body.nickname)
     if target is None:
-        raise HTTPException(404, "그 닉네임을 쓰는 친구를 찾지 못했어요.")
+        raise HTTPException(404, "그 코드를 쓰는 친구를 찾지 못했어요." if body.code else "그 닉네임을 쓰는 친구를 찾지 못했어요.")
     other = target["id"]
     if other == user_id:
         raise HTTPException(422, "나는 친구로 추가할 수 없어요.")
     if other in db.block_related(conn, user_id):
         # 누가 차단했는지는 알리지 않는다
-        raise HTTPException(404, "그 닉네임을 쓰는 친구를 찾지 못했어요.")
+        raise HTTPException(404, "그 코드를 쓰는 친구를 찾지 못했어요." if body.code else "그 닉네임을 쓰는 친구를 찾지 못했어요.")
 
     edge = db.friend_edge(conn, user_id, other)
     if edge and edge["status"] == "accepted":
@@ -1438,6 +1450,19 @@ def add_friend(user_id: str, body: FriendIn, date: str | None = DateQuery, conn=
         raise HTTPException(422, f"친구는 {FRIEND_LIMIT}명까지예요.")
     db.request_friend(conn, user_id, other)
     return {"status": "pending", "friend": target, "message": f"{target['nickname']}님에게 친구 요청을 보냈어요."}
+
+
+@app.get("/users/{user_id}/friends/search", summary="친구 코드로 찾기 — 신청 전에 누구인지(닉네임·레벨·캐릭터·친구 사이인지)")
+def search_friend(user_id: str, code: str = Query(..., min_length=1, description="친구 코드 (예: 7KQ2MX)"), conn=Depends(get_conn)):
+    target = db.user_by_friend_code(conn, code)
+    if target is None or target["id"] in db.block_related(conn, user_id):
+        raise HTTPException(404, "그 코드를 쓰는 친구를 찾지 못했어요. 코드를 다시 확인해 주세요.")
+    edge = db.friend_edge(conn, user_id, target["id"]) if target["id"] != user_id else None
+    status = "me" if target["id"] == user_id else "friend" if edge and edge["status"] == "accepted" else \
+        "sent" if edge and edge["user_id"] == user_id else "received" if edge else "none"
+    room = room_view(conn, target["id"])
+    return {"id": target["id"], "nickname": target["nickname"], "bio": target["bio"], "friend_code": target["friend_code"],
+            "level": ms.level_from_xp(db.xp_total(conn, target["id"]))["level"], "character": room.get("character"), "status": status}
 
 
 @app.get("/users/{user_id}/friends", summary="친구 목록 + 받은 요청 + 보낸 요청")
