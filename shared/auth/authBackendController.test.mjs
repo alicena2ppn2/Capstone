@@ -83,3 +83,8 @@ test('late user API result cannot be applied after logout even if transport igno
  let release;const f=fixture(url=>url.endsWith('/auth/supabase')?response(200,{user:{id:'backend-A'},created:false}):new Promise(done=>{release=()=>done(response(200,{private:'old-account-data'}));}));
  await f.entry.restore();const pending=f.entry.requestUser('/home');await pause();await f.entry.signOut();release();await assert.rejects(pending,/계정이 바뀌었어요/);assert.equal(f.entry.getSnapshot().backendUserId,null);f.entry.stop();
 });
+test('accessToken gives the fresh token only while the same account is connected',async()=>{
+ const f=fixture();assert.equal(await f.entry.accessToken(),null);await f.entry.restore();assert.equal(await f.entry.accessToken(),'unit-test-secret');
+ f.client.setSession(session('auth-A','rotated-unit-token'));assert.equal(await f.entry.accessToken(),'rotated-unit-token');
+ f.client.setSession(session('auth-B','token-B'));assert.equal(await f.entry.accessToken(),null);f.entry.stop();
+});

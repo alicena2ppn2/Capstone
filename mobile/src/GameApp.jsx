@@ -3,11 +3,13 @@ import HomeScreen from './screens/home/HomeScreen';
 import MissionReplacement from './screens/quests/MissionReplacement';
 import { saveMissionPreferences } from '../../shared/features/missionGuidance.js';
 import BottomNav from './components/BottomNav';
+import { cancelComeback, notificationsAllowed, scheduleComeback } from './notify/comeback';
 import { completePhotoMission } from '../../shared/features/missionPhotos.js';
 import { continueJournalDraft } from '../../shared/features/journal.js';
 import RewardPanel from './components/RewardPanel';
+import AttendanceCards from './components/AttendanceCards';
 import React, { useEffect, useRef, useState } from 'react';
-import { KeyboardAvoidingView, Platform, ScrollView, View } from 'react-native';
+import { AppState, KeyboardAvoidingView, Platform, ScrollView, View } from 'react-native';
 import { SafeAreaProvider, SafeAreaView } from 'react-native-safe-area-context';
 import { StatusBar } from 'expo-status-bar';
 import { useFonts } from 'expo-font';
@@ -22,15 +24,10 @@ import Visit, { Guestbook } from './screens/Visit';
 import Neighbors from './screens/Neighbors';
 import { CHARACTERS, buyCharacter, levelFor } from '../../shared/features/game.js';
 import { CLOTHES } from '../../shared/data/clothes.js';
-import { DECOR } from '../../shared/data/decor.js';
 import { seoulDateKey, attendanceWeek } from '../../shared/utils/seoulDate.js';
 import { replaceDailyMission, saveDiaryMission, deleteDiaryMission } from '../../shared/features/dailyMissions.js';
 import { useServerUserId, useServerGame, shopAsGame, buyItem, equip, placeDecor, moveDecor, checkIn, saveDiary as saveServerDiary, removeDiary as removeServerDiary } from './api/server';
 
-function rewardText(reward) {
-  if (!reward) return '';
-  return reward.type === 'coins' ? `🪙 ${reward.amount} 코인` : reward.type === 'xp' ? `⭐ ${reward.amount} XP` : reward.type === 'outfit' ? `👕 ${CLOTHES.find(item => item.id === reward.id)?.name}` : `🏡 ${DECOR.find(item => item.id === reward.id)?.name}`;
-}
 export default function App({ children }) { return <SafeAreaProvider><GameApp>{children}</GameApp></SafeAreaProvider>; }
 function GameApp({ children }) {
   const router = useRouter(), pathname = usePathname();
@@ -44,6 +41,17 @@ function GameApp({ children }) {
   // 서버가 있으면 코인·레벨·장착·방·출석·상점은 서버 (웹과 같은 규칙, 10/15). 없으면 지금처럼 휴대폰 안 기록
   const serverUserId = useServerUserId(), server = useServerGame(serverUserId), sv = server.state;
   const [serverAward, setServerAward] = useState(null);
+  // 다시 부르기 알림: 앱을 열거나 다시 돌아올 때마다 2·4·7일 뒤 알림을 새로 잡는다 (계속 오면 안 울림). 처음 한 번 알림 권한을 묻는다
+  const remindersOn = state ? state.settings?.reminders !== false : null;
+  const friendId = sv?.shop?.equipped?.character ?? state?.game?.character;
+  const friendName = state ? state.game.nicknames?.[friendId] || CHARACTERS.find(item => item.id === friendId)?.name : null;
+  useEffect(() => {
+    if (remindersOn === null || !friendName) return undefined;
+    const plan = () => (remindersOn ? notificationsAllowed(true).then(() => scheduleComeback(friendName)) : cancelComeback()).catch(() => {});
+    void plan();
+    const sub = AppState.addEventListener('change', next => { if (next === 'active') void plan(); });
+    return () => sub.remove();
+  }, [remindersOn, friendName]);
   useEffect(() => { if (!serverAward) return undefined; const timer = setTimeout(() => setServerAward(null), 1200); return () => clearTimeout(timer); }, [serverAward]);
   if (!state || !fontsLoaded && !fontError) return <SafeAreaView style={styles.safe}>{children}<Label style={{ padding: 24 }}>{error || '친구의 방을 준비하고 있어요…'}</Label>{!!error && <Button onPress={load}>다시 읽기</Button>}</SafeAreaView>;
   const { wardrobe } = state;
@@ -84,9 +92,9 @@ function GameApp({ children }) {
     </ScrollView>
     <BottomNav screen={screen} onNavigate={destination=>{if(destination==='quest')setQuestFocus(null);go(destination);}}/>
     {!!toast && <View pointerEvents="none" style={styles.toast} accessibilityLiveRegion="polite"><Label>{toast}</Label></View>}
-    {sheet && <Sheet title={sheet.kind === 'attendance' ? '이번 주의 출석표' : sheet.kind === 'swap' ? '다른 활동으로' : sheet.title ?? '안내'} close={() => setSheet(null)}>
-      {sheet.kind === 'attendance' && sv ? <><Label style={styles.body}>이번 주 {sv.week.count}일 함께했어요. 언제든 반가워요.</Label>{sv.week.days.map(d => <View style={[styles.attendanceRow, d.claimed && { opacity: .45 }]} key={d.date}><Label>{d.today ? '오늘 ' : ''}{d.date.slice(5)} {d.claimed ? '✓' : ''}</Label><Label style={{ flexShrink: 1 }}>{rewardText(d.claimed ?? d.reward)}</Label></View>)}<Button primary disabled={sv.week.claimed_today} onPress={async () => { try { const r = await checkIn(serverUserId); await server.refresh(); setSheet(null); if (r.gift) setServerAward(r.gift); } catch (e) { setToast(e.message); } }}>{sv.week.claimed_today ? '오늘 출석 완료 ✓' : '오늘 출석하기'}</Button></>
-      : sheet.kind === 'attendance' ? <><Label style={styles.body}>이번 주 {attendanceWeek(day).filter(date => game.attendance?.[date]).length}일 함께했어요. 언제든 반가워요.</Label>{attendanceWeek(day).map(date => <View style={styles.attendanceRow} key={date}><Label>{date.slice(5)} {game.attendance?.[date] ? '✓' : ''}</Label><Label style={{ flexShrink: 1 }}>{rewardText(game.attendance?.[date] ?? game.attendancePlans?.[attendanceWeek(day)[0]]?.[date])}</Label></View>)}<Button primary disabled={!!game.attendance?.[day]} onPress={() => claimDailyAttendance(ownedClothes)}>{game.attendance?.[day] ? '오늘 출석 완료 ✓' : '오늘 출석하기'}</Button></>
+    {sheet && <Sheet title={sheet.kind === 'attendance' ? '출석 체크' : sheet.kind === 'swap' ? '다른 활동으로' : sheet.title ?? '안내'} close={() => setSheet(null)}>
+      {sheet.kind === 'attendance' && sv ? <><AttendanceCards days={sv.week.days.map(d => ({ date: d.date, today: d.today, claimed: d.claimed ?? null, reward: d.reward }))} streak={{ streak: sv.week.streak ?? 0, reset: !!sv.week.reset, claimedToday: sv.week.claimed_today }} /><Button primary disabled={sv.week.claimed_today} onPress={async () => { try { const r = await checkIn(serverUserId); await server.refresh(); setSheet(null); if (r.gift) setServerAward(r.gift); } catch (e) { setToast(e.message); } }}>{sv.week.claimed_today ? '오늘 출석 완료 ✓' : '🎁 출석하고 선물 받기'}</Button></>
+      : sheet.kind === 'attendance' ? <><AttendanceCards days={attendanceWeek(day).map(date => ({ date, today: date === day, claimed: game.attendance?.[date] ?? null, reward: game.attendancePlans?.[attendanceWeek(day)[0]]?.[date] }))} /><Button primary disabled={!!game.attendance?.[day]} onPress={() => claimDailyAttendance(ownedClothes)}>{game.attendance?.[day] ? '오늘 출석 완료 ✓' : '🎁 출석하고 선물 받기'}</Button></>
       : sheet.kind === 'swap' ? <MissionReplacement game={game} id={sheet.id} day={day} onClose={()=>setSheet(null)} onNotice={setToast} onReplace={(id,date,options)=>commitState(old=>{if(date!==seoulDateKey())return old;const next=replaceDailyMission(old.game,id,date,options);return next===old.game?old:{...old,game:next};})}/>
       : sheet.kind === 'feedback' ? ['가벼웠어요', '적당했어요', '부담됐어요'].map((text, index) => <Button key={text} selected={game.feedback?.[sheet.key] === ['easy', 'okay', 'hard'][index]} onPress={() => { updateGame(value => ({ ...value, feedback: { ...value.feedback, [sheet.key]: ['easy', 'okay', 'hard'][index] } })); setSheet(null); }}>{text}</Button>)
       : sheet.kind === 'backup' ? <Backup state={state} onRestore={restore} close={() => setSheet(null)} /> : <Label style={styles.body}>{sheet.text}</Label>}
