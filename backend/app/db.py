@@ -342,6 +342,11 @@ def create_user(conn, user_id: str, nickname: str) -> dict:
     return get_user(conn, user_id)
 
 
+def supabase_id_of(conn, user_id: str) -> str | None:
+    row = conn.execute("SELECT supabase_id FROM users WHERE id = ?", (user_id,)).fetchone()
+    return row["supabase_id"] if row else None
+
+
 def user_by_supabase(conn, supabase_id: str) -> dict | None:
     row = conn.execute("SELECT id FROM users WHERE supabase_id = ?", (supabase_id,)).fetchone()
     return get_user(conn, row["id"]) if row else None

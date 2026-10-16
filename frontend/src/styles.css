@@ -1127,3 +1127,10 @@ button.pb, .ui-disclosure > summary { font-weight: 500; }
 @keyframes att-glow { 50% { box-shadow: 0 2px 0 var(--att-gold), 0 0 0 7px rgba(242, 181, 68, .12); } }
 @keyframes att-bob { 50% { transform: translateY(-3px) rotate(-4deg); } }
 @media (prefers-reduced-motion: reduce) { .attendance-card.is-today, .attendance-head-gift { animation: none; } }
+
+/* 계정 삭제 창 (10/16) — 신고 창과 같은 모양, 지우는 버튼은 빨간색 */
+.account-delete-list { margin: 0 0 12px; padding-left: 18px; font-size: 13px; line-height: 1.7; }
+.account-delete-label { display: block; margin-bottom: 6px; font-size: 13px; }
+.account-delete-dialog .inp { width: 100%; box-sizing: border-box; margin-bottom: 12px; }
+.account-delete-confirm:not(:disabled) { background: #D9534F !important; border-color: #D9534F !important; color: #fff !important; }
+.account-delete-confirm:disabled { background: var(--color-disabled) !important; border-color: var(--color-border) !important; color: var(--color-muted) !important; }
