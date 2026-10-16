@@ -461,13 +461,15 @@ def rename_user(user_id: str, body: ProfileIn, conn=Depends(get_conn)):
     return user
 
 
-@app.delete("/users/{user_id}", summary="계정 삭제 — 걸음·미션·코인·사진·일기·방문·방명록까지 모두 삭제")
+@app.delete("/users/{user_id}", summary="계정 삭제 — 걸음·미션·코인·사진·일기·방문·방명록까지 모두 삭제, Supabase 로그인 계정도")
 def delete_user(user_id: str, conn=Depends(get_conn)):
     if db.get_user(conn, user_id) is None:
         raise HTTPException(404, "없는 사용자입니다.")
+    supabase_id = db.supabase_id_of(conn, user_id)
     for filename in db.delete_user(conn, user_id):
         (upload_dir() / filename).unlink(missing_ok=True)
-    return {"deleted": user_id}
+    # 게임 기록을 먼저 지우고 로그인 계정을 지운다 (로그인 계정 삭제가 실패해도 기록은 이미 지워짐 → login_account로 알림)
+    return {"deleted": user_id, "login_account": auth.delete_login_account(supabase_id)}
 
 
 @app.get("/survey/questions", summary="처음 설문 질문과 고를 수 있는 답 (앱은 이 순서대로 보여 주면 됨)")

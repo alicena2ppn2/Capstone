@@ -47,3 +47,22 @@ def supabase_user_id(authorization: str | None, claimed: str | None) -> str:
     if r.status_code != 200 or not r.json().get("id"):
         raise AuthError(401, "로그인이 만료됐어요. 다시 로그인해 주세요.")
     return r.json()["id"]
+
+
+def delete_login_account(supabase_id: str | None) -> str:
+    """계정 삭제 때 Supabase 로그인 계정(Google·카카오로 만든 것)도 지운다.
+
+    관리자 키 SUPABASE_SERVICE_ROLE_KEY가 서버 환경변수에 있어야 한다 (git에 올리지 않음, 앱에 넣지 않음).
+    반환: deleted(지움) · not_linked(로그인 연결 없음) · not_configured(키가 없어 못 지움) · failed(Supabase 오류)
+    """
+    if not supabase_id:
+        return "not_linked"
+    url, key = os.environ.get("SUPABASE_URL"), os.environ.get("SUPABASE_SERVICE_ROLE_KEY")
+    if not url or not key:
+        return "not_configured"
+    try:
+        r = httpx.delete(f"{url.rstrip('/')}/auth/v1/admin/users/{supabase_id}",
+                         headers={"Authorization": f"Bearer {key}", "apikey": key}, timeout=TIMEOUT)
+    except httpx.HTTPError:
+        return "failed"
+    return "deleted" if r.status_code in (200, 204, 404) else "failed"   # 404 = 이미 없음
