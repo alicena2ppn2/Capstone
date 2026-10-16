@@ -6,7 +6,7 @@
   Supabase에 물어봐서 진짜인지 확인하고, 토큰 안의 사용자 id만 쓴다. (서명 방식과 상관없이 동작)
 - 없으면(개발·시연 모드): 요청 본문의 supabase_id를 그대로 믿는다. 출시 전에는 꼭 환경변수를 넣어야 한다.
 
-지금은 이 연결 API에서만 토큰을 확인한다. 다른 API는 여전히 서버 id로 동작 (DATABASE.md "로그인 연결 계획").
+다른 모든 API의 토큰 확인(토큰 주인 = 주소의 {user_id})은 access.py가 한다 (2026-10-16).
 """
 
 from __future__ import annotations
