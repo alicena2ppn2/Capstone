@@ -10,8 +10,8 @@ def decor(view, item_id):
 
 def test_decor_catalog_matches_frontend():
     items = shop.CATALOG["decor"]
-    assert len(items) == 34                                      # 10/15: 벽지 6 + 바닥 4, 소파·서랍장 색 8 추가
-    assert set(shop.DECOR_SLOTS) == {"wallpaper", "floor", "sofa", "drawer", "lamp", "carpet", "frame", "doll", "scenery"}
+    assert len(items) == 46                                      # 10/15: 벽지 6 + 바닥 4, 소파·서랍장 색 8 / 10/16: 바닥 3 + 커튼 4 + 무늬 러그 5
+    assert set(shop.DECOR_SLOTS) == {"wallpaper", "floor", "sofa", "drawer", "curtain", "lamp", "carpet", "frame", "doll", "scenery"}
     # 앱 shared/data/decor.js와 같은 id·레벨·가격
     import re
     from pathlib import Path
@@ -115,3 +115,16 @@ def test_sofa_and_drawer_colors_cost_100(client):
     room = client.get("/users/u1/room").json()
     assert (room["decor"]["sofa"], room["decor"]["drawer"]) == ("sofa-mint", "drawer-walnut")
     assert client.put("/users/u1/decor/sofa/position", json={"dx": 1, "dy": 1}).status_code == 422   # 소파·서랍장은 제자리
+
+
+def test_curtain_colors_and_new_floors(client):
+    from tests.test_shop import give
+    give(client, "u1", coins=500, xp=5000)
+    curtains = [item for item in shop.CATALOG["decor"].values() if item["slot"] == "curtain"]
+    assert len(curtains) == 4 and all(item["price"] == 100 for item in curtains)
+    assert sum(1 for i in shop.CATALOG["decor"].values() if i["slot"] == "floor") == 7
+    for slot, item in (("curtain", "curtain-navy"), ("floor", "floor-honey-zigzag")):
+        assert client.post("/users/u1/shop/buy", json={"type": "decor", "item_id": item}).status_code == 200
+        assert client.put("/users/u1/decor", json={"slot": slot, "item_id": item}).status_code == 200
+    room = client.get("/users/u1/room").json()
+    assert (room["decor"]["curtain"], room["decor"]["floor"]) == ("curtain-navy", "floor-honey-zigzag")
