@@ -139,3 +139,23 @@ def test_supabase_server_down(client, monkeypatch):
 
     monkeypatch.setattr(httpx, "get", boom)
     assert client.post("/auth/supabase", headers={"Authorization": "Bearer good"}, json={}).status_code == 503
+
+
+def test_delete_account_also_deletes_login_account(client, monkeypatch):
+    """계정 삭제: 게임 기록을 지우고 Supabase 로그인 계정도 (관리자 키가 있을 때만)."""
+    from app import auth
+    monkeypatch.delenv("SUPABASE_URL", raising=False)
+    uid = client.post("/auth/supabase", json={"supabase_id": "sb-del", "nickname": "지울사람"}).json()["user"]["id"]
+    assert client.delete(f"/users/{uid}").json() == {"deleted": uid, "login_account": "not_configured"}   # 키 없음
+
+    uid = client.post("/auth/supabase", json={"supabase_id": "sb-del2", "nickname": "지울사람2"}).json()["user"]["id"]
+    monkeypatch.setenv("SUPABASE_URL", "https://example.supabase.co")
+    monkeypatch.setenv("SUPABASE_SERVICE_ROLE_KEY", "test-only-admin")
+    calls = []
+    monkeypatch.setattr(auth.httpx, "delete", lambda url, headers, timeout: calls.append((url, headers["apikey"])) or FakeResponse(200, {}))
+    monkeypatch.setattr(auth, "verify_on", lambda: False)                                          # 이 테스트는 토큰 확인 없이
+    assert client.delete(f"/users/{uid}").json() == {"deleted": uid, "login_account": "deleted"}
+    assert calls == [("https://example.supabase.co/auth/v1/admin/users/sb-del2", "test-only-admin")]
+    assert client.get(f"/users/{uid}").status_code == 404
+    monkeypatch.setattr(auth.httpx, "delete", lambda *a, **k: FakeResponse(500, {}))
+    assert auth.delete_login_account("sb-x") == "failed"

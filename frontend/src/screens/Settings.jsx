@@ -7,6 +7,7 @@ import Mochi from '../components/Mochi.jsx';
 
 import BackupExport from '../components/BackupExport.jsx';
 import ProfileCard from '../components/ProfileCard.jsx';
+import AccountDelete from '../components/AccountDelete.jsx';
 
 export default function Settings({ petColor, petName, onPetName, onBack, preferences, onPreferences }) {
   const auth = useAuthActions();
@@ -77,7 +78,7 @@ export default function Settings({ petColor, petName, onPetName, onBack, prefere
       <MissionPreferences preferences={preferences} onSave={onPreferences} />
       <HelpResources />
       <BackupExport />
-      <section className="settings-card settings-tools"><h2>계정 삭제</h2><p>현재는 로그인 계정과 서버가 연결되어 있지 않아 계정을 삭제할 수 없어요.</p><button type="button" className="pb ui-secondary" onClick={() => window.alert('계정 삭제는 로그인·서버 연결 후 사용할 수 있어요. 현재 저장된 기록은 삭제하지 않았어요.')}>계정 삭제 안내</button></section>
+      <AccountDelete />
       <section className="settings-card settings-tools"><h2>로그아웃</h2><p>로그인 화면으로 돌아가요. 저장된 기록은 유지돼요.</p><button type="button" className="pb ui-secondary" disabled={loggingOut || !auth} onClick={logout}>{loggingOut ? '로그아웃 중…' : '로그아웃'}</button>{logoutError && <p role="alert">{logoutError}</p>}</section>
       <footer className="settings-footer jua">MY MOCHI <span>v0.1.0</span></footer>
     </section>

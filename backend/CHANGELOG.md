@@ -5,6 +5,17 @@
 
 ---
 
+## 2026-10-16 — 계정 삭제: 앱·웹에서 직접, 로그인 계정까지
+
+**브랜치** `account-delete`
+
+- `DELETE /users/{id}`: 게임 기록을 다 지운 뒤 Supabase 로그인 계정(Google·카카오)도 지움 → 응답 `login_account`: deleted · not_linked · not_configured(관리자 키 없음) · failed
+- 로그인 계정 삭제에는 관리자 키 `SUPABASE_SERVICE_ROLE_KEY`가 서버 환경변수에 있어야 함 (`.env.example`에 설명, git·앱·웹에는 절대 넣지 않음, pre-commit 훅이 막음)
+- 앱·웹 설정: '계정 삭제' → 확인 창(지워지는 것 목록, '삭제' 입력) → 서버 삭제 + 이 기기 기록·걸음 연결·예약 알림 지우기 → 로그아웃
+- 출시 체크리스트 6번 완료 (App Store 심사 5.1.1(v))
+
+---
+
 ## 2026-10-16 — 친구 코드 · 코드로 찾기·신청 · 이웃 추천 새로고침
 
 **브랜치** `guestbook-report-popup` (#53)
