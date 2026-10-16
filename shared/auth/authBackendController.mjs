@@ -94,10 +94,15 @@ export function createAuthBackendController({client,backend}) {
     }catch(error){if(error instanceof BackendError&&error.status===401&&version===epoch)clear('connection-error','계정 연결을 다시 확인해야 해요. 다시 시도해 주세요.');throw error;}
     finally{requests.delete(controller);options.signal?.removeEventListener('abort',abort);}
   }
+  // 게임 API 요청마다 붙일 지금 로그인 토큰 (연결된 같은 계정일 때만, 아니면 null). 서버는 토큰 주인 = 주소의 사용자일 때만 허용
+  async function accessToken() {
+    if(state.status!=='authenticated'||!identity)return null;
+    try{const session=await client.getSession();return session?.verified&&session.source==='supabase'&&session.user?.id===identity&&typeof session.access_token==='string'&&session.access_token?session.access_token:null;}catch{return null;}
+  }
   return {
     getSnapshot:()=>state,subscribe:listener=>{listeners.add(listener);return()=>listeners.delete(listener);},
     start(){active=true;},stop(){active=false;clear();attempt?.abort();attempt=null;if(timer!==null)clearTimeout(timer);timer=null;},
-    restore,signIn,signOut,authEvent,requestUser,
+    restore,signIn,signOut,authEvent,requestUser,accessToken,
     retry:()=>!active||attempt||logoutBusy?Promise.resolve(state):connect(undefined,{force:true}),
     submitNickname:nickname=>{
       if(state.status!=='nickname'&&state.status!=='registering')return Promise.resolve(state);

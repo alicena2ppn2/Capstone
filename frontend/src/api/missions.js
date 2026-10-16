@@ -1,4 +1,4 @@
-// 서버 미션 API (backend/FRONTEND_GUIDE.md). 게임 API는 아직 토큰 확인이 없어 서버 사용자 id만 쓴다.
+// 서버 미션 API (backend/FRONTEND_GUIDE.md). 요청마다 로그인 토큰을 붙인다 (서버: 토큰 주인 = 주소의 사용자만 허용).
 // 로그인으로 받은 backendUserId, 없으면 개발 환경에서만 VITE_DEV_USER_ID(예: 시연 데이터의 demo-mochi).
 import { useAuthActions } from '../../../shared/auth/AuthContext.js';
 
@@ -13,8 +13,13 @@ export function useServerUserId() {
   return serverConfigured ? auth?.backendUserId || devUserId : null;
 }
 
-export async function call(path, { method = 'GET', body, form, token } = {}) {
+// 로그인 토큰을 주는 함수 (useAuthEntry가 로그인 컨트롤러를 만들 때 한 번 등록)
+let tokenSource = null;
+export function setTokenSource(source) { tokenSource = source; }
+
+export async function call(path, { method = 'GET', body, form, token: given } = {}) {
   if (!BASE) throw new Error('서버 주소(VITE_API_URL)가 설정되지 않았어요.');
+  const token = given ?? await tokenSource?.().catch(() => null);
   let response;
   try {
     response = await fetch(`${BASE}${path}`, {
