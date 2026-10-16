@@ -433,7 +433,7 @@ def test_delete_account_removes_everything(client, tmp_path):
     client.post(f"/users/{uid}/guestbook", params={"date": DAY}, json={"text": "내 방 글", "author": "손님"})
     assert len(list((tmp_path / "uploads").iterdir())) == 1
 
-    assert client.delete(f"/users/{uid}").json() == {"deleted": uid}
+    assert client.delete(f"/users/{uid}").json() == {"deleted": uid, "login_account": "not_linked"}
 
     assert client.get(f"/users/{uid}").status_code == 404
     assert client.get(f"/users/{uid}/coins").json()["coins"] == 0
