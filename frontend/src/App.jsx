@@ -123,7 +123,7 @@ export default function App() {
       <IPhoneChrome />
       <div className="status-header">
       {sv ? <Attendance records={Object.fromEntries(sv.week.days.filter(d => d.claimed).map(d => [d.date, d.claimed.duplicate ? { ...d.claimed, duplicateOutfit: d.claimed.duplicate } : d.claimed]))}
-        plans={{ [sv.week.week_start]: Object.fromEntries(sv.week.days.map(d => [d.date, d.reward])) }} onPrepare={() => {}}
+        plans={{}} cycle={sv.week} onPrepare={() => {}}
         onClaim={async () => { try { const r = await checkIn(serverUserId); await server.refresh(); const receipt = r.gift && (r.gift.duplicate ? { ...r.gift, duplicateOutfit: r.gift.duplicate } : r.gift); if (receipt) setAttendanceAward(receipt); return { ok: true, receipt }; } catch (e) { return { ok: false, message: e.message }; } }} />
       : <Attendance records={game.attendance} plans={game.attendancePlans ?? {}} onPrepare={prepareAttendance} onClaim={date => { const previous = gameRef.current; const result = commitGame(value => {
         if(date !== seoulDateKey()) return value;

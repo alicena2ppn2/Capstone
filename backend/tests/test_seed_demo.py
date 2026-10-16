@@ -9,7 +9,7 @@ def test_seed_builds_recovery_story(tmp_path, monkeypatch):
     r = seed_demo.seed(date(2026, 10, 22), days=21)
 
     assert r["hero"]["id"] == "demo-mochi"
-    assert r["hero"]["level"]["level"] >= 10
+    assert r["hero"]["level"]["level"] >= 7         # 10/16 경제 밸런스: 하루 XP 절반
     assert r["coins"] > 0
     assert "potato" in r["owned_characters"] and "pink" in r["owned_characters"]
     assert r["diaries"] >= 10

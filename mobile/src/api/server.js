@@ -14,13 +14,18 @@ export function useServerUserId() {
   return serverConfigured ? auth?.backendUserId || devUserId : null;
 }
 
+// 로그인 토큰을 주는 함수 (useMobileAuthEntry가 로그인 컨트롤러를 만들 때 한 번 등록). 서버는 토큰 주인 = 주소의 {id}일 때만 허용
+let tokenSource = null;
+export function setTokenSource(source) { tokenSource = source; }
+
 export async function call(path, { method = 'GET', body, form } = {}) {
   if (!BASE) throw new Error('서버 주소(EXPO_PUBLIC_API_URL)가 설정되지 않았어요.');
+  const token = await tokenSource?.().catch(() => null);
   let response;
   try {
     response = await fetch(`${BASE}${path}`, {
       method,
-      headers: body !== undefined ? { 'Content-Type': 'application/json' } : undefined,
+      headers: { ...(token ? { Authorization: `Bearer ${token}` } : {}), ...(body !== undefined ? { 'Content-Type': 'application/json' } : {}) },
       body: form ?? (body === undefined ? undefined : JSON.stringify(body)),
     });
   } catch { throw new Error('서버에 연결하지 못했어요. 와이파이와 서버가 켜져 있는지 확인해 주세요.'); }
@@ -35,6 +40,7 @@ const localIso = ms => { const d = new Date(ms); return `${d.getFullYear()}-${pa
 
 // ImagePicker 결과(asset) → 업로드 폼. 서버는 파일 EXIF 촬영 일시를 먼저 보고, 없으면 taken_at을 쓴다.
 // iOS는 고른 사진 파일에 EXIF가 빠질 수 있어 exif:true로 받은 DateTimeOriginal을 같이 보낸다.
+// 카메라로 막 찍은 사진에 촬영 일시가 없으면(일부 Android) 앱이 찍은 시각(capturedAt)을 보낸다.
 export async function photoForm(asset) {
   const form = new FormData();
   const name = asset.fileName || 'photo.jpg', type = asset.mimeType || 'image/jpeg';
@@ -44,7 +50,7 @@ export async function photoForm(asset) {
   } else {
     form.append('file', { uri: asset.uri, name, type });
   }
-  const taken = asset.exif?.DateTimeOriginal || asset.exif?.DateTimeDigitized || asset.exif?.DateTime || (asset.file?.lastModified ? localIso(asset.file.lastModified) : null);
+  const taken = asset.exif?.DateTimeOriginal || asset.exif?.DateTimeDigitized || asset.exif?.DateTime || (asset.capturedAt ? localIso(asset.capturedAt.getTime()) : null) || (asset.file?.lastModified ? localIso(asset.file.lastModified) : null);
   if (taken) form.append('taken_at', String(taken));
   return form;
 }

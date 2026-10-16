@@ -129,7 +129,7 @@ API를 직접 눌러 보려면 서버를 켜고 `http://localhost:8000/docs`.
 {"earned": [{"id": "sky_photo", "coins": 30, "xp": 100}], "earned_total": 30, "earned_xp": 100,
  "coins": 340, "level": {"level": 3, "xp": 410, "xp_in_level": 60, "xp_to_next": 340, "xp_for_level": 400},
  "leveled_up": true, "all_done": false,
- "new_items": [{"type": "character", "id": "pink", "name": "복숭아 토끼 모찌"}]}
+ "new_items": [{"type": "character", "id": "pink", "name": "복숭아 토끼"}]}
 ```
 
 - `earned`가 비어 있으면 이미 받은 보상 (중복 지급 없음)
@@ -280,7 +280,7 @@ const { data: { session } } = await supabase.auth.getSession();
 await api(`/users/${userId}/home`, { token: session?.access_token });
 ```
 
-서버의 토큰 확인은 아직 없음 → [DATABASE.md](DATABASE.md) "로그인 연결 계획"
+**모든 게임 API에 `Authorization: Bearer <Supabase access_token>`을 붙인다** (2026-10-16, `app/access.py`). 토큰 주인 = 주소의 `{user_id}`일 때만 허용(아니면 403, 토큰 없으면 401). 남의 방에서 하는 일(놀러 가기·방명록·좋아요·지우기·신고)은 '하는 사람' 값이 토큰 주인이어야 하고, 방명록 `author_id`를 비우면 토큰 주인으로 채운다. 이웃 방 보기·방명록 읽기·사진 주소·설문 질문·닉네임 확인은 토큰 없이 된다. 앱·웹은 `call()`이 자동으로 붙임
 
 ## 서버 주소
 
@@ -298,5 +298,5 @@ await api(`/users/${userId}/home`, { token: session?.access_token });
 
 ## 아직 없는 것
 
-- 로그인: Supabase 사용자 ↔ 서버 사용자 연결은 `POST /auth/supabase`로 됨. **다른 API는 아직 토큰 확인 없이 `id`만으로 동작** (출시 전에 붙임)
+- 로그인: Supabase 사용자 ↔ 서버 사용자 연결은 `POST /auth/supabase`. 다른 API도 토큰을 확인한다(`CAPSTONE_AUTH`: Supabase가 있으면 `required`, 내 컴퓨터 시연은 `dev` = 토큰 없으면 통과)
 - 방명록 답글, 캐릭터 말풍선 AI
