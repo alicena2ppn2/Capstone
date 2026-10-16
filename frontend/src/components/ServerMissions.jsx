@@ -49,11 +49,11 @@ export default function ServerMissions({ userId, onChanged, onAttendance, onDiar
   const daily = data.missions.filter(m => m.category === 'daily');
   const done = missions.filter(m => m.done).length;
   const all = data.missions.filter(m => m.done).length;
-  // 매일 하는 미션: 앱 안 행동(출석·일기·방문·방명록)은 그 화면으로, 사진 미션은 여기서 바로
+  // 데일리 미션: 앱 안 행동(출석·일기·방문·방명록)은 그 화면으로, 사진 미션은 여기서 바로
   const go = m => m.kind === 'checkin' ? ['출석표', onAttendance] : m.kind === 'diary' ? ['일기 쓰기', onDiary] : ['이웃 가기', onVisit];
   return <>
   <div className="daily-overview"><div><strong>오늘의 도전</strong><span>{all}/{data.missions.length} 완료</span></div><progress max={data.missions.length} value={all} aria-label="오늘 미션 완료 수"/></div>
-  <section className="daily-routines server-daily"><h2>매일 하는 미션 <small>{daily.filter(m => m.done).length}/{daily.length}</small></h2>
+  <section className="daily-routines server-daily"><h2>데일리 미션 <small>{daily.filter(m => m.done).length}/{daily.length}</small></h2>
     {daily.map(m => <article key={m.id} data-quest-id={m.id} tabIndex={-1} className={`routine-row${m.done ? ' is-completed' : ''}`}>
       <div><strong>{m.done ? '✓ ' : ''}{m.title}</strong><small>{m.done ? '완료' : m.kind === 'photo' ? `오늘 찍은 사진 · +${m.coins} 코인` : m.coins ? `+${m.coins} 코인` : '출석 선물'}</small></div>
       {!m.done && (m.kind === 'photo' ? <PhotoPick compact busy={busy === m.id} onUpload={file => run(m.id, () => completeWithPhoto(userId, m.id, file))}/>
