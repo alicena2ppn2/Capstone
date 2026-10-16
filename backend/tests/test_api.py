@@ -251,11 +251,11 @@ def test_diary_rejects_unknown_photo(client):
 # --- 출석·레벨 ---------------------------------------------------------------------
 
 def test_attendance_once_a_day(client):
-    """출석은 주간 출석표의 그날 선물 (10/15: 앱 방식). 하루 한 번."""
+    """출석은 연속 출석표의 오늘 칸 선물 (10/16: 1~7일차 사다리). 하루 한 번."""
     week = client.get("/users/u1/attendance/week", params={"date": DAY}).json()
     assert len(week["days"]) == 7 and week["count"] == 0
     planned = next(d["reward"] for d in week["days"] if d["today"])
-    assert week == client.get("/users/u1/attendance/week", params={"date": DAY}).json()   # 같은 주는 같은 선물
+    assert week == client.get("/users/u1/attendance/week", params={"date": DAY}).json()   # 같은 날 다시 열어도 같은 선물
     r = client.post("/users/u1/attendance", params={"date": DAY}).json()
     assert r["already_checked_in"] is False
     assert r["gift"]["type"] == planned["type"]
@@ -298,7 +298,7 @@ def test_any_diary_completes_daily_diary_mission(client):
     assert m["id"] == "diary"
     r = client.put(f"/users/u1/diary/{DAY}", json={"text": "주제 말고 다른 이야기"}).json()
     assert r["completed_missions"] == ["diary"]
-    assert r["earned"] == [{"id": "diary", "coins": 40, "xp": 100}]
+    assert r["earned"] == [{"id": "diary", "coins": 15, "xp": 50}]
     # 고쳐도 다시 주지 않음
     assert client.put(f"/users/u1/diary/{DAY}", json={"text": "고침"}).json()["earned"] == []
 
@@ -322,7 +322,7 @@ def test_guestbook_in_friends_room_completes_mission(client):
     client.get("/users/u1/missions/today", params={"date": DAY})
     r = client.post("/users/u2/guestbook", params={"date": DAY}, json={"author": "나", "text": "놀러 왔어요", "author_id": "u1"}).json()
     assert r["completed_missions"] == ["guestbook"]
-    assert r["earned"] == [{"id": "guestbook", "coins": 30, "xp": 100}]
+    assert r["earned"] == [{"id": "guestbook", "coins": 12, "xp": 50}]
     # 같은 날 또 써도 보상은 한 번
     r = client.post("/users/u3/guestbook", params={"date": DAY}, json={"author": "나", "text": "또 왔어요", "author_id": "u1"}).json()
     assert r["earned"] == []
@@ -345,7 +345,7 @@ def test_visit_friends_room_completes_mission(client):
     r = client.post("/users/u2/visits", params={"date": DAY}, json={"visitor_id": "u1"}).json()
     assert r["first_visit_today"] is True
     assert r["completed_missions"] == ["visit"]
-    assert r["earned"] == [{"id": "visit", "coins": 30, "xp": 100}]
+    assert r["earned"] == [{"id": "visit", "coins": 12, "xp": 50}]
 
     again = client.post("/users/u2/visits", params={"date": DAY}, json={"visitor_id": "u1"}).json()
     assert again["first_visit_today"] is False and again["earned"] == []
@@ -500,12 +500,12 @@ def test_weekly_nature_walk_twice_on_different_days(client):
 
     second = weekly_walk(client, "u1", "2026-10-09").json()
     assert second["quest"]["completed"] is True
-    assert (second["earned_total"], second["earned_xp"]) == (100, 200)
-    assert second["coins"] == 100
+    assert (second["earned_total"], second["earned_xp"]) == (50, 100)
+    assert second["coins"] == 50
 
     third = weekly_walk(client, "u1", "2026-10-10").json()                    # 더 해도 보상은 한 번
     assert third["quest"]["progress"] == 2 and third["earned"] == []
-    assert client.get("/users/u1/coins").json()["coins"] == 100
+    assert client.get("/users/u1/coins").json()["coins"] == 50
 
     # 다음 주는 새로 시작
     nxt = client.get("/users/u1/weekly", params={"date": "2026-10-12"}).json()["quests"][0]
@@ -524,28 +524,57 @@ def test_weekly_needs_own_photo_and_shows_in_album(client):
     assert next(p for p in photos if p["used_for"])["used_for"] == {"type": "weekly", "id": "weekly:nature_walk", "title": "이번 주 자연 속 산책 2번"}
 
 
-def test_attendance_plan_rules():
+def test_attendance_cycle_rewards():
+    """연속 출석표 선물: 1~6일차는 정해진 코인·XP, 7일차는 사람·바퀴마다 정해지는 옷·소품."""
     from datetime import date
     from app import attendance as att
-    monday = date(2026, 10, 12)
-    plan = att.week_plan("u1", monday, ["sky", "berry"], ["lamp-moon"])
-    assert list(plan) == [f"2026-10-{d}" for d in range(12, 19)]
-    assert plan == att.week_plan("u1", monday, ["sky", "berry"], ["lamp-moon"])            # 같은 사람·주 → 같음
-    values = list(plan.values())
-    assert all(a != b for a, b in zip(values, values[1:]))                                   # 바로 전날과 다름
-    kinds = {r["type"] for u in range(200) for r in att.week_plan(f"u{u}", monday, ["sky"], ["lamp-moon"]).values()}
-    assert kinds == {"coins", "xp", "outfit", "decor"}
+    start = date(2026, 10, 12)
+    plan = att.cycle_plan("u1", start, ["sky", "berry"], ["lamp-moon"])
+    assert len(plan) == 7 and plan[:6] == att.DAY_REWARDS
+    assert plan == att.cycle_plan("u1", start, ["sky", "berry"], ["lamp-moon"])              # 같은 사람·바퀴 → 같음
+    kinds = {att.cycle_plan(f"u{u}", start, ["sky"], ["lamp-moon"])[6]["type"] for u in range(50)}
+    assert kinds == {"outfit", "decor"}
+    assert att.cycle_plan("u1", start, [], [])[6] == att.SPECIAL_FALLBACK
+
+
+def test_attendance_streak_position():
+    from datetime import date, timedelta
+    from app import attendance as att
+    today = date(2026, 10, 16)
+    days = lambda *ago: {(today - timedelta(days=n)).isoformat() for n in ago}
+    assert att.position(set(), today) == {"start": today, "index": 0, "streak": 0, "reset": False}
+    assert att.position(days(1, 2), today)["index"] == 2                                   # 어제까지 2일 → 오늘 3일차
+    assert att.position(days(0, 1, 2), today)["index"] == 2                                # 오늘 받았으면 오늘이 3일차
+    p = att.position(days(2, 3), today)                                                    # 어제 빠짐 → 1일차부터
+    assert (p["index"], p["start"], p["reset"]) == (0, today, True)
+    assert att.position(days(*range(1, 8)), today)["index"] == 0                           # 7일차 다음 = 새 바퀴 1일차
+    assert att.position(days(*range(0, 8)), today)["index"] == 0                           # 8일 연속이면 오늘이 새 바퀴 1일차
+
+
+def test_attendance_streak_api(client):
+    """매일 오면 1→2→3일차, 하루 빠지면 다시 1일차."""
+    seen = []
+    for d in ("2026-10-12", "2026-10-13", "2026-10-14"):
+        r = client.post("/users/u1/attendance", params={"date": d}).json()
+        seen.append(r["week"]["today_day"])
+    assert seen == [1, 2, 3]
+    week = client.get("/users/u1/attendance/week", params={"date": "2026-10-15"}).json()
+    assert (week["today_day"], week["streak"], week["count"], week["reset"]) == (4, 3, 3, False)
+    assert [d["day"] for d in week["days"]] == [1, 2, 3, 4, 5, 6, 7] and week["days"][6]["special"] is True
+    gap = client.get("/users/u1/attendance/week", params={"date": "2026-10-17"}).json()   # 10/15·16 안 옴
+    assert (gap["today_day"], gap["count"], gap["reset"], gap["week_start"]) == (1, 0, True, "2026-10-17")
+    r = client.post("/users/u1/attendance", params={"date": "2026-10-17"}).json()
+    assert r["gift"] == {"type": "coins", "amount": 10}                                   # 다시 1일차 선물
 
 
 def test_attendance_duplicate_item_becomes_coins(client, monkeypatch):
     from app import attendance as att
-    monkeypatch.setattr(att, "week_plan", lambda *a, **k: {f"2026-10-{d:02d}": {"type": "outfit", "id": "sky"} for d in range(12, 19)})
+    monkeypatch.setattr(att, "cycle_plan", lambda *a, **k: [{"type": "outfit", "id": "sky"}] * 7)
     first = client.post("/users/u1/attendance", params={"date": "2026-10-13"}).json()
     assert first["gift"] == {"type": "outfit", "id": "sky", "name": "하늘빛 맨투맨"}
     second = client.post("/users/u1/attendance", params={"date": "2026-10-14"}).json()
     assert second["gift"]["type"] == "coins" and second["gift"]["amount"] == att.DUPLICATE_COINS
     assert second["coins"] == att.DUPLICATE_COINS
-
 
 
 def test_profile_nickname_and_bio(client):
