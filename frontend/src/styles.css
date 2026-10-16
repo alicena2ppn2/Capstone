@@ -1049,3 +1049,31 @@ button.pb, .ui-disclosure > summary { font-weight: 500; }
 .report-dialog fieldset button[aria-pressed='true'] { background: var(--color-primary-soft) !important; border-color: var(--color-primary) !important; color: var(--color-ink) !important; font-weight: 600; }
 .report-hint { margin: 10px 0 12px; font-size: 12px; color: var(--color-muted); line-height: 1.5; }
 .report-actions { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; }
+
+/* 친구 (10/16): 친구 코드 · 코드로 찾기 · 신청·수락 · 이웃 새로고침 */
+.neighbors-refresh { display: flex; align-items: center; gap: 8px; }
+.neighbors-refresh .visit-intro { flex: 1; margin: 0; }
+.neighbors-refresh button { flex: 0 0 auto; min-height: 38px; padding: 4px 10px; font-size: 12px; white-space: nowrap; }
+.friends-panel { display: grid; gap: 12px; }
+.friend-code-card { padding: 14px; border-radius: 18px; background: linear-gradient(135deg, var(--color-primary-soft), #FFF4D6); text-align: left; }
+.friend-code-card small { color: var(--color-muted); font-size: 12px; }
+.friend-code-card > div { display: flex; align-items: center; justify-content: space-between; gap: 8px; }
+.friend-code-card strong { font-size: 26px; letter-spacing: 3px; font-variant-numeric: tabular-nums; }
+.friend-code-card button { min-height: 38px; padding: 4px 14px; }
+.friend-code-card p { margin: 4px 0 0; font-size: 12px; color: var(--color-muted); }
+.friend-search label { display: block; margin-bottom: 6px; font-size: 13px; font-weight: 600; }
+.friend-search > div { display: flex; gap: 6px; }
+.friend-search input { flex: 1; min-width: 0; text-transform: uppercase; letter-spacing: 2px; }
+.friend-found { display: flex; align-items: center; gap: 10px; padding: 10px; border: 1px solid var(--color-border); border-radius: 16px; background: var(--color-surface); }
+.friend-found > div { flex: 1; min-width: 0; display: grid; }
+.friend-found small { color: var(--color-muted); font-size: 12px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.friend-found button { flex: 0 0 auto; min-height: 40px; padding: 4px 12px; }
+.friend-list h3 { margin: 4px 0 6px; font-size: 15px; }
+.friend-list h3 small { color: var(--color-primary); }
+.friend-row { display: flex; align-items: center; gap: 6px; padding: 8px 10px; border: 1px solid var(--color-border); border-radius: 14px; background: var(--color-surface); margin-bottom: 6px; }
+.friend-row > span { flex: 1; min-width: 0; display: grid; }
+.friend-row small { color: var(--color-muted); font-size: 12px; }
+.friend-row button { min-height: 36px; padding: 4px 10px; font-size: 13px; }
+.neighbor-friend-request { display: flex; align-items: center; gap: 8px; margin: 10px 0; padding: 10px 12px; border-radius: 14px; background: var(--color-primary-soft); font-size: 12px; text-align: left; }
+.neighbor-friend-request span { flex: 1; }
+.neighbor-friend-request button { flex: 0 0 auto; min-height: 38px; }

@@ -5,6 +5,18 @@
 
 ---
 
+## 2026-10-16 — 친구 코드 · 코드로 찾기·신청 · 이웃 추천 새로고침
+
+**브랜치** `guestbook-report-popup` (#53)
+
+- 사용자마다 **친구 코드**(6자리, 0·O·1·I 뺀 32글자, 예: 7KQ2MX) — 게임의 플레이어 태그처럼. 새 사용자는 가입할 때, 예전 사용자는 서버 시작 때 채움. `GET /users/{id}`·`/room`에 `friend_code`
+- `GET /users/{id}/friends/search?code=` — 코드로 찾기(#·소문자·- 괜찮음): 닉네임·레벨·캐릭터·사이(none·sent·received·friend·me). 차단 관계면 못 찾음
+- `POST /users/{id}/friends`가 닉네임 말고 `code`로도 신청
+- `GET /users/{id}/rooms/recommended?refresh=n` — 새로고침: 레벨 가까운 후보(보여 줄 수의 3배) 중 다른 조합 (같은 날·같은 n이면 같은 결과)
+- 테스트 3개 추가
+
+---
+
 ## 2026-10-15 — 방 꾸미기: 소파·서랍장 색 (각 100코인)
 
 **브랜치** `home-room-tweaks` (#45)
