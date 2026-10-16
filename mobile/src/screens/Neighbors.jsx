@@ -5,12 +5,25 @@ import { View } from 'react-native';
 import { colors } from '../../../shared/theme/tokens.js';
 import { CLOTHES } from '../../../shared/data/clothes.js';
 import { seoulDateKey } from '../../../shared/utils/seoulDate.js';
-import { Label, Button, Input, Card, Progress, styles, ScreenHeader } from '../components/ui';
+import { Label, Button, Input, Card, Progress, Sheet, styles, ScreenHeader } from '../components/ui';
 import Character from '../components/Character';
 import RoomBackdrop from '../art/RoomBackdrop';
 import { recommendedRooms, roomOf, visitRoom, todayVisitors, guestbook, writeGuestbook, likeEntry, deleteEntry, reportEntry, friendshipWith } from '../api/server';
 
-const REPORT_REASONS = [['spam', '스팸·광고'], ['abuse', '욕설·괴롭힘'], ['hate', '혐오 표현'], ['other', '기타']];
+// 서버 moderation.REPORT_REASONS와 같은 이유
+const REPORT_REASONS = [['spam', '스팸·광고'], ['abuse', '욕설·괴롭힘'], ['hate', '혐오 표현'], ['sexual', '성적인 내용'], ['self_harm', '자해·위험한 내용'], ['other', '기타']];
+
+// 신고 버튼을 누르면 뜨는 창: 이유를 고르고 '신고하기'
+function ReportSheet({ entry, onCancel, onReport }) {
+  const [reason, setReason] = useState('');
+  return <Sheet title="신고할까요?" close={onCancel}>
+    <Card style={{ backgroundColor: colors.background, padding: 10 }}><Label style={styles.body}>“{entry.text}”</Label></Card>
+    <Label style={{ fontFamily: 'A2z-600' }}>어떤 문제인가요?</Label>
+    <View style={styles.wrap}>{REPORT_REASONS.map(([value, label]) => <Button key={value} selected={reason === value} onPress={() => setReason(value)}>{label}</Button>)}</View>
+    <Label style={styles.small}>신고하면 이 글은 내 화면에서 바로 숨겨지고, 여러 명이 신고하면 모두에게 숨겨져요.</Label>
+    <View style={styles.row}><Button style={styles.flex} onPress={onCancel}>취소</Button><Button primary style={styles.flex} disabled={!reason} onPress={() => onReport(reason)}>신고하기</Button></View>
+  </Sheet>;
+}
 const MAX = 60;
 
 function Room({ room, small }) {
@@ -36,7 +49,7 @@ function Bond({ bond, name }) {
 
 function Entries({ owner, me, entries, onChanged, canDelete }) {
   const [busy, setBusy] = useState(null), [note, setNote] = useState(''), [reporting, setReporting] = useState(null);
-  const act = async (id, job, done) => { if (busy) return; setBusy(id); setNote(''); setReporting(null); try { await job(); setNote(done ?? ''); await onChanged(); } catch (e) { setNote(e.message); } finally { setBusy(null); } };
+  const act = async (id, job, done) => { if (busy) return; setBusy(id); setNote(''); try { await job(); setNote(done ?? ''); await onChanged(); } catch (e) { setNote(e.message); } finally { setBusy(null); } };
   if (!entries.length) return <Label style={styles.small}>아직 방명록이 없어요. 첫 글을 남겨 보세요.</Label>;
   return <>
     {entries.map(entry => <Card key={entry.id} style={{ padding: 12, gap: 4 }}>
@@ -45,11 +58,11 @@ function Entries({ owner, me, entries, onChanged, canDelete }) {
       <View style={[styles.row, { justifyContent: 'flex-start' }]}>
         <Button selected={entry.liked} disabled={!!busy} accessibilityLabel={`${entry.author}의 글 좋아요 ${entry.likes}개`} onPress={() => act(entry.id, () => likeEntry(owner, entry.id, me, entry.liked))}>{entry.liked ? '♥' : '♡'} {entry.likes}</Button>
         {canDelete(entry) ? <Button variant="text" disabled={!!busy} onPress={() => act(entry.id, () => deleteEntry(owner, entry.id, me), '글을 지웠어요.')}>지우기</Button>
-          : <Button variant="text" disabled={!!busy} onPress={() => setReporting(reporting === entry.id ? null : entry.id)}>신고</Button>}
+          : <Button variant="text" disabled={!!busy} onPress={() => setReporting(entry)}>신고</Button>}
       </View>
-      {reporting === entry.id && <View style={styles.wrap}>{REPORT_REASONS.map(([reason, label]) => <Button key={reason} onPress={() => act(entry.id, () => reportEntry(me, entry.id, reason), '신고했어요. 이 글은 내 화면에서 숨겨져요.')}>{label}</Button>)}</View>}
     </Card>)}
     {!!note && <Label accessibilityLiveRegion="polite" style={styles.small}>{note}</Label>}
+    {reporting && <ReportSheet entry={reporting} onCancel={() => setReporting(null)} onReport={reason => { const target = reporting; setReporting(null); act(target.id, () => reportEntry(me, target.id, reason), '신고했어요. 이 글은 내 화면에서 숨겨져요.'); }} />}
   </>;
 }
 
