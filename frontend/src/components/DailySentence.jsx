@@ -1,8 +1,8 @@
 import { useEffect, useRef } from 'react';
-import { dailySentence } from '../../../shared/features/dailySentence.js';
+import { dailySentence, dailySentencePreview } from '../../../shared/features/dailySentence.js';
 
-export default function DailySentence({ now }) {
-  const sentence = dailySentence(now), ref = useRef(null);
+export default function DailySentence({ now, characterId, previewIndex }) {
+  const sentence = previewIndex === undefined ? dailySentence(now, characterId) : dailySentencePreview(now, characterId, previewIndex), ref = useRef(null);
   useEffect(() => {
     const bubble = ref.current, room = bubble?.closest('.home-room');
     if (!room) return;

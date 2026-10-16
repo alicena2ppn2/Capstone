@@ -1,6 +1,8 @@
 import { useRef, useState } from 'react';
 import { View } from 'react-native';
 import { Label, Button, Card, styles } from '../../components/ui';
+import UiIcon from '../../components/UiIcon';
+import { colors } from '../../../../shared/theme/tokens.js';
 import Character from '../../components/Character';
 import { CHARACTERS, equipCharacter } from '../../../../shared/features/game.js';
 import { FRIEND_INTROS } from '../../../../shared/data/catalog.js';
@@ -16,14 +18,14 @@ export default function CharacterShop({ game, level, ownedOnly, update, onBuy })
     finally { busy.current = false; }
   };
   const equip = id => update(value => equipCharacter(value, id));
-  return <>{next && <Label style={styles.small}>다음에 만날 친구: {next.name} · LV.{next.level}</Label>}
+  return <>{next && <Label style={styles.small}>다음에 만날 친구: {next.name}</Label>}
     {welcome && <Card><Character variant={welcome.id} size={100} label={welcome.name} /><Label style={styles.cardTitle}>{welcome.name}</Label><Label>새 친구가 컬렉션에 왔어요. 반가워요!</Label><Button primary onPress={() => { equip(welcome.id); setWelcome(null); }}>함께하기</Button><Button onPress={() => setWelcome(null)}>나중에 함께하기</Button></Card>}
     {CHARACTERS.filter(item => !ownedOnly || game.characters.includes(item.id)).map(item => {
       const status = characterAvailability(game, item), has = status === 'owned' || status === 'active', secret = !has && item.method === 'quest', profile = FRIEND_INTROS[item.id];
-      return <Card key={item.id}><View style={styles.center}>{secret ? <Label style={styles.heading}>?</Label> : <Character variant={item.id} size={130} label={item.name} />}</View><Label style={styles.cardTitle}>{secret ? '비밀 친구' : item.name}</Label>
+      return <Card key={item.id}><View style={[styles.center, { position: 'relative', alignSelf: 'stretch' }]}>{secret ? <Label style={styles.heading}>?</Label> : <Character variant={item.id} size={130} label={item.name} />}{status === 'level' && <View accessible accessibilityLabel={`${item.name}, 레벨 ${item.level}에서 열려요`} style={{ position: 'absolute', top: 8, right: 8, width: 32, height: 32, borderRadius: 10, alignItems: 'center', justifyContent: 'center', backgroundColor: colors.primarySoft }}><UiIcon kind="lock" size={17} color={colors.ink} /></View>}</View><Label style={styles.cardTitle}>{secret ? '비밀 친구' : item.name}</Label>
         <Label style={styles.small}>{secret ? '현실 행동 누적 10회' : `LV.${item.level} · ${item.method ? '무료 보상' : `${item.price} 코인`}`}</Label><Label style={[styles.state, has ? styles.done : null]}>{CHARACTER_STATUS[status]}</Label>
-        {!secret && <><Button onPress={() => setIntro(intro === item.id ? null : item.id)}>{intro === item.id ? '⌃' : '⌄'} 친구 소개</Button>{intro === item.id && <Label style={styles.body}>{profile?.introduction}{profile?.likes ? `\n좋아하는 것: ${profile.likes}\n작은 습관: ${profile.habit}` : ''}</Label>}</>}
-        {status === 'active' ? item.id !== 'potato' && <Button onPress={() => equip('potato')}>함께하기 해제</Button> : has ? <Button primary onPress={() => equip(item.id)}>함께하기</Button> : <Button primary disabled={status !== 'available'} onPress={() => purchase(item)}>{status === 'level' ? `LV.${item.level}` : status === 'coins' ? '코인이 부족해요' : status === 'special' ? '보상으로 만나요' : '구매하기'}</Button>}
+        {!secret && <><Button onPress={() => setIntro(intro === item.id ? null : item.id)}>{intro === item.id ? '⌃' : '⌄'} 친구 소개</Button>{intro === item.id && <Label style={styles.body}>{profile?.introduction}</Label>}</>}
+        {status === 'active' ? item.id !== 'potato' && <Button onPress={() => equip('potato')}>함께하기 해제</Button> : has ? <Button primary onPress={() => equip(item.id)}>함께하기</Button> : status === 'level' ? null : <Button primary disabled={status !== 'available'} onPress={() => purchase(item)} textStyle={status === 'special' && item.id === 'pink' ? { fontSize: 12, lineHeight: 18 } : undefined}>{status === 'available' ? '구매하기' : status === 'coins' ? '코인이 부족해요' : status === 'special' ? '성장 보상' : '구매하기'}</Button>}
       </Card>;
     })}<Label accessibilityLiveRegion="polite">{message}</Label></>;
 }

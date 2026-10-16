@@ -2,7 +2,8 @@ import test from 'node:test';
 import assert from 'node:assert/strict';
 import { execFileSync } from 'node:child_process';
 import { DAILY_SENTENCES, SENTENCE_TOPICS } from '../data/dailySentences.js';
-import { dailySentence, SENTENCE_ANCHOR } from './dailySentence.js';
+import { dailySentence, dailySentencePreview, SENTENCE_ANCHOR } from './dailySentence.js';
+import { CHARACTER_VOICE_DRAFTS } from '../data/characterVoiceDrafts.js';
 
 test('60 unique drafts, seven balanced topics and interleaved order',()=>{
   assert.equal(DAILY_SENTENCES.length,60); assert.equal(new Set(DAILY_SENTENCES.map(s=>s.text)).size,60);
@@ -20,6 +21,26 @@ test('all users/characters, refresh and foreground resampling use the same date 
   const a=dailySentence(new Date('2026-10-14T15:01:00Z'));
   for(let i=0;i<12;i++)assert.deepEqual(dailySentence(new Date('2026-10-15T13:00:00+09:00')),a);
   assert.notEqual(dailySentence(new Date('2026-10-16T00:00:00+09:00')).id,a.id);
+});
+test('character voice drafts are stable per Seoul date and unconfigured characters keep the shared sentence',()=>{
+  const first=new Date('2026-10-14T15:01:00Z'),sameSeoulDay=new Date('2026-10-15T13:00:00+09:00');
+  for(const id of Object.keys(CHARACTER_VOICE_DRAFTS)){
+    const a=dailySentence(first,id),b=dailySentence(sameSeoulDay,id);
+    assert.equal(a.day,'2026-10-15');assert.equal(a.text,b.text);assert.equal(a.id,b.id);
+    assert.equal(a.text,CHARACTER_VOICE_DRAFTS[id][a.index%CHARACTER_VOICE_DRAFTS[id].length].text);
+    assert.equal(CHARACTER_VOICE_DRAFTS[id].length,id==='mochi'||id==='proto-pear'||id==='lavender'||id==='proto-quilt'||id==='mint'||id==='draft-duck'||id==='draft-deer'||id==='draft-hedgehog'?7:5);
+  }
+  assert.deepEqual(dailySentence(first,'unknown-character'),dailySentence(first));
+});
+test('development carousel can inspect every character draft without changing the live date-based sentence',()=>{
+  const now=new Date('2026-10-14T15:01:00Z');
+  for(const [id,voices] of Object.entries(CHARACTER_VOICE_DRAFTS)) {
+    for(let i=0;i<voices.length;i++)assert.equal(dailySentencePreview(now,id,i).text,voices[i].text);
+    assert.equal(dailySentencePreview(now,id,voices.length).text,voices[0].text);
+  }
+  assert.equal(dailySentencePreview(now,'sky',4).text,CHARACTER_VOICE_DRAFTS.sky[4].text);
+  assert.equal(dailySentencePreview(now,'unknown-character',4).text,dailySentence(now,'unknown-character').text);
+  assert.deepEqual(dailySentence(now,'potato'),dailySentence(now,'potato'));
 });
 test('sixty consecutive dates do not repeat; day 61 repeats; pre-anchor dates wrap safely',()=>{
   const start=Date.parse(`${SENTENCE_ANCHOR}T03:00:00Z`);
