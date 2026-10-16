@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useState } from 'react';
+import { useCallback, useEffect, useRef, useState } from 'react';
 import ScreenHeader from '../components/ScreenHeader.jsx';
 import Mochi from '../components/Mochi.jsx';
 import { RoomBackdrop } from './Home.jsx';
@@ -7,11 +7,25 @@ import { seoulDateKey } from '../../../shared/utils/seoulDate.js';
 import { recommendedRooms, roomOf, visitRoom, todayVisitors, guestbook, writeGuestbook, likeEntry, deleteEntry, reportEntry, friendshipWith } from '../api/neighbors.js';
 
 // 이웃 방문 + 방명록을 한 화면에 (서버 연결). 미니홈피처럼 방마다 TODAY / TOTAL 방문자 수와 방명록이 있다.
-const REPORT_REASONS = [['spam', '스팸·광고'], ['abuse', '욕설·괴롭힘'], ['hate', '혐오 표현'], ['other', '기타']];
+// 서버 moderation.REPORT_REASONS와 같은 이유
+const REPORT_REASONS = [['spam', '스팸·광고'], ['abuse', '욕설·괴롭힘'], ['hate', '혐오 표현'], ['sexual', '성적인 내용'], ['self_harm', '자해·위험한 내용'], ['other', '기타']];
+
+// 신고 버튼을 누르면 뜨는 창: 이유를 고르고 '신고하기'
+function ReportDialog({ entry, onCancel, onReport }) {
+  const dialog = useRef(null), [reason, setReason] = useState('');
+  useEffect(() => { const el = dialog.current; if (el && !el.open) el.showModal(); }, []);
+  return <dialog ref={dialog} className="report-dialog" aria-labelledby="report-title" onCancel={onCancel} onClose={onCancel}>
+    <h2 id="report-title">신고할까요?</h2>
+    <p className="report-quote">“{entry.text}”</p>
+    <fieldset><legend>어떤 문제인가요?</legend>{REPORT_REASONS.map(([value, label]) => <button type="button" key={value} className="pb ui-secondary" aria-pressed={reason === value} onClick={() => setReason(value)}>{label}</button>)}</fieldset>
+    <p className="report-hint">신고하면 이 글은 내 화면에서 바로 숨겨지고, 여러 명이 신고하면 모두에게 숨겨져요.</p>
+    <div className="report-actions"><button type="button" className="pb ui-secondary" onClick={onCancel}>취소</button><button type="button" className="pb ui-primary" disabled={!reason} onClick={() => onReport(reason)}>신고하기</button></div>
+  </dialog>;
+}
 const MAX = 60;
 
 function Entries({ owner, me, entries, onChanged, canDelete }) {
-  const [busy, setBusy] = useState(null), [note, setNote] = useState('');
+  const [busy, setBusy] = useState(null), [note, setNote] = useState(''), [reporting, setReporting] = useState(null);
   const act = async (id, job, done) => { if (busy) return; setBusy(id); setNote(''); try { await job(); setNote(done ?? ''); await onChanged(); } catch (e) { setNote(e.message); } finally { setBusy(null); } };
   if (!entries.length) return <p className="visit-empty">아직 방명록이 없어요. 첫 글을 남겨 보세요.</p>;
   return <div className="visit-notes">
@@ -21,11 +35,12 @@ function Entries({ owner, me, entries, onChanged, canDelete }) {
         <div className="guest-safety-actions">
           <button type="button" className="pb visit-like" disabled={!!busy} aria-pressed={entry.liked} aria-label={`${entry.author}의 글 좋아요 ${entry.likes}개`} onClick={() => act(entry.id, () => likeEntry(owner, entry.id, me, entry.liked))}><span aria-hidden="true">{entry.liked ? '♥' : '♡'}</span> {entry.likes}</button>
           {canDelete(entry) ? <button type="button" className="pb ui-secondary" disabled={!!busy} onClick={() => act(entry.id, () => deleteEntry(owner, entry.id, me), '글을 지웠어요.')}>지우기</button>
-            : <label className="neighbor-report">신고<select defaultValue="" disabled={!!busy} onChange={event => { const reason = event.target.value; if (reason) act(entry.id, () => reportEntry(me, entry.id, reason), '신고했어요. 이 글은 내 화면에서 숨겨져요.'); }}><option value="">이유 고르기</option>{REPORT_REASONS.map(([v, label]) => <option key={v} value={v}>{label}</option>)}</select></label>}
+            : <button type="button" className="pb ui-secondary neighbor-report" disabled={!!busy} onClick={() => setReporting(entry)}>신고</button>}
         </div>
       </div>
     </article>)}
     <p role="status" className="visit-status">{note}</p>
+    {reporting && <ReportDialog entry={reporting} onCancel={() => setReporting(null)} onReport={reason => { const target = reporting; setReporting(null); act(target.id, () => reportEntry(me, target.id, reason), '신고했어요. 이 글은 내 화면에서 숨겨져요.'); }} />}
   </div>;
 }
 
