@@ -1077,3 +1077,4 @@ button.pb, .ui-disclosure > summary { font-weight: 500; }
 .neighbor-friend-request { display: flex; align-items: center; gap: 8px; margin: 10px 0; padding: 10px 12px; border-radius: 14px; background: var(--color-primary-soft); font-size: 12px; text-align: left; }
 .neighbor-friend-request span { flex: 1; }
 .neighbor-friend-request button { flex: 0 0 auto; min-height: 38px; }
+.neighbors-screen .neighbors-tabs { display: grid !important; grid-template-columns: repeat(3, minmax(0, 1fr)) !important; }
