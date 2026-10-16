@@ -313,13 +313,13 @@ MY MOCHI는 작은 일상 활동과 하루 기록을 캐릭터와 함께 이어 
 | 일기·사진·필터 | shared/features/journal.js·missionPhotos.js·guestModeration.js, 양쪽 Diary/PhotoMission/Visit, frontend/src/components/GuestbookSafety.jsx |
 | 일별 문장과 순서 | [dailySentences](shared/data/dailySentences.js), [dailySentence](shared/features/dailySentence.js), shared/utils/seoulDate.js |
 | 디자인/글꼴 | [tokens](shared/theme/tokens.js), [DESIGN_SYSTEM](frontend/DESIGN_SYSTEM.md), [FONT_LICENSE](frontend/FONT_LICENSE.md), frontend/src/styles.css·mobile/src/components/ui.jsx |
-| 기획의 이전 맥락 | [APP_INTRO](APP_INTRO.md), [QUEST_DESIGN](QUEST_DESIGN.md), [연구 README](README.md). 현재 코드와 구분해서 읽음 |
+| 기획의 이전 맥락 | [APP_INTRO](APP_INTRO.md), [QUEST_DESIGN](QUEST_DESIGN.md), [초기 기획 INITIAL_PLAN](INITIAL_PLAN.md). 현재 코드와 구분해서 읽음 |
 
 ### 문서와 현재 코드에서 발견한 차이
 
 | 기존 설명/아이디어 | 현재 확인한 구현과 이 가이드의 처리 |
 | --- | --- |
-| 루트 README의 AI·생활 리듬·위험 탐지 연구 설계 | 현재 게임 프론트의 추천은 로컬 규칙이다. 연구/이전 설계를 현재 자동 센서·AI 진단 기능이나 효과 증거로 소개하지 않음 |
+| 초기 기획(INITIAL_PLAN.md)의 AI·생활 리듬·위험 탐지 연구 설계 | 현재 게임 프론트의 추천은 로컬 규칙이다. 연구/이전 설계를 현재 자동 센서·AI 진단 기능이나 효과 증거로 소개하지 않음 |
 | APP_INTRO의 걸음·방문·사회기술 팁 등 폭넓은 소개 | 백엔드/기획 기능과 현재 프론트 연결을 분리. 긴 수행 안내 UI·실제 센서 확인·실사용자 방문을 현재 제공 기능으로 묶지 않음 |
 | 총20종/신규 시안이라는 이름 | 실제 목록12종, 계획8종. proto/draft ID여도 최종6종은 이미 상점에 연결되므로 미완성으로 잘못 분류하지 않음 |
 | ‘부담 응답이면 모두 effort0’ | 다른 적합한 행동의 다음 추천 우선순위로 반영. 오늘 목록 유지, 자동 난도 상승 없음 |
