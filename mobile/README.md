@@ -73,6 +73,12 @@
 - 설정은 `app.json` 플러그인: `@kingstinct/react-native-healthkit`(권한 문구·HealthKit 권한), `react-native-health-connect`(READ_STEPS·권한 설명 화면), `expo-build-properties`(Android minSdk 26)
 - 출시 전: App Store는 건강 데이터를 쓰는 이유와 개인정보처리방침, Google Play는 Health Connect 사용 신고(Play Console '건강 앱' 양식)가 필요하다. Android 기기에 Health Connect 앱이 없으면(Android 13 이하) 연결 버튼이 나오지 않는다
 
+## 다시 부르기 알림 (2026-10-16)
+
+- 며칠 안 들어온 사람에게 휴대폰이 직접 보내는 예약 알림 (서버 필요 없음, `src/notify/comeback.js`). 앱을 열 때·다시 돌아올 때마다 예전 예약을 지우고 **2·4·7일 뒤 저녁 7시**로 다시 잡는다 → 계속 들어오는 사람에게는 오지 않는다
+- 문구는 친구 이름으로 (`src/notify/messages.mjs`, 예: "꼬질 감자가 기다리고 있어요 🥺"). 처음 한 번 알림 권한을 묻고, 설정의 '다시 부르기 알림'으로 끌 수 있다
+- `expo-notifications`라 실제 알림은 개발 빌드(EAS)에서 확인. 웹 미리보기는 지원 안 함
+
 ## 첫 진입 · 로그인 연결 범위
 
 MY MOCHI 로그인/가입 화면에서 시작한다. 청록·크림 UI와 기존 친구 렌더러, 공식 카카오 로그인·Google 버튼 이미지를 사용한다. A2z 400~600을 유지하며 공급자 버튼 글씨는 공식 PNG에 포함된 스타일이다. 세션 확인 중 홈을 마운트하지 않는다. 설정의 로그아웃은 signOut 성공 후 로그인 화면으로 돌아가며 개발 미리보기도 종료한다. 실패 시 설정에서 다시 시도할 수 있고 게임 저장 데이터는 삭제하지 않는다. 현재 인증 어댑터는 미연결로, 사용자 ID나 임의 토큰을 로그인으로 취급하지 않는다. 실패/취소 시 재시도하고 진행 중 중복 입력을 막는다. 게임 데이터는 초기화하지 않는다.

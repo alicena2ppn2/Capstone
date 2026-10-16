@@ -3,11 +3,12 @@ import HomeScreen from './screens/home/HomeScreen';
 import MissionReplacement from './screens/quests/MissionReplacement';
 import { saveMissionPreferences } from '../../shared/features/missionGuidance.js';
 import BottomNav from './components/BottomNav';
+import { cancelComeback, notificationsAllowed, scheduleComeback } from './notify/comeback';
 import { completePhotoMission } from '../../shared/features/missionPhotos.js';
 import { continueJournalDraft } from '../../shared/features/journal.js';
 import RewardPanel from './components/RewardPanel';
 import React, { useEffect, useRef, useState } from 'react';
-import { KeyboardAvoidingView, Platform, ScrollView, View } from 'react-native';
+import { AppState, KeyboardAvoidingView, Platform, ScrollView, View } from 'react-native';
 import { SafeAreaProvider, SafeAreaView } from 'react-native-safe-area-context';
 import { StatusBar } from 'expo-status-bar';
 import { useFonts } from 'expo-font';
@@ -44,6 +45,17 @@ function GameApp({ children }) {
   // 서버가 있으면 코인·레벨·장착·방·출석·상점은 서버 (웹과 같은 규칙, 10/15). 없으면 지금처럼 휴대폰 안 기록
   const serverUserId = useServerUserId(), server = useServerGame(serverUserId), sv = server.state;
   const [serverAward, setServerAward] = useState(null);
+  // 다시 부르기 알림: 앱을 열거나 다시 돌아올 때마다 2·4·7일 뒤 알림을 새로 잡는다 (계속 오면 안 울림). 처음 한 번 알림 권한을 묻는다
+  const remindersOn = state ? state.settings?.reminders !== false : null;
+  const friendId = sv?.shop?.equipped?.character ?? state?.game?.character;
+  const friendName = state ? state.game.nicknames?.[friendId] || CHARACTERS.find(item => item.id === friendId)?.name : null;
+  useEffect(() => {
+    if (remindersOn === null || !friendName) return undefined;
+    const plan = () => (remindersOn ? notificationsAllowed(true).then(() => scheduleComeback(friendName)) : cancelComeback()).catch(() => {});
+    void plan();
+    const sub = AppState.addEventListener('change', next => { if (next === 'active') void plan(); });
+    return () => sub.remove();
+  }, [remindersOn, friendName]);
   useEffect(() => { if (!serverAward) return undefined; const timer = setTimeout(() => setServerAward(null), 1200); return () => clearTimeout(timer); }, [serverAward]);
   if (!state || !fontsLoaded && !fontError) return <SafeAreaView style={styles.safe}>{children}<Label style={{ padding: 24 }}>{error || '친구의 방을 준비하고 있어요…'}</Label>{!!error && <Button onPress={load}>다시 읽기</Button>}</SafeAreaView>;
   const { wardrobe } = state;
