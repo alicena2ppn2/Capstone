@@ -138,6 +138,7 @@
     "floor": "바닥",
     "sofa": "소파",
     "drawer": "서랍장",
+    "curtain": "커튼",
     "lamp": "전등",
     "carpet": "카페트",
     "frame": "액자",
@@ -390,6 +391,90 @@
       "slot": "drawer",
       "level": 1,
       "price": 100
+    },
+    {
+      "id": "floor-gray-tile",
+      "name": "회색 타일 바닥",
+      "slot": "floor",
+      "level": 1,
+      "price": 120
+    },
+    {
+      "id": "floor-honey-zigzag",
+      "name": "꿀색 지그재그 마루",
+      "slot": "floor",
+      "level": 2,
+      "price": 140
+    },
+    {
+      "id": "floor-cream-dot",
+      "name": "크림 땡땡이 카펫 바닥",
+      "slot": "floor",
+      "level": 3,
+      "price": 160
+    },
+    {
+      "id": "curtain-pink",
+      "name": "분홍 커튼",
+      "slot": "curtain",
+      "level": 1,
+      "price": 100
+    },
+    {
+      "id": "curtain-mint",
+      "name": "민트 커튼",
+      "slot": "curtain",
+      "level": 1,
+      "price": 100
+    },
+    {
+      "id": "curtain-lemon",
+      "name": "레몬 커튼",
+      "slot": "curtain",
+      "level": 1,
+      "price": 100
+    },
+    {
+      "id": "curtain-navy",
+      "name": "밤하늘 커튼",
+      "slot": "curtain",
+      "level": 1,
+      "price": 100
+    },
+    {
+      "id": "carpet-mint-dot",
+      "name": "민트 땡땡이 러그",
+      "slot": "carpet",
+      "level": 1,
+      "price": 120
+    },
+    {
+      "id": "carpet-lemon-stripe",
+      "name": "레몬 줄무늬 러그",
+      "slot": "carpet",
+      "level": 2,
+      "price": 140
+    },
+    {
+      "id": "carpet-lavender-check",
+      "name": "라벤더 체크 러그",
+      "slot": "carpet",
+      "level": 3,
+      "price": 160
+    },
+    {
+      "id": "carpet-rainbow",
+      "name": "무지개 러그",
+      "slot": "carpet",
+      "level": 4,
+      "price": 200
+    },
+    {
+      "id": "carpet-choco-zigzag",
+      "name": "초코 지그재그 러그",
+      "slot": "carpet",
+      "level": 5,
+      "price": 220
     }
   ]
 }
