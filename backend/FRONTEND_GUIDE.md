@@ -22,7 +22,7 @@ API를 직접 눌러 보려면 서버를 켜고 `http://localhost:8000/docs`.
 | 단계 사다리 | 없음 | 매일 바뀌는 3개 = 움직이기 · 집 · 이어지기. 각 미션의 `stage`(1 혼자·2 한 명·3 여럿)와 이어지기 미션의 `tip`("이렇게 해 보세요")을 보여 주기. 진행도는 `missions/today`의 `ladder` 또는 `GET /ladder`, 완료 응답 `stage_up`이 있으면 "다음 단계가 열렸어요" |
 | 처음 설문 | 없음 | 가입 직후 `GET /users/{id}/survey`가 `done=false`면 `GET /survey/questions` 순서대로 보여 주고 `PUT /users/{id}/survey`로 저장. 모두 건너뛰기 가능 |
 | 출석 보상 | 무작위 (코인 10·20·30 또는 XP 20·35·50) | 고정 10 코인 · 10 XP |
-| 하루 펭귄 모찌 | 하루 퀘스트 아무거나 3개 | 매일 바뀌는 3개를 모두 완료 |
+| 팽이 | 하루 퀘스트 아무거나 3개 | 매일 바뀌는 3개를 모두 완료 |
 | 시작 코인 | 540 | 0 |
 | 레벨 공식 | `1 + XP // 100` (레벨마다 100) | 다음 레벨까지 100 + 150 × (레벨 − 1) → 100, 250, 400 … **프론트도 서버 `level` 값을 그대로 표시** |
 | 상점 상품·가격·레벨 조건 | `CHARACTERS`, `CLOTHES`, `DECOR` | 같음 (`app/data/shop.json`) |
@@ -129,7 +129,7 @@ API를 직접 눌러 보려면 서버를 켜고 `http://localhost:8000/docs`.
 {"earned": [{"id": "sky_photo", "coins": 30, "xp": 100}], "earned_total": 30, "earned_xp": 100,
  "coins": 340, "level": {"level": 3, "xp": 410, "xp_in_level": 60, "xp_to_next": 340, "xp_for_level": 400},
  "leveled_up": true, "all_done": false,
- "new_items": [{"type": "character", "id": "pink", "name": "복숭아 토끼"}]}
+ "new_items": [{"type": "character", "id": "pink", "name": "복숭이"}]}
 ```
 
 - `earned`가 비어 있으면 이미 받은 보상 (중복 지급 없음)
