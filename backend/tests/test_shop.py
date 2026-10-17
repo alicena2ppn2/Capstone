@@ -98,7 +98,7 @@ def test_all_missions_done_gives_haru_friend(client):
     new_items = []
     for m in missions:
         new_items += do_mission(client, "u1", m, DAY).get("new_items", [])
-    assert {"type": "character", "id": "sky", "name": "하루 펭귄 모찌"} in new_items
+    assert {"type": "character", "id": "sky", "name": "팽이"} in new_items
     assert item(client.get("/users/u1/shop").json(), "character", "sky")["status"] == "owned"
 
 

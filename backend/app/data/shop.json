@@ -3,76 +3,76 @@
   "characters": [
     {
       "id": "potato",
-      "name": "꼬질 감자",
+      "name": "꼬질이",
       "level": 1,
       "price": 0,
       "method": "starter"
     },
     {
       "id": "pink",
-      "name": "복숭아 토끼",
+      "name": "복숭이",
       "level": 3,
       "price": 0,
       "method": "milestone"
     },
     {
       "id": "mochi",
-      "name": "구름 모찌",
+      "name": "구르미",
       "level": 5,
       "price": 300
     },
     {
       "id": "lavender",
-      "name": "달빛 양",
+      "name": "양양이",
       "level": 8,
       "price": 450
     },
     {
       "id": "mint",
-      "name": "새잎 거북 모찌",
+      "name": "북북이",
       "level": 12,
       "price": 600
     },
     {
       "id": "sky",
-      "name": "하루 펭귄 모찌",
+      "name": "팽이",
       "level": 1,
       "price": 0,
       "method": "quest"
     },
     {
       "id": "proto-pebble",
-      "name": "버터 곰",
+      "name": "곰댕이",
       "level": 4,
       "price": 300
     },
     {
       "id": "proto-pear",
-      "name": "살구 강아지 라니",
+      "name": "라니",
       "level": 7,
       "price": 350
     },
     {
       "id": "proto-quilt",
-      "name": "솜귀 고양이 루루",
+      "name": "루루",
       "level": 10,
       "price": 450
     },
     {
       "id": "draft-duck",
-      "name": "버블 오리 포포",
+      "name": "포포",
       "level": 15,
       "price": 600
     },
     {
       "id": "draft-deer",
-      "name": "잎귀 사슴 메루",
+      "name": "메루",
       "level": 20,
       "price": 625
     },
     {
       "id": "draft-hedgehog",
-      "name": "밤톨 고슴도치 도토",
+      "name": "도토",
       "level": 25,
       "price": 650
     }
