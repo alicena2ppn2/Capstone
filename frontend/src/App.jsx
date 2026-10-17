@@ -18,7 +18,7 @@ import Guestbook from './screens/Guestbook.jsx';
 import Settings from './screens/Settings.jsx';
 import Shop, { CLOTHES } from './screens/Shop.jsx';
 import { CharacterContext } from './components/CharacterContext.jsx';
-import { CHARACTERS, initialGame, levelFor, migrateQuestProgress, buyCharacter, equipCharacter, claimAttendance, ensureAttendanceWeek, buyDecor, equipDecor, claimGoal } from '../../shared/features/game.js';
+import { CHARACTERS, initialGame, levelFor, levelProgress, migrateQuestProgress, buyCharacter, equipCharacter, claimAttendance, ensureAttendanceWeek, buyDecor, equipDecor, claimGoal } from '../../shared/features/game.js';
 import Attendance from './components/Attendance.jsx';
 import IPhoneChrome from './components/IPhoneChrome.jsx';
 import { restoreNicknames } from '../../shared/data/catalog.js';
@@ -58,7 +58,7 @@ export default function App() {
   const prepareAttendance = useCallback(date => setGame(value => ensureAttendanceWeek(value, date)), []);
   const server = useServerGame(serverUserId), sv = server.state;
   const level = sv ? sv.shop.level.level : levelFor(game.xp);
-  const levelInfo = sv ? sv.home.level : { level, xp_in_level: game.xp % 100, xp_for_level: 100 };
+  const levelInfo = sv ? sv.home.level : levelProgress(game.xp);
   const coins = sv ? sv.home.coins : game.coins;
   const shownCharacter = sv ? sv.home.equipped.character ?? 'potato' : game.character ?? 'potato';
   const shownDecor = sv ? sv.home.room.decor : game.decor ?? {};

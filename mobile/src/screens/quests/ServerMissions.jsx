@@ -3,6 +3,7 @@ import { Image, StyleSheet, View } from 'react-native';
 import * as ImagePicker from 'expo-image-picker';
 import { colors } from '../../../../shared/theme/tokens.js';
 import { Button, Card, Label, Progress, styles } from '../../components/ui';
+import QuestRewards from '../../components/QuestRewards';
 import { todayMissions, completeWithPhoto, completeSteps, rerollMission, sendFeedback, weeklyQuests, completeWeekly } from '../../api/server';
 import { stepsAvailable } from '../../health/steps';
 import { connectSteps, stepsConnected, stepsSource, syncSteps } from '../../health/syncSteps';
@@ -88,7 +89,7 @@ export default function ServerMissions({ userId, onChanged, onAttendance, onDiar
       <View style={styles.row}><Label style={[styles.cardTitle, styles.flex]}>데일리 미션</Label><Label style={styles.small}>{daily.filter(m => m.done).length}/{daily.length}</Label></View>
       {daily.map(m => <View key={m.id} style={s.dailyRow}>
         <View style={styles.row}>
-          <View style={[styles.flex, { gap: 2 }]}><Label style={{ fontFamily: 'A2z-500', fontSize: 15, color: m.done ? colors.muted : colors.ink }}>{m.done ? '✓ ' : ''}{m.title}</Label><Label style={styles.small}>{m.done ? '완료' : m.kind === 'photo' ? `오늘 찍은 사진 · +${m.coins} 코인` : m.coins ? `+${m.coins} 코인` : '출석 선물'}</Label></View>
+          <View style={[styles.flex, { gap: 2 }]}><Label style={{ fontFamily: 'A2z-500', fontSize: 15, color: m.done ? colors.muted : colors.ink }}>{m.done ? '✓ ' : ''}{m.title}</Label>{m.done?<Label style={styles.small}>완료</Label>:m.kind==='photo'?<View style={{gap:2}}><Label style={styles.small}>오늘 찍은 사진</Label><QuestRewards xp={m.xp} coins={m.coins}/></View>:m.coins||m.xp?<QuestRewards xp={m.xp} coins={m.coins}/>:<Label style={styles.small}>출석 선물</Label>}</View>
           {!m.done && m.kind !== 'photo' && (m.kind === 'steps' ? <Button disabled={!!busy} onPress={() => checkSteps(m.id)}>걸음 확인</Button> : <Button onPress={() => go(m)[1]?.()}>{go(m)[0]}</Button>)}
         </View>
         {!m.done && m.kind === 'photo' && <PhotoPick compact busy={busy === m.id} onUpload={asset => run(m.id, () => completeWithPhoto(userId, m.id, asset))} />}
@@ -102,7 +103,7 @@ export default function ServerMissions({ userId, onChanged, onAttendance, onDiar
           <Label style={[s.chip, { color: tone, backgroundColor: soft }]}>{slot}{m.stage ? ` · ${m.stage}단계` : ''}</Label>
           <View style={[styles.row, { gap: 6 }]}>
             {!m.done && m.rerollable && <Button variant="text" style={s.reroll} accessibilityLabel={`다른 미션으로 바꾸기, ${data.rerolls_left}번 남음`} disabled={!!busy || data.rerolls_left < 1} onPress={() => run(m.id, () => rerollMission(userId, m.id))}>↻</Button>}
-            <Label style={[styles.small, styles.reward]}>+{m.coins} 코인</Label>
+            <QuestRewards xp={m.xp} coins={m.coins} />
           </View>
         </View>
         <View style={[styles.row, { justifyContent: 'flex-start' }]}><View style={[s.check, { borderColor: tone }, m.done && { backgroundColor: tone }]}><Label style={{ color: '#fff', fontSize: 12, lineHeight: 16 }}>{m.done ? '✓' : ''}</Label></View><Label style={[styles.cardTitle, styles.flex, m.done && { color: colors.muted, textDecorationLine: 'line-through' }]}>{m.title}</Label></View>
@@ -118,7 +119,7 @@ export default function ServerMissions({ userId, onChanged, onAttendance, onDiar
         </>}
       </Card>; })}
     </Card>
-    {toast && <View pointerEvents="none" style={styles.toast} accessibilityLiveRegion="polite"><Label style={{ fontFamily: 'A2z-600' }}>미션 완료!</Label>{(toast.earned_total > 0 || toast.earned_xp > 0) && <Label>+{toast.earned_xp} XP · +{toast.earned_total} 코인</Label>}</View>}
+    {toast && <View pointerEvents="none" style={styles.toast} accessibilityLiveRegion="polite"><Label style={{ fontFamily: 'A2z-600' }}>미션 완료!</Label>{(toast.earned_total > 0 || toast.earned_xp > 0) && <QuestRewards xp={toast.earned_xp} coins={toast.earned_total} />}</View>}
   </>;
 }
 
@@ -131,7 +132,7 @@ export function ServerWeekly({ userId, onChanged }) {
   useEffect(() => { void load(); }, [load]);
   if (!data) return <Card><Label>{note.all || '이번 주 미션을 불러오는 중…'}</Label></Card>;
   return data.quests.map(q => <Card key={q.id} style={[s.mission, q.completed && { backgroundColor: '#E3F3EA' }]}>
-    <View style={styles.row}><Label style={[s.chip, { color: '#3E8F6E', backgroundColor: '#E3F3EA' }]}>이번 주 · {q.goal_days}번</Label><Label style={[styles.small, styles.reward]}>+{q.coins} 코인</Label></View>
+    <View style={styles.row}><Label style={[s.chip, { color: '#3E8F6E', backgroundColor: '#E3F3EA' }]}>이번 주 · {q.goal_days}번</Label><QuestRewards xp={q.xp} coins={q.coins} /></View>
     <Label style={styles.cardTitle}>{q.title}</Label>
     <View style={[styles.row, { justifyContent: 'flex-start' }]}>{Array.from({ length: q.goal_days }, (_, i) => <View key={i} style={[s.dot, i < q.progress && { backgroundColor: '#3E8F6E' }]} />)}<Label style={styles.small}>{q.progress}/{q.goal_days}</Label></View>
     {q.completed ? <Label style={styles.small}>이번 주 완료! 보상을 받았어요.</Label> : q.done_today ? <Label style={styles.small}>오늘은 채웠어요. 다른 날 한 번 더!</Label> : <>

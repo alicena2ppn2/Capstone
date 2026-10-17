@@ -9,6 +9,7 @@ import DailySentence from './DailySentence';
 import HomeSummary from './HomeSummary';
 import { colors } from '../../../../shared/theme/tokens.js';
 import { roomTime } from '../../../../shared/utils/roomTime.js';
+import { levelProgress } from '../../../../shared/features/game.js';
 import { DECOR_SLOTS, MOVABLE_SLOTS } from '../../../../shared/data/decor.js';
 import { todayMissions } from '../../api/server';
 
@@ -26,6 +27,7 @@ function ServerSummary({ userId, onQuest }) {
 }
 
 export default function HomeScreen({ serverUserId, onMoveDecor, levelInfo, game, level, name, outfit, now, day, reaction, consumeReaction, go, openDiary, setSheet, setQuestFocus, sentenceHeight, setSentenceHeight }) {
+  const localLevel = levelProgress(game.xp);
   const { width, fontScale } = useWindowDimensions();
   const roomWidth = Math.min(width - 24, 430);
   const baseRoomHeight = roomWidth * 500 / 368;
@@ -56,7 +58,7 @@ export default function HomeScreen({ serverUserId, onMoveDecor, levelInfo, game,
 
           <View style={homeStyles.roomMenus}><Button textStyle={{ fontSize: 13 }} style={{ paddingHorizontal: 7 }} onPress={() => go('visit')} icon={<MenuIcon kind="visit" />}>방문하기</Button><Button textStyle={{ fontSize: 13 }} style={{ paddingHorizontal: 7 }} onPress={() => go('guest')} icon={<MenuIcon kind="guest" />}>방명록</Button><Button textStyle={{ fontSize: 13 }} style={{ paddingHorizontal: 7 }} onPress={() => openDiary()} icon={<MenuIcon kind="diary" />}>일기</Button></View>
           <View style={{position:'absolute',top:64,alignSelf:'center',maxWidth:'50%'}}><Button textStyle={{fontFamily:'A2z-600',fontSize:14}} style={{minHeight:38,paddingVertical:7}} onPress={()=>go('settings')}>{name}</Button></View><View style={[styles.friendPosition,{bottom:baseRoomHeight*.15}]}><Character variant={game.character} outfit={outfit} size={friendSize} label={name} interactive reactionId={reaction} onConsumed={consumeReaction} /></View>
-          <View style={[styles.identity,{top:baseRoomHeight*.868,bottom:undefined,maxWidth:undefined,gap:6}]}><DailySentence now={now} width={Math.min(roomWidth-24,340)} onHeight={setSentenceHeight}/><View style={styles.level}><Label style={styles.small}>LV.{levelInfo?.level ?? level}</Label><View style={{ width: 60 }}><Progress value={levelInfo?.xp_in_level ?? game.xp % 100} max={levelInfo?.xp_for_level ?? 100} /></View><Label style={styles.small}>{levelInfo?.xp_in_level ?? game.xp % 100} / {levelInfo?.xp_for_level ?? 100} XP</Label></View></View>
+          <View style={[styles.identity,{top:baseRoomHeight*.868,bottom:undefined,maxWidth:undefined,gap:6}]}><DailySentence now={now} characterId={game.character} width={Math.min(roomWidth-24,340)} onHeight={setSentenceHeight}/><View style={styles.level}><Label style={styles.small}>LV.{levelInfo?.level ?? level}</Label><View style={{ width: 60 }}><Progress value={levelInfo?.xp_in_level ?? localLevel.xp_in_level} max={levelInfo?.xp_for_level ?? localLevel.xp_for_level} /></View><Label style={styles.small}>{levelInfo?.xp_in_level ?? localLevel.xp_in_level} / {levelInfo?.xp_for_level ?? localLevel.xp_for_level} XP</Label></View></View>
         </View>{arranging && <Card style={{ gap: 6 }}><Label style={styles.body}>옮길 소품을 고르고 방 그림을 끌어 보세요.</Label><View style={styles.wrap}>{placed.map(id => <Button key={id} selected={current === id} onPress={() => setSlot(id)}>{DECOR_SLOTS[id]}</Button>)}<Button onPress={() => current && onMoveDecor(current, { dx: 0, dy: 0 })}>제자리로</Button><Button primary onPress={() => setArranging(false)}>다 했어요</Button></View></Card>}<View style={styles.row}><Button primary onPress={() => { setQuestFocus(null); go('quest'); }} style={styles.flex} icon={<UiIcon kind="routine" color={colors.surface} />}>오늘의 도전</Button><Button onPress={() => go('shop')} style={styles.flex} icon={<UiIcon kind="wardrobe" />}>꾸미기</Button>{onMoveDecor && placed.length > 0 && !arranging && <Button accessibilityLabel="가구 옮기기" textStyle={{ fontSize: 16 }} style={{ paddingHorizontal: 12 }} onPress={() => setArranging(true)}>🪑</Button>}</View>
         {serverUserId ? <ServerSummary userId={serverUserId} onQuest={() => { setQuestFocus(null); go('quest'); }} /> : <HomeSummary game={game} day={day} onQuest={id => { setQuestFocus(id ?? null); go('quest'); }} />}
       </>;
