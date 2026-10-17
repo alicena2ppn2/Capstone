@@ -3,6 +3,7 @@ import { createRoot } from 'react-dom/client';
 import { CHARACTERS } from '../../../shared/data/characters.js';
 import { PLACES, ROUTE, distance, pointAt, arrival, confirmVisit, claimExample, emptyState, POLICY } from './model.mjs';
 import SampleMap from './SampleMap.jsx';
+import KakaoLiveMap from './KakaoLiveMap.jsx';
 import UiIcon from '../../src/components/UiIcon.jsx';
 import './style.css';
 import './a-style.css';
@@ -49,6 +50,7 @@ function ExampleReward({ place, className = '' }) {
 
 function APreview() {
   const [character, setCharacter] = useState('mochi');
+  const [mapMode, setMapMode] = useState('sample');
   const [placeId, setPlaceId] = useState(PLACES[0].id);
   const [fix, setFix] = useState(initialFix);
   const [fixes, setFixes] = useState([]);
@@ -129,16 +131,19 @@ function APreview() {
   }
 
   return <div className="prototype a-preview">
-    <header className="a-header"><div><b>MY MOCHI</b><span>모찌와 동네 탐험</span></div><small>개발 시안 · 예시 위치</small></header>
+    <header className="a-header"><div><b>MY MOCHI</b><span>모찌와 동네 탐험</span></div><small>{mapMode === 'sample' ? '개발 시안 · 예시 위치' : '개발 시안 · 실제 위치'}</small></header>
     <main inert={open ? true : undefined}>
       <div className="a-topline"><h1>모찌와 동네 탐험</h1><label>동행 <select value={character} onChange={event => setCharacter(event.target.value)} aria-label="시안 캐릭터">{CHARACTERS.map(item => <option key={item.id} value={item.id}>{item.name}</option>)}</select></label></div>
+      {mapMode === 'sample' ? <>
       <SampleMap fix={fix} character={character} choose={setPlaceId} showNotes openNote={showPlace} />
+      <button className="secondary a-wide a-live-entry" type="button" onClick={() => setMapMode('live')}>내 위치로 시작 · 실제 지도</button>
       <section className="a-place" aria-label="선택한 예시 장소">
         <div className="a-place-heading"><div><small>선택한 예시 장소</small><h2>{place.name}</h2></div><span>{Math.round(distance(fix, place))}m · 직선거리</span></div>
         <ExampleReward place={place} />
         <button className="primary a-main-action" onClick={event => showPlace(place.id, event.currentTarget)}>장소 보기</button>
       </section>
       <div className="a-controls"><button className="secondary" onClick={() => setMoving(value => !value)}>{moving ? '일시정지' : '이동 시작'}</button><button className="secondary" onClick={simulateArrival}>도착 상황 보기</button><button className="text-button" onClick={reset}>처음부터 보기</button></div>
+      </> : <KakaoLiveMap character={character} onBackToExample={() => setMapMode('sample')} />}
     </main>
     {open && <div className="sheet-overlay postit-overlay" onClick={event => { if (event.target === event.currentTarget) setOpen(false); }}><section className="sheet a-sheet" role="dialog" aria-modal="true" aria-label={`${place.name} 포스트잇`}>
       <header><div><small>예시 장소 · {place.kind}</small><h2>{place.name}</h2></div><button ref={closeButton} aria-label="쪽지 닫기" onClick={() => setOpen(false)}>×</button></header>
