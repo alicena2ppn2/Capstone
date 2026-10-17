@@ -28,9 +28,17 @@ test('character voice drafts are stable per Seoul date and unconfigured characte
     const a=dailySentence(first,id),b=dailySentence(sameSeoulDay,id);
     assert.equal(a.day,'2026-10-15');assert.equal(a.text,b.text);assert.equal(a.id,b.id);
     assert.equal(a.text,CHARACTER_VOICE_DRAFTS[id][a.index%CHARACTER_VOICE_DRAFTS[id].length].text);
-    assert.equal(CHARACTER_VOICE_DRAFTS[id].length,id==='mochi'||id==='proto-pear'||id==='lavender'||id==='proto-quilt'||id==='mint'||id==='draft-duck'||id==='draft-deer'||id==='draft-hedgehog'?7:5);
+    assert.equal(CHARACTER_VOICE_DRAFTS[id].length,12);
   }
   assert.deepEqual(dailySentence(first,'unknown-character'),dailySentence(first));
+});
+test('each character cycles through all 12 approved lines before repeating',()=>{
+  const start=Date.parse(`${SENTENCE_ANCHOR}T03:00:00Z`);
+  for(const id of Object.keys(CHARACTER_VOICE_DRAFTS)){
+    const lines=Array.from({length:12},(_,i)=>dailySentence(new Date(start+i*86400000),id).text);
+    assert.equal(new Set(lines).size,12,id);
+    assert.equal(dailySentence(new Date(start+12*86400000),id).text,lines[0],id);
+  }
 });
 test('development carousel can inspect every character draft without changing the live date-based sentence',()=>{
   const now=new Date('2026-10-14T15:01:00Z');
