@@ -38,7 +38,7 @@ test('eight requested profiles and short shop copy are stored separately from ap
   assert.deepEqual(Object.keys(CHARACTER_VOICE_DRAFTS).sort(), ['draft-deer','draft-duck','draft-hedgehog','lavender','mint','mochi','pink','potato','proto-pear','proto-pebble','proto-quilt','sky'].sort());
   for(const id of ids) {
     assert(CHARACTER_PROFILES[id]?.personality);
-    assert.equal(CHARACTER_VOICE_DRAFTS[id].length,7);
+    assert.equal(CHARACTER_VOICE_DRAFTS[id].length,12)   // 10/17: 캐릭터마다 오늘의 한마디 12개;
     assert(FRIEND_INTROS[id]?.introduction);
   }
   assert.equal(FRIEND_INTROS.mochi.introduction,'친구들 몫까지 챙기다 가방이 빵빵해져요. 같이 나누면 더 좋으니까요!');
@@ -52,7 +52,7 @@ test('eight requested profiles and short shop copy are stored separately from ap
   assert.equal(CHARACTERS.find(friend=>friend.id==='sky').name,'팽이');
   assert.equal(FRIEND_INTROS.sky.introduction,'하고 싶은 일을 적다가 종이가 모자랐어요. 다 못 해도 다음 상상이 기다리는 팽이!');
   assert.equal(CHARACTER_PROFILES.sky.name,'팽이');
-  assert.equal(CHARACTER_VOICE_DRAFTS.sky.length,5);
+  assert.equal(CHARACTER_VOICE_DRAFTS.sky.length,12);
 });
 for(const friend of FINAL_FRIENDS) test(`${friend.name}: boundary, insufficient funds, one deduction, no auto equip, JSON restore`,()=>{
   const original={...initialGame(),xp:xpThresholdForLevel(friend.level),coins:friend.price,nicknames:{potato:'내 감자'},characters:['potato','mochi'],character:'mochi',decor:{lamp:'lamp-moon'},completed:['2026-10-01:day-walk'],custom:'preserve'};

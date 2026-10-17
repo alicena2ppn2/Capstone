@@ -22,7 +22,7 @@ import Shop from './screens/Shop';
 import Settings, { Backup } from './screens/Settings';
 import Visit, { Guestbook } from './screens/Visit';
 import Neighbors from './screens/Neighbors';
-import { CHARACTERS, buyCharacter, levelFor, levelProgress } from '../../shared/features/game.js';
+import { CHARACTERS, buyCharacter, levelProgress } from '../../shared/features/game.js';
 import { CLOTHES } from '../../shared/data/clothes.js';
 import { seoulDateKey, attendanceWeek } from '../../shared/utils/seoulDate.js';
 import { replaceDailyMission, saveDiaryMission, deleteDiaryMission } from '../../shared/features/dailyMissions.js';
