@@ -132,7 +132,7 @@ CREATE TABLE IF NOT EXISTS blocks (           -- 차단: user_id가 blocked_id�
 CREATE TABLE IF NOT EXISTS reports (          -- 신고: 같은 사람이 같은 대상을 두 번 신고해도 한 번
     id          INTEGER PRIMARY KEY AUTOINCREMENT,
     reporter_id TEXT NOT NULL,
-    target_type TEXT NOT NULL,           -- guestbook | user
+    target_type TEXT NOT NULL,           -- guestbook | place_note | user
     target_id   TEXT NOT NULL,           -- 방명록 글 id 또는 user id
     reason      TEXT NOT NULL,           -- spam | abuse | sexual | hate | self_harm | other
     detail      TEXT,
@@ -163,6 +163,17 @@ CREATE TABLE IF NOT EXISTS mission_feedback (  -- 미션 소감: 해 보니 어�
     updated_at  TEXT NOT NULL DEFAULT (datetime('now')),
     PRIMARY KEY (user_id, date, mission_id)
 );
+CREATE TABLE IF NOT EXISTS place_notes (    -- 동네 탐험: 장소에 남긴 쪽지 (app/places.py)
+    id         INTEGER PRIMARY KEY AUTOINCREMENT,
+    place_id   TEXT NOT NULL,
+    author_id  TEXT NOT NULL,
+    text       TEXT NOT NULL,
+    color      TEXT NOT NULL,
+    sticker    TEXT NOT NULL,
+    date       TEXT NOT NULL,
+    created_at TEXT NOT NULL DEFAULT (datetime('now'))
+);
+CREATE INDEX IF NOT EXISTS place_notes_place ON place_notes (place_id, id);
 CREATE TABLE IF NOT EXISTS attendance_log (  -- 연속 출석표에서 받은 선물 (하루 한 번)
     user_id     TEXT NOT NULL,
     date        TEXT NOT NULL,
@@ -433,6 +444,7 @@ def delete_user(conn, user_id: str) -> list[str]:
     conn.execute("DELETE FROM inventory WHERE user_id = ?", (user_id,))
     conn.execute("DELETE FROM equipped WHERE user_id = ?", (user_id,))
     conn.execute("DELETE FROM decor_placement WHERE user_id = ?", (user_id,))
+    conn.execute("DELETE FROM place_notes WHERE author_id = ?", (user_id,))
     conn.execute("DELETE FROM crisis_signals WHERE user_id = ?", (user_id,))
     conn.execute("DELETE FROM users WHERE id = ?", (user_id,))
     conn.commit()
@@ -862,6 +874,38 @@ def list_guestbook(conn, owner_id: str, limit: int = 20, offset: int = 0,
     sql += "ORDER BY g.id DESC LIMIT ? OFFSET ?"
     rows = conn.execute(sql, (*params, limit, offset)).fetchall()
     return [dict(r) for r in rows]
+
+
+def add_place_note(conn, place_id: str, author_id: str, text: str, color: str, sticker: str, date: str) -> dict:
+    cur = conn.execute("INSERT INTO place_notes (place_id, author_id, text, color, sticker, date) VALUES (?, ?, ?, ?, ?, ?)",
+                       (place_id, author_id, text, color, sticker, date))
+    conn.commit()
+    return get_place_note(conn, cur.lastrowid)
+
+
+def get_place_note(conn, note_id: int) -> dict | None:
+    row = conn.execute("SELECT * FROM place_notes WHERE id = ?", (note_id,)).fetchone()
+    return dict(row) if row else None
+
+
+def list_place_notes(conn, place_id: str, viewer_id: str | None = None, limit: int = 30, hide_count: int = 2) -> list[dict]:
+    """장소 쪽지 목록 (최신 순). 빠지는 글: hide_count명 이상이 신고한 글(모두에게), 보는 사람이 신고한 글·차단 관계인 사람의 글."""
+    sql = ("SELECT n.*, u.nickname AS author FROM place_notes n LEFT JOIN users u ON u.id = n.author_id WHERE n.place_id = ? "
+           "AND CAST(n.id AS TEXT) NOT IN (SELECT target_id FROM reports WHERE target_type = 'place_note' AND counted = 1 "
+           "  GROUP BY target_id HAVING COUNT(DISTINCT reporter_id) >= ?) ")
+    params: list = [place_id, hide_count]
+    if viewer_id:
+        sql += ("AND CAST(n.id AS TEXT) NOT IN (SELECT target_id FROM reports WHERE target_type = 'place_note' AND reporter_id = ?) "
+                "AND n.author_id NOT IN (SELECT blocked_id FROM blocks WHERE user_id = ? UNION SELECT user_id FROM blocks WHERE blocked_id = ?) ")
+        params += [viewer_id, viewer_id, viewer_id]
+    sql += "ORDER BY n.id DESC LIMIT ?"
+    return [dict(r) for r in conn.execute(sql, (*params, limit)).fetchall()]
+
+
+def delete_place_note(conn, note_id: int) -> None:
+    conn.execute("DELETE FROM place_notes WHERE id = ?", (note_id,))
+    conn.execute("DELETE FROM reports WHERE target_type = 'place_note' AND target_id = ?", (str(note_id),))
+    conn.commit()
 
 
 def get_guestbook_entry(conn, entry_id: int) -> dict | None:

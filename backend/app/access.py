@@ -29,6 +29,7 @@ PUBLIC = {
     ("GET", "/photos/{photo_id}"),                    # 추측할 수 없는 무작위 주소 (img 태그로 열어야 함)
     ("GET", "/users/{user_id}/room"),                 # 이웃 방 보기
     ("GET", "/users/{user_id}/guestbook"),            # 방명록 읽기
+    ("GET", "/places"), ("GET", "/places/{place_id}/notes"),   # 동네 탐험 장소·쪽지 읽기
 }
 # 주소의 user_id가 방 주인이고, 하는 사람은 본문·주소의 다른 값 → API 안에서 actor()로 확인
 ACTOR = {
@@ -38,6 +39,7 @@ ACTOR = {
     ("DELETE", "/users/{user_id}/guestbook/{entry_id}/like"),
     ("DELETE", "/users/{user_id}/guestbook/{entry_id}"),
     ("POST", "/reports"),
+    ("POST", "/places/{place_id}/notes"), ("DELETE", "/places/{place_id}/notes/{note_id}"),
 }
 
 CACHE_SECONDS = 60          # 같은 토큰을 매번 Supabase에 묻지 않게 잠깐 기억 (토큰 원문은 저장 안 함)

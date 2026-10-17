@@ -32,6 +32,7 @@ from . import friendship as fs
 from . import missions as ms
 from . import moderation
 from . import photo_meta
+from . import places as pl
 from . import shop
 from . import survey as sv
 
@@ -1258,7 +1259,7 @@ class BlockIn(BaseModel):
 
 class ReportIn(BaseModel):
     reporter_id: str = Field(..., min_length=1)
-    target_type: str = Field(..., description="guestbook(방명록 글) | user(사람)")
+    target_type: str = Field(..., description="guestbook(방명록 글) | place_note(장소 쪽지) | user(사람)")
     target_id: str = Field(..., min_length=1, description="방명록 글 id 또는 user id")
     reason: str = Field(..., description="spam | abuse | sexual | hate | self_harm | other")
     detail: str | None = Field(None, max_length=200)
@@ -1304,6 +1305,11 @@ def report(body: ReportIn, request: Request, date: str | None = DateQuery, conn=
         raise HTTPException(422, f"신고 이유는 {', '.join(moderation.REPORT_REASONS)} 중 하나예요.")
 
     offender = body.target_id
+    if body.target_type == "place_note":
+        note = db.get_place_note(conn, int(body.target_id)) if body.target_id.isdigit() else None
+        if note is None:
+            raise HTTPException(404, "쪽지가 없습니다.")
+        offender = note["author_id"]
     if body.target_type == "guestbook":
         entry = db.get_guestbook_entry(conn, int(body.target_id)) if body.target_id.isdigit() else None
         if entry is None:
@@ -1317,7 +1323,7 @@ def report(body: ReportIn, request: Request, date: str | None = DateQuery, conn=
     if body.block and offender:
         db.add_block(conn, body.reporter_id, offender)
     count = db.report_count(conn, body.target_type, body.target_id)
-    hidden = body.target_type == "guestbook" and count >= moderation.REPORT_HIDE_COUNT
+    hidden = body.target_type in ("guestbook", "place_note") and count >= moderation.REPORT_HIDE_COUNT
     return {
         "reported": True,
         "first_report_by_you": new,
@@ -1488,3 +1494,76 @@ def remove_friend(user_id: str, friend_id: str, conn=Depends(get_conn)):
     if not db.remove_friend(conn, user_id, friend_id):
         raise HTTPException(404, "친구나 친구 요청이 없어요.")
     return {"removed": friend_id}
+
+
+# --- 동네 탐험: 장소와 쪽지 (app/places.py) -----------------------------------------------
+
+class PlaceNoteIn(BaseModel):
+    text: str = Field(..., min_length=1, max_length=pl.NOTE_LIMIT)
+    color: str = Field("yellow", description="yellow | apricot | mint (종이 색)")
+    sticker: str = Field("♡", description="♡ | ✿ | ☀")
+    author_id: str | None = Field(None, description="쓴 사람 user id (로그인했으면 토큰 주인으로 채움)")
+
+
+def place_or_404(place_id: str) -> dict:
+    place = pl.PLACES.get(place_id)
+    if place is None:
+        raise HTTPException(404, "없는 장소예요.")
+    return place
+
+
+def note_view(note: dict, viewer_id: str | None) -> dict:
+    return {"id": note["id"], "place_id": note["place_id"], "text": note["text"], "color": note["color"], "sticker": note["sticker"],
+            "author": note.get("author") or "이웃", "author_id": note["author_id"], "date": note["date"],
+            "created_at": note["created_at"], "mine": bool(viewer_id) and note["author_id"] == viewer_id}
+
+
+@app.get("/places", summary="동네 탐험 장소 목록 — lat·lng를 주면 가까운 순으로 거리(m)도")
+def list_places(lat: float | None = Query(None, ge=-90, le=90), lng: float | None = Query(None, ge=-180, le=180)):
+    items = [pl.public(p, lat, lng) for p in pl.PLACES.values()]
+    if lat is not None and lng is not None:
+        items.sort(key=lambda p: p["distance_m"])
+    return {"places": items, "note_limit": pl.NOTE_LIMIT, "colors": list(pl.COLORS), "stickers": list(pl.STICKERS)}
+
+
+@app.get("/places/{place_id}/notes", summary="장소 쪽지 읽기 (신고가 쌓인 글·차단한 사람 글은 빠짐) + 창작 예시 쪽지")
+def list_place_notes(place_id: str, viewer_id: str | None = Query(None), limit: int = Query(30, ge=1, le=100), conn=Depends(get_conn)):
+    place = place_or_404(place_id)
+    notes = db.list_place_notes(conn, place_id, viewer_id, limit, moderation.REPORT_HIDE_COUNT)
+    return {"place": pl.public(place), "notes": [note_view(n, viewer_id) for n in notes],
+            "samples": [{"text": t, "sample": True} for t in place.get("sample_notes", [])]}
+
+
+@app.post("/places/{place_id}/notes", status_code=201, summary="장소에 쪽지 남기기 (140자, 방명록과 같은 필터)")
+def post_place_note(place_id: str, body: PlaceNoteIn, request: Request, date: str | None = DateQuery, conn=Depends(get_conn)):
+    place_or_404(place_id)
+    author_id = access.actor(request, body.author_id)
+    if not author_id or db.get_user(conn, author_id) is None:
+        raise HTTPException(422, "쪽지는 가입한 사람만 남길 수 있어요.")
+    if body.color not in pl.COLORS or body.sticker not in pl.STICKERS:
+        raise HTTPException(422, "종이 색이나 스티커를 다시 골라 주세요.")
+    today = day(date)
+    if (until := db.guestbook_ban_until(conn, author_id, today.isoformat())):
+        raise HTTPException(403, f"지금은 글을 쓸 수 없어요. ({until}까지)")
+    found = moderation.check(body.text)
+    if found == "slur":
+        until = (today + timedelta(days=moderation.SLUR_BAN_DAYS - 1)).isoformat()
+        db.ban_guestbook(conn, author_id, until, "slur")
+        raise HTTPException(403, f"다른 사람을 깎아내리는 말은 쓸 수 없어요. {until}까지 글을 쓸 수 없어요.")
+    if found:
+        raise HTTPException(422, moderation.FILTER_MESSAGE)
+    note = db.add_place_note(conn, place_id, author_id, body.text.strip(), body.color, body.sticker, today.isoformat())
+    note["author"] = (db.get_user(conn, author_id) or {}).get("nickname")
+    return {"note": note_view(note, author_id)}
+
+
+@app.delete("/places/{place_id}/notes/{note_id}", summary="내 쪽지 지우기 (쓴 사람만)")
+def delete_place_note(place_id: str, note_id: int, request: Request, by: str = Query(..., description="지우는 사람 user id"), conn=Depends(get_conn)):
+    by = access.actor(request, by)
+    note = db.get_place_note(conn, note_id)
+    if note is None or note["place_id"] != place_id:
+        raise HTTPException(404, "쪽지가 없습니다.")
+    if note["author_id"] != by:
+        raise HTTPException(403, "내가 쓴 쪽지만 지울 수 있어요.")
+    db.delete_place_note(conn, note_id)
+    return {"deleted": note_id}
