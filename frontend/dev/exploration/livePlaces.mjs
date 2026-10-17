@@ -49,17 +49,26 @@ export function readLocalNotes(storage) {
     const parsed = JSON.parse(storage?.getItem(LOCAL_NOTES_KEY) ?? '[]');
     if (!Array.isArray(parsed)) return [];
     return parsed.filter(item => item && typeof item === 'object'
-      && LIVE_PLACES.some(place => place.id === item.placeId)
+      && (LIVE_PLACES.some(place => place.id === item.placeId) || /^\d+$/.test(String(item.placeId ?? '')))
       && typeof item.text === 'string' && item.text.trim() && item.text.length <= NOTE_LIMIT
       && ['yellow', 'apricot', 'mint'].includes(item.color)
       && typeof item.id === 'string').map(item => ({
         id: item.id, placeId: item.placeId, text: item.text, color: item.color,
         sticker: ['♡', '✿', '☀'].includes(item.sticker) ? item.sticker : '♡',
+        source: item.source === 'simulation' ? 'simulation'
+          : item.source === 'device-preview' ? 'device-preview' : null,
         createdAt: typeof item.createdAt === 'string' && Number.isFinite(Date.parse(item.createdAt)) ? item.createdAt : null,
       }));
   } catch {
     return [];
   }
+}
+
+// Older preview notes used fixed review IDs; retain them for the matching Kakao place.
+export function notesForPlace(notes, place) {
+  const oldPlace = LIVE_PLACES.find(item => item.name === place.name
+    && distanceMeters(item, place) < 400);
+  return notes.filter(note => note.placeId === place.id || (oldPlace && note.placeId === oldPlace.id));
 }
 
 export function writeLocalNotes(storage, notes) {
