@@ -9,7 +9,7 @@
 .a-topline h1{font-size:19px;margin:0}
 .a-topline label{font-size:11px;color:#65736f;white-space:nowrap}
 .a-topline select{max-width:122px;min-height:40px;margin-left:4px;border:1px solid #d8e2dc;border-radius:10px;background:#fffefa;font-size:12px}
-.a-preview .map{height:480px;background:#e3eee4;border-color:#cbded5}
+.a-preview .map{height:320px;background:#e3eee4;border-color:#cbded5}
 .a-preview .map-art{filter:saturate(1.12)}
 .a-preview .map-caption{font-size:11px}
 .a-place{background:#fffefa;border:1px solid #d8e2dc;border-radius:18px;padding:13px;margin-top:10px}
@@ -83,4 +83,4 @@
 @keyframes postit-dim{from{opacity:0}to{opacity:1}}
 @keyframes postit-arrive{from{opacity:.7;transform:translateY(5px)}to{opacity:1;transform:translateY(0)}}
 @media(prefers-reduced-motion:reduce){.postit-overlay,.postit-overlay .a-sheet,.postit{animation:none!important}.postit-heart,.postit-heart path{transition:none!important}}
-@media(max-width:370px){.a-preview .map{height:450px}.a-header small{max-width:90px}}
+@media(max-width:370px){.a-preview .map{height:285px}.a-header small{max-width:90px}}
