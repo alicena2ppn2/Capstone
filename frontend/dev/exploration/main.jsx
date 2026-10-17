@@ -1,6 +1,6 @@
 import React, { memo, useCallback, useEffect, useRef, useState } from 'react';
 import { createRoot } from 'react-dom/client';
-import Mochi from '../../src/components/Mochi.jsx';
+import SampleMap from './SampleMap.jsx';
 import { CHARACTERS } from '../../../shared/data/characters.js';
 import { colors } from '../../../shared/theme/tokens.js';
 import { PLACES, POLICY, ROUTE, distance, pointAt, arrival, confirmVisit, claimExample, emptyState } from './model.mjs';
@@ -12,21 +12,6 @@ const freshFix = (p, offset = 0) => ({ ...p, accuracy: 8, timestamp: Date.now() 
 function readPreview() {
   try { const data = JSON.parse(sessionStorage.getItem(KEY)); return Object.fromEntries(['A','B','C'].map(k => [k, data?.[k]?.visits && data[k].claims && Array.isArray(data[k].notes) ? data[k] : emptyState()])); }
   catch { return { A: emptyState(), B: emptyState(), C: emptyState() }; }
-}
-const MapBase = memo(function MapBase() {
-  return <svg className="map-art" preserveAspectRatio="none" viewBox="0 0 600 560" aria-hidden="true"><rect width="600" height="560" fill="#F2F3DF"/><path d="M0 120 Q180 140 270 90 T600 130 V0 H0Z" fill="#DCECE3"/><path d="M0 450 Q100 350 190 420 T600 500 V560 H0Z" fill="#D5E7EC"/><path d="M-50 230 L680 340 M120 -20 L230 600 M400 -20 L350 600" stroke="#FFFEFA" strokeWidth="35" fill="none"/><path d="M-50 230 L680 340 M120 -20 L230 600 M400 -20 L350 600" stroke="#D8E2DC" strokeWidth="1.5" fill="none"/>
-    {[ [55,55,80,80],[275,145,60,45],[465,160,80,80],[260,400,75,58],[40,290,75,55] ].map(([x,y,w,h],i)=><rect key={i} x={x} y={y} width={w} height={h} rx="14" fill="#E8DBC6" stroke="#D2C7B7"/>)}
-    <path d={ROUTE.map((p,i)=>`${i?'L':'M'}${p.x} ${p.y}`).join(' ')} stroke="#86A9A1" strokeWidth="4" strokeDasharray="6 8" fill="none"/>
-    <text x="300" y="40" textAnchor="middle" fill="#65736F" fontSize="20">모찌의 가상 동네</text><text x="300" y="530" textAnchor="middle" fill="#65736F" fontSize="16">가상 동네 · 실제 지도 아님</text>
-  </svg>;
-});
-const Pins = memo(function Pins({ choose }) { return PLACES.map(p=><button key={p.id} className="pin" style={{left:p.x/6+'%',top:p.y/5.6+'%'}} onClick={()=>choose(p.id)} aria-label={`${p.name} 장소 보기`}><span aria-hidden="true">{p.id==='park'?'♧':p.id==='library'?'▤':'◇'}</span><small>{p.name}</small><i>메모 2</i></button>); });
-function SampleMap({ fix, character, choose, compact = false }) {
-  const [pan,setPan] = useState({x:0,y:0}),[follow,setFollow] = useState(true);
-  const drag = useRef(null);
-  const recenter=()=>{setFollow(true);setPan({x:0,y:0});};
-  const offset = follow ? { x: Math.max(-60,Math.min(60,(300-fix.x)*.15)), y: Math.max(-30,Math.min(30,(280-fix.y)*.15)) } : pan;
-  return <div className={`map ${compact?'compact':''}`} aria-label="가상 동네 예시 지도"><div className="map-viewport" onPointerDown={e=>{if(e.target.closest('button'))return;drag.current={x:e.clientX,y:e.clientY,base:offset};e.currentTarget.setPointerCapture(e.pointerId);}} onPointerMove={e=>{if(!drag.current)return;setFollow(false);setPan({x:drag.current.base.x+e.clientX-drag.current.x,y:drag.current.base.y+e.clientY-drag.current.y});}} onPointerUp={()=>{drag.current=null;}} onPointerCancel={()=>{drag.current=null;}}><div className="map-world" style={{transform:`translate(${offset.x}px,${offset.y}px)`}}><MapBase/><Pins choose={choose}/><div className="marker" style={{left:fix.x/6+'%',top:fix.y/5.6+'%'}}><Mochi variant={character} full width={62} height={65} active={false} label="예시 현재 위치의 모찌"/><b>나의 모찌</b></div></div></div><span className="map-caption">예시 지도 · 점선은 가상 이동 순서</span><button className="locate secondary" onClick={recenter}>{follow?'내 위치 ✓':'내 위치로 복귀'}</button><div className="map-pan"><button aria-label="지도 왼쪽 보기" onClick={()=>{setFollow(false);setPan(v=>({...v,x:v.x+40}));}}>←</button><button aria-label="지도 오른쪽 보기" onClick={()=>{setFollow(false);setPan(v=>({...v,x:v.x-40}));}}>→</button></div></div>;
 }
 const NoteList = memo(function NoteList({ place, notes, unlocked, onDelete }) {
   return <div className="notes"><p className="caption">샘플 글 · 실제 사용자가 쓴 글이 아니에요.</p>{place.notes.slice(0,unlocked?2:1).map((text,i)=><article className="sticky" key={i}><span>시연 메모</span><p>{text}</p></article>)}{!unlocked&&<p className="locked">도착 확인 후 나머지 메모와 작성을 열 수 있어요.</p>}{notes.filter(n=>n.place===place.id).map(n=><article className="sticky mine" key={n.id}><span>내 예시 글 · 이 브라우저에만 표시</span><p>{n.text}</p><button className="text-button" onClick={()=>onDelete(n.id)}>내 글 삭제</button></article>)}</div>;

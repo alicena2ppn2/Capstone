@@ -1,6 +1,6 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
-import { initialGame, completeQuest, startQuest, migrateQuestProgress, buyCharacter, equipCharacter, levelFor, questCompletionKey, QUESTS, ensureChallenges, selectChallenge, pauseChallenge, replaceChallenge, goalProgress, claimGoal, previewReward } from './game.js';
+import { initialGame, completeQuest, startQuest, migrateQuestProgress, buyCharacter, equipCharacter, levelFor, levelProgress, questCompletionKey, QUESTS, ensureChallenges, selectChallenge, pauseChallenge, replaceChallenge, goalProgress, claimGoal, previewReward } from './game.js';
 import { restoreNicknames } from '../data/catalog.js';
 import { initialConnections, visitNeighbor, favoriteNeighbor } from './neighbors.js';
 const time = day => new Date(`${day}T03:00:00Z`);
@@ -9,10 +9,30 @@ function finish(state, id, day = '2026-10-05', answer = '') {
   return completeQuest(startQuest(state, id, time(day)), id, time(day), answer);
 }
 
-test('신규 자금과 시연 자금은 구분하고 레벨 공식은 유지한다', () => {
+test('신규 자금과 시연 자금은 구분하고 초반 레벨 구간만 빠르게 성장한다', () => {
   assert.equal(initialGame().coins, 90);
   assert.equal(initialGame({ demo: true }).coins, 540);
-  assert.equal(levelFor(700), 8);
+  assert.equal(levelFor(0), 1);
+  assert.equal(levelFor(29), 1);
+  assert.equal(levelFor(30), 2);
+  assert.equal(levelFor(74), 2);
+  assert.equal(levelFor(75), 3);
+  assert.equal(levelFor(174), 3);
+  assert.equal(levelFor(175), 4);
+  assert.equal(levelFor(275), 5);
+  assert.deepEqual(levelProgress(74), { level: 2, xp_in_level: 44, xp_for_level: 45 });
+});
+test('첫날 변동 미션 3개와 일기 완료 시 LV.3에 도달한다', async () => {
+  const { ensureDailyMissions, dailyActivities, startDailyMission, finishDailyMission, recordRoutine } = await import('./dailyMissions.js');
+  const day = '2026-10-16', now = time(day);
+  let game = ensureDailyMissions(initialGame(), day);
+  for (const mission of dailyActivities(game, day)) {
+    game = startDailyMission(game, mission.id, now);
+    game = finishDailyMission(game, mission.id, now);
+  }
+  game = recordRoutine(game, 'day-diary', day);
+  assert.equal(game.xp, 75);
+  assert.equal(levelFor(game.xp), 3);
 });
 test('시작은 무보상, 실제 완료만 1회 지급하고 JSON 복원 후 중복 차단', () => {
   let state = selectChallenge(initialGame(), 'day-walk', '2026-10-05');

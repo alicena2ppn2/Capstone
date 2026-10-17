@@ -31,7 +31,7 @@ export default function Potato({ width, height, label, asleep, outfit, full, int
   }, [reaction]);
   const react = () => { if (enabled && !reaction) setReaction({ kind: 'tap', id: 'tap' }); };
   const bodyPath = 'M103 17 C139 15 154 53 151 90 Q150 119 163 148 Q172 184 126 194 Q75 207 46 177 Q31 157 42 125 Q50 105 47 73 Q47 28 103 17Z';
-  return <svg width={width} height={height} viewBox="0 0 200 210" className={interactive ? 'potato-interactive' : undefined} {...(interactive ? { role: 'button', tabIndex: active ? 0 : -1, 'aria-label': `${label || '꼬질 감자'}, 반응 보기`, onClick: react, onKeyDown: event => { if (event.key === 'Enter' || event.key === ' ') { event.preventDefault(); react(); } } } : label ? { role: 'img', 'aria-label': label } : { 'aria-hidden': true })}>
+  return <svg width={width} height={height} viewBox="0 0 200 210" className={interactive ? 'potato-interactive' : undefined} {...(interactive ? { role: 'button', tabIndex: active ? 0 : -1, 'aria-label': `${label || '꼬질이'}, 반응 보기`, onClick: react, onKeyDown: event => { if (event.key === 'Enter' || event.key === ' ') { event.preventDefault(); react(); } } } : label ? { role: 'img', 'aria-label': label } : { 'aria-hidden': true })}>
     <defs><clipPath id={clipId}><path d={bodyPath} /></clipPath></defs>
     <ellipse cx="100" cy="199" rx="58" ry="6" fill="#8B6745" opacity=".12" />
     <g key={reaction?.id ?? 'idle'} className={`potato-body${reaction ? ` potato-${reaction.kind}` : ''}`}>

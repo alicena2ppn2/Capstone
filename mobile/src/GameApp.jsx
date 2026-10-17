@@ -22,7 +22,7 @@ import Shop from './screens/Shop';
 import Settings, { Backup } from './screens/Settings';
 import Visit, { Guestbook } from './screens/Visit';
 import Neighbors from './screens/Neighbors';
-import { CHARACTERS, buyCharacter, levelFor } from '../../shared/features/game.js';
+import { CHARACTERS, buyCharacter, levelFor, levelProgress } from '../../shared/features/game.js';
 import { CLOTHES } from '../../shared/data/clothes.js';
 import { seoulDateKey, attendanceWeek } from '../../shared/utils/seoulDate.js';
 import { replaceDailyMission, saveDiaryMission, deleteDiaryMission } from '../../shared/features/dailyMissions.js';
@@ -56,7 +56,7 @@ function GameApp({ children }) {
   if (!state || !fontsLoaded && !fontError) return <SafeAreaView style={styles.safe}>{children}<Label style={{ padding: 24 }}>{error || '친구의 방을 준비하고 있어요…'}</Label>{!!error && <Button onPress={load}>다시 읽기</Button>}</SafeAreaView>;
   const { wardrobe } = state;
   const game = sv ? { ...state.game, ...shopAsGame(sv.shop), decorPositions: sv.home.room.positions ?? {} } : state.game;
-  const levelInfo = sv ? sv.home.level : { level: levelFor(state.game.xp), xp_in_level: state.game.xp % 100, xp_for_level: 100 };
+  const levelInfo = sv ? sv.home.level : levelProgress(state.game.xp);
   const level = levelInfo.level;
   const serverAct = async job => { try { await job(); await server.refresh(); return { ok: true, changed: true }; } catch (e) { setToast(e.message); return { ok: false, message: e.message }; } };
   // 상점 화면은 '게임 상태를 바꾸는 함수'로 행동을 알린다 → 서버면 바뀐 부분을 보고 같은 서버 요청을 보낸다
