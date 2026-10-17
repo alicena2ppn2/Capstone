@@ -27,6 +27,24 @@
 .a-controls{display:flex;gap:6px;margin-top:8px}
 .a-controls button{flex:1;font-size:12px;padding:7px 4px;min-height:44px}
 .a-controls .text-button{flex:0 0 auto}
+.a-live-entry{margin-top:8px}
+.live-map-panel{position:relative;margin-top:10px;padding:12px;border:1px solid #d8e2dc;border-radius:18px;background:#fffefa}
+.live-map-toolbar{display:flex;align-items:center;justify-content:space-between;gap:8px;margin-bottom:8px}
+.live-mode-badge{display:inline-flex;align-items:center;min-height:28px;padding:4px 9px;border-radius:999px;background:#f2eafb;color:#564677;font-size:11px;font-weight:500}
+.live-back{min-height:40px}
+.live-map-intro{padding:3px 0 6px}
+.live-map-intro p{margin:4px 0 10px;font-size:13px}
+.live-config-note{margin-top:8px!important;padding:9px 10px;border-radius:10px;background:#f6effb;color:#564677;font-size:12px!important}
+.live-map-status{min-height:34px;padding:6px 8px;border-radius:9px;background:#f6effb;color:#4c3f66;font-size:12px;line-height:1.5}
+.live-kakao-map,.live-kakao-map-placeholder{width:100%;height:320px;margin-top:8px;border:1px solid #d8e2dc;border-radius:14px;overflow:hidden;background:#f4f0e9}
+.live-kakao-map-placeholder{display:grid;place-items:center;padding:18px;color:#65736f;text-align:center;font-size:13px}
+.live-character-marker{display:flex;flex-direction:column;align-items:center;gap:1px;width:72px;pointer-events:none;filter:drop-shadow(0 3px 3px #35474430)}
+.live-marker-art{display:block;width:58px;height:60px}
+.live-marker-art svg{display:block;width:54px;height:58px;overflow:visible}
+.live-marker-label{display:block;padding:2px 7px;border:1px solid #e3d8ec;border-radius:999px;background:#fffefa;color:#4c3f66;font-size:10px;line-height:1.3;white-space:nowrap}
+.live-locate{display:block;width:100%;margin-top:8px}
+.live-retry{margin-top:8px}
+.live-example-separation{margin:9px 1px 1px;color:#65736f;font-size:11px;line-height:1.5}
 .a-sheet{padding-bottom:24px}
 .a-sheet-distance{color:#397d78;font-size:13px}
 .a-sheet .a-reward{background:#e4f1ee;border-radius:10px;padding:9px}
