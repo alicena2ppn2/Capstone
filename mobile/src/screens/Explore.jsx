@@ -1,11 +1,12 @@
 // 동네 탐험 (영주 님 웹 시안 frontend/dev/exploration A안을 앱으로). 서버 장소 목록 + 내 위치로 가까운 순·거리.
-// 위치 권한은 '내 위치로 보기'를 눌렀을 때만 묻는다. 지도(3단계)·장소 쪽지(4단계)는 이 화면에 이어 붙인다.
+// 위치 권한은 '내 위치로 보기'를 눌렀을 때만 묻는다. 지도: 휴대폰은 Apple·Google 지도(PlaceMap.native), 웹 미리보기는 점 그림. 장소 쪽지(4단계)는 이어 붙인다.
 import React, { useCallback, useEffect, useState } from 'react';
 import { Linking, View } from 'react-native';
 import { colors } from '../../../shared/theme/tokens.js';
 import { Label, Button, Card, styles, ScreenHeader } from '../components/ui';
 import { placesNear, serverConfigured } from '../api/server';
 import useMyLocation, { formatDistance } from '../location/useMyLocation';
+import PlaceMap from './explore/PlaceMap';
 
 const ICON = { library: '📚', plaza: '🌳', park: '🌲' };
 
@@ -30,6 +31,7 @@ export default function Explore({ onBack }) {
       {location.status === 'ready' && <Label style={styles.small}>내 위치는 거리 계산에만 쓰고 저장하지 않아요.</Label>}
     </Card>
     {!!error && <Label accessibilityRole="alert" style={styles.error}>{error}</Label>}
+    {!!places?.length && <PlaceMap places={places} me={location.coords} selected={open} onSelect={id => setOpen(id)} />}
     {!places ? <Label style={styles.small}>장소를 불러오는 중…</Label> : places.map(place => <Card key={place.id} style={{ gap: 6 }}>
       <View style={styles.row}>
         <Label style={{ fontSize: 26, lineHeight: 34 }}>{ICON[place.icon] ?? '📍'}</Label>
