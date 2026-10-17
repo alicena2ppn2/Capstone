@@ -100,6 +100,13 @@ export const requestFriend = (me, code) => call(`/users/${u(me)}/friends`, { met
 export const acceptFriend = (me, other) => call(`/users/${u(me)}/friends/${u(other)}/accept`, { method: 'POST' });
 export const removeFriend = (me, other) => call(`/users/${u(me)}/friends/${u(other)}`, { method: 'DELETE' });
 
+// 동네 탐험 (backend/app/places.py): 장소 목록(내 위치를 보내면 거리), 장소 쪽지
+export const placesNear = coords => call(`/places${coords ? `?lat=${coords.latitude}&lng=${coords.longitude}` : ''}`);
+export const placeNotes = (placeId, me) => call(`/places/${u(placeId)}/notes${me ? `?viewer_id=${u(me)}` : ''}`);
+export const writePlaceNote = (placeId, me, note) => call(`/places/${u(placeId)}/notes`, { method: 'POST', body: { ...note, author_id: me } });
+export const deletePlaceNote = (placeId, noteId, me) => call(`/places/${u(placeId)}/notes/${noteId}?by=${u(me)}`, { method: 'DELETE' });
+export const reportPlaceNote = (me, noteId, reason) => call('/reports', { method: 'POST', body: { reporter_id: me, target_type: 'place_note', target_id: String(noteId), reason } });
+
 // 프로필
 export const profileOf = me => call(`/users/${u(me)}`);
 export const saveProfile = (me, change) => call(`/users/${u(me)}`, { method: 'PATCH', body: change });
