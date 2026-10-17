@@ -63,6 +63,17 @@
         {
           "color": "#3E8F6E"
         }
+      ],
+      [
+        "expo-location",
+        {
+          "locationWhenInUsePermission": "가까운 동네 장소와 거리를 보여 주려고 위치를 써요. 위치는 저장하지 않아요.",
+          "isIosBackgroundLocationEnabled": false,
+          "isAndroidBackgroundLocationEnabled": false,
+          "locationAlwaysAndWhenInUsePermission": false,
+          "locationAlwaysPermission": false,
+          "motionUsagePermission": false
+        }
       ]
     ],
     "scheme": "capstone-mochi",
