@@ -5,7 +5,7 @@
 .stage{position:relative;flex-shrink:0}.device{position:absolute;left:0;top:0;transform-origin:top left;width:390px;height:844px;border-radius:26px;overflow:hidden;box-shadow:0 14px 50px #35474430;background:#fff9f0}
 iframe{display:block;width:390px;height:844px;border:0}.label{position:fixed;top:6px;font-size:12px;background:#fff9f0;padding:4px 10px;border-radius:8px}
 </style></head><body>
-<div class="label">개발 시안 · 예시 위치와 보상 · 실제 GPS 아님</div><div class="stage"><div class="device"><iframe src="./a-app.html" title="MY MOCHI 모찌와 동네 탐험 A안"></iframe></div></div>
+<div class="label">개발 시안 · 예시 위치와 보상 · 실제 위치 연결</div><div class="stage"><div class="device"><iframe src="./a-app.html" title="MY MOCHI 모찌와 동네 탐험 A안" allow="geolocation"></iframe></div></div>
 <script type="module">
 if(!import.meta.env.DEV){document.body.textContent='개발 환경에서만 제공됩니다.';}
 else{const fit=()=>{const scale=Math.min(1,(innerWidth-24)/390,(innerHeight-58)/844);const stage=document.querySelector('.stage');stage.style.width=390*scale+'px';stage.style.height=844*scale+'px';document.querySelector('.device').style.transform=`scale(${scale})`;};new ResizeObserver(fit).observe(document.documentElement);fit();}
