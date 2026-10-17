@@ -4,6 +4,7 @@ import { CHARACTERS } from '../../../shared/data/characters.js';
 import { PLACES, ROUTE, distance, pointAt, arrival, confirmVisit, claimExample, emptyState, POLICY } from './model.mjs';
 import SampleMap from './SampleMap.jsx';
 import KakaoLiveMap from './KakaoLiveMap.jsx';
+import Postit from './PreviewPostit.jsx';
 import UiIcon from '../../src/components/UiIcon.jsx';
 import './style.css';
 import './a-style.css';
@@ -25,21 +26,6 @@ const SAMPLE_NOTES = {
   ],
 };
 
-function Postit({ note, reaction, onReact, children }) {
-  return <article className={`postit paper-${note.color}`}>
-    <span className="postit-tape" aria-hidden="true" />
-    {note.sticker && <span className="postit-personal-sticker" aria-label={`선택한 스티커 ${note.sticker}`}>{note.sticker}</span>}
-    <p className="postit-copy">{note.text}</p>
-    <footer className="postit-meta"><span>{note.author}</span><time>{note.date}</time></footer>
-    {children}
-    <div className="postit-reactions">
-      <button className={`postit-heart${reaction === 'heart' ? ' chosen' : ''}`} type="button" aria-label={reaction === 'heart' ? '하트 반응 취소' : '하트 반응 남기기'} aria-pressed={reaction === 'heart'} onClick={() => onReact('heart')}>
-        <svg viewBox="0 0 24 24" aria-hidden="true" focusable="false"><path d="M20.8 4.7a5.5 5.5 0 0 0-7.8 0L12 5.8l-1.1-1.1a5.5 5.5 0 0 0-7.8 7.8l1.1 1.1L12 21l7.8-7.4 1.1-1.1a5.5 5.5 0 0 0-.1-7.8Z" /></svg>
-      </button>
-    </div>
-  </article>;
-}
-
 function ExampleReward({ place, className = '' }) {
   return <div className={`a-reward ${className}`} aria-label={`예시 보상: ${place.reward.coins} 코인, ${place.reward.xp} XP, ${place.reward.item}`}>
     <span className="a-reward-token"><UiIcon kind="coin" size={19} /> +{place.reward.coins} 코인</span>
@@ -50,7 +36,7 @@ function ExampleReward({ place, className = '' }) {
 
 function APreview() {
   const [character, setCharacter] = useState('mochi');
-  const [mapMode, setMapMode] = useState('sample');
+  const [mapMode, setMapMode] = useState(() => new URLSearchParams(window.location.search).get('mode') === 'live' ? 'live' : 'sample');
   const [placeId, setPlaceId] = useState(PLACES[0].id);
   const [fix, setFix] = useState(initialFix);
   const [fixes, setFixes] = useState([]);
