@@ -157,5 +157,20 @@ function APreview() {
   </div>;
 }
 
-if (import.meta.env.DEV) createRoot(document.getElementById('root')).render(<APreview />);
+class PreviewErrorBoundary extends React.Component {
+  state = { failed: false, message: '' };
+  static getDerivedStateFromError(error) {
+    const message = String(error?.message ?? error ?? '원인을 알 수 없는 오류')
+      .replace(/(?:appkey|key|token)=([^\s&]+)/gi, '$1=[숨김]')
+      .replace(/\b[0-9a-f]{32,}\b/gi, '[숨김]');
+    return { failed: true, message };
+  }
+  render() {
+    return this.state.failed
+      ? <main style={{ padding: 24, color: '#354744' }}><h1>미리보기를 표시하지 못했어요</h1><p>실제 게임 데이터는 변경되지 않았어요.</p><p style={{ overflowWrap: 'anywhere' }}>오류: {this.state.message}</p><a href="./a-app.html">예시 지도 다시 열기</a></main>
+      : this.props.children;
+  }
+}
+
+if (import.meta.env.DEV) createRoot(document.getElementById('root')).render(<PreviewErrorBoundary><APreview /></PreviewErrorBoundary>);
 else document.getElementById('root').textContent = '개발 환경에서만 제공됩니다.';
