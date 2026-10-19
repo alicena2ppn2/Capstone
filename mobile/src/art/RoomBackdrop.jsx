@@ -8,13 +8,15 @@ import { DECOR } from '../../../shared/data/decor.js';
 const PATTERN_ELEMENTS = { Defs, Pattern, Rect, Circle, Path };
 import HouseDecor from './HouseDecor.jsx';
 // positions: {slot: {dx, dy}} 서버에 저장된 소품 위치 (웹과 같은 방 좌표)
-export default function RoomBackdrop({ decor = {}, wallColor = '#D6EAF8', floorColor = '#EBCDA6', homeScene = false, now, positions = {} }) {
+export default function RoomBackdrop({ decor = {}, wallColor = '#D6EAF8', floorColor = '#EBCDA6', homeScene = false, now, positions = {}, floorExtra = 0 }) {
+  // floorExtra: 홈에서 방 아래 바닥을 더 보여 줄 높이(그림 단위, 최대 283). 바닥은 원래 y=838까지 그려져 있어 무늬가 그대로 이어진다 (10/19)
+  const extra = Math.max(0, Math.min(283, Math.round(floorExtra)));
   const time = now ? roomTime(now) : null;
   const uid = useId().replace(/[^a-zA-Z0-9]/g, '');
   const wall = DECOR.find(item => item.id === decor.wallpaper), floor = DECOR.find(item => item.id === decor.floor);
   const sofa = DECOR.find(item => item.id === decor.sofa), drawer = DECOR.find(item => item.id === decor.drawer), curtain = DECOR.find(item => item.id === decor.curtain);
   return (
-    <Svg width="100%" height="100%" viewBox={homeScene ? '0 55 368 500' : '0 0 368 838'} preserveAspectRatio={homeScene ? 'xMidYMid meet' : 'none'} >
+    <Svg width="100%" height="100%" viewBox={homeScene ? `0 55 368 ${500 + extra}` : '0 0 368 838'} preserveAspectRatio={homeScene ? 'xMidYMid meet' : 'none'} >
       {wall && <GarmentPattern outfit={wall} id={`wall${uid}`} elements={PATTERN_ELEMENTS} />}{floor && <GarmentPattern outfit={floor} id={`floor${uid}`} elements={PATTERN_ELEMENTS} />}
       <Rect x="0" y="0" width="368" height="454" fill={wall ? `url(#wall${uid})` : wallColor} />
       {!wall && <G stroke="#C7DFF2" strokeWidth="10">

@@ -12,7 +12,7 @@
   {
     "id": "walk",
     "category": "daily",
-    "title": "오늘 산책하기",
+    "title": "산책하기",
     "desc": "밖을 걷다가 마음에 든 풍경을 한 장 찍어 주세요.",
     "kind": "photo",
     "outdoor": true,
@@ -33,7 +33,7 @@
   {
     "id": "diary",
     "category": "daily",
-    "title": "오늘의 일기 쓰기",
+    "title": "일기 쓰기",
     "desc": "오늘의 주제: {topic} 다른 이야기를 써도 괜찮아요.",
     "kind": "diary",
     "outdoor": false,
@@ -98,7 +98,7 @@
   {
     "id": "sky_photo",
     "category": "outdoor",
-    "title": "오늘 하늘 찍기",
+    "title": "하늘 찍기",
     "desc": "밖에 나가서 오늘 하늘을 찍어 올려요.",
     "kind": "photo",
     "outdoor": true,
@@ -726,7 +726,7 @@
   {
     "id": "mood_word",
     "category": "record",
-    "title": "오늘 기분 한 단어",
+    "title": "기분 한 단어",
     "desc": "오늘 기분을 한 단어로 적어요.",
     "kind": "text",
     "outdoor": false,
@@ -736,7 +736,7 @@
   {
     "id": "good_moment",
     "category": "record",
-    "title": "오늘 좋았던 순간",
+    "title": "좋았던 순간",
     "desc": "오늘 가장 좋았던 순간 하나를 적어요.",
     "kind": "text",
     "outdoor": false,
@@ -756,7 +756,7 @@
   {
     "id": "ate_today",
     "category": "record",
-    "title": "오늘 먹은 것 적기",
+    "title": "먹은 것 적기",
     "desc": "오늘 먹은 것들을 적어요.",
     "kind": "list",
     "outdoor": false,
