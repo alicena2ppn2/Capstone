@@ -6,8 +6,13 @@ from tests.test_api import DAY, client, signup  # noqa: F401  (client는 fixture
 CITY_HALL = {"lat": 37.5663, "lng": 126.9779}     # 서울시청 근처
 
 
+def at(place):   # 그 장소 바로 앞 (쓰기만 잠금 — 근처에서만 남길 수 있음)
+    p = pl.PLACES[place]
+    return {"latitude": p["latitude"], "longitude": p["longitude"], "accuracy_m": 10}
+
+
 def note(client, me, text="오늘 하늘이 맑았어요", place="seoul-plaza", **extra):
-    return client.post(f"/places/{place}/notes", params={"date": DAY}, json={"text": text, "author_id": me, **extra})
+    return client.post(f"/places/{place}/notes", params={"date": DAY}, json={"text": text, "author_id": me, **at(place), **extra})
 
 
 def test_places_list_and_distance():
@@ -61,3 +66,18 @@ def test_report_hides_note_and_account_delete(client):
     note(client, a, text="두 번째 쪽지", place="namsan-park")
     client.delete(f"/users/{a}")
     assert client.get("/places/namsan-park/notes").json()["notes"] == []                     # 계정 삭제 = 쪽지도 삭제
+
+
+def test_write_only_near_the_place(client):
+    # 10/19 쓰기만 잠금: 읽기는 어디서나, 남기기는 장소 반경 안에서만 (위치는 저장 안 함)
+    a = signup(client, "근처확인")["id"]
+    far = {"latitude": CITY_HALL["lat"], "longitude": CITY_HALL["lng"], "accuracy_m": 10}
+    r = note(client, a, place="namsan-park", **far)
+    assert r.status_code == 403 and "떨어져" in r.json()["detail"]                             # 시청에서 남산 쪽지 X
+    assert note(client, a, latitude=None, longitude=None).status_code == 403                  # 위치 없음
+    assert note(client, a, accuracy_m=120).status_code == 403                                 # 오차가 너무 큼
+    assert note(client, a).status_code == 201                                                  # 광장 앞에서는 됨
+    assert client.get("/places/seoul-plaza/notes").json()["notes"]                             # 읽기는 위치 없이
+    assert client.get("/places").json()["places"][0]["write_radius_m"] > 0
+    cols = [c[1] for c in client.app.state.conn.execute("PRAGMA table_info(place_notes)")]
+    assert not {"latitude", "longitude"} & set(cols)                                          # 위치는 저장하지 않음
