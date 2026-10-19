@@ -216,3 +216,8 @@ test('적절한 대안이 없으면 현재 도전과 모든 기록을 그대로 
   state = { ...state, completed: QUESTS.filter(q => q.period === 'day' && q.id !== 'day-place').map(q => `2026-10-05:${q.id}`) };
   assert.equal(replaceChallenge(state, 'day-place', '2026-10-05', 'hard'), state);
 });
+
+test('server level maps back to the same app level (shop unlocks use the server level)', async () => {
+  const { xpThresholdForLevel, levelFor } = await import('./levelProgression.js');
+  for (let level = 1; level <= 40; level++) assert.equal(levelFor(xpThresholdForLevel(level)), level);
+});

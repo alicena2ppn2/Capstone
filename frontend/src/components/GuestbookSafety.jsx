@@ -1,8 +1,9 @@
 import { useCallback, useEffect, useState } from 'react';
 import QuestSheet from './QuestSheet.jsx';
 import { MODERATION_KEY, SELF_AUTHOR, REPORT_REASONS, restoreModeration, reportNote, blockAuthor, noteKey, suspensionUntil, writingError } from '../../../shared/features/guestModeration.js';
+import { local } from '../storage/local.js';
 
-function load() { return restoreModeration(JSON.parse(localStorage.getItem(MODERATION_KEY) ?? 'null')); }
+function load() { return restoreModeration(JSON.parse(local.getItem(MODERATION_KEY) ?? 'null')); }
 export function useGuestModeration() {
   const [state, setState] = useState(() => { try { return load(); } catch { return restoreModeration(null); } });
   const [now, setNow] = useState(Date.now);
@@ -15,7 +16,7 @@ export function useGuestModeration() {
     return () => { clearInterval(timer); window.removeEventListener('storage', storage); window.removeEventListener('mochi-moderation', refresh); window.removeEventListener('focus', refresh); };
   }, []);
   const update = mutation => {
-    try { const before = load(), next = mutation(before); if (next !== before) localStorage.setItem(MODERATION_KEY, JSON.stringify(next)); setState(next); window.dispatchEvent(new Event('mochi-moderation')); return next; }
+    try { const before = load(), next = mutation(before); if (next !== before) local.setItem(MODERATION_KEY, JSON.stringify(next)); setState(next); window.dispatchEvent(new Event('mochi-moderation')); return next; }
     catch { setMessage('저장하지 못했어요. 신고·차단을 적용하지 않았습니다. 다시 시도해 주세요.'); return null; }
   };
   const report = (scope, entry, reason) => {
