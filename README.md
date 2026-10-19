@@ -88,7 +88,9 @@
 | **약한 연결·말 걸기** | Sandstrom·Dunn 2014, Epley·Schroeder 2014 | 이웃 방 방문, 방명록, 짧은 인사 미션 |
 | **주간 자연 산책** | White 2019 | 이번 주 공원·하천 사진 서로 다른 날 2번 |
 
-**하루 미션**: 데일리 미션 6개(출석 · 오늘 산책하기 · 지난주보다 1,000보 더 걷기 · 일기 · 친구 방 놀러 가기 · 방명록) + **오늘의 활동 3개**(움직이기 · 집에서 · 이어지기, 하루 3번 다른 미션으로 바꾸기) + 주간 미션 1개. 미션은 **확인할 수 있는 행동**(오늘 찍은 사진, 걸음, 서버가 확인하는 방문·방명록)으로만 완료된다.
+**하루 미션**: 데일리 미션 5개(출석 · 산책하기 · 지난주보다 1,000보 더 걷기 · 일기 쓰기 · 다른 친구 방 놀러 가기) + **오늘의 활동 3개**(움직이기 · 집에서 · 이어지기, 하루 3번 다른 미션으로 바꾸기) + 주간 미션 1개. 미션은 사진(그날 찍은 것), 걸음, 서버가 확인하는 방문, 또는 인사·안부·운동처럼 사진이 어색한 미션은 **"했어요" 체크**로 완료한다. 방명록은 매일 미션이 아니고 원할 때 남긴다.
+
+퀘스트 코드가 어느 파일에 있는지는 [6-2 미션 → 퀘스트 파일 위치](#퀘스트-파일-위치).
 
 **보상 원칙**: 밖에 나가는 미션이 가장 크고(20코인) 집 미션(12코인)·스스로 체크(5코인)는 작게, 실패·미완료는 벌점 없음. 상점 가격은 그대로 두고 "사는 데 며칠 걸리나"로 맞췄다 — 소품 1일 · 옷 2~3일 · 친구 2~6일 · 상점 전체 3~4달 ([backend/ECONOMY.md](backend/ECONOMY.md)).
 
@@ -103,7 +105,7 @@
 | 10/7~10/13 | Expo(React Native) 앱으로 전환, 하루 6미션, 공통 디자인 시스템, 10/12 교수님 면담 반영 |
 | 10/14~10/16 | Supabase 로그인(Google·카카오), 웹·앱 ↔ 서버 연결, 사진 위치 정보 지우기, 모든 API 토큰 확인, 연속 출석표, 걸음 수(Apple 건강·Health Connect), 다시 부르기 알림, 친구 코드, 경제 밸런스, 앱 안 계정 삭제 |
 
-**숫자로 보면**: 서버 API 65개 · 미션 92개(데일리 6 + 바뀌는 86) · 일기 주제 50개 · 상점 친구 12 · 옷 9 · 집 꾸미기 46 · 테스트 백엔드 267개 · 앱·공통 127개
+**숫자로 보면**: 서버 API 65개 · 미션 91개(데일리 5 + 바뀌는 86) · 일기 주제 50개 · 상점 친구 12 · 옷 9 · 집 꾸미기 46 · 테스트 백엔드 274개 · 앱·공통 127개
 
 **출시 전 남은 큰 일**: ① 서버 배포(HTTPS·DB·사진 저장소) ② Apple 로그인 ③ 운영자 신고 확인 화면 ④ 개인정보 처리방침·민감정보 동의 ⑤ 만 14세 미만 처리 ⑥ 실기기 빌드·테스트(걸음·알림·로그인 복귀) ⑦ 스토어 등록 자료
 
@@ -167,13 +169,33 @@
 
 | 기능 | 어떻게 | 파일 |
 |---|---|---|
-| **미션 목록** | 92개를 JSON 한 파일로 관리(데일리 6 + 움직이기·집·찾아보기·기록·이어지기). 미션마다 종류(사진·걸음·글·방문·방명록…), 단계, 팁, 보상 규칙 | `backend/app/data/missions.json` |
+| **미션 목록** | 91개를 JSON 한 파일로 관리(데일리 5 + 움직이기·집·찾아보기·기록·이어지기). 미션마다 종류(사진·걸음·글·방문·방명록…), 단계, 팁, 보상 규칙 | `backend/app/data/missions.json` |
 | **오늘의 미션 고르기** | 사용자·날짜로 만든 난수(`random.Random(user:date)`)로 고름 → 같은 날 다시 열어도 같음. 어제 걸음(없으면 설문의 외출 빈도)으로 "안 나간 날 / 나간 날" 조합, 최근에 한 미션은 피함 | `backend/app/missions.py` `pick_missions` |
 | **처음 설문** | 직업·관심 취미·외출 빈도 등. 모두 건너뛸 수 있고 미션 고르기에만 씀 | `backend/app/survey.py` |
 | **단계 사다리** | 혼자 → 한 명 → 여럿(1~3단계). 지금 단계 미션 3번 하면 다음 단계, 내려가지 않음. 단계가 오를수록 코인 +5 | `missions.py` `LADDER` |
 | **다른 미션으로 바꾸기** | 하루 3번, 같은 칸의 다른 미션으로 (보상을 다시 받지 않음) | `POST /missions/{id}/reroll` |
 | **소감** | 완료 후 "해 보니 어땠어?" 1~5 이모지 + 한 줄 (행동 활성화) | `PUT /missions/{id}/feedback` |
 | **주간 미션** | 자연 속 산책 사진, 서로 다른 날 2번 | `missions.py` `WEEKLY_QUESTS` |
+
+##### 퀘스트 파일 위치
+
+**서버가 정하고 판정**하고, 앱·웹은 서버 미션을 보여 주고 제출만 한다. 미션을 고치거나 추가할 때는 거의 `missions.json`과 `missions.py`만 보면 된다.
+
+| 하는 일 | 서버 (`backend/`) | 앱 (`mobile/src/`) | 웹 (`frontend/src/`) |
+|---|---|---|---|
+| **미션 목록 (제목·종류·단계·팁·보상)** | `app/data/missions.json` (91개) | — | — |
+| **오늘 미션 고르기 · 완료 판정 · 코인·XP · 레벨 · 단계 사다리 · 주간 미션** | `app/missions.py` (`pick_missions`, `is_complete`, `settle_coins`, `LADDER`, `WEEKLY_QUESTS`, `xp_for_next`) | — | — |
+| **API (오늘 미션 · 바꾸기 · 사진 · 완료 · 소감 · 주간)** | `app/main.py` (`/users/{id}/missions/...`, `/users/{id}/weekly`) | `api/server.js` | `api/missions.js` |
+| **사진 촬영 일시 확인 · 개인정보 지우기** | `app/photo_meta.py` | — | — |
+| **출석** | `app/attendance.py` | `components/AttendanceCards.jsx` | `components/Attendance.jsx` |
+| **퀘스트 화면 (오늘 · 이번 주 탭)** | — | `screens/quests/Quests.jsx` | `screens/Quest.jsx` |
+| **서버 미션 카드 (사진 고르기 · 걸음 확인 · 했어요 · 이웃 가기 · 바꾸기)** | — | `screens/quests/ServerMissions.jsx` | `components/ServerMissions.jsx` |
+| **사진 미션 · 미션 바꾸기 · 처음 취향 질문** | — | `screens/quests/PhotoMission.jsx`, `MissionReplacement.jsx`, `MissionPreferences.jsx` | `components/PhotoMission.jsx`, `MissionReplacement.jsx`, `MissionPreferences.jsx` |
+| **보상 표시 (코인·XP 스티커, 받은 보상)** | — | `components/QuestRewards.jsx`, `RewardPanel.jsx` | `components/QuestRewards.jsx`, `RewardPanel.jsx` |
+| **홈의 오늘의 도전 요약 · 끌어올리는 시트** | — | `screens/home/HomeScreen.jsx` | `screens/Home.jsx` |
+| **테스트** | `tests/test_missions.py`, `test_reroll.py`, `test_api.py` | — | — |
+
+서버 없이 쓰는 **개발용 미리보기**의 기기 안 미션은 `shared/`에 있다: `shared/data/missions.js`(미션 목록), `shared/features/dailyMissions.js`(데일리·일기·바꾸기), `shared/features/missionGuidance.js`(취향 추천·완료 기준), `shared/features/missionPhotos.js`, `shared/features/levelProgression.js`. 테스트는 같은 폴더의 `*.test.js`. 설계 근거는 [QUEST_DESIGN.md](QUEST_DESIGN.md), 규칙 한눈에 보기는 [docs/GAME_RULES.md](docs/GAME_RULES.md).
 
 #### 사진 · 걸음 (확인되는 행동)
 
