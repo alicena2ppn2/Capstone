@@ -6,7 +6,7 @@ import { hasJournal, journalDates, saveJournal, deleteJournal, JOURNAL_EMOTIONS,
 
 export const ROUTINES = [
   { id: 'day-attendance', name: '출석하기', kind: 'attendance', icon: '☀', action: '출석하기' },
-  { id: 'day-diary', name: '오늘의 일기 쓰기', kind: 'diary', icon: '✎', action: '일기 쓰기' },
+  { id: 'day-diary', name: '일기 쓰기', kind: 'diary', icon: '✎', action: '일기 쓰기' },
   { id: 'day-visit', name: '이웃 방 놀러 가기', kind: 'visit', icon: '♡', action: '이웃 둘러보기' },   // 10/19: 방명록 남기기 → 방문(서버와 같게). 방명록은 마음 있을 때 쓰는 선택
 ];
 const pool = DAILY_CHALLENGES.filter(q => !q.input);

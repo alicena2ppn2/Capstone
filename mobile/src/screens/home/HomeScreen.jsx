@@ -38,6 +38,8 @@ export default function HomeScreen({ serverUserId, onMoveDecor, levelInfo, game,
   const baseRoomHeight = roomWidth * 500 / 368;
   const friendSize = Math.min(roomWidth * .66, 248);
   const sentenceExtra = Math.max(0,baseRoomHeight * .868 + sentenceHeight + 22 * fontScale + 14 - baseRoomHeight);
+  // 방(바닥 색)을 시트 손잡이 바로 아래까지 이어서 사이 공백이 없게 — 시트 둥근 모서리 밑으로 조금 들어간다 (10/19)
+  const roomHeight = Math.max(baseRoomHeight + sentenceExtra, areaHeight ? areaHeight - 4 - PEEK + 24 : 0);
   // 가구 옮기기 (서버): 옮길 소품을 고르고 방을 끌면 그만큼 움직인다. 손을 떼면 서버에 저장
   const placed = MOVABLE_SLOTS.filter(slot => game.decor?.[slot]);
   const [arranging, setArranging] = useState(false), [slot, setSlot] = useState(null), [live, setLive] = useState(null);
@@ -71,11 +73,11 @@ export default function HomeScreen({ serverUserId, onMoveDecor, levelInfo, game,
     onPanResponderTerminate: () => setDrag(null),
   });
   return <View style={{ flex: 1, paddingTop: 4 }} onLayout={event => setAreaHeight(event.nativeEvent.layout.height)}>
-        <View {...(arranging ? pan.panHandlers : {})} style={[homeStyles.room, arranging && homeStyles.arranging, { width: roomWidth, height: baseRoomHeight + sentenceExtra,backgroundColor:roomTime(now).night?'#DBC1A2':'#EBCDA6' }]}><View accessible accessibilityLabel={`기기 현지 시간: ${roomTime(now).label}`} style={[StyleSheet.absoluteFill,{height:baseRoomHeight,bottom:undefined}]}><RoomBackdrop decor={game.decor ?? {}} positions={positions} homeScene now={now} /></View>
+        <View {...(arranging ? pan.panHandlers : {})} style={[homeStyles.room, arranging && homeStyles.arranging, { width: roomWidth, height: roomHeight,backgroundColor:roomTime(now).night?'#DBC1A2':'#EBCDA6' }]}><View accessible accessibilityLabel={`기기 현지 시간: ${roomTime(now).label}`} style={[StyleSheet.absoluteFill,{height:roomHeight,bottom:undefined}]}><RoomBackdrop decor={game.decor ?? {}} positions={positions} homeScene now={now} floorExtra={(roomHeight - baseRoomHeight) * 368 / roomWidth} /></View>
           <View style={homeStyles.settingsCorner}><Button onPress={() => go('settings')} accessibilityLabel="설정" icon={<UiIcon kind="gear" />} /></View>
 
           <View style={homeStyles.roomMenus}><Button textStyle={{ fontSize: 13 }} style={{ paddingHorizontal: 7 }} onPress={() => go('visit')} icon={<MenuIcon kind="visit" />}>방문하기</Button><Button textStyle={{ fontSize: 13 }} style={{ paddingHorizontal: 7 }} onPress={() => go('guest')} icon={<MenuIcon kind="guest" />}>방명록</Button><Button textStyle={{ fontSize: 13 }} style={{ paddingHorizontal: 7 }} onPress={() => openDiary()} icon={<MenuIcon kind="diary" />}>일기</Button></View>
-          <View style={{position:'absolute',top:64,alignSelf:'center',maxWidth:'50%'}}><Button textStyle={{fontFamily:'A2z-600',fontSize:14}} style={{minHeight:38,paddingVertical:7}} onPress={()=>go('settings')}>{name}</Button></View><View style={[styles.friendPosition,{bottom:baseRoomHeight*.15}]}><Character variant={game.character} outfit={outfit} size={friendSize} label={name} interactive reactionId={reaction} onConsumed={consumeReaction} /></View>
+          <View style={{position:'absolute',top:64,alignSelf:'center',maxWidth:'50%'}}><Button textStyle={{fontFamily:'A2z-600',fontSize:14}} style={{minHeight:38,paddingVertical:7}} onPress={()=>go('settings')}>{name}</Button></View><View style={[styles.friendPosition,{bottom:baseRoomHeight*.15+roomHeight-baseRoomHeight-sentenceExtra}]}><Character variant={game.character} outfit={outfit} size={friendSize} label={name} interactive reactionId={reaction} onConsumed={consumeReaction} /></View>
           <View style={[styles.identity,{top:baseRoomHeight*.868,bottom:undefined,maxWidth:undefined,gap:6}]}><DailySentence now={now} characterId={game.character} width={Math.min(roomWidth-24,340)} onHeight={setSentenceHeight}/><View style={styles.level}><Label style={styles.small}>LV.{levelInfo?.level ?? level}</Label><View style={{ width: 60 }}><Progress value={levelInfo?.xp_in_level ?? localLevel.xp_in_level} max={levelInfo?.xp_for_level ?? localLevel.xp_for_level} /></View><Label style={styles.small}>{levelInfo?.xp_in_level ?? localLevel.xp_in_level} / {levelInfo?.xp_for_level ?? localLevel.xp_for_level} XP</Label></View></View>
         </View>
         {open && !arranging && <Pressable accessibilityLabel="오늘의 도전 닫기" style={[StyleSheet.absoluteFill, { backgroundColor: 'rgba(40,30,20,.18)' }]} onPress={() => snap(false)} />}
