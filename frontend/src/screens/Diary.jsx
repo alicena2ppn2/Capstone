@@ -29,7 +29,7 @@ function DiaryEntry({ date, day, game, onSave, onDelete, onDraft, onContinue, on
     if(busy.current || !draft.trim())return;
     if(date!==seoulDateKey()){setMessage('날짜가 바뀌었어요. 지난 날짜의 일기는 수정할 수 없어요.');return;}
     busy.current=true;setStatus('saving');setMessage('저장 중…');
-    try { const result=await onSave(date,draft,emotion || undefined); if(result?.ok===false)throw Error(result.message);setStatus('saved');setMessage('이 브라우저에 저장했어요.'); }
+    try { const result=await onSave(date,draft,emotion || undefined); if(result?.ok===false)throw Error(result.message);setStatus(result?.synced===false?'failed':'saved');setMessage(result?.message??'이 브라우저에 저장했어요.'); }
     catch(error){setStatus('failed');setMessage(error.message || '저장하지 못했어요. 작성한 글은 그대로 있어요. 다시 시도해 주세요.');}
     finally{busy.current=false;}
   };

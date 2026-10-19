@@ -45,4 +45,5 @@ test('Kakao Maps SDK uses the JavaScript app key and waits for explicit map load
   assert.equal(url.pathname, '/v2/maps/sdk.js');
   assert.equal(url.searchParams.get('appkey'), 'js-key');
   assert.equal(url.searchParams.get('autoload'), 'false');
+  assert.equal(url.searchParams.get('libraries'), 'services');
 });

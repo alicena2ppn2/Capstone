@@ -2,12 +2,12 @@ import { recommendMissions, eligibleMission, missionMode, missionCriterion } fro
 import { DAILY_CHALLENGES, ensureChallenges } from './challenges.js';
 import { grantMilestone } from './game.js';
 import { seoulDateKey } from '../utils/seoulDate.js';
-import { hasJournal, journalDates, saveJournal, deleteJournal, JOURNAL_EMOTIONS } from './journal.js';
+import { hasJournal, journalDates, saveJournal, deleteJournal, JOURNAL_EMOTIONS, deletedJournal } from './journal.js';
 
 export const ROUTINES = [
   { id: 'day-attendance', name: '출석하기', kind: 'attendance', icon: '☀', action: '출석하기' },
   { id: 'day-diary', name: '오늘의 일기 쓰기', kind: 'diary', icon: '✎', action: '일기 쓰기' },
-  { id: 'day-guestbook', name: '방명록 남기기', kind: 'guestbook', icon: '♡', action: '이웃 둘러보기' },
+  { id: 'day-visit', name: '이웃 방 놀러 가기', kind: 'visit', icon: '♡', action: '이웃 둘러보기' },   // 10/19: 방명록 남기기 → 방문(서버와 같게). 방명록은 마음 있을 때 쓰는 선택
 ];
 const pool = DAILY_CHALLENGES.filter(q => !q.input);
 const groupFor=id=>pool.find(q=>q.id===id)?.activityGroup ?? id;
@@ -24,7 +24,7 @@ export function recordRoutine(game, id, day, { legacy = false } = {}) {
   const reward = !legacy && !already && id === 'day-diary' ? { xp: 15, coins: 25 } : { xp: 0, coins: 0 };
   const next = { ...game, completed: [...new Set([...(game.completed ?? []), key])],
     xp: game.xp + reward.xp, coins: game.coins + reward.coins,
-    missionReceipts: { ...game.missionReceipts, [key]: { ...reward, source: id, channel: id === 'day-guestbook' ? 'sample-neighbor-local' : 'local-routine', status: legacy || already ? 'preserved' : id === 'day-guestbook' ? 'pending-policy' : id === 'day-attendance' ? 'attendance-path' : 'local-demo' } } };
+    missionReceipts: { ...game.missionReceipts, [key]: { ...reward, source: id, channel: id === 'day-visit' ? 'sample-neighbor-local' : 'local-routine', status: legacy || already ? 'preserved' : id === 'day-visit' ? 'pending-policy' : id === 'day-attendance' ? 'attendance-path' : 'local-demo' } } };
   if (reward.xp || reward.coins) next.questReward = { key, ...reward, sequence: (game.questReward?.sequence ?? 0) + 1 };
   return grantMilestone(next);
 }
@@ -57,7 +57,6 @@ export function ensureDailyMissions(game, day = seoulDateKey(), savedVisitNotes)
   });if(changed)game={...game,dailyMissions:{...game.dailyMissions,[day]:{...plan,activities}}};}
   if (game.attendance?.[day]) game = recordRoutine(game, 'day-attendance', day, { legacy: true });
   if (journalDates(game).includes(day) || game.completed?.includes(keyFor(day,'day-diary'))) game = recordRoutine(game, 'day-diary', day, { legacy: true });
-  if (savedVisitNotes && Object.values(savedVisitNotes).some(entries => Array.isArray(entries) && entries.some(e => e.source === 'local' && e.date === day && typeof e.text === 'string' && e.text.trim()))) game = recordRoutine(game, 'day-guestbook', day, { legacy: true });
   return game;
 }
 export function dailyActivities(game, day) {
@@ -120,7 +119,10 @@ export function replaceDailyMission(game,id,day=seoulDateKey(),options={}) {
   const started=(game.started??[]).filter(key=>key!==keyFor(day,id)&&key!==keyFor(day,next.id));
   return {...game,started,dailyMissions:{...game.dailyMissions,[day]:{...plan,activities:plan.activities.map(a=>a.id===id?{...a,id:next.id,criterion:next.criterion,reason:'지금 조건에 맞는 다른 활동이에요.'}:a),paused:(plan.paused??[]).filter(q=>q!==id),passed,replacements:[...(plan.replacements??[]),{id,replacement:next.id,reason:'different',revisited:!!options?.revisit,slot:current.slot,criterion:missionCriterion(game,current,day),mode:missionMode(game,current,day)}]}}};
 }
+// 지운 날의 일기는 다시 쓸 수 없다 (서버 규칙과 같게, 10/19)
+export const DIARY_DELETED_MESSAGE = '지운 날의 일기는 다시 쓸 수 없어요.';
 export function saveDiaryMission(game,date,text,now=new Date(),emotion) {
+  if (deletedJournal(game, date)) return game;
   if (date !== seoulDateKey(now) || typeof text !== 'string' || !text.trim() || (emotion !== undefined && !JOURNAL_EMOTIONS.some(e=>e.id===emotion))) return game;
   if (journalDates(game).includes(date)) game = recordRoutine(game,'day-diary',date,{legacy:true});
   const saved=saveJournal(game,date,text,now,emotion);
