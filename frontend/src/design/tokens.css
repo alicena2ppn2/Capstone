@@ -1,21 +1,22 @@
 /* Generated from shared/theme/tokens.js by frontend/scripts/design-tokens.mjs. */
 :root {
-  --color-primary: #7A68C2;
-  --color-primary-soft: #EEEAFA;
+  --color-primary: #C9B9D9;
+  --color-primary-soft: #F4F0F7;
+  --color-primary-ink: #3D304A;
   --color-background: #FFF9F0;
   --color-surface: #FFFEFA;
-  --color-accent: #F2B69D;
-  --color-ink: #354744;
-  --color-muted: #65736F;
-  --color-border: #D8E2DC;
-  --color-primary-hover: #6B59B3;
-  --color-primary-pressed: #5F4FA3;
-  --color-accent-soft: #FCECE3;
-  --color-input-border: #80958F;
-  --color-disabled: #F5F6F1;
+  --color-accent: #F3D875;
+  --color-ink: #37343B;
+  --color-muted: #696570;
+  --color-border: #DED9E3;
+  --color-primary-hover: #BEACD0;
+  --color-primary-pressed: #AA96BF;
+  --color-accent-soft: #FFF4CF;
+  --color-input-border: #92839F;
+  --color-disabled: #F2EFF4;
   --color-error: #A13C3C;
   --color-error-soft: #FFF0ED;
   --color-warning: #785522;
   --color-warning-soft: #FFF1D9;
-  --color-overlay: #35474466;
+  --color-overlay: #37343B66;
 }

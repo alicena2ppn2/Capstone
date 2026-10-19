@@ -21,7 +21,7 @@ export default function Settings({ petColor, petName, onPetName, onBack, prefere
 
   const [nameDraft, setNameDraft] = useState(petName);
   const [nameMessage, setNameMessage] = useState('');
-  const [options, setOptions] = useState({ effects: true, reminders: false });
+  const [options, setOptions] = useState({ reminders: false });
   const [saved, setSaved] = useState(false);
   const update = (key) => {
     setOptions((value) => ({ ...value, [key]: !value[key] }));
@@ -54,18 +54,6 @@ export default function Settings({ petColor, petName, onPetName, onBack, prefere
         <p id="pet-name-hint" className="settings-name-hint">최대 12자 · 친구별로 저장하며 고유 이름은 그대로 유지해요.</p>
         <p id="pet-name-status" className="settings-name-status" role="status">{nameMessage}</p>
       </form>
-      <div className="settings-card">
-        <h2 className="jua">소리 설정</h2>
-        {[
-          ['effects', '효과음', '모찌와 함께하는 작은 소리'],
-        ].map(([key, title, description]) => (
-          <div className="settings-row" key={key}>
-            <div><strong id={`${key}-label`}>{title}</strong><p>{description}</p></div>
-            <button type="button" className="pb settings-toggle" role="switch" aria-checked={options[key]} aria-labelledby={`${key}-label`} onClick={() => update(key)}><span /></button>
-          </div>
-        ))}
-
-      </div>
       <div className="settings-card settings-card-pink">
         <h2 className="jua">알림 설정</h2>
         <div className="settings-row">
@@ -74,7 +62,7 @@ export default function Settings({ petColor, petName, onPetName, onBack, prefere
         </div>
       </div>
       <button type="button" className="pb jua settings-save" onClick={() => setSaved(true)}>설정 저장하기</button>
-      <p className="settings-status" role="status">{saved ? '설정을 저장했어요! (미리보기 동안 유지돼요)' : '미리보기용 설정이에요. 실제 소리와 알림은 연결 예정이에요.'}</p>
+      <p className="settings-status" role="status">{saved ? '설정을 저장했어요! (미리보기 동안 유지돼요)' : '미리보기용 설정이에요. 실제 알림은 연결 예정이에요.'}</p>
       <MissionPreferences preferences={preferences} onSave={onPreferences} />
       <HelpResources />
       <BackupExport />

@@ -6,8 +6,8 @@ const finalFriendIntros = Object.fromEntries(FINAL_FRIENDS.map(friend => [
 ]));
 
 export const FRIEND_INTROS = {
-  potato: { personality: '엉뚱하고 노는 것을 좋아하는 칠칠맞은 친구.', introduction: '재미있는 일이 보이면 일단 달려가는 꼬질이. 신나게 놀고 돌아오면 꼭 뭔가를 두고 와요. 찾으러 가는 길에도 새 놀이를 발견하는 게 문제예요.', likes: '친구들과 놀기, 처음 해 보는 놀이', habit: '주머니에 뭘 넣었는지 까먹고 뒤늦게 꺼내 봐요.' },
-  pink: { personality: '도도하고 취향이 확실한 친구.', introduction: '좋아하는 것도, 아닌 것도 분명한 복숭이. 다들 좋다고 해도 직접 보고 골라요. 리본 하나를 고르는 데도 오래 걸리지만, 마음에 든 건 오래오래 아껴요.', likes: '마음에 쏙 드는 리본과 소품', habit: '거울 앞에서 리본 각도를 조금씩 고쳐요.' },
+  potato: { personality: '엉뚱하고 노는 것을 좋아하는 칠칠맞은 친구.', introduction: '꼬질이는 놀고 나면 꼭 뭔가를 두고 와요. 찾으러 가는 길에도 딴짓 중!', likes: '친구들과 놀기, 처음 해 보는 놀이', habit: '주머니에 뭘 넣었는지 까먹고 뒤늦게 꺼내 봐요.' },
+  pink: { personality: '도도하고 취향이 확실한 친구.', introduction: '복숭이는 리본 하나도 아무거나 고르지 않아요. 마음에 든 건 오래 아껴요.', likes: '마음에 쏙 드는 리본과 소품', habit: '거울 앞에서 리본 각도를 조금씩 고쳐요.' },
   mochi: { personality: '친구들을 챙기고 함께하는 시간을 좋아해요.', introduction: '친구들 몫까지 챙기다 가방이 빵빵해져요. 같이 나누면 더 좋으니까요!' },
   lavender: { personality: '차분한 표정으로 엉뚱한 연구에 진지하게 몰두해요.', introduction: '가장 폭신한 구름을 찾으려고 관찰표를 만들었어요. 꽤 진지한 연구래요.' },
   mint: { personality: '작은 일도 오래 생각하고 친구에게 해 줄 말을 신중히 골라요.', introduction: '해 주고 싶은 말을 오래 고르다 타이밍을 놓쳐요. 돌아가는 길에도 네 이야기를 생각해요.' },

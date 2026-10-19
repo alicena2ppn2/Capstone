@@ -25,7 +25,7 @@ export default function AuthGate({ children }) {
   const choosingNickname=['nickname','registering'].includes(auth.status);
   return <div className="app"><div className="phone-shell is-login"><IPhoneChrome /><main className="login-screen"><section className="login-content" aria-label="MY MOCHI 로그인 및 가입">
     <header className="login-brand"><h1 aria-label="MY MOCHI"><span>MY</span> MOCHI</h1><p>작은 하루를 함께하는 나의 모찌</p></header>
-    <div className="login-welcome" aria-label="모찌와 친구들이 환영해요"><Mochi variant="proto-pebble" full width={105} height={111} label="버터 곰" /><Mochi variant="mochi" full width={130} height={137} label="구름 모찌" /><Mochi variant="proto-pear" full width={105} height={111} label="살구 강아지 라니" /></div>
+    <div className="login-welcome" aria-label="모찌와 친구들이 환영해요"><Mochi variant="proto-pebble" full width={105} height={111} label="곰댕이" /><Mochi variant="mochi" full width={130} height={137} label="구르미" /><Mochi variant="proto-pear" full width={105} height={111} label="라니" /></div>
     <div className="login-actions" aria-busy={busy}>
       {choosingNickname?<NicknameEntry value={nickname} onChange={text=>setNickname({owner:auth.supabaseUserId,text})} onSubmit={auth.submitNickname} busy={busy} message={auth.message}/>:<>
       <button className="provider-button kakao" disabled={busy} onClick={() => auth.signIn('kakao')} aria-label="카카오 로그인"><img src="/auth/kakao.png" alt="카카오 로그인" /></button>

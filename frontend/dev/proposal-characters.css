@@ -1,0 +1,66 @@
+@font-face {
+  font-family: 'A2zPreview';
+  src: url('/fonts/A2z-400.woff2') format('woff2');
+  font-weight: 400;
+  font-display: swap;
+}
+@font-face {
+  font-family: 'A2zPreview';
+  src: url('/fonts/A2z-500.woff2') format('woff2');
+  font-weight: 500;
+  font-display: swap;
+}
+@font-face {
+  font-family: 'A2zPreview';
+  src: url('/fonts/A2z-600.woff2') format('woff2');
+  font-weight: 600;
+  font-display: swap;
+}
+
+* { box-sizing: border-box; }
+body { margin: 0; background: #FFF9F0; color: #403A3A; font-family: 'A2zPreview', sans-serif; }
+#proposal-friends-root { min-height: 100vh; padding: 28px 24px 48px; }
+.proposal-page { width: min(1120px, 100%); margin: 0 auto; }
+.proposal-header { max-width: 720px; margin: 0 auto 24px; text-align: center; }
+.proposal-kicker { color: #685879; font-size: 12px; font-weight: 500; letter-spacing: .02em; }
+.proposal-header h1 { margin: 6px 0 8px; color: #403A3A; font-size: 26px; font-weight: 600; }
+.proposal-header p { margin: 0 auto 10px; max-width: 600px; color: #625C59; font-size: 14px; line-height: 1.55; }
+.proposal-note { display: inline-flex; align-items: center; min-height: 30px; padding: 4px 11px; border-radius: 10px; background: #F4F0F7; color: #574466; font-size: 12px; font-weight: 500; }
+.proposal-reference { display: flex; align-items: center; justify-content: center; gap: 12px; width: fit-content; max-width: 100%; margin: 0 auto 20px; padding: 8px 16px 8px 8px; border: 1px solid #E3DCD7; border-radius: 16px; background: #FFFEFA; }
+.proposal-reference > svg { flex: none; }
+.proposal-reference p { display: grid; gap: 2px; margin: 0; color: #625C59; font-size: 12px; line-height: 1.45; }
+.proposal-reference strong { color: #403A3A; font-size: 13px; font-weight: 600; }
+.proposal-grid { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); align-items: start; gap: 16px; }
+.proposal-card { overflow: hidden; min-width: 0; border: 1px solid #E3DCD7; border-radius: 20px; background: #FFFEFA; box-shadow: 0 3px 12px rgb(81 68 56 / 5%); }
+.proposal-art { position: relative; display: grid; place-items: center; min-height: 250px; padding: 16px; background: linear-gradient(180deg, #FBF7F0, #FFFDF8); }
+.proposal-art::before { content: ''; position: absolute; top: 156px; left: 50%; width: 184px; height: 74px; transform: translateX(-50%); border-radius: 50%; background: color-mix(in srgb, var(--friend-color), transparent 78%); }
+.proposal-art svg { position: relative; z-index: 1; display: block; width: 210px; max-width: 100%; height: 220px; overflow: visible; }
+.proposal-copy { padding: 15px 16px 16px; }
+.proposal-tags { display: flex; flex-wrap: wrap; gap: 6px; margin-bottom: 8px; }
+.proposal-tags span { display: inline-flex; align-items: center; min-height: 24px; padding: 3px 8px; border-radius: 8px; background: #F4F0F7; color: #584966; font-size: 11px; font-weight: 500; }
+.proposal-tags span + span { background: #FFF3D5; color: #62502B; }
+.proposal-copy h2 { margin: 0 0 6px; color: #403A3A; font-size: 18px; line-height: 1.35; font-weight: 600; }
+.proposal-copy p { margin: 0 0 7px; color: #4B4543; font-size: 14px; line-height: 1.55; }
+.proposal-copy small { display: block; min-height: 39px; color: #625C59; font-size: 12px; line-height: 1.55; }
+.proposal-copy small.proposal-extra { min-height: 0; margin-top: 5px; color: #756E69; }
+.proposal-swatches { display: flex; gap: 6px; margin-top: 12px; }
+.proposal-swatches i { width: 17px; height: 17px; border: 1px solid rgb(64 58 58 / 12%); border-radius: 50%; }
+@media (max-width: 850px) { .proposal-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); } }
+@media (max-width: 560px) {
+  #proposal-friends-root { padding: 20px 14px 34px; }
+  .proposal-header { margin-bottom: 18px; }
+  .proposal-header h1 { font-size: 22px; }
+  .proposal-header p { font-size: 13px; }
+  .proposal-grid { grid-template-columns: 1fr; max-width: 390px; margin: auto; gap: 12px; }
+  .proposal-card { display: grid; grid-template-columns: minmax(116px, .82fr) minmax(0, 1fr); align-items: center; }
+  .proposal-art { min-height: 205px; padding: 6px; }
+  .proposal-art::before { top: 127px; width: 112px; height: 48px; }
+  .proposal-art svg { width: 150px; height: 185px; }
+  .proposal-copy { padding: 13px 12px 12px 4px; }
+  .proposal-copy h2 { font-size: 16px; }
+  .proposal-copy p { font-size: 13px; }
+  .proposal-copy small { min-height: 0; font-size: 11px; }
+  .proposal-reference { margin-bottom: 14px; padding-right: 10px; }
+  .proposal-reference > svg { width: 64px; height: 68px; }
+}
+@media (prefers-reduced-motion: reduce) { *, *::before, *::after { scroll-behavior: auto !important; animation-duration: .01ms !important; transition-duration: .01ms !important; } }

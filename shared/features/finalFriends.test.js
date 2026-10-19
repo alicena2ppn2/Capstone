@@ -23,13 +23,13 @@ test('표시 이름과 세 친구 소개를 갱신하되 ID·상점 상품 수�
   assert.equal(CHARACTERS.length, 12);
   assert.equal(CHARACTERS.find(friend => friend.id === 'sky').method, 'quest');
   assert.equal(CHARACTERS.some(friend => ['draft-red-panda', 'draft-dragon', 'draft-squirrel', 'draft-pony', 'draft-elephant'].includes(friend.id)), false);
-  assert.equal(FRIEND_INTROS.potato.introduction, '재미있는 일이 보이면 일단 달려가는 꼬질이. 신나게 놀고 돌아오면 꼭 뭔가를 두고 와요. 찾으러 가는 길에도 새 놀이를 발견하는 게 문제예요.');
+  assert.equal(FRIEND_INTROS.potato.introduction, '꼬질이는 놀고 나면 꼭 뭔가를 두고 와요. 찾으러 가는 길에도 딴짓 중!');
   assert.equal(FRIEND_INTROS.potato.likes, '친구들과 놀기, 처음 해 보는 놀이');
   assert.equal(FRIEND_INTROS.potato.habit, '주머니에 뭘 넣었는지 까먹고 뒤늦게 꺼내 봐요.');
-  assert.equal(FRIEND_INTROS.pink.introduction, '좋아하는 것도, 아닌 것도 분명한 복숭이. 다들 좋다고 해도 직접 보고 골라요. 리본 하나를 고르는 데도 오래 걸리지만, 마음에 든 건 오래오래 아껴요.');
+  assert.equal(FRIEND_INTROS.pink.introduction, '복숭이는 리본 하나도 아무거나 고르지 않아요. 마음에 든 건 오래 아껴요.');
   assert.equal(FRIEND_INTROS.pink.likes, '마음에 쏙 드는 리본과 소품');
   assert.equal(FRIEND_INTROS.pink.habit, '거울 앞에서 리본 각도를 조금씩 고쳐요.');
-  assert.equal(FRIEND_INTROS['proto-pebble'].introduction, '포근한 곳만 찾으면 눈이 스르르 감기는 곰댕이. 아무 데서나 잘 것 같지만 베개 높이는 은근히 꼼꼼하게 골라요. ‘흐헤~ 조금만 누워 있을게.’ 벌써 잠든 것 같네요.');
+  assert.equal(FRIEND_INTROS['proto-pebble'].introduction, '곰댕이는 낮잠이 제일 좋은 순둥이. 베개 높이만큼은 양보 못 해요.');
   assert.equal(FRIEND_INTROS['proto-pebble'].likes, '낮잠, 폭신한 베개와 이불');
   assert.equal(FRIEND_INTROS['proto-pebble'].habit, '눕기 전에 베개를 톡톡 두드려요.');
 });
