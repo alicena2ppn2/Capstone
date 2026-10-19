@@ -18,8 +18,8 @@ const clamp = v => Math.max(-MOVE_LIMIT, Math.min(MOVE_LIMIT, v));
 // 아래 시트 (웹 홈 .home-sheet와 같게, 10/19): 접혀 있을 때는 손잡이 + 버튼 줄만 보이고, 끌어올리거나 누르면 오늘의 도전 요약이 올라온다
 const PEEK = 104;          // 접혔을 때 보이는 높이 (손잡이 + 버튼 줄)
 const SHEET = .62;          // 펼쳤을 때 화면 높이 대비
-const RUG_DROP = 28;        // 꽉 찬 방에서 러그·캐릭터를 아래로 (그림 단위, 10/19)
-const RUG_ONLY_DROP = 19;   // 러그·카페트만 더 아래로 (캐릭터는 러그 뒤쪽에 선 모양)
+const RUG_DROP = 34;        // 꽉 찬 방에서 러그·캐릭터를 아래로 (그림 단위, 10/19)
+const RUG_ONLY_DROP = 13;   // 러그·카페트만 더 아래로 (캐릭터는 러그 뒤쪽에 선 모양)
 const SENTENCE_DROP = 16;   // 한 줄 문장·LV는 조금만 (시트에 가리지 않게)
 
 // 서버 미션 요약: 오늘의 도전 n/m 과 아직 안 한 것 3개
