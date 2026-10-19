@@ -19,6 +19,7 @@ const clamp = v => Math.max(-MOVE_LIMIT, Math.min(MOVE_LIMIT, v));
 const PEEK = 104;          // 접혔을 때 보이는 높이 (손잡이 + 버튼 줄)
 const SHEET = .62;          // 펼쳤을 때 화면 높이 대비
 const RUG_DROP = 28;        // 꽉 찬 방에서 러그·캐릭터를 아래로 (그림 단위, 10/19)
+const RUG_ONLY_DROP = 22;   // 러그·카페트만 더 아래로 (캐릭터는 러그 뒤쪽에 선 모양)
 const SENTENCE_DROP = 16;   // 한 줄 문장·LV는 조금만 (시트에 가리지 않게)
 
 // 서버 미션 요약: 오늘의 도전 n/m 과 아직 안 한 것 3개
@@ -78,7 +79,7 @@ export default function HomeScreen({ serverUserId, onMoveDecor, levelInfo, game,
     onPanResponderTerminate: () => setDrag(null),
   });
   return <View style={{ flex: 1, paddingTop: full ? 0 : 4 }} onLayout={event => setAreaHeight(event.nativeEvent.layout.height)}>
-        <View {...(arranging ? pan.panHandlers : {})} style={[homeStyles.room, full && homeStyles.roomFull, arranging && homeStyles.arranging, { width: roomWidth, height: roomHeight,backgroundColor:roomTime(now).night?'#DBC1A2':'#EBCDA6' }]}><View accessible accessibilityLabel={`기기 현지 시간: ${roomTime(now).label}`} style={[StyleSheet.absoluteFill,{height:roomHeight,bottom:undefined}]}><RoomBackdrop decor={game.decor ?? {}} positions={positions} homeScene now={now} floorExtra={(roomHeight - baseRoomHeight) * 368 / roomWidth} rugDrop={full ? RUG_DROP : 0} /></View>
+        <View {...(arranging ? pan.panHandlers : {})} style={[homeStyles.room, full && homeStyles.roomFull, arranging && homeStyles.arranging, { width: roomWidth, height: roomHeight,backgroundColor:roomTime(now).night?'#DBC1A2':'#EBCDA6' }]}><View accessible accessibilityLabel={`기기 현지 시간: ${roomTime(now).label}`} style={[StyleSheet.absoluteFill,{height:roomHeight,bottom:undefined}]}><RoomBackdrop decor={game.decor ?? {}} positions={positions} homeScene now={now} floorExtra={(roomHeight - baseRoomHeight) * 368 / roomWidth} rugDrop={full ? RUG_DROP + RUG_ONLY_DROP : 0} /></View>
           <View style={homeStyles.settingsCorner}><Button onPress={() => go('settings')} accessibilityLabel="설정" icon={<UiIcon kind="gear" />} /></View>
 
           <View style={homeStyles.roomMenus}><Button textStyle={{ fontSize: 13 }} style={{ paddingHorizontal: 7 }} onPress={() => go('visit')} icon={<MenuIcon kind="visit" />}>방문하기</Button><Button textStyle={{ fontSize: 13 }} style={{ paddingHorizontal: 7 }} onPress={() => go('guest')} icon={<MenuIcon kind="guest" />}>방명록</Button><Button textStyle={{ fontSize: 13 }} style={{ paddingHorizontal: 7 }} onPress={() => openDiary()} icon={<MenuIcon kind="diary" />}>일기</Button></View>
