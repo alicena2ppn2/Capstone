@@ -1,6 +1,7 @@
 // 게임 경제(코인·XP·레벨·상점·출석·주간 미션)를 서버 기준으로 (10/15 결정: 코인·레벨은 서버 규칙, 출석은 주간 출석표)
 import { useCallback, useEffect, useRef, useState } from 'react';
 import { call } from './missions.js';
+import { xpThresholdForLevel } from '../../../shared/features/levelProgression.js';
 
 const u = id => encodeURIComponent(id);
 
@@ -34,7 +35,7 @@ export function shopAsGame(shop) {
   return {
     coins: shop.coins,
     // 앱 화면의 레벨 계산(1 + XP÷100)이 서버 레벨과 같은 값이 되도록 맞춘 숫자. 실제 XP는 shop.level.xp
-    xp: (shop.level.level - 1) * 100,
+    xp: xpThresholdForLevel(shop.level.level),   // 서버 레벨이 시작되는 앱 XP → 상점 해금 판정이 서버 레벨과 같아짐
     characters: owned(shop.characters),
     character: shop.equipped.character ?? 'potato',
     ownedDecor: owned(shop.decor),
