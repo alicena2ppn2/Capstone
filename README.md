@@ -2,7 +2,7 @@
 
 > 모찌 친구와 함께, 매일 작은 미션으로 **밖에 한 발 나가고 · 하루를 기록하고 · 사람과 가볍게 이어지는** 게임형 앱
 
-캡스톤 프로젝트 · 최종 발표 2026-10-22 · 목표: App Store 출시 · 최종 갱신 2026-10-16
+캡스톤 프로젝트 · 최종 발표 2026-10-22 · 목표: App Store 출시 · 최종 갱신 2026-10-19
 
 | 문서 | 내용 |
 |---|---|
@@ -13,7 +13,9 @@
 | [QUEST_DESIGN.md](QUEST_DESIGN.md) | 퀘스트 설계 근거 (행동 활성화, 사회 기술 팁, 단계 사다리) |
 | [PROGRESS.md](PROGRESS.md) | 작업 기록과 **출시 전 남은 일** 체크리스트 |
 | [INITIAL_PLAN.md](INITIAL_PLAN.md) | 초기 기획 (생활 리듬 기반 사회적 고립 조기 개입 AI 에이전트) |
-| [backend/](backend/) · [mobile/](mobile/) · [frontend/](frontend/) | 서버 · 앱 · 웹 각자의 README·변경 기록 |
+| [backend/README.md](backend/README.md) | **서버** (FastAPI + SQLite) — 실행 방법, 시연용 데이터, 파일 구성, 전체 API 목록, 미션·보상·레벨 규칙, 상점·친밀도, 신고·차단·필터, 위기 표현 확인. 작업 기록은 [backend/CHANGELOG.md](backend/CHANGELOG.md) |
+| [mobile/README.md](mobile/README.md) | **앱** (Expo · React Native, iPhone·Android) — 소스 구조, 로그인 연결, 퀘스트 안내, 걸음 수·건강 앱 연결, 다시 부르기 알림, 동네 탐험(위치·지도·장소 쪽지), 실행 방법, 저장 |
+| [frontend/README.md](frontend/README.md) | **웹** (React + Vite) — 소스 구조, 로그인 연결, 퀘스트 안내, 색상·공통 UI, 화면별 기능(미션·일기·출석·상점·이웃), 실행·검증, 개발용 미리보기 |
 
 ---
 
