@@ -1,15 +1,15 @@
 /* Generated from shared/theme/tokens.js by frontend/scripts/design-tokens.mjs. */
 :root {
-  --color-primary: #397D78;
-  --color-primary-soft: #E4F1EE;
+  --color-primary: #7A68C2;
+  --color-primary-soft: #EEEAFA;
   --color-background: #FFF9F0;
   --color-surface: #FFFEFA;
   --color-accent: #F2B69D;
   --color-ink: #354744;
   --color-muted: #65736F;
   --color-border: #D8E2DC;
-  --color-primary-hover: #326F6B;
-  --color-primary-pressed: #2E6662;
+  --color-primary-hover: #6B59B3;
+  --color-primary-pressed: #5F4FA3;
   --color-accent-soft: #FCECE3;
   --color-input-border: #80958F;
   --color-disabled: #F5F6F1;

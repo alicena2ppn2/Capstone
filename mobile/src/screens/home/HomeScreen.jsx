@@ -34,12 +34,14 @@ export default function HomeScreen({ serverUserId, onMoveDecor, levelInfo, game,
   const { width, fontScale } = useWindowDimensions();
   const [areaHeight, setAreaHeight] = useState(0);   // 홈 영역 높이 (방이 시트에 가리지 않게 방 크기를 맞춘다)
   const fitWidth = areaHeight ? (areaHeight - PEEK - 16 - 48 * fontScale) * 368 / 500 : Infinity;
-  const roomWidth = Math.max(220, Math.min(width - 24, 430, fitWidth));
+  // 화면 높이가 넉넉하면 웹처럼 방을 양옆 끝까지 꽉 채운다. 낮은 화면(SE 등)·태블릿은 바닥이 시트에 가리지 않게 가운데 카드로 (10/19)
+  const full = !!areaHeight && (areaHeight - PEEK + 24 - 48 * fontScale) * 368 / 500 >= width;
+  const roomWidth = full ? width : Math.max(220, Math.min(width - 24, 430, fitWidth));
   const baseRoomHeight = roomWidth * 500 / 368;
   const friendSize = Math.min(roomWidth * .66, 248);
   const sentenceExtra = Math.max(0,baseRoomHeight * .868 + sentenceHeight + 22 * fontScale + 14 - baseRoomHeight);
   // 방(바닥 색)을 시트 손잡이 바로 아래까지 이어서 사이 공백이 없게 — 시트 둥근 모서리 밑으로 조금 들어간다 (10/19)
-  const roomHeight = Math.max(baseRoomHeight + sentenceExtra, areaHeight ? areaHeight - 4 - PEEK + 24 : 0);
+  const roomHeight = Math.max(baseRoomHeight + sentenceExtra, areaHeight ? areaHeight - (full ? 0 : 4) - PEEK + 24 : 0);
   // 가구 옮기기 (서버): 옮길 소품을 고르고 방을 끌면 그만큼 움직인다. 손을 떼면 서버에 저장
   const placed = MOVABLE_SLOTS.filter(slot => game.decor?.[slot]);
   const [arranging, setArranging] = useState(false), [slot, setSlot] = useState(null), [live, setLive] = useState(null);
@@ -72,8 +74,8 @@ export default function HomeScreen({ serverUserId, onMoveDecor, levelInfo, game,
     onPanResponderRelease: event => { const d = drag, moved = d ? event.nativeEvent.pageY - d.from : 0; setDrag(null); snap(Math.abs(moved) < 8 ? !open : d.base + moved < closedY / 2); },
     onPanResponderTerminate: () => setDrag(null),
   });
-  return <View style={{ flex: 1, paddingTop: 4 }} onLayout={event => setAreaHeight(event.nativeEvent.layout.height)}>
-        <View {...(arranging ? pan.panHandlers : {})} style={[homeStyles.room, arranging && homeStyles.arranging, { width: roomWidth, height: roomHeight,backgroundColor:roomTime(now).night?'#DBC1A2':'#EBCDA6' }]}><View accessible accessibilityLabel={`기기 현지 시간: ${roomTime(now).label}`} style={[StyleSheet.absoluteFill,{height:roomHeight,bottom:undefined}]}><RoomBackdrop decor={game.decor ?? {}} positions={positions} homeScene now={now} floorExtra={(roomHeight - baseRoomHeight) * 368 / roomWidth} /></View>
+  return <View style={{ flex: 1, paddingTop: full ? 0 : 4 }} onLayout={event => setAreaHeight(event.nativeEvent.layout.height)}>
+        <View {...(arranging ? pan.panHandlers : {})} style={[homeStyles.room, full && homeStyles.roomFull, arranging && homeStyles.arranging, { width: roomWidth, height: roomHeight,backgroundColor:roomTime(now).night?'#DBC1A2':'#EBCDA6' }]}><View accessible accessibilityLabel={`기기 현지 시간: ${roomTime(now).label}`} style={[StyleSheet.absoluteFill,{height:roomHeight,bottom:undefined}]}><RoomBackdrop decor={game.decor ?? {}} positions={positions} homeScene now={now} floorExtra={(roomHeight - baseRoomHeight) * 368 / roomWidth} /></View>
           <View style={homeStyles.settingsCorner}><Button onPress={() => go('settings')} accessibilityLabel="설정" icon={<UiIcon kind="gear" />} /></View>
 
           <View style={homeStyles.roomMenus}><Button textStyle={{ fontSize: 13 }} style={{ paddingHorizontal: 7 }} onPress={() => go('visit')} icon={<MenuIcon kind="visit" />}>방문하기</Button><Button textStyle={{ fontSize: 13 }} style={{ paddingHorizontal: 7 }} onPress={() => go('guest')} icon={<MenuIcon kind="guest" />}>방명록</Button><Button textStyle={{ fontSize: 13 }} style={{ paddingHorizontal: 7 }} onPress={() => openDiary()} icon={<MenuIcon kind="diary" />}>일기</Button></View>
@@ -95,7 +97,7 @@ export default function HomeScreen({ serverUserId, onMoveDecor, levelInfo, game,
 }
 
 const homeStyles = StyleSheet.create({
-  room: { alignSelf: 'center', borderRadius: 20, overflow: 'hidden' }, arranging: { borderWidth: 3, borderColor: colors.primary, borderStyle: 'dashed' }, settingsCorner: { position: 'absolute', top: 8, right: 8 },
+  room: { alignSelf: 'center', borderRadius: 20, overflow: 'hidden' }, roomFull: { borderRadius: 0 }, arranging: { borderWidth: 3, borderColor: colors.primary, borderStyle: 'dashed' }, settingsCorner: { position: 'absolute', top: 8, right: 8 },
   roomMenus: { position: 'absolute', left: 8, right: 64, top: 8, flexDirection: 'row', flexWrap: 'wrap', gap: 5 },
   sheet: { position: 'absolute', left: 0, right: 0, bottom: 0, paddingHorizontal: 12, backgroundColor: colors.surface, borderTopLeftRadius: 22, borderTopRightRadius: 22, borderWidth: 1, borderColor: colors.border, shadowColor: '#000', shadowOpacity: .12, shadowRadius: 12, shadowOffset: { width: 0, height: -2 }, elevation: 8 },
   handle: { alignItems: 'center', gap: 2, paddingTop: 6, paddingBottom: 6 },
