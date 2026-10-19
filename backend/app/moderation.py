@@ -20,7 +20,7 @@ REPORT_HIDE_COUNT = 2                 # 이만큼 다른 사람이 신고하면 
 NEW_ACCOUNT_DAYS = 3                  # 가입한 지 이만큼 안 된 계정의 신고는 숨김 횟수에 안 셈
 SLUR_BAN_DAYS = 7                     # 혐오 표현을 쓰면 방명록 쓰기 정지 기간
 REPORT_REASONS = ("spam", "abuse", "sexual", "hate", "self_harm", "other")
-REPORT_TARGETS = ("guestbook", "user")
+REPORT_TARGETS = ("guestbook", "place_note", "user")   # place_note: 동네 탐험 장소 쪽지
 FILTER_MESSAGE = "다른 말로 바꿔 써 줄래요?"   # 어떤 단어가 걸렸는지는 알려 주지 않는다
 
 

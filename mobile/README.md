@@ -79,6 +79,14 @@
 - 문구는 친구 이름으로 (`src/notify/messages.mjs`, 예: "꼬질 감자가 기다리고 있어요 🥺"). 처음 한 번 알림 권한을 묻고, 설정의 '다시 부르기 알림'으로 끌 수 있다
 - `expo-notifications`라 실제 알림은 개발 빌드(EAS)에서 확인. 웹 미리보기는 지원 안 함
 
+## 동네 탐험 · 위치와 지도 (2026-10-17)
+
+- 홈 🗺️ → `동네 탐험`(`src/screens/Explore.jsx`): 서버 장소 목록(`GET /places`), '내 위치로 보기'를 눌렀을 때만 위치 권한(`expo-location`, 앱 사용 중만) → 가까운 순·거리. 위치는 거리 계산에만 쓰고 저장하지 않음
+- 지도(`src/screens/explore/PlaceMap.native.jsx`, `react-native-maps` 1.27.2): **iPhone은 Apple 지도(키 필요 없음), Android는 Google 지도**. 웹 미리보기(`PlaceMap.jsx`)는 지도 대신 점 그림
+- **Android 지도 키**: `GOOGLE_MAPS_ANDROID_KEY` 환경변수 → `app.config.js`가 빌드 때 넣음. **git에 넣지 말고** EAS 환경변수(`npx eas-cli@latest env:create --name GOOGLE_MAPS_ANDROID_KEY …`)나 `mobile/.env.local`(git 제외)에 둔다. Google Cloud에서 Maps SDK for Android를 켜고 키를 앱 패키지(`io.github.alicena2ppn2.mymochi`)·서명 SHA-1로 제한. 키가 없으면 Android 지도는 회색 빈 화면(목록은 그대로)
+- **장소 쪽지**(`src/screens/explore/PlaceNotes.jsx`, 10/19): 장소 '자세히'에서 이웃 쪽지 읽기·내 쪽지 지우기·신고. **쓰기만 잠금** — 읽기는 어디서나, 남기기는 장소 근처(서울도서관 60m · 서울광장 80m · 남산공원 300m)에서만. 남길 때 정확한 위치로 한 번 더 확인하고 서버도 같은 판정(위치는 저장 안 함)
+- 네이티브 모듈이라 실제 지도·GPS는 개발 빌드(EAS)에서 확인
+
 ## 첫 진입 · 로그인 연결 범위
 
 MY MOCHI 로그인/가입 화면에서 시작한다. 청록·크림 UI와 기존 친구 렌더러, 공식 카카오 로그인·Google 버튼 이미지를 사용한다. A2z 400~600을 유지하며 공급자 버튼 글씨는 공식 PNG에 포함된 스타일이다. 세션 확인 중 홈을 마운트하지 않는다. 설정의 로그아웃은 signOut 성공 후 로그인 화면으로 돌아가며 개발 미리보기도 종료한다. 실패 시 설정에서 다시 시도할 수 있고 게임 저장 데이터는 삭제하지 않는다. 현재 인증 어댑터는 미연결로, 사용자 ID나 임의 토큰을 로그인으로 취급하지 않는다. 실패/취소 시 재시도하고 진행 중 중복 입력을 막는다. 게임 데이터는 초기화하지 않는다.

@@ -88,3 +88,18 @@ def test_dev_mode_allows_no_token_but_checks_tokens(client, secured, monkeypatch
     a = secured["a"]
     assert client.get(f"/users/{a}/coins").status_code == 200                # 시연 계정으로 개발할 때
     assert client.get(f"/users/{a}/coins", headers=H("b")).status_code == 403
+
+
+NEAR_PLAZA = {"latitude": 37.5658, "longitude": 126.978056, "accuracy_m": 10}   # 서울광장 앞 (쪽지는 근처에서만, 10/19)
+
+
+def test_place_notes_need_token_but_reading_is_open(client, secured):
+    a, b = secured["a"], secured["b"]
+    assert client.get("/places").status_code == 200 and client.get("/places/seoul-plaza/notes").status_code == 200
+    assert client.post("/places/seoul-plaza/notes", json={"text": "안녕"}).status_code == 401
+    r = client.post("/places/seoul-plaza/notes", json={"text": "안녕", **NEAR_PLAZA}, headers=H("a"))
+    assert r.status_code == 201 and r.json()["note"]["author_id"] == a                        # 쓴 사람 = 토큰 주인
+    assert client.post("/places/seoul-plaza/notes", json={"text": "사칭", "author_id": a}, headers=H("b")).status_code == 403
+    nid = r.json()["note"]["id"]
+    assert client.delete(f"/places/seoul-plaza/notes/{nid}", params={"by": a}, headers=H("b")).status_code == 403
+    assert client.delete(f"/places/seoul-plaza/notes/{nid}", params={"by": a}, headers=H("a")).status_code == 200
