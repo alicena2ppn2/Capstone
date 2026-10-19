@@ -5,7 +5,7 @@ import { saveMissionPreferences } from '../../shared/features/missionGuidance.js
 import BottomNav from './components/BottomNav';
 import { cancelComeback, notificationsAllowed, scheduleComeback } from './notify/comeback';
 import { completePhotoMission } from '../../shared/features/missionPhotos.js';
-import { continueJournalDraft } from '../../shared/features/journal.js';
+import { continueJournalDraft, deletedJournal } from '../../shared/features/journal.js';
 import RewardPanel from './components/RewardPanel';
 import AttendanceCards from './components/AttendanceCards';
 import React, { useEffect, useRef, useState } from 'react';
@@ -25,7 +25,7 @@ import Neighbors from './screens/Neighbors';
 import { CHARACTERS, buyCharacter, levelProgress } from '../../shared/features/game.js';
 import { CLOTHES } from '../../shared/data/clothes.js';
 import { seoulDateKey, attendanceWeek } from '../../shared/utils/seoulDate.js';
-import { replaceDailyMission, saveDiaryMission, deleteDiaryMission } from '../../shared/features/dailyMissions.js';
+import { replaceDailyMission, saveDiaryMission, deleteDiaryMission, DIARY_DELETED_MESSAGE } from '../../shared/features/dailyMissions.js';
 import { useServerUserId, useServerGame, shopAsGame, buyItem, equip, placeDecor, moveDecor, checkIn, saveDiary as saveServerDiary, removeDiary as removeServerDiary } from './api/server';
 
 export default function App({ children }) { return <SafeAreaProvider><GameApp>{children}</GameApp></SafeAreaProvider>; }
@@ -79,8 +79,21 @@ function GameApp({ children }) {
   const wear = id => setState(old => wearOutfit(old, id));
   const go = destination => { setSheet(null); router.replace(destination === 'home' ? '/' : `/${destination}`); };
   const openDiary=date=>{setDiaryDate(date??null);go('diary');};
-  const saveDiary=async(date,text,emotion)=>{if(date!==seoulDateKey()||!text.trim())return {ok:false,message:'당일의 공백 아닌 일기만 저장할 수 있어요.'};const saved=await commitState(old=>({...old,game:saveDiaryMission(old.game,date,text,new Date(),emotion)}));if(saved.ok&&serverUserId)saveServerDiary(serverUserId,date,text.trim()).then(()=>server.refresh()).catch(()=>{});return saved;};   // 서버 일기 미션도 완료
-  const deleteDiary=async date=>{const done=await commitState(old=>({...old,game:deleteDiaryMission(old.game,date)}));if(done.ok&&serverUserId)removeServerDiary(serverUserId,date).catch(()=>{});return done;};
+  // 일기: 기기에 저장 → 서버에 저장(서버 일기 미션도 완료). 서버 결과를 화면에 알린다 (synced: true·false). 조용히 실패하지 않게 (10/19)
+  const saveDiary=async(date,text,emotion)=>{
+    if(date!==seoulDateKey()||!text.trim())return {ok:false,message:'당일의 공백 아닌 일기만 저장할 수 있어요.'};
+    if(deletedJournal(state.game,date))return {ok:false,message:DIARY_DELETED_MESSAGE};
+    const saved=await commitState(old=>({...old,game:saveDiaryMission(old.game,date,text,new Date(),emotion)}));
+    if(!saved.ok)return saved;
+    if(!serverUserId)return {...saved,message:'이 기기에 저장했어요.'};
+    try{await saveServerDiary(serverUserId,date,text.trim());void server.refresh();return {...saved,synced:true,message:'저장했어요. 다른 기기에서도 볼 수 있어요.'};}
+    catch(e){return {...saved,synced:false,message:`이 기기에는 저장했지만 서버에 저장하지 못했어요. '다시 저장'을 눌러 주세요. (${e.message})`};}
+  };
+  // 지우기: 서버에서 먼저 지우고 성공하면 기기에서도 (서버 실패 때 기기에만 지워져 어긋나지 않게)
+  const deleteDiary=async date=>{
+    if(serverUserId){try{await removeServerDiary(serverUserId,date);}catch(e){return {ok:false,message:`서버에서 지우지 못했어요. 다시 시도해 주세요. (${e.message})`};}}
+    return commitState(old=>({...old,game:deleteDiaryMission(old.game,date)}));
+  };
   const continueDraft=async(source,target,draft,choice)=>{let moved;const result=await commitState(old=>{moved=continueJournalDraft(old.game,source,target,draft,choice);return moved.game===old.game?old:{...old,game:moved.game};});return {...moved,...result,ok:result.ok&&moved?.ok};};
   const saveDraft=(date,draft)=>commitState(old=>({...old,game:{...old.game,journalDrafts:{...old.game.journalDrafts,[date]:draft}}}));
   return <FontReadyContext.Provider value={fontsLoaded}><SafeAreaView style={styles.safe} edges={['top', 'left', 'right', 'bottom']}>{children}<StatusBar style="dark" /><KeyboardAvoidingView style={styles.flex} behavior={Platform.OS === 'ios' ? 'padding' : undefined}>
