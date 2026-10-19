@@ -7,6 +7,7 @@
 | 문서 | 내용 |
 |---|---|
 | [FEATURES.md](FEATURES.md) | **기능별로 무엇을 어떻게 만들었는지** (사용한 도구·라이브러리·파일) — 아래 [6절](#6-기능별-구현)에도 같은 내용 |
+| [docs/GAME_RULES.md](docs/GAME_RULES.md) | **게임 규칙 기준표** — 미션·보상·레벨·상점·일기·저장, 서버가 최종 기준 |
 | [APP_INTRO.md](APP_INTRO.md) | 앱 소개 — 왜 만들었나, 근거 연구, 비슷한 앱 조사, 원칙 |
 | [MY_MOCHI_PRODUCT_GUIDE.md](MY_MOCHI_PRODUCT_GUIDE.md) | 제품 소개·발표·홍보용 가이드 (소개 문구, 피해야 할 오해) |
 | [QUEST_DESIGN.md](QUEST_DESIGN.md) | 퀘스트 설계 근거 (행동 활성화, 사회 기술 팁, 단계 사다리) |
