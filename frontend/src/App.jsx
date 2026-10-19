@@ -124,12 +124,18 @@ export default function App() {
   }, [game.questReward?.sequence, wardrobe.outfit, game.character]);
   const consumePotatoReaction = useCallback(id => setPotatoReaction(value => value === id ? null : value), []);
 
+  // 서버 사용자인데 서버 값을 아직 못 받았으면 브라우저 기록(로컬 코인·레벨)으로 조용히 바꾸지 않고 알린다 (10/19)
+  if (serverUserId && !sv) return <div className="app"><div className="phone-shell"><IPhoneChrome /><section className="server-wait" role="status">
+    <h2>{server.error ? '서버에 연결하지 못했어요' : '모찌의 방을 불러오는 중…'}</h2>
+    {server.error && <><p>{server.error}</p><p className="server-wait-hint">코인·미션·꾸미기는 서버 기록을 써요. 연결되면 그대로 이어져요.</p><button type="button" className="pb ui-primary" onClick={server.refresh}>다시 시도</button></>}
+  </section></div></div>;
 
   return (
     <CharacterContext.Provider value={shownCharacter}>
     <div className="app">
       <div className={`phone-shell${screen === 'home' ? ' is-home' : screen === 'shop' ? ' is-shop' : screen === 'quest' ? ' is-quest' : ''}`}>
       <IPhoneChrome />
+      {sv && server.error && <div className="server-lost" role="status"><span>서버와 연결이 잠시 끊겼어요. 마지막으로 받은 기록을 보여 주고 있어요.</span><button type="button" className="pb ui-secondary" onClick={server.refresh}>다시 연결</button></div>}
       <div className="status-header">
       {sv ? <Attendance records={Object.fromEntries(sv.week.days.filter(d => d.claimed).map(d => [d.date, d.claimed.duplicate ? { ...d.claimed, duplicateOutfit: d.claimed.duplicate } : d.claimed]))}
         plans={{}} cycle={sv.week} onPrepare={() => {}}
