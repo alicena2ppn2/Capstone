@@ -78,5 +78,5 @@ test('current daily economy is 3 activity slots plus three routines, not an old 
   }
   assert.equal(game.coins-before.coins,75);assert.equal(game.xp-before.xp,60); // 45 base + three first-time +5 XP.
   const diary=saveDiaryMission(game,day,'한 줄',now);assert.equal(diary.coins-game.coins,25);assert.equal(diary.xp-game.xp,15);
-  const guest=recordRoutine(diary,'day-guestbook',day);assert.equal(guest.coins,diary.coins);
+  const guest=recordRoutine(diary,'day-visit',day);assert.equal(guest.coins,diary.coins);
 });
