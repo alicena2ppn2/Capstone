@@ -7,7 +7,8 @@ import RewardPanel from './components/RewardPanel.jsx';
 import { newAttendanceReward } from '../../shared/features/rewardFeedback.js';
 import { useCallback, useEffect, useRef, useState } from 'react';
 import Diary from './screens/Diary.jsx';
-import { ensureDailyMissions, startDailyMission, finishDailyMission, pauseDailyMission, replaceDailyMission, saveDiaryMission, deleteDiaryMission, recordRoutine } from '../../shared/features/dailyMissions.js';
+import { ensureDailyMissions, startDailyMission, finishDailyMission, pauseDailyMission, replaceDailyMission, saveDiaryMission, deleteDiaryMission, recordRoutine, DIARY_DELETED_MESSAGE } from '../../shared/features/dailyMissions.js';
+import { deletedJournal } from '../../shared/features/journal.js';
 import Home from './screens/Home.jsx';
 import Visit from './screens/Visit.jsx';
 import Neighbors from './screens/Neighbors.jsx';
@@ -75,11 +76,19 @@ export default function App() {
   };
   const saveDiary = async (date, text, emotion) => {
     if (date !== seoulDateKey() || !text.trim()) return { ok:false, message:'당일의 공백 아닌 일기만 저장할 수 있어요.' };
+    if (deletedJournal(gameRef.current, date)) return { ok:false, message: DIARY_DELETED_MESSAGE };
     const saved = commitGame(value => saveDiaryMission(value, date, text, new Date(), emotion));
-    if (saved.ok && serverUserId) saveServerDiary(serverUserId, date, text.trim()).then(() => server.refresh()).catch(() => {});   // 서버 일기 미션도 완료
-    return saved;
+    if (!saved.ok) return saved;
+    if (!serverUserId) return { ...saved, message: '이 브라우저에 저장했어요.' };
+    // 서버에도 저장(서버 일기 미션도 완료). 결과를 화면에 알린다 — 조용히 실패하지 않게 (10/19)
+    try { await saveServerDiary(serverUserId, date, text.trim()); void server.refresh(); return { ...saved, synced: true, message: '저장했어요. 다른 기기에서도 볼 수 있어요.' }; }
+    catch (e) { return { ...saved, synced: false, message: `이 브라우저에는 저장했지만 서버에 저장하지 못했어요. '다시 저장'을 눌러 주세요. (${e.message})` }; }
   };
-  const deleteDiary = async date => { const done = commitGame(value => deleteDiaryMission(value,date)); if (done.ok && serverUserId) removeServerDiary(serverUserId, date).catch(() => {}); return done; };
+  // 지우기: 서버에서 먼저 지우고 성공하면 브라우저에서도 (서버 실패 때 한쪽만 지워져 어긋나지 않게)
+  const deleteDiary = async date => {
+    if (serverUserId) { try { await removeServerDiary(serverUserId, date); } catch (e) { return { ok: false, message: `서버에서 지우지 못했어요. 다시 시도해 주세요. (${e.message})` }; } }
+    return commitGame(value => deleteDiaryMission(value, date));
+  };
   const continueDraft = (source, target, draft, choice) => { let moved; const result=commitGame(value=>{moved=continueJournalDraft(value,source,target,draft,choice);return moved.game;});return {...moved,...result,ok:result.ok&&moved.ok}; };
   const saveDraft = (date, draft) => commitGame(value => ({ ...value, journalDrafts: { ...value.journalDrafts, [date]:draft } }));
   const [wardrobe, setWardrobe] = useState(() => {
