@@ -34,7 +34,7 @@ test('familiar activities may repeat across dates; easy feedback never escalates
 test('today plan stable after preferences, guestbook and reload; tomorrow uses exclusions',()=>{
  let g=ensureDailyMissions(initialGame(),day);const ids=dailyActivities(g,day).map(q=>q.id);
  g=saveMissionPreferences(g,{activities:['contact'],exclude:['movement','photo']});
- g=recordRoutine(g,'day-guestbook',day);
+ g=recordRoutine(g,'day-visit',day);
  const reloaded=ensureDailyMissions(JSON.parse(JSON.stringify(g)),day);
  assert.deepEqual(dailyActivities(reloaded,day).map(q=>q.id),ids);
  const tomorrow=ensureDailyMissions(reloaded,'2026-10-16');

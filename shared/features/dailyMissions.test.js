@@ -22,12 +22,13 @@ test('diary blank rejected, optional mood, drafts not stamps; deleted day cannot
 });
 test('legacy current-day rewards/assets/raw records preserved, migration idempotent and no re-award',()=>{
   let old={...initialGame(),xp:340,coins:765,characters:['potato','mochi'],completed:[`${day}:day-walk`,`${day}:day-diary`],activityRecords:{[`${day}:day-walk`]:{id:'day-walk',day,rewarded:true,category:'outside'}},journals:{[day]:'기존 일기'},attendance:{[day]:{type:'coins',amount:20}}};
-  const raw=JSON.stringify(old);let game=ensureDailyMissions(old,day,{neighbor:[{source:'local',date:day,text:'안녕'}]});assert.equal(JSON.stringify(old),raw);assert.equal(game.coins,765);assert.equal(game.xp,340);assert(routineDone(game,'day-guestbook',day));assert.equal(dailyReward(game,dailyActivities(game,day).find(q=>q.id==='day-walk'),day).xp,0);
+  const raw=JSON.stringify(old);let game=ensureDailyMissions(old,day,{neighbor:[{source:'local',date:day,text:'안녕'}]});assert.equal(JSON.stringify(old),raw);assert.equal(game.coins,765);assert.equal(game.xp,340);assert(!routineDone(game,'day-visit',day));   // 10/19: 방명록 글은 더 이상 데일리 완료가 아님 (방문으로 바뀜)
+  assert.equal(dailyReward(game,dailyActivities(game,day).find(q=>q.id==='day-walk'),day).xp,0);
   game=saveDiaryMission(game,day,'수정',now);game=ensureDailyMissions(game,day);assert.equal(game.coins,765);assert.equal(game.xp,340);assert.deepEqual(ensureDailyMissions(game,day),game);
 });
 test('attendance one existing payment, guestbook pending has no invented bonus, date rollover allows new diary only',()=>{
   let game=ensureAttendanceWeek(ready(),day);game=recordRoutine(claimAttendance(game,day),'day-attendance',day);const paid=game;assert.equal(recordRoutine(claimAttendance(game,day),'day-attendance',day),paid);
-  game=recordRoutine(game,'day-guestbook',day);assert.equal(game.coins,paid.coins);assert.equal(game.xp,paid.xp);
+  game=recordRoutine(game,'day-visit',day);assert.equal(game.coins,paid.coins);assert.equal(game.xp,paid.xp);
   const nextDay='2026-10-09',nextNow=new Date('2026-10-08T15:00:00Z');assert.equal(saveDiaryMission(game,day,'자정 이후',nextNow),game);game=ensureDailyMissions(game,nextDay);assert(!routineDone(game,'day-diary',nextDay));game=saveDiaryMission(game,nextDay,'다음날',nextNow);assert.equal(game.coins,paid.coins+25);
 });
 test('replacement/pause cannot grant payment and current-day slots stay limited to three paid activities',()=>{

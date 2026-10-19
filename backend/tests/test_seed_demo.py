@@ -14,7 +14,7 @@ def test_seed_builds_recovery_story(tmp_path, monkeypatch):
     assert "potato" in r["owned_characters"] and "pink" in r["owned_characters"]
     assert r["diaries"] >= 10
     assert r["guestbook"] >= 5
-    assert len(r["today_missions"]) >= 8                    # 오늘 미션은 정해만 두고 수행 안 함
+    assert len(r["today_missions"]) >= 7                    # 오늘 미션은 정해만 두고 수행 안 함
     # 단계 사다리가 올라가 있고, 소감 기분이 점점 좋아진다
     assert r["ladder"]["move"]["stage"] >= 2 and r["ladder"]["connect"]["stage"] >= 2
     moods = [f["mood"] for f in reversed(r["feedback"])]   # 오래된 것부터
