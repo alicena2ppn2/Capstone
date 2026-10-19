@@ -90,7 +90,7 @@ export default function ServerMissions({ userId, onChanged, onAttendance, onDiar
       <View style={styles.row}><Label style={[styles.cardTitle, styles.flex]}>데일리 미션</Label><Label style={styles.small}>{daily.filter(m => m.done).length}/{daily.length}</Label></View>
       {daily.map(m => <View key={m.id} style={s.dailyRow}>
         <View style={styles.row}>
-          <View style={[styles.flex, { gap: 2 }]}><Label style={{ fontFamily: 'A2z-500', fontSize: 15, color: m.done ? colors.muted : colors.ink }}>{m.done ? '✓ ' : ''}{m.title}</Label>{m.done?<Label style={styles.small}>완료</Label>:m.kind==='photo'?<View style={{gap:2}}><Label style={styles.small}>오늘 찍은 사진</Label><QuestRewards xp={m.xp} coins={m.coins}/></View>:m.coins||m.xp?<QuestRewards xp={m.xp} coins={m.coins}/>:<Label style={styles.small}>출석 선물</Label>}</View>
+          <View style={[styles.flex, { gap: 2 }]}><Label style={{ fontFamily: 'A2z-500', fontSize: 15, color: m.done ? colors.muted : colors.ink }}>{m.done ? '✓ ' : ''}{m.title}</Label>{m.done?<Label style={styles.small}>완료</Label>:m.kind==='photo'?<QuestRewards xp={m.xp} coins={m.coins}/>:m.coins||m.xp?<QuestRewards xp={m.xp} coins={m.coins}/>:<Label style={styles.small}>출석 선물</Label>}</View>
           {!m.done && m.kind !== 'photo' && (m.kind === 'steps' ? <Button disabled={!!busy} onPress={() => checkSteps(m.id)}>걸음 확인</Button> : <Button onPress={() => go(m)[1]?.()}>{go(m)[0]}</Button>)}
         </View>
         {!m.done && m.kind === 'photo' && <PhotoPick compact busy={busy === m.id} onUpload={asset => run(m.id, () => completeWithPhoto(userId, m.id, asset))} />}
@@ -99,9 +99,9 @@ export default function ServerMissions({ userId, onChanged, onAttendance, onDiar
     </Card>
     <Card style={{ backgroundColor: colors.primarySoft }}>
       <View style={styles.row}><Label style={[styles.cardTitle, styles.flex]}>오늘의 활동</Label><Label style={[styles.small, { color: colors.primary }]}>{missions.filter(m => m.done).length}/{missions.length}</Label></View>
-      {missions.map(m => { const [slot, tone, soft] = SLOT[m.category] ?? ['오늘의 활동', colors.primary, colors.primarySoft]; return <Card key={m.id} style={[s.mission, m.done && { backgroundColor: soft, borderColor: 'transparent' }]}>
+      {missions.map(m => { const [, tone, soft] = SLOT[m.category] ?? ['', colors.primary, colors.primarySoft]; return <Card key={m.id} style={[s.mission, m.done && { backgroundColor: soft, borderColor: 'transparent' }]}>
         <View style={styles.row}>
-          <Label style={[s.chip, { color: tone, backgroundColor: soft }]}>{slot}{m.stage ? ` · ${m.stage}단계` : ''}</Label>
+          <View style={styles.flex} />{/* 10/19: '움직이기 · 2단계' 같은 분류·단계 라벨은 뺌 */}
           <View style={[styles.row, { gap: 6 }]}>
             {!m.done && m.rerollable && <Button variant="text" style={s.reroll} accessibilityLabel={`다른 미션으로 바꾸기, ${data.rerolls_left}번 남음`} disabled={!!busy || data.rerolls_left < 1} onPress={() => run(m.id, () => rerollMission(userId, m.id))}>↻</Button>}
             <QuestRewards xp={m.xp} coins={m.coins} />
