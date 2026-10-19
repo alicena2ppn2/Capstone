@@ -5,6 +5,7 @@ import SubScreen from '../components/SubScreen.jsx';
 import { HeartIcon } from '../components/Icons.jsx';
 import { useGuestModeration, SafetyPanel, ModerationActions, writingMessage } from '../components/GuestbookSafety.jsx';
 import { SELF_AUTHOR, visibleNote, violation, suspensionUntil } from '../../../shared/features/guestModeration.js';
+import { local } from '../storage/local.js';
 
 const PER_PAGE = 4;
 
@@ -33,16 +34,16 @@ export default function Guestbook({ level, petColor, onShop, onSettings, onHome,
   const safety = useGuestModeration();
   const suspended = !!suspensionUntil(safety.state, SELF_AUTHOR, safety.now);
   const [entries, setEntries] = useState(() => {
-    try { const value = JSON.parse(localStorage.getItem('mochi.homeGuestbook.v1')); if (Array.isArray(value)) return value; } catch { /* 샘플 글 제공 */ }
+    try { const value = JSON.parse(local.getItem('mochi.homeGuestbook.v1')); if (Array.isArray(value)) return value; } catch { /* 샘플 글 제공 */ }
     return SEED.map((entry, index) => ({ ...entry, variant: ['pink', 'sky', 'mint', 'lavender', 'mochi', 'potato'][index % 6] }));
   });
   const [draft, setDraft] = useState('');
   const [liked, setLiked] = useState(() => {
-    try { const value = JSON.parse(localStorage.getItem('mochi.homeGuestLikes.v1')); if (value && typeof value === 'object' && !Array.isArray(value)) return value; } catch { /* 빈 좋아요 */ }
+    try { const value = JSON.parse(local.getItem('mochi.homeGuestLikes.v1')); if (value && typeof value === 'object' && !Array.isArray(value)) return value; } catch { /* 빈 좋아요 */ }
     return {};
   });
   useEffect(() => {
-    try { localStorage.setItem('mochi.homeGuestbook.v1', JSON.stringify(entries)); localStorage.setItem('mochi.homeGuestLikes.v1', JSON.stringify(liked)); } catch { /* 현재 화면 유지 */ }
+    try { local.setItem('mochi.homeGuestbook.v1', JSON.stringify(entries)); local.setItem('mochi.homeGuestLikes.v1', JSON.stringify(liked)); } catch { /* 현재 화면 유지 */ }
   }, [entries, liked]);
   const [page, setPage] = useState(0);
 
