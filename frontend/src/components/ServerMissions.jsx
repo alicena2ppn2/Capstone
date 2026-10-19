@@ -50,7 +50,7 @@ export default function ServerMissions({ userId, onChanged, onAttendance, onDiar
   const daily = data.missions.filter(m => m.category === 'daily');
   const done = missions.filter(m => m.done).length;
   const all = data.missions.filter(m => m.done).length;
-  // 데일리 미션: 앱 안 행동(출석·일기·방문·방명록)은 그 화면으로, 사진 미션은 여기서 바로
+  // 데일리 미션: 앱 안 행동(출석·일기·방문)은 그 화면으로, 사진 미션은 여기서 바로. done·self(인사·안부·운동)는 '했어요' (10/19)
   const go = m => m.kind === 'checkin' ? ['출석표', onAttendance] : m.kind === 'diary' ? ['일기 쓰기', onDiary] : ['이웃 가기', onVisit];
   return <>
   <div className="daily-overview"><div><strong>오늘의 도전</strong><span>{all}/{data.missions.length} 완료</span></div><progress max={data.missions.length} value={all} aria-label="오늘 미션 완료 수"/></div>
@@ -59,6 +59,7 @@ export default function ServerMissions({ userId, onChanged, onAttendance, onDiar
       <div><strong>{m.done ? '✓ ' : ''}{m.title}</strong>{m.done?<small>완료</small>:m.kind==='photo'?<div className="server-routine-reward"><small>오늘 찍은 사진</small><QuestRewards xp={m.xp} coins={m.coins}/></div>:m.coins||m.xp?<QuestRewards xp={m.xp} coins={m.coins}/>:<small>출석 선물</small>}</div>
       {!m.done && (m.kind === 'photo' ? <PhotoPick compact busy={busy === m.id} onUpload={file => run(m.id, () => completeWithPhoto(userId, m.id, file))}/>
         : m.kind === 'steps' ? <button type="button" className="pb ui-secondary" disabled={!!busy} onClick={() => run(m.id, () => completeSteps(userId, m.id))}>걸음 확인</button>
+        : m.kind === 'done' || m.kind === 'self' ? <button type="button" className="pb ui-secondary" disabled={!!busy} onClick={() => run(m.id, () => completeSteps(userId, m.id))}>했어요</button>
         : <button type="button" className="pb ui-secondary" onClick={() => go(m)[1]?.()}>{go(m)[0]}</button>)}
       {notes[m.id] && <p role="status" className="mission-note">{notes[m.id]}</p>}
     </article>)}
@@ -82,6 +83,7 @@ export default function ServerMissions({ userId, onChanged, onAttendance, onDiar
         {m.tip && <p className="mission-tip"><span aria-hidden="true">💡</span> {m.tip}</p>}
         {m.kind === 'photo' ? <PhotoPick busy={busy === m.id} onUpload={file => run(m.id, () => completeWithPhoto(userId, m.id, file))}/>
           : m.kind === 'steps' ? <button type="button" className="pb shop-buy mission-main" disabled={!!busy} onClick={() => run(m.id, () => completeSteps(userId, m.id))}><span aria-hidden="true">👟</span> 오늘 걸음으로 확인 · {m.min_count.toLocaleString('ko-KR')}보</button>
+          : m.kind === 'done' || m.kind === 'self' ? <button type="button" className="pb shop-buy mission-main" disabled={!!busy} onClick={() => run(m.id, () => completeSteps(userId, m.id))}>✓ 했어요</button>
           : <small>앱에서 아직 지원하지 않는 미션이에요.</small>}
         <p role="status" className="mission-note">{notes[m.id]}</p>
       </>}
