@@ -2,20 +2,20 @@
 button, input, textarea, select { font-synthesis: none; }
 body { background: var(--color-background); color: var(--color-ink); }
 .pb { color: var(--color-ink); font-weight: 500; }
-.ui-primary, .shop-buy, .diary-save, .settings-save, .settings-name-controls button, .visit-guestbook form button, .attendance-claim, .home-screen .home-quest-actions .home-quest-start { background: var(--color-primary); border-color: var(--color-primary); color: var(--color-surface); }
+.ui-primary, .shop-buy, .diary-save, .settings-save, .settings-name-controls button, .visit-guestbook form button, .attendance-claim, .home-screen .home-quest-actions .home-quest-start { background: var(--color-primary-soft); border-color: var(--color-primary-ink); color: var(--color-primary-ink); }
 .ui-secondary, .ui-back, .shop-tabs button, .decor-categories button, .attendance-open, .home-decor-open { background: var(--color-surface); border: 1px solid var(--color-input-border); color: var(--color-ink); border-radius: var(--ui-radius); min-height: var(--ui-touch); }
-.pb:is([aria-pressed=true], [aria-checked=true]), .shop-tabs button[aria-pressed=true], .decor-categories button[aria-pressed=true], .diary-tabs button[aria-pressed=true] { background: var(--color-primary); color: var(--color-surface); border-color: var(--color-primary); }
-.pb:is(.quest-info,.quest-text-button,.quest-feedback-link), .quest-card-secondary .pb { background: transparent; color: var(--color-primary); border: 0; min-height: var(--ui-touch); }
+.pb:is([aria-pressed=true], [aria-checked=true]), .shop-tabs button[aria-pressed=true], .decor-categories button[aria-pressed=true], .diary-tabs button[aria-pressed=true] { background: var(--color-primary-soft); color: var(--color-primary-ink); border-color: var(--color-primary-ink); }
+.pb:is(.quest-info,.quest-text-button,.quest-feedback-link), .quest-card-secondary .pb { background: transparent; color: var(--color-primary-ink); border: 0; min-height: var(--ui-touch); }
 .pb:disabled, .shop-buy:disabled, .diary-save:disabled, .attendance-claim:disabled { background: var(--color-disabled); border-color: var(--color-border); color: var(--color-muted); opacity: 1; }
 .shop-buy.is-equipped, .character-status.is-active, .character-status.is-owned, .ui-state.is-equipped { background: var(--color-primary-soft); border-color: var(--color-border); color: var(--color-ink); }
 .shop-buy.is-release { background: var(--color-surface); border-color: var(--color-input-border); color: var(--color-ink); }
-:is(button,input,textarea,select,summary):focus-visible { outline: 2px solid var(--color-primary); outline-offset: 3px; }
-:is(input,textarea,select) { color: var(--color-ink); background: var(--color-surface); caret-color: var(--color-primary); }
+:is(button,input,textarea,select,summary):focus-visible { outline: 2px solid var(--color-primary-ink); outline-offset: 3px; }
+:is(input,textarea,select) { color: var(--color-ink); background: var(--color-surface); caret-color: var(--color-primary-ink); }
 :is(input,textarea)::placeholder { color: var(--color-muted); opacity: 1; }
-:is(progress,input[type=range]) { accent-color: var(--color-primary); }
+:is(progress,input[type=range]) { accent-color: var(--color-primary-ink); }
 progress::-webkit-progress-bar { background: var(--color-border); border-radius: 6px; }
-progress::-webkit-progress-value { background: var(--color-primary); border-radius: 6px; }
-progress::-moz-progress-bar { background: var(--color-primary); border-radius: 6px; }
+progress::-webkit-progress-value { background: var(--color-primary-soft); border-radius: 6px; }
+progress::-moz-progress-bar { background: var(--color-primary-soft); border-radius: 6px; }
 .ui-screen-header h1 { color: var(--color-ink); }
 .ui-state, .quest-state { color: var(--color-muted); background: var(--color-disabled); }
 .ui-state.is-started, .is-started .quest-state, .is-completed .quest-state { background: var(--color-primary-soft); color: var(--color-ink); }
@@ -25,19 +25,19 @@ progress::-moz-progress-bar { background: var(--color-primary); border-radius: 6
 .daily-discoveries .growth-quest { background: var(--color-surface); }
 .routine-row { border-color: var(--color-border); }
 :is(.daily-routines,.daily-discoveries) h2 { align-items: center; }
-.ui-section-icon { color: var(--color-primary); flex-shrink: 0; }
-.home-room-menus .pb svg, .home-settings svg { color: var(--color-primary); }
+.ui-section-icon { color: var(--color-primary-ink); flex-shrink: 0; }
+.home-room-menus .pb svg, .home-settings svg { color: var(--color-primary-ink); }
 .home-room-menus .pb svg path { fill: var(--color-surface); stroke: currentColor; }
 .home-screen .home-identity .home-nameplate { background: var(--color-surface); color: var(--color-ink); border-color: var(--color-border); }
-.diary-entry > header h2 { font-variant-numeric: tabular-nums; font-size: 15px; color: var(--color-primary); border: 1px solid var(--color-primary); border-radius: 8px; padding: 5px 8px; }
-.diary-stamp { color: var(--color-primary); }
+.diary-entry > header h2 { font-variant-numeric: tabular-nums; font-size: 15px; color: var(--color-primary-ink); border: 1px solid var(--color-primary-ink); border-radius: 8px; padding: 5px 8px; }
+.diary-stamp { color: var(--color-primary-ink); }
 :is(.diary-today,.diary-entry,.diary-calendar) { background: var(--color-surface); }
 .diary-calendar-day.is-written { background: var(--color-primary-soft); color: var(--color-ink); }
-.diary-calendar-day[aria-current=date] { border-color: var(--color-primary); }
+.diary-calendar-day[aria-current=date] { border-color: var(--color-primary-ink); }
 .phone-shell > .attendance-award { background: var(--color-surface); border-color: var(--color-accent); }
 .attendance-award small { color: var(--color-muted); }
-.attendance-check { background: var(--color-primary); color: var(--color-surface); }
-.attendance-stamp.is-checked { background: var(--color-primary-soft); color: var(--color-primary); }
+.attendance-check { background: var(--color-primary-soft); color: var(--color-primary-ink); }
+.attendance-stamp.is-checked { background: var(--color-primary-soft); color: var(--color-primary-ink); }
 .neighbor-feedback { background: var(--color-primary-soft); color: var(--color-ink); }
 .neighbor-feedback.is-error { background: var(--color-error-soft); color: var(--color-error); }
 @media (hover:hover) {
