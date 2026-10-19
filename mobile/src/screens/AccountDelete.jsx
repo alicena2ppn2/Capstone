@@ -8,6 +8,7 @@ import { useAuthActions } from '../../../shared/auth/AuthContext.js';
 import { Label, Button, Input, Card, Sheet, styles } from '../components/ui';
 import { call, useServerUserId } from '../api/server';
 import { KEYS } from '../storage/storage';
+import { scopedKey } from '../../../shared/storage/accountKeys.js';
 import { cancelComeback } from '../notify/comeback';
 
 const CONFIRM = '삭제';
@@ -22,7 +23,7 @@ export default function AccountDelete() {
     setBusy(true); setMessage('');
     try {
       if (userId) await call(`/users/${encodeURIComponent(userId)}`, { method: 'DELETE' });
-      await AsyncStorage.multiRemove([...KEYS, ...LOCAL_EXTRA]).catch(() => {});
+      await AsyncStorage.multiRemove([...KEYS, ...KEYS.map(k => scopedKey(k, userId)), ...LOCAL_EXTRA]).catch(() => {});   // 이 계정 칸도
       await cancelComeback().catch(() => {});
       setOpen(false);
       if (auth?.logout) await auth.logout();
