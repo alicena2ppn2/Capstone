@@ -14,8 +14,8 @@ import { recommendedRooms, roomOf, visitRoom, todayVisitors, guestbook, writeGue
 // 서버 moderation.REPORT_REASONS와 같은 이유
 const REPORT_REASONS = [['spam', '스팸·광고'], ['abuse', '욕설·괴롭힘'], ['hate', '혐오 표현'], ['sexual', '성적인 내용'], ['self_harm', '자해·위험한 내용'], ['other', '기타']];
 
-// 신고 버튼을 누르면 뜨는 창: 이유를 고르고 '신고하기'
-function ReportSheet({ entry, onCancel, onReport }) {
+// 신고 버튼을 누르면 뜨는 창: 이유를 고르고 '신고하기' (장소 쪽지도 같이 씀)
+export function ReportSheet({ entry, onCancel, onReport }) {
   const [reason, setReason] = useState('');
   return <Sheet title="신고할까요?" close={onCancel}>
     <Card style={{ backgroundColor: colors.background, padding: 10 }}><Label style={styles.body}>“{entry.text}”</Label></Card>
