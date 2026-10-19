@@ -1503,6 +1503,9 @@ class PlaceNoteIn(BaseModel):
     color: str = Field("yellow", description="yellow | apricot | mint (종이 색)")
     sticker: str = Field("♡", description="♡ | ✿ | ☀")
     author_id: str | None = Field(None, description="쓴 사람 user id (로그인했으면 토큰 주인으로 채움)")
+    latitude: float | None = Field(None, ge=-90, le=90, description="쓰는 순간 내 위치 — 장소 근처인지 판정에만 쓰고 저장하지 않음")
+    longitude: float | None = Field(None, ge=-180, le=180)
+    accuracy_m: float | None = Field(None, ge=0, description="위치 오차(m). 50m보다 크면 판정하지 않음")
 
 
 def place_or_404(place_id: str) -> dict:
@@ -1534,14 +1537,16 @@ def list_place_notes(place_id: str, viewer_id: str | None = Query(None), limit: 
             "samples": [{"text": t, "sample": True} for t in place.get("sample_notes", [])]}
 
 
-@app.post("/places/{place_id}/notes", status_code=201, summary="장소에 쪽지 남기기 (140자, 방명록과 같은 필터)")
+@app.post("/places/{place_id}/notes", status_code=201, summary="장소에 쪽지 남기기 (140자, 방명록과 같은 필터, 장소 근처에서만)")
 def post_place_note(place_id: str, body: PlaceNoteIn, request: Request, date: str | None = DateQuery, conn=Depends(get_conn)):
-    place_or_404(place_id)
+    place = place_or_404(place_id)
     author_id = access.actor(request, body.author_id)
     if not author_id or db.get_user(conn, author_id) is None:
         raise HTTPException(422, "쪽지는 가입한 사람만 남길 수 있어요.")
     if body.color not in pl.COLORS or body.sticker not in pl.STICKERS:
         raise HTTPException(422, "종이 색이나 스티커를 다시 골라 주세요.")
+    if (why := pl.write_check(place, body.latitude, body.longitude, body.accuracy_m)):   # 쓰기만 잠금 (10/19)
+        raise HTTPException(403, why)
     today = day(date)
     if (until := db.guestbook_ban_until(conn, author_id, today.isoformat())):
         raise HTTPException(403, f"지금은 글을 쓸 수 없어요. ({until}까지)")
