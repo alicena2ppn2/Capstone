@@ -24,8 +24,16 @@ import Attendance from './components/Attendance.jsx';
 import IPhoneChrome from './components/IPhoneChrome.jsx';
 import { restoreNicknames } from '../../shared/data/catalog.js';
 import { seoulDateKey } from '../../shared/utils/seoulDate.js';
+import { local, useAccountStorage } from './storage/local.js';
 
+// 계정이 바뀌면 게임 화면을 새로 그려서(key) 그 계정의 브라우저 기록만 읽는다 (10/19)
 export default function App() {
+  const serverUserId = useServerUserId();
+  useAccountStorage(serverUserId);
+  return <Game key={serverUserId ?? 'preview'} />;
+}
+
+function Game() {
   const [screen, setScreen] = useState('home');
   const serverUserId = useServerUserId();   // 있으면 이웃·방명록을 서버로
   const [attendanceAward, setAttendanceAward] = useState(null);
@@ -36,21 +44,21 @@ export default function App() {
   const openQuest = id => { setQuestFocus(id ?? null); setScreen('quest'); };
   const [game, setGame] = useState(() => {
     try {
-      const saved = JSON.parse(localStorage.getItem('mochi.game.v1'));
+      const saved = JSON.parse(local.getItem('mochi.game.v1'));
       if (saved && Number.isFinite(saved.xp) && saved.xp >= 0 && Number.isFinite(saved.coins) && saved.coins >= 0 && Array.isArray(saved.characters) && Array.isArray(saved.completed)) {
         const characters = [...new Set(['potato', ...saved.characters])];
         const attendance = saved.attendance && typeof saved.attendance === 'object' && !Array.isArray(saved.attendance) ? saved.attendance : {};
         const questAnswers = saved.questAnswers && typeof saved.questAnswers === 'object' && !Array.isArray(saved.questAnswers) ? saved.questAnswers : {};
         const current = characters.includes(saved.character) ? saved.character : 'potato';
-        const oldName = localStorage.getItem('mochi.petName')?.trim().slice(0, 12);
+        const oldName = local.getItem('mochi.petName')?.trim().slice(0, 12);
         return migrateQuestProgress(restoreNicknames({ ...saved, attendance, questAnswers, characters, character: current }, oldName));
       }
     } catch { /* 처음 방문이면 기본 캐릭터 제공 */ }
     const fresh = initialGame();
-    try { const name = localStorage.getItem('mochi.petName')?.trim().slice(0, 12); return restoreNicknames(fresh, name); } catch { return fresh; }
+    try { const name = local.getItem('mochi.petName')?.trim().slice(0, 12); return restoreNicknames(fresh, name); } catch { return fresh; }
   });
   const prepareChallenges = useCallback(day => setGame(value => {
-    let notes; try { notes = JSON.parse(localStorage.getItem('mochi.visitNotes.v1')); } catch { /* no valid saved posts */ }
+    let notes; try { notes = JSON.parse(local.getItem('mochi.visitNotes.v1')); } catch { /* no valid saved posts */ }
     return ensureDailyMissions(value, day, notes);
   }), []);
   const [day, setDay] = useState(seoulDateKey);
@@ -70,7 +78,7 @@ export default function App() {
     try {
       const previous = gameRef.current;
       const next = transform(previous);
-      localStorage.setItem('mochi.game.v1', JSON.stringify(next));
+      local.setItem('mochi.game.v1', JSON.stringify(next));
       gameRef.current = next; setGame(next); return { ok: true, changed: next !== previous };
     } catch { return { ok: false, message: '저장하지 못했어요. 작성한 글은 유지돼요. 다시 시도해 주세요.' }; }
   };
@@ -92,10 +100,10 @@ export default function App() {
   const continueDraft = (source, target, draft, choice) => { let moved; const result=commitGame(value=>{moved=continueJournalDraft(value,source,target,draft,choice);return moved.game;});return {...moved,...result,ok:result.ok&&moved.ok}; };
   const saveDraft = (date, draft) => commitGame(value => ({ ...value, journalDrafts: { ...value.journalDrafts, [date]:draft } }));
   const [wardrobe, setWardrobe] = useState(() => {
-    try { const saved = JSON.parse(localStorage.getItem('mochi.wardrobe.v1')); if (saved && Array.isArray(saved.owned)) return saved; } catch { /* 기본 옷장 */ }
+    try { const saved = JSON.parse(local.getItem('mochi.wardrobe.v1')); if (saved && Array.isArray(saved.owned)) return saved; } catch { /* 기본 옷장 */ }
     return { owned: [], outfit: null };
   });
-  useEffect(() => { try { localStorage.setItem('mochi.game.v1', JSON.stringify(game)); localStorage.setItem('mochi.wardrobe.v1', JSON.stringify(wardrobe)); } catch { /* 브라우저 저장 제한 */ } }, [game, wardrobe]);
+  useEffect(() => { try { local.setItem('mochi.game.v1', JSON.stringify(game)); local.setItem('mochi.wardrobe.v1', JSON.stringify(wardrobe)); } catch { /* 브라우저 저장 제한 */ } }, [game, wardrobe]);
   const petColor = '#FFF5E6';
   const petName = game.nicknames?.[game.character] || CHARACTERS.find(item => item.id === game.character)?.name || 'MOCHI';
   const rename = name => {
