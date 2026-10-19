@@ -6,7 +6,6 @@ import QuestRewards from './QuestRewards.jsx';
 // 서버가 정한 오늘의 미션 3개 (움직이기 · 집 · 이어지기). 걸음 미션 말고는 오늘 찍은 사진을 올리면 서버가 날짜를 확인해 완료한다.
 // 카드 하나에 행동 하나: 사진 올리기(또는 걸음 확인) → 완료 → 기분 고르기. Habitica 할 일 목록처럼 보상은 카드 오른쪽 위에.
 const SLOT = { outdoor: ['움직이기', 'is-move'], home: ['집에서', 'is-home'], connect: ['이어지기', 'is-connect'] };
-const STAGE = { 1: '1단계', 2: '2단계', 3: '3단계' };
 const MOODS = [[1, '😣', '힘들었어'], [2, '😕', '조금 힘들었어'], [3, '🙂', '보통'], [4, '😊', '괜찮았어'], [5, '😄', '좋았어']];
 
 function PhotoPick({ busy, onUpload, compact = false }) {
@@ -56,7 +55,7 @@ export default function ServerMissions({ userId, onChanged, onAttendance, onDiar
   <div className="daily-overview"><div><strong>오늘의 도전</strong><span>{all}/{data.missions.length} 완료</span></div><progress max={data.missions.length} value={all} aria-label="오늘 미션 완료 수"/></div>
   <section className="daily-routines server-daily"><h2>데일리 미션 <small>{daily.filter(m => m.done).length}/{daily.length}</small></h2>
     {daily.map(m => <article key={m.id} data-quest-id={m.id} tabIndex={-1} className={`routine-row${m.done ? ' is-completed' : ''}`}>
-      <div><strong>{m.done ? '✓ ' : ''}{m.title}</strong>{m.done?<small>완료</small>:m.kind==='photo'?<div className="server-routine-reward"><small>오늘 찍은 사진</small><QuestRewards xp={m.xp} coins={m.coins}/></div>:m.coins||m.xp?<QuestRewards xp={m.xp} coins={m.coins}/>:<small>출석 선물</small>}</div>
+      <div><strong>{m.done ? '✓ ' : ''}{m.title}</strong>{m.done?<small>완료</small>:m.kind==='photo'?<QuestRewards xp={m.xp} coins={m.coins}/>:m.coins||m.xp?<QuestRewards xp={m.xp} coins={m.coins}/>:<small>출석 선물</small>}</div>
       {!m.done && (m.kind === 'photo' ? <PhotoPick compact busy={busy === m.id} onUpload={file => run(m.id, () => completeWithPhoto(userId, m.id, file))}/>
         : m.kind === 'steps' ? <button type="button" className="pb ui-secondary" disabled={!!busy} onClick={() => run(m.id, () => completeSteps(userId, m.id))}>걸음 확인</button>
         : m.kind === 'done' || m.kind === 'self' ? <button type="button" className="pb ui-secondary" disabled={!!busy} onClick={() => run(m.id, () => completeSteps(userId, m.id))}>했어요</button>
@@ -66,9 +65,9 @@ export default function ServerMissions({ userId, onChanged, onAttendance, onDiar
   </section>
   <section className="daily-discoveries mission-list">
     <h2 className="quest-selection-heading" tabIndex={-1}>오늘의 활동 <small>{done}/{missions.length}</small></h2>
-    <ol className="mission-cards">{missions.map(m => { const [slot, tone] = SLOT[m.category] ?? ['오늘의 활동', 'is-home']; return <li data-quest-id={m.id} tabIndex={-1} key={m.id} className={`mission-card ${tone}${m.done ? ' is-done' : ''}`}>
+    <ol className="mission-cards">{missions.map(m => { const [, tone] = SLOT[m.category] ?? ['', 'is-home']; return <li data-quest-id={m.id} tabIndex={-1} key={m.id} className={`mission-card ${tone}${m.done ? ' is-done' : ''}`}>
       <div className="mission-card-top">
-        <span className="mission-chip">{slot}{m.stage ? ` · ${STAGE[m.stage]}` : ''}</span>
+        <span aria-hidden="true" />{/* 10/19: '움직이기 · 2단계' 같은 분류·단계 라벨은 뺌 */}
         <span className="mission-top-right">
           {!m.done && m.rerollable && <button type="button" className="pb mission-reroll" disabled={!!busy || data.rerolls_left < 1} aria-label={`다른 미션으로 바꾸기, ${data.rerolls_left}번 남음`} title={`다른 미션으로 (${data.rerolls_left}번 남음)`} onClick={() => run(m.id, () => rerollMission(userId, m.id))}>↻</button>}
           <QuestRewards xp={m.xp} coins={m.coins} className="mission-reward" />
