@@ -19,7 +19,7 @@ function loadNotes() {
   return VISITOR_NOTES;
 }
 
-export default function Visit({ visitorName, visitorVariant, onBack, onPosted, onGuestbook }) {
+export default function Visit({ visitorName, visitorVariant, onBack, onPosted, onVisited, onGuestbook }) {
   const safety = useGuestModeration();
   const [reactionFeedback, showReactionFeedback] = useBriefFeedback();
   const react = label => {
@@ -34,7 +34,7 @@ export default function Visit({ visitorName, visitorVariant, onBack, onPosted, o
   const [connections, setConnections] = useState(() => { try { const value = JSON.parse(local.getItem('mochi.visitConnections.v1')); return { ...initialConnections(), ...value, recent: Array.isArray(value?.recent) ? value.recent : [], favorites: Array.isArray(value?.favorites) ? value.favorites : [] }; } catch { return initialConnections(); } });
   const [list, setList] = useState('recommended');
   useEffect(() => { try { local.setItem('mochi.visitConnections.v1', JSON.stringify(connections)); } catch { /* 현재 화면 유지 */ } }, [connections]);
-  const open = user => { if (!user) return; setSelected(user); setConnections(value => visitNeighbor(value, user.id)); setDraft(''); setMessage(''); };
+  const open = user => { if (!user) return; setSelected(user); onVisited?.(seoulDateKey()); setConnections(value => visitNeighbor(value, user.id)); setDraft(''); setMessage(''); };
   const [day, setDay] = useState(() => seoulDateKey());
   const [selected, setSelected] = useState(null);
   const [recommendation, setRecommendation] = useState(() => {
