@@ -2,6 +2,7 @@
   "note_limit": 140,
   "colors": ["yellow", "apricot", "mint"],
   "stickers": ["♡", "✿", "☀"],
+  "write_accuracy_m": 50,
   "places": [
     {
       "id": "seoul-library",
@@ -10,6 +11,7 @@
       "icon": "library",
       "latitude": 37.566406,
       "longitude": 126.977822,
+      "write_radius_m": 60,
       "intro": "서울시청 옛 청사에 있는 공공 도서관이에요.",
       "location_note": "서울특별시 중구 세종대로 110",
       "official_url": "https://lib.seoul.go.kr/",
@@ -23,6 +25,7 @@
       "icon": "plaza",
       "latitude": 37.565556,
       "longitude": 126.978056,
+      "write_radius_m": 80,
       "intro": "서울시청 앞의 열린 광장이에요.",
       "location_note": "잔디광장 안의 참고 지점",
       "official_url": "https://plaza.seoul.go.kr/",
@@ -36,6 +39,7 @@
       "icon": "park",
       "latitude": 37.55042,
       "longitude": 126.99287,
+      "write_radius_m": 300,
       "intro": "서울 중구와 용산구에 걸친 공원이에요.",
       "location_note": "넓은 공원 구역을 대표하는 참고 지점 · 입구 아님",
       "official_url": "https://parks.seoul.go.kr/",
