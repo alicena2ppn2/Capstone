@@ -1,6 +1,7 @@
 import { useEffect, useRef, useState } from 'react';
 import { useAuthActions } from '../../../shared/auth/AuthContext.js';
 import { call, useServerUserId } from '../api/missions.js';
+import { LOCAL_KEYS, accountKeys } from '../storage/local.js';
 
 // 설정 > 계정 삭제 (App Store 심사 5.1.1(v): 앱 안에서 계정을 지울 수 있어야 함).
 // 확인 창에서 '삭제'를 입력하면 서버의 게임 기록 전부 + Supabase 로그인 계정을 지우고,
@@ -8,8 +9,9 @@ import { call, useServerUserId } from '../api/missions.js';
 const CONFIRM = '삭제';
 const GONE = ['캐릭터·옷·집 꾸미기·코인·레벨', '미션·출석·걸음 기록', '일기와 사진', '이웃 방문·방명록·좋아요·친구', '로그인 계정 (Google·카카오 연결)'];
 
-function clearLocal() {
-  try { Object.keys(localStorage).filter(key => key.startsWith('mochi')).forEach(key => localStorage.removeItem(key)); } catch { /* 저장소를 못 쓰면 지울 것도 없음 */ }
+// 이 계정 칸 + 예전(계정 구분 없던) 기록만 지운다. 같은 브라우저의 다른 계정 기록은 그대로 (10/19)
+function clearLocal(userId) {
+  try { [...LOCAL_KEYS, ...accountKeys(userId)].forEach(key => localStorage.removeItem(key)); } catch { /* 저장소를 못 쓰면 지울 것도 없음 */ }
 }
 
 export default function AccountDelete() {
@@ -22,7 +24,7 @@ export default function AccountDelete() {
     setBusy(true); setMessage('');
     try {
       if (userId) await call(`/users/${encodeURIComponent(userId)}`, { method: 'DELETE' });
-      clearLocal();
+      clearLocal(userId);
       if (auth?.logout) await auth.logout();
       window.location.reload();                       // 메모리에 남은 게임 상태까지 비우고 처음 화면으로
     } catch (e) { setMessage(e.message); setBusy(false); }

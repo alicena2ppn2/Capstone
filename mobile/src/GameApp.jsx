@@ -37,9 +37,10 @@ function GameApp({ children }) {
   const [sentenceHeight,setSentenceHeight]=useState(0);
   const screen = ['quest', 'shop', 'settings', 'visit', 'guest', 'diary'].includes(pathname.slice(1)) ? pathname.slice(1) : 'home';
   const [fontsLoaded, fontError] = useFonts({ 'A2z-400': require('../assets/fonts/A2z-400.ttf'), 'A2z-500': require('../assets/fonts/A2z-500.ttf'), 'A2z-600': require('../assets/fonts/A2z-600.ttf') });
-  const { state, setState, error, now, day, sheet, setSheet, toast, setToast, reaction, attendanceAward, restore, claimDailyAttendance, commitState, load, consumeReaction } = useGameState();
+  const serverUserId = useServerUserId();   // 휴대폰 기록도 이 계정 칸에 (10/19)
+  const { state, setState, error, now, day, sheet, setSheet, toast, setToast, reaction, attendanceAward, restore, claimDailyAttendance, commitState, load, consumeReaction } = useGameState(serverUserId);
   // 서버가 있으면 코인·레벨·장착·방·출석·상점은 서버 (웹과 같은 규칙, 10/15). 없으면 지금처럼 휴대폰 안 기록
-  const serverUserId = useServerUserId(), server = useServerGame(serverUserId), sv = server.state;
+  const server = useServerGame(serverUserId), sv = server.state;
   const [serverAward, setServerAward] = useState(null);
   // 다시 부르기 알림: 앱을 열거나 다시 돌아올 때마다 2·4·7일 뒤 알림을 새로 잡는다 (계속 오면 안 울림). 처음 한 번 알림 권한을 묻는다
   const remindersOn = state ? state.settings?.reminders !== false : null;
