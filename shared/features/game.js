@@ -1,6 +1,6 @@
 import { seoulDateKey, attendanceWeek } from '../utils/seoulDate.js';
 import { CLOTHES } from '../data/clothes.js';
-import { DECOR } from '../data/decor.js';
+import { DECOR, DECOR_SLOTS } from '../data/decor.js';
 import { deletedJournal, saveJournal } from './journal.js';
 import { CHALLENGES, migrateChallenges, ensureChallenges, previewReward, goalProgress } from './challenges.js';
 import { levelFor } from './levelProgression.js';
@@ -135,7 +135,8 @@ export function buyDecor(state, id) {
   return { ...state, coins: state.coins - item.price, ownedDecor: [...(state.ownedDecor ?? []), id] };
 }
 export function equipDecor(state, slot, id) {
-  if (!['lamp', 'carpet', 'frame', 'doll', 'scenery'].includes(slot)) return state;
+  // 모든 자리(벽지·바닥·소파·서랍장·커튼 포함). 예전엔 처음 5자리만 허용해서 벽지 등을 장착할 수 없었다 (10/19)
+  if (!(slot in DECOR_SLOTS)) return state;
   if (id !== null && (!state.ownedDecor?.includes(id) || !DECOR.some(item => item.id === id && item.slot === slot))) return state;
   return { ...state, decor: { ...state.decor, [slot]: id } };
 }
