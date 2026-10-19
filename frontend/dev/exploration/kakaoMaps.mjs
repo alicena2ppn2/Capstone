@@ -6,6 +6,7 @@ export function kakaoMapsSdkUrl(key) {
   const url = new URL(SDK_URL);
   url.searchParams.set('appkey', key);
   url.searchParams.set('autoload', 'false');
+  url.searchParams.set('libraries', 'services');
   return url.toString();
 }
 
@@ -47,7 +48,10 @@ export function loadKakaoMapsSdk(key, documentRef = document, windowRef = window
 function loadMapsApi(kakao) {
   return new Promise((resolve, reject) => {
     try {
-      kakao.maps.load(() => resolve(kakao.maps));
+      kakao.maps.load(() => {
+        if (!kakao.maps.services?.Places) reject(new Error('places-service-unavailable'));
+        else resolve(kakao.maps);
+      });
     } catch (error) {
       reject(error);
     }
