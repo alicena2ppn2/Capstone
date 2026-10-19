@@ -32,19 +32,19 @@ def test_catalog_size_and_shape():
     for c in ms.CATEGORIES:
         if c != "daily":
             assert len(ms.BY_CATEGORY[c]) >= 5, c
-    assert ms.BY_CATEGORY["daily"] == ["attendance", "walk", "beat_last_week", "diary", "visit", "guestbook"]
+    assert ms.BY_CATEGORY["daily"] == ["attendance", "walk", "beat_last_week", "diary", "visit"]
     for m in ms.CATALOG.values():
         assert m.title and m.desc
         if m.category in ("outdoor", "home", "explore", "record"):
             assert m.outdoor == (m.category == "outdoor")
         if m.category == "connect":
-            assert m.stage >= 1 and m.kind == "photo"
+            assert m.stage >= 1 and m.kind == "done"   # 10/19: 인사·안부는 사진 대신 "했어요"
         if m.kind == "list":
             assert m.min_count >= 1
     assert ms.CATALOG["walk"].outdoor   # 매일 고정이지만 밖에 나가는 미션
-    # 매일 바뀌는 칸에 나오는 미션은 걸음 아니면 사진 (10/15 결정)
+    # 매일 바뀌는 칸에 나오는 미션은 걸음·사진·"했어요" (10/15 모두 사진 → 10/19 인사·안부·운동은 "했어요")
     rotating = [x for t in ms.BY_STAGE.values() for ids in t.values() for x in ids] + ms.BY_CATEGORY["home"]
-    assert {ms.CATALOG[x].kind for x in rotating} == {"photo", "steps"}
+    assert {ms.CATALOG[x].kind for x in rotating} == {"photo", "steps", "done"}   # done: 인사·안부·운동 "했어요" (10/19)
 
 
 def test_three_slots_move_home_connect():
@@ -162,7 +162,7 @@ def test_rewards_match_frontend_day_quests():
     assert (ms.CATALOG["sky_photo"].coins, ms.CATALOG["sky_photo"].xp) == (20, 50)
     assert (ms.CATALOG["cook"].coins, ms.CATALOG["cook"].xp) == (12, 50)
     assert (ms.CATALOG["diary"].coins, ms.CATALOG["diary"].xp) == (15, 50)
-    assert (ms.CATALOG["guestbook"].coins, ms.CATALOG["guestbook"].xp) == (12, 50)
+    assert "guestbook" not in ms.CATALOG                                   # 10/19: 방명록은 매일 미션에서 뺌
     assert ms.CATALOG["walk"].to_dict()["coins"] == 20
 
 
@@ -248,7 +248,7 @@ def test_last_week_skipped_when_walked_enough_yesterday():
     ids = lambda steps: [m["id"] for m in ms.pick_missions("u1", "2026-10-01", steps=steps, last_week_steps=week)["missions"]]
     assert "beat_last_week" in ids(7999)
     assert "beat_last_week" not in ids(8000)                       # 어제 8,000보 이상 → 없음
-    assert ids(8000)[:5] == ["attendance", "walk", "diary", "visit", "guestbook"]
+    assert ids(8000)[:4] == ["attendance", "walk", "diary", "visit"]
 
 
 def test_relative_missions_skipped_without_history():
@@ -293,7 +293,7 @@ def test_attendance_every_day_with_small_reward():
     for d in range(1, 15):
         out = ms.pick_missions("u1", f"2026-10-{d:02d}", steps=300 if d % 2 else 9000)
         assert out["missions"][0]["id"] == "attendance"
-        assert len(out["missions"]) == 5 + ms.MISSIONS_PER_DAY
+        assert len(out["missions"]) == 4 + ms.MISSIONS_PER_DAY
     a = ms.CATALOG["attendance"]
     assert (a.coins, a.xp) == (ms.COINS_DAILY, ms.XP_DAILY)
     assert ms.is_complete(a, {})
@@ -306,8 +306,8 @@ def test_all_done_does_not_need_attendance():
 
 
 @pytest.mark.parametrize("xp, level, in_level, to_next", [
-    (0, 1, 0, 100), (99, 1, 99, 1), (100, 2, 0, 250), (349, 2, 249, 1), (350, 3, 0, 400),
-    (1300, 5, 0, 700), (3850, 8, 0, 1150), (9350, 12, 0, 1750),
+    (0, 1, 0, 100), (99, 1, 99, 1), (100, 2, 0, 135), (234, 2, 134, 1), (235, 3, 0, 170),
+    (610, 5, 0, 240), (3025, 12, 0, 485), (12060, 25, 0, 940),
 ])
 def test_level_from_xp(xp, level, in_level, to_next):
     r = ms.level_from_xp(xp)
@@ -321,8 +321,8 @@ def test_daily_fixed_then_three_rotating():
     for d in range(1, 29):
         out = ms.pick_missions("u1", f"2026-10-{d:02d}", steps=300 if d % 2 else 9000)
         ids = [m["id"] for m in out["missions"]]
-        assert ids[:5] == ["attendance", "walk", "diary", "visit", "guestbook"]
-        rotating = ids[5:]
+        assert ids[:4] == ["attendance", "walk", "diary", "visit"]
+        rotating = ids[4:]
         assert len(rotating) == ms.MISSIONS_PER_DAY
         assert not set(rotating) & set(ms.BY_CATEGORY["daily"])
         seen.add(tuple(rotating))
@@ -341,7 +341,7 @@ def test_daily_diary_suggests_topic_but_any_diary_counts():
 
 
 def test_guestbook_mission_needs_server_check():
-    g = ms.CATALOG["guestbook"]
+    g = {"kind": "guestbook", "min_count": 1}       # 종류는 남겨 둠 (매일 미션에서는 10/19에 뺌)
     assert ms.is_complete(g, {"written": True})
     assert not ms.is_complete(g, {"written": False})
     assert not ms.is_complete(g, {})
@@ -358,8 +358,8 @@ def test_last_week_daily_only_with_history():
     week = [3000] * 4
     with_history = [m["id"] for m in ms.pick_missions("u1", "2026-10-01", steps=400, last_week_steps=week)["missions"]]
     no_history = [m["id"] for m in ms.pick_missions("u1", "2026-10-01", steps=400, last_week_steps=[3000] * 3)["missions"]]
-    assert with_history[:6] == ["attendance", "walk", "beat_last_week", "diary", "visit", "guestbook"]
-    assert no_history[:5] == ["attendance", "walk", "diary", "visit", "guestbook"]
+    assert with_history[:5] == ["attendance", "walk", "beat_last_week", "diary", "visit"]
+    assert no_history[:4] == ["attendance", "walk", "diary", "visit"]
     assert "beat_last_week" not in no_history
     assert len(with_history) == len(no_history) + 1
 
@@ -367,7 +367,8 @@ def test_last_week_daily_only_with_history():
 def test_levels_get_slower():
     needs = [ms.xp_for_next(n) for n in range(1, 20)]
     assert needs[0] == 100 and all(b > a for a, b in zip(needs, needs[1:]))   # 갈수록 더 많이 필요
-    assert [ms.xp_to_reach(n) for n in (2, 3, 5, 8, 12)] == [100, 350, 1300, 3850, 9350]
+    # 10/19: 마지막 친구(LV.25)까지 하루 400 XP면 약 30일, 200 XP면 약 60일
+    assert [ms.xp_to_reach(n) for n in (2, 3, 5, 12, 25)] == [100, 235, 610, 3025, 12060]
     for n in range(1, 30):                                                    # 경계값이 정확히 그 레벨
         assert ms.level_from_xp(ms.xp_to_reach(n))["level"] == n
         assert ms.level_from_xp(ms.xp_to_reach(n) - 1)["level"] == max(1, n - 1)

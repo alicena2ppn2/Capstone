@@ -48,12 +48,15 @@ COINS_DIARY = 15                          # 일기 미션 (프론트 '오늘의 
 COINS_DAILY, XP_DAILY = 0, 0              # 출석하기 미션 자체는 0 — 선물은 주간 출석표(app/attendance.py)에서 따로 준다 (10/15)
 COINS_SELF, XP_SELF = 5, 25               # 스스로 체크 (윗몸일으키기 20회처럼 확인할 수 없는 것) — 누르기만 해도 쌓이지 않게 작게 (QUEST_DESIGN 4절)
 REROLLS_PER_DAY = 3                       # 매일 바뀌는 미션 새로고침: 하루 3번까지 (무료)
-# 매일 고정 미션: 출석하기 + 걸음 8,000보 + 지난주보다 많이 걷기(기록이 있을 때) + 오늘의 일기 쓰기 + 친구 방 놀러 가기 + 방명록 남기기. 나머지 3개는 매일 바뀐다.
+# 매일 고정 미션: 출석하기 + 걸음 8,000보 + 지난주보다 많이 걷기(기록이 있을 때) + 오늘의 일기 쓰기 + 친구 방 놀러 가기. 나머지 3개는 매일 바뀐다.
+# 방명록 남기기는 10/19에 뺌 — 매일 의무로 두면 마음이 있어서 쓰는 글보다 완료용 짧은 글이 늘어서. 방문(다른 사람 방 들어가 보기)만 남김
 # 하루 3개를 모두 끝내면 코인 대신 특별 캐릭터(프론트 '하루 친구 모찌')를 준다 → 상점 기능에서 지급
 
 # 레벨: 처음엔 빨리, 갈수록 천천히 오른다.
-# LV.n → n+1 에 필요한 경험치 = LEVEL_BASE_XP + LEVEL_STEP_XP × (n − 1)  → 100, 250, 400, 550, …
-# 누적: LV.3 350 · LV.5 1,300 · LV.8 3,850 · LV.12 9,350 (하루 400 XP면 LV.12까지 약 24일)
+# LV.n → n+1 에 필요한 경험치 = LEVEL_BASE_XP + LEVEL_STEP_XP × (n − 1)  → 100, 135, 170, 205, …
+# 누적: LV.3 235 · LV.5 610 · LV.12 3,025 · LV.15 4,585 · LV.20 7,885 · LV.25 12,060
+# 10/19: 예전 곡선(+150씩)은 LV.25(마지막 친구 도토)가 43,800 XP라 하루 150~400 XP로 3~10달 → 출시 기간에 못 만남.
+# 지금은 하루 400 XP(다 하면)면 LV.25까지 약 30일, 200 XP면 약 60일
 STAGE_BONUS_COINS = 5                     # 단계가 하나 오를 때마다 코인 +5 (어려운 단계에 도전할 동기)
 
 # 단계 사다리 (QUEST_DESIGN ④). 4단계(지역)는 뺌
@@ -63,7 +66,7 @@ STAGE_UP_COUNT = 3                        # 지금 단계 미션을 이만큼 �
 STAGE_NAMES = {1: "혼자", 2: "한 명", 3: "여럿"}
 
 LEVEL_BASE_XP = 100
-LEVEL_STEP_XP = 150
+LEVEL_STEP_XP = 35
 
 
 CATALOG_PATH = Path(__file__).resolve().parent / "data" / "missions.json"
@@ -76,7 +79,7 @@ CATALOG_PATH = Path(__file__).resolve().parent / "data" / "missions.json"
 #   record  : 하루 기록
 #   daily   : 매일 고정으로 나오는 미션 (출석하기, 걸음 8,000보, 지난주보다 많이 걷기, 오늘의 일기 쓰기, 친구 방 놀러 가기, 방명록 남기기). 하루 3개와 별도
 CATEGORIES = ("daily", "outdoor", "home", "explore", "record", "connect")
-KINDS = ("steps", "text", "photo", "list", "diary", "checkin", "guestbook", "visit", "self")
+KINDS = ("steps", "text", "photo", "list", "diary", "checkin", "guestbook", "visit", "self", "done")
 DAILY_PLAN = ("move", "home", "connect")          # 매일 바뀌는 3칸: 움직이기 · 집에서 할 일 · 이어지기
 
 
@@ -86,7 +89,7 @@ class Mission:
     category: str      # outdoor | home | explore | record | connect
     title: str
     desc: str
-    kind: str          # steps | text | photo | list | diary(기록 탭 일기로 완료) | guestbook(다른 사람 방에 방명록) | visit(다른 사람 방 방문) | checkin(출석) | self(스스로 체크)
+    kind: str          # steps | text | photo | list | diary(기록 탭 일기로 완료) | guestbook(다른 사람 방에 방명록) | visit(다른 사람 방 방문) | checkin(출석) | self(스스로 체크, 작은 보상) | done('했어요' 체크, 보상은 그대로 — 인사·안부·운동처럼 사진이 결과가 아닌 것)
     outdoor: bool      # 밖에 나가야 할 수 있는 미션인지
     min_count: int = 1 # list: 입력 개수, photo: 사진 장수, steps: 목표 걸음
     prompt: str = ""   # 입력 전에 먼저 묻는 것 (예: 사는 동네)
@@ -377,8 +380,8 @@ def is_complete(mission: Mission | dict, submission: dict) -> bool:
     kind, need = m["kind"], m["min_count"]
     if kind == "steps":
         return (submission.get("steps") or 0) >= need
-    if kind in ("checkin", "self"):
-        return True
+    if kind in ("checkin", "self", "done"):
+        return True   # done: 사진 인증 대신 "했어요" (10/19) — 인사·안부까지 사진을 요구하면 행동보다 인증이 일이 됨
     if kind == "guestbook":
         # 서버가 확인한 값: 그날 다른 사람 방에 방명록을 남겼는지
         return bool(submission.get("written"))

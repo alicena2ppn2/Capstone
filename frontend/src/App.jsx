@@ -160,8 +160,8 @@ function Game() {
         positions={sv ? sv.home.room.positions ?? {} : game.decorPositions ?? {}}
         onMoveDecor={(slot, pos) => sv ? serverAct(() => moveDecor(serverUserId, slot, pos)) : setGame(value => ({ ...value, decorPositions: { ...value.decorPositions, [slot]: pos } }))} /></div>
       {screen === 'diary' && <Diary game={game} day={day} initialDate={diaryDate} onSave={saveDiary} onDelete={deleteDiary} onDraft={saveDraft} onContinue={continueDraft} onHome={() => setScreen('home')} />}
-      {screen === 'visit' && (serverUserId ? <Neighbors userId={serverUserId} myName={petName} onPosted={date => commitGame(value => recordRoutine(value, 'day-guestbook', date))} onBack={() => setScreen('home')} />
-        : <Visit onPosted={date => commitGame(value => recordRoutine(value, 'day-guestbook', date))} onGuestbook={() => setScreen('guest')} visitorName={petName} visitorVariant={game.character ?? 'potato'} onBack={() => setScreen('home')} />)}
+      {screen === 'visit' && (serverUserId ? <Neighbors userId={serverUserId} myName={petName} onBack={() => setScreen('home')} />
+        : <Visit onVisited={date => commitGame(value => recordRoutine(value, 'day-visit', date))} onGuestbook={() => setScreen('guest')} visitorName={petName} visitorVariant={game.character ?? 'potato'} onBack={() => setScreen('home')} />)}
       {screen === 'quest' && <Quest onServerChanged={server.refresh} onPreferences={answers => commitGame(value => saveMissionPreferences(value,answers))} game={game} focusId={questFocus} onDiary={openDiary} onVisit={() => setScreen('visit')} onAttendance={() => document.querySelector('.attendance-open')?.click()}
         onPrepare={prepareChallenges}
         onReplace={(id, date, options) => date===seoulDateKey()?commitGame(value => replaceDailyMission(value, id, date, options)):{ok:false,message:'날짜가 바뀌었어요. 오늘 목록에서 다시 확인해 주세요.'}}
@@ -169,7 +169,7 @@ function Game() {
         onFeedback={(key, response) => setGame(value => ({ ...value, feedback: { ...value.feedback, [key]: response } }))}
         onProfile={(field, text, key) => setGame(value => field === 'choice' ? ({ ...value, challengeChoices: { ...value.challengeChoices, [key]: text } }) : ({ ...value, preferences: { ...value.preferences, [field]: text.slice(0, 80) } }))}
         onGoal={id => setGame(value => claimGoal(value, id))} onStart={id => setGame(value => startDailyMission(value, id))} onPhotoSave={(id, date, photo) => commitGame(value => completePhotoMission(value, id, date, photo))} onComplete={(id, answer) => setGame((value) => finishDailyMission(value, id, new Date()))} petColor={petColor} onShop={() => setScreen('shop')} onSettings={() => setScreen('settings')} onHome={() => setScreen('home')} />}
-      {screen === 'guest' && serverUserId && <Neighbors userId={serverUserId} myName={petName} initialTab="mine" onPosted={date => commitGame(value => recordRoutine(value, 'day-guestbook', date))} onBack={() => setScreen('home')} />}
+      {screen === 'guest' && serverUserId && <Neighbors userId={serverUserId} myName={petName} initialTab="mine" onBack={() => setScreen('home')} />}
       {screen === 'guest' && !serverUserId && <Guestbook petName={petName} level={level} petColor={petColor} onShop={() => setScreen('shop')} onSettings={() => setScreen('settings')} onHome={() => setScreen('home')} />}
       <div className="phone-page" hidden={screen !== 'settings'}><Settings preferences={game.preferences} onPreferences={answers => commitGame(value => saveMissionPreferences(value,answers))} key={game.character} petColor={petColor} petName={petName} onPetName={rename} onBack={() => setScreen('home')} /></div>
       {screen === 'shop' && sv && <Shop serverMode game={{ ...game, ...shopAsGame(sv.shop) }} level={level} coins={sv.shop.coins} owned={shopAsGame(sv.shop).ownedClothes} outfit={sv.shop.equipped.outfit} petColor={petColor} onBack={() => setScreen('home')}
