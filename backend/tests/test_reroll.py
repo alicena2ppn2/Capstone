@@ -56,10 +56,11 @@ def test_reroll_is_deterministic():
 
 
 def test_self_check_exercise_missions():
-    # 10/15: 걸음 말고는 모두 사진 → 운동도 운동한 자리 사진 (스스로 체크 종류 self는 남겨 둠)
+    # 10/19: 운동은 사진 대신 "했어요"(done), 보상은 집 미션 그대로 (10/15엔 모두 사진이었음)
     for mid in ("situps", "squats", "pushups", "plank", "stretch"):
         m = ms.CATALOG[mid]
-        assert (m.kind, m.category, m.coins, m.xp) == ("photo", "home", ms.COINS_HOME, ms.XP_HOME)
+        assert (m.kind, m.category, m.coins, m.xp) == ("done", "home", ms.COINS_HOME, ms.XP_HOME)
+    assert ms.is_complete({"kind": "done", "min_count": 1}, {})
     assert ms.is_complete({"kind": "self", "min_count": 1}, {})
     run = ms.CATALOG["run_block"]
     assert (run.kind, run.stage) == ("photo", 2)

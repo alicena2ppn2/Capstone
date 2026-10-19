@@ -72,10 +72,10 @@ def test_stay_home_yesterday_gives_outdoor_mission(client):
     client.post("/users/u1/steps", json={"date": YESTERDAY, "steps": 200})
     r = client.get("/users/u1/missions/today", params={"date": DAY}).json()
     assert r["stayed_home"] is True
-    assert len(r["missions"]) == 8                      # 매일 고정 5개 + 매일 바뀌는 3개
-    assert [m["id"] for m in r["missions"][:5]] == ["attendance", "walk", "diary", "visit", "guestbook"]
+    assert len(r["missions"]) == 7                      # 매일 고정 4개 + 매일 바뀌는 3개 (방명록은 10/19에 뺌)
+    assert [m["id"] for m in r["missions"][:4]] == ["attendance", "walk", "diary", "visit"]
     assert r["missions"][1]["kind"] == "photo"           # 10/15: 만보기가 없어 걷기도 사진으로
-    assert r["missions"][5]["category"] == "outdoor"
+    assert r["missions"][4]["category"] == "outdoor"           # 바뀌는 3칸 중 첫 칸(움직이기)
     assert all(not m["done"] for m in r["missions"])
 
 
@@ -109,7 +109,7 @@ def test_complete_all_pays_coins_once(client):
     assert again["coins"] == expected
 
     home = client.get("/users/u1/home", params={"date": DAY}).json()
-    assert home["missions_done"] == 8
+    assert home["missions_done"] == 7
     assert home["checked_in"] is True
     assert home["step_goal"] == 8000
     assert home["coins"] == expected
@@ -312,19 +312,12 @@ def test_completing_diary_mission_saves_diary_with_suggested_topic(client):
     assert entry["topic"]["id"] == m["suggested_topic_id"]
 
 
-def test_guestbook_in_friends_room_completes_mission(client):
-    # 미션 완료 버튼만 누르면 안 됨
-    assert client.post("/users/u1/missions/guestbook/complete", params={"date": DAY}, json={}).status_code == 422
-    # 내 방에 쓴 건 인정 안 함
-    r = client.post("/users/u1/guestbook", params={"date": DAY}, json={"author": "나", "text": "내 방", "author_id": "u1"}).json()
-    assert r["completed_missions"] == []
-    # 친구 방에 쓰면 자동 완료 + 보상
+def test_guestbook_is_optional_not_a_daily_mission(client):
+    # 10/19: 방명록은 매일 미션이 아님 (완료용 짧은 글이 늘지 않게) — 쓰는 건 그대로, 미션 보상은 없음
+    assert client.post("/users/u1/missions/guestbook/complete", params={"date": DAY}, json={}).status_code == 404
     client.get("/users/u1/missions/today", params={"date": DAY})
     r = client.post("/users/u2/guestbook", params={"date": DAY}, json={"author": "나", "text": "놀러 왔어요", "author_id": "u1"}).json()
-    assert r["completed_missions"] == ["guestbook"]
-    assert r["earned"] == [{"id": "guestbook", "coins": 12, "xp": 50}]
-    # 같은 날 또 써도 보상은 한 번
-    r = client.post("/users/u3/guestbook", params={"date": DAY}, json={"author": "나", "text": "또 왔어요", "author_id": "u1"}).json()
+    assert r["completed_missions"] == []
     assert r["earned"] == []
     assert client.get("/users/u2/guestbook").json()["entries"][0]["author_id"] == "u1"
 
