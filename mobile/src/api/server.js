@@ -4,6 +4,7 @@
 import { Platform } from 'react-native';
 import { useCallback, useEffect, useRef, useState } from 'react';
 import { useAuthActions } from '../../../shared/auth/AuthContext.js';
+import { xpThresholdForLevel } from '../../../shared/features/levelProgression.js';
 
 const BASE = (process.env.EXPO_PUBLIC_API_URL || '').replace(/\/$/, '');
 export const serverConfigured = !!BASE;
@@ -119,7 +120,7 @@ export function shopAsGame(shop) {
   const owned = list => list.filter(item => item.status === 'owned').map(item => item.id);
   return {
     coins: shop.coins,
-    xp: (shop.level.level - 1) * 100,   // 앱 화면의 레벨 계산(1 + XP÷100)이 서버 레벨과 같게 맞춘 숫자
+    xp: xpThresholdForLevel(shop.level.level),   // 서버 레벨이 시작되는 앱 XP → 앱의 레벨 계산(상점 해금 판정)이 서버 레벨과 같아짐
     characters: owned(shop.characters),
     character: shop.equipped.character ?? 'potato',
     ownedDecor: owned(shop.decor),

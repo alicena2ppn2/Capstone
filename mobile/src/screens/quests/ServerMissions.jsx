@@ -78,6 +78,7 @@ export default function ServerMissions({ userId, onChanged, onAttendance, onDiar
   if (!data) return <Card><Label>오늘의 미션을 불러오는 중…</Label></Card>;
   const missions = data.missions.filter(m => m.category !== 'daily'), daily = data.missions.filter(m => m.category === 'daily');
   const all = data.missions.filter(m => m.done).length;
+  // done·self(인사·안부·운동)는 사진 대신 '했어요' (10/19)
   const go = m => m.kind === 'checkin' ? ['출석표', onAttendance] : m.kind === 'diary' ? ['일기 쓰기', onDiary] : ['이웃 가기', onVisit];
   return <>
     {steps.available && <Card style={{ gap: 6 }}>{steps.connected
@@ -114,6 +115,7 @@ export default function ServerMissions({ userId, onChanged, onAttendance, onDiar
           {!!m.tip && <Label style={[styles.small, s.tip, { backgroundColor: soft, color: colors.ink }]}>💡 {m.tip}</Label>}
           {m.kind === 'photo' ? <PhotoPick busy={busy === m.id} onUpload={asset => run(m.id, () => completeWithPhoto(userId, m.id, asset))} />
             : m.kind === 'steps' ? <Button primary disabled={!!busy} onPress={() => checkSteps(m.id)}>👟 오늘 걸음으로 확인 · {m.min_count.toLocaleString('ko-KR')}보</Button>
+            : m.kind === 'done' || m.kind === 'self' ? <Button primary disabled={!!busy} onPress={() => run(m.id, () => completeSteps(userId, m.id))}>✓ 했어요</Button>
             : <Label style={styles.small}>앱에서 아직 지원하지 않는 미션이에요.</Label>}
           {!!notes[m.id] && <Label style={s.note}>{notes[m.id]}</Label>}
         </>}

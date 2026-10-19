@@ -9,45 +9,46 @@ import { seoulDateKey } from '../../../shared/utils/seoulDate.js';
 import { initialConnections, visitNeighbor, favoriteNeighbor, isSampleNote } from '../../../shared/features/neighbors.js';
 import { useGuestModeration, SafetyPanel, ModerationActions, writingMessage } from '../components/GuestbookSafety.jsx';
 import { SELF_AUTHOR, visibleNote, violation, suspensionUntil } from '../../../shared/features/guestModeration.js';
+import { local } from '../storage/local.js';
 
 function loadNotes() {
   try {
-    const value = JSON.parse(localStorage.getItem('mochi.visitNotes.v1'));
+    const value = JSON.parse(local.getItem('mochi.visitNotes.v1'));
     if (value && typeof value === 'object' && !Array.isArray(value)) return { ...VISITOR_NOTES, ...value };
   } catch { /* 처음 방문 */ }
   return VISITOR_NOTES;
 }
 
-export default function Visit({ visitorName, visitorVariant, onBack, onPosted, onGuestbook }) {
+export default function Visit({ visitorName, visitorVariant, onBack, onPosted, onVisited, onGuestbook }) {
   const safety = useGuestModeration();
   const [reactionFeedback, showReactionFeedback] = useBriefFeedback();
   const react = label => {
     if (connections.reactions?.[selected.id] === label) return;
     const next = { ...connections, reactions: { ...connections.reactions, [selected.id]: label } };
-    try { localStorage.setItem('mochi.visitConnections.v1', JSON.stringify(next)); }
+    try { local.setItem('mochi.visitConnections.v1', JSON.stringify(next)); }
     catch { showReactionFeedback('반응을 저장하지 못했어요. 다시 눌러 시도해 주세요.', true); return; }
     setConnections(next);
     showReactionFeedback(label === '응원해요' ? '응원을 남겼어요' : '고마움을 남겼어요');
   };
   const suspended = !!suspensionUntil(safety.state, SELF_AUTHOR, safety.now);
-  const [connections, setConnections] = useState(() => { try { const value = JSON.parse(localStorage.getItem('mochi.visitConnections.v1')); return { ...initialConnections(), ...value, recent: Array.isArray(value?.recent) ? value.recent : [], favorites: Array.isArray(value?.favorites) ? value.favorites : [] }; } catch { return initialConnections(); } });
+  const [connections, setConnections] = useState(() => { try { const value = JSON.parse(local.getItem('mochi.visitConnections.v1')); return { ...initialConnections(), ...value, recent: Array.isArray(value?.recent) ? value.recent : [], favorites: Array.isArray(value?.favorites) ? value.favorites : [] }; } catch { return initialConnections(); } });
   const [list, setList] = useState('recommended');
-  useEffect(() => { try { localStorage.setItem('mochi.visitConnections.v1', JSON.stringify(connections)); } catch { /* 현재 화면 유지 */ } }, [connections]);
-  const open = user => { if (!user) return; setSelected(user); setConnections(value => visitNeighbor(value, user.id)); setDraft(''); setMessage(''); };
+  useEffect(() => { try { local.setItem('mochi.visitConnections.v1', JSON.stringify(connections)); } catch { /* 현재 화면 유지 */ } }, [connections]);
+  const open = user => { if (!user) return; setSelected(user); onVisited?.(seoulDateKey()); setConnections(value => visitNeighbor(value, user.id)); setDraft(''); setMessage(''); };
   const [day, setDay] = useState(() => seoulDateKey());
   const [selected, setSelected] = useState(null);
   const [recommendation, setRecommendation] = useState(() => {
-    try { return dailyVisitors(seoulDateKey(), JSON.parse(localStorage.getItem('mochi.visitors.v1'))); }
+    try { return dailyVisitors(seoulDateKey(), JSON.parse(local.getItem('mochi.visitors.v1'))); }
     catch { return dailyVisitors(seoulDateKey()); }
   });
   useEffect(() => { setRecommendation(previous => dailyVisitors(day, previous)); }, [day]);
-  useEffect(() => { try { localStorage.setItem('mochi.visitors.v1', JSON.stringify(recommendation)); } catch { /* 현재 추천 유지 */ } }, [recommendation]);
+  useEffect(() => { try { local.setItem('mochi.visitors.v1', JSON.stringify(recommendation)); } catch { /* 현재 추천 유지 */ } }, [recommendation]);
   const [notes, setNotes] = useState(loadNotes);
   const [liked, setLiked] = useState(() => {
-    try { const value = JSON.parse(localStorage.getItem('mochi.visitLikes.v1')); return value && typeof value === 'object' && !Array.isArray(value) ? value : {}; }
+    try { const value = JSON.parse(local.getItem('mochi.visitLikes.v1')); return value && typeof value === 'object' && !Array.isArray(value) ? value : {}; }
     catch { return {}; }
   });
-  useEffect(() => { try { localStorage.setItem('mochi.visitLikes.v1', JSON.stringify(liked)); } catch { /* 현재 화면 유지 */ } }, [liked]);
+  useEffect(() => { try { local.setItem('mochi.visitLikes.v1', JSON.stringify(liked)); } catch { /* 현재 화면 유지 */ } }, [liked]);
   const [draft, setDraft] = useState('');
   const [message, setMessage] = useState('');
   useEffect(() => {
@@ -57,7 +58,7 @@ export default function Visit({ visitorName, visitorVariant, onBack, onPosted, o
     return () => { clearInterval(timer); document.removeEventListener('visibilitychange', refresh); };
   }, []);
   useEffect(() => {
-    try { localStorage.setItem('mochi.visitNotes.v1', JSON.stringify(notes)); }
+    try { local.setItem('mochi.visitNotes.v1', JSON.stringify(notes)); }
     catch { setMessage('현재 화면에는 남겼지만 브라우저에 저장하지 못했어요.'); }
   }, [notes]);
   const submit = event => {
@@ -68,7 +69,7 @@ export default function Visit({ visitorName, visitorVariant, onBack, onPosted, o
     if (error) { safety.setMessage(writingMessage(error)); return; }
     const entry = { source: 'local', authorId: SELF_AUTHOR, name: visitorName, variant: visitorVariant, text, likes: 0, date: seoulDateKey(), id: `${Date.now()}-${Math.random()}` };
     const next = { ...notes, [selected.id]: [entry, ...(Array.isArray(notes[selected.id]) ? notes[selected.id] : [])] };
-    try { localStorage.setItem('mochi.visitNotes.v1', JSON.stringify(next)); }
+    try { local.setItem('mochi.visitNotes.v1', JSON.stringify(next)); }
     catch { setMessage('저장하지 못했어요. 작성한 글은 유지돼요. 다시 시도해 주세요.'); return; }
     setNotes(next);
     onPosted?.(entry.date);
