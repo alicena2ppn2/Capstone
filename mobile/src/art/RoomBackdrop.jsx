@@ -8,7 +8,8 @@ import { DECOR } from '../../../shared/data/decor.js';
 const PATTERN_ELEMENTS = { Defs, Pattern, Rect, Circle, Path };
 import HouseDecor from './HouseDecor.jsx';
 // positions: {slot: {dx, dy}} 서버에 저장된 소품 위치 (웹과 같은 방 좌표)
-export default function RoomBackdrop({ decor = {}, wallColor = '#D6EAF8', floorColor = '#EBCDA6', homeScene = false, now, positions = {}, floorExtra = 0 }) {
+export default function RoomBackdrop({ decor = {}, wallColor = '#D6EAF8', floorColor = '#EBCDA6', homeScene = false, now, positions = {}, floorExtra = 0, rugDrop = 0 }) {
+  // rugDrop: 홈에서 러그·카페트를 아래로 내리는 거리(그림 단위). 캐릭터도 같은 만큼 내린다 (10/19)
   // floorExtra: 홈에서 방 아래 바닥을 더 보여 줄 높이(그림 단위, 최대 283). 바닥은 원래 y=838까지 그려져 있어 무늬가 그대로 이어진다 (10/19)
   const extra = Math.max(0, Math.min(283, Math.round(floorExtra)));
   const time = now ? roomTime(now) : null;
@@ -52,8 +53,8 @@ export default function RoomBackdrop({ decor = {}, wallColor = '#D6EAF8', floorC
         <Line x1="120" y1="454" x2="120" y2="486" /><Line x1="260" y1="486" x2="260" y2="560" /><Line x1="80" y1="560" x2="80" y2="650" /><Line x1="230" y1="650" x2="230" y2="750" />
       </G>}
       <Rect x="0" y="450" width="368" height="8" fill="#C9A982" />
-      <Ellipse cx="184" cy="482" rx="166" ry="50" fill="#FFF8EE" stroke="#EADFCB" strokeWidth="3" />
-      <HouseDecor equipped={decor} night={time?.night} positions={positions} />
+      <Ellipse cx="184" cy="482" rx="166" ry="50" fill="#FFF8EE" stroke="#EADFCB" strokeWidth="3" transform={`translate(0 ${rugDrop})`} />
+      <HouseDecor equipped={decor} night={time?.night} positions={{ ...positions, carpet: { dx: 0, dy: rugDrop } }} />
       {time?.night && <Rect width="368" height="838" fill="#344461" opacity=".09" />}
       {homeScene && time && <RoomTimeProps time={time} />}
     </Svg>
