@@ -111,7 +111,7 @@
 
 ### 백엔드 구조
 
-<img src="docs/screenshots/backend-structure.png" alt="FastAPI 백엔드 서버 구조도: 앱·웹 → HTTPS·JSON → Railway의 FastAPI(라우터·비즈니스 로직·데이터 처리) → SQLite(Railway Volume, app.db), 로그인은 Supabase Auth(Google·카카오, JWT)" width="100%">
+<img src="docs/screenshots/backend-structure.png" alt="FastAPI 백엔드 서버 구조도: 앱·웹 → HTTPS·JSON → Railway의 FastAPI(라우터·비즈니스 로직·데이터 처리) → SQLite(Railway Volume, app.db), 로그인은 Supabase Auth(Google·카카오, JWT)" width="70%">
 
 - **서버 주소**: https://mymochi-api-production.up.railway.app · API 문서 [/docs](https://mymochi-api-production.up.railway.app/docs)
 - **서버**: FastAPI(Python) + uvicorn, Railway에서 실행. API 70개 전체는 [/docs](https://mymochi-api-production.up.railway.app/docs)·[backend/README.md](backend/README.md#api)
