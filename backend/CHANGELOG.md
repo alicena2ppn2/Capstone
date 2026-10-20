@@ -5,6 +5,14 @@
 
 ---
 
+## 2026-10-20 — README·FEATURES 핵심만 남기기
+
+**브랜치** `readme-core-only`
+
+- 지움: 배포 텍스트 그림(휴대폰→Railway 상자), 요금·무료 체험·Render 제외 이유, 설치 파일 단계별 표, 작업 기록 표·출시 전 남은 일, 발표 주의사항, 커밋·PR 규칙. 배포는 한 줄 + DEPLOY.md·mobile/README 링크
+- 숫자 맞춤: API 70개, 표 28개, 테스트 277·134. '아직 없는 것'에서 서버 배포 뺌(완료)
+- 작업 기록은 PROGRESS.md·이 파일에
+
 ## 2026-10-20 — Railway 배포 완료, 서버 주소 기록
 
 **브랜치** `railway-deployed`

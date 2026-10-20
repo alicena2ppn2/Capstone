@@ -27,36 +27,16 @@ MY MOCHI의 기능마다 **무엇을 쓰고 어떻게 만들었는지**를 정�
 
 **원칙**: 코인·XP·레벨·미션 완료·상점·출석은 **서버가 판정**하고 앱·웹은 보여 주기만 한다(조작 방지, 앱·웹 결과가 같게). 서버 주소가 없으면 앱·웹은 휴대폰 안 기록으로 동작한다.
 
-**배포했을 때 어디서 돌아가나** (2026-10-20 결정 · 코드 구조는 그대로, 실행 위치만 바뀜)
-
-```text
- ┌──── 휴대폰 ────────────────────────┐
- │ Android: APK 설치 파일              │   EAS Build (@y00n/capstone-mochi)가 만듦
- │ iPhone : 등록한 기기 · TestFlight    │   빌드 때 EXPO_PUBLIC_API_URL = Railway 주소
- └───────────────┬────────────────────┘
-                 │ ① 로그인 ──────────────▶ Supabase Auth (Google · 카카오)
-                 │ ② HTTPS · Bearer 토큰
-                 ▼
- ┌──── Railway ──────────────────────────────────────┐
- │ backend/Dockerfile → scripts/start.py → FastAPI     │  Supabase 설정 없으면 안 켜짐
- │ Volume /data : app.db (SQLite) · uploads/ (사진)     │  재배포해도 남음
- └────────────────────────────────────────────────────┘
-          │ 백업: GET /admin/backup (X-Admin-Token) → mymochi-날짜.db
-```
-
-- 서버 1대 + SQLite는 발표·초기 사용자 규모에 충분하다. 서버를 여러 대로 늘리거나 자동 백업·복구가 필요해지면 DB는 Postgres, 사진은 파일 저장소(Supabase Storage 등)로 옮긴다
-- 자세한 순서: [backend/DEPLOY.md](backend/DEPLOY.md) · 설치 파일: [mobile/README.md](mobile/README.md#설치-파일-만들기--나눠-주기-2026-10-20)
-
 ## 1. 사용한 도구
 
 | 영역 | 도구 | 쓰는 곳 |
 |---|---|---|
-| 서버 | **FastAPI**, Uvicorn, Pydantic | API 65개, 요청 검사 (`backend/app/main.py`) |
-| DB | **SQLite** (파이썬 내장 `sqlite3`) | 사용자·미션·코인 장부·사진·일기·방명록 등 27개 표 (`backend/app/db.py`, [DATABASE.md](backend/DATABASE.md)) |
+| 서버 | **FastAPI**, Uvicorn, Pydantic | API 70개, 요청 검사 (`backend/app/main.py`) |
+| DB | **SQLite** (파이썬 내장 `sqlite3`) | 사용자·미션·코인 장부·사진·일기·방명록 등 28개 표 (`backend/app/db.py`, [DATABASE.md](backend/DATABASE.md)) |
 | 이미지 | **Pillow**, pillow-heif | 촬영 일시(EXIF) 읽기, 위치 정보 지우기, HEIC → JPEG |
 | HTTP | httpx | Supabase 토큰 확인·계정 삭제 |
 | 데이터 분석 | pandas, numpy, openpyxl, Jupyter | 합성 데이터·SK 통신인구·신한카드 분석 (`data/`) |
-| 테스트 | **pytest** (백엔드 267개), Node `node --test` (공통 127개), ESLint | `backend/tests/`, `shared/**/*.test.js` |
+| 테스트 | **pytest** (백엔드 277개), Node `node --test` (공통 134개), ESLint | `backend/tests/`, `shared/**/*.test.js` |
 | 앱 | **Expo** (Router, Image Picker, Notifications, Secure Store, Web Browser, Clipboard, Build Properties), React Native, react-native-svg, AsyncStorage | `mobile/` |
 | 앱 건강 | @kingstinct/react-native-healthkit + react-native-nitro-modules, react-native-health-connect | 걸음 수 (`mobile/src/health/`) |
 | 웹 | React, Vite | `frontend/` |
@@ -152,4 +132,4 @@ MY MOCHI의 기능마다 **무엇을 쓰고 어떻게 만들었는지**를 정�
 
 ## 3. 아직 없는 것
 
-서버 배포(HTTPS·DB·사진 저장소), Apple 로그인, 운영자 신고 확인 화면, 같은 사진 재사용 막기(사진 지문), 오류 모니터링. 걸음 수·알림·실제 로그인은 코드는 있지만 **실기기 확인 전**. 목록과 순서는 [PROGRESS.md](PROGRESS.md) "출시 전 남은 일".
+Apple 로그인, 운영자 신고 확인 화면, 같은 사진 재사용 막기(사진 지문), 오류 모니터링. 걸음 수·알림·실제 로그인은 코드는 있지만 **실기기 확인 전**. 목록과 순서는 [PROGRESS.md](PROGRESS.md) "출시 전 남은 일".
