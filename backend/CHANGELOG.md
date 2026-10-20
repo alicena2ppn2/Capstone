@@ -5,6 +5,17 @@
 
 ---
 
+## 2026-10-20 — Railway 배포 완료, 서버 주소 기록
+
+**브랜치** `railway-deployed`
+
+- 서버 주소 https://mymochi-api-production.up.railway.app
+- 확인: `/health` → `{"ok":true}`, `/survey/questions` 200(DB 연결), `/users/x/shop` 401 `로그인이 필요해요.`(guard 정상), `/openapi.json` 200(API 70개)
+- 맨 앞 주소 `/`의 `Not Found`는 정상(그 주소에 API 없음)이라는 점을 DEPLOY.md 확인 절에 적음
+- 루트 README에 '백엔드 구조' 절: FastAPI 서버 구조도(`docs/screenshots/backend-structure.png`)와 요청 흐름·저장·로그인 요약
+- 전체 구조 그림(`docs/screenshots/structure.png`)을 배포 기준으로 다시 그린 것으로 교체(Railway·Volume·백업 경로·빌드 환경변수 포함)
+- README '배포' 절·DEPLOY.md Railway 절에 주소. 남은 것: expo.dev preview `EXPO_PUBLIC_API_URL`에 이 주소 → APK 빌드(앱 담당), `ADMIN_TOKEN` 넣고 `/admin/backup` 확인
+
 ## 2026-10-20 — Railway 빌드 실패(Railpack) 고침: 맨 위 Dockerfile
 
 **브랜치** `railway-root-dockerfile`
