@@ -99,15 +99,13 @@ export default function ServerMissions({ userId, onChanged, onAttendance, onDiar
     </Card>
     <Card style={{ backgroundColor: colors.primarySoft }}>
       <View style={styles.row}><Label style={[styles.cardTitle, styles.flex]}>오늘의 활동</Label><Label style={[styles.small, { color: colors.primary }]}>{missions.filter(m => m.done).length}/{missions.length}</Label></View>
-      {missions.map(m => { const [, tone, soft] = SLOT[m.category] ?? ['', colors.primary, colors.primarySoft]; return <Card key={m.id} style={[s.mission, m.done && { backgroundColor: soft, borderColor: 'transparent' }]}>
+      {missions.map(m => { const [, , soft] = SLOT[m.category] ?? ['', colors.primary, colors.primarySoft]; return <Card key={m.id} style={[s.mission, m.done && { backgroundColor: soft, borderColor: 'transparent' }]}>
+        {/* 10/19: 앞의 색 동그라미는 빼고, 보상(코인·XP)은 제목 바로 밑에 */}
         <View style={styles.row}>
-          <View style={styles.flex} />{/* 10/19: '움직이기 · 2단계' 같은 분류·단계 라벨은 뺌 */}
-          <View style={[styles.row, { gap: 6 }]}>
-            {!m.done && m.rerollable && <Button variant="text" style={s.reroll} accessibilityLabel={`다른 미션으로 바꾸기, ${data.rerolls_left}번 남음`} disabled={!!busy || data.rerolls_left < 1} onPress={() => run(m.id, () => rerollMission(userId, m.id))}>↻</Button>}
-            <QuestRewards xp={m.xp} coins={m.coins} />
-          </View>
+          <Label style={[styles.cardTitle, styles.flex, m.done && { color: colors.muted, textDecorationLine: 'line-through' }]}>{m.done ? '✓ ' : ''}{m.title}</Label>
+          {!m.done && m.rerollable && <Button variant="text" style={s.reroll} accessibilityLabel={`다른 미션으로 바꾸기, ${data.rerolls_left}번 남음`} disabled={!!busy || data.rerolls_left < 1} onPress={() => run(m.id, () => rerollMission(userId, m.id))}>↻</Button>}
         </View>
-        <View style={[styles.row, { justifyContent: 'flex-start' }]}><View style={[s.check, { borderColor: tone }, m.done && { backgroundColor: tone }]}><Label style={{ color: '#fff', fontSize: 12, lineHeight: 16 }}>{m.done ? '✓' : ''}</Label></View><Label style={[styles.cardTitle, styles.flex, m.done && { color: colors.muted, textDecorationLine: 'line-through' }]}>{m.title}</Label></View>
+        <View style={{ alignSelf: 'flex-start' }}><QuestRewards xp={m.xp} coins={m.coins} /></View>
         {m.done ? <View style={{ gap: 6 }}>
           {m.feedback ? <Label style={styles.small}>완료! 소감까지 남겼어요.</Label> : <><Label style={styles.small}>완료! 해 보니 어땠어요? (선택)</Label><View style={styles.row}>{MOODS.map(([v, face, label]) => <Button key={v} style={styles.flex} accessibilityLabel={label} disabled={!!busy} onPress={() => run(m.id, () => sendFeedback(userId, m.id, v))}>{face}</Button>)}</View></>}
         </View> : <>
@@ -150,7 +148,6 @@ const s = StyleSheet.create({
   mission: { backgroundColor: colors.surface, borderColor: colors.border, padding: 12, gap: 8 },
   chip: { fontSize: 12, lineHeight: 18, paddingHorizontal: 8, paddingVertical: 1, borderRadius: 9, fontFamily: 'A2z-600', overflow: 'hidden' },
   reroll: { width: 32, height: 32, minHeight: 32, padding: 0, borderWidth: 1, borderColor: colors.border, borderRadius: 16 },
-  check: { width: 22, height: 22, borderRadius: 11, borderWidth: 2, alignItems: 'center', justifyContent: 'center' },
   tip: { paddingHorizontal: 10, paddingVertical: 6, borderRadius: 10, overflow: 'hidden' },
   confirm: { flexDirection: 'row', gap: 10, alignItems: 'center' },
   thumb: { width: 72, height: 72, borderRadius: 12, borderWidth: 1, borderColor: colors.border },
