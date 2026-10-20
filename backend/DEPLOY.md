@@ -8,7 +8,7 @@ Render는 무료 요금제에 저장 디스크가 없어(재시작·재배포마
 |---|---|---|
 | 요금 | 처음 30일 무료 체험 크레딧 $5 → 이후 Hobby 월 $5 (사용량 $5 포함, 이 서버는 보통 안에 들어옴). 조건은 가입 때 railway.com/pricing 확인 | 무료는 디스크 없음 → Starter 월 $7 + 디스크 1GB 약 $0.25 |
 | 지워지지 않는 디스크 | Volume (화면에서 추가) | Disk (`render.yaml`에 있음) |
-| 설정 파일 | `backend/railway.json` | `render.yaml`(저장소 맨 위) |
+| 설정 파일 | 저장소 맨 위 `railway.json` + `Dockerfile` | `render.yaml`(저장소 맨 위) |
 
 ## 꼭 지킬 것
 
@@ -31,7 +31,8 @@ Render는 무료 요금제에 저장 디스크가 없어(재시작·재배포마
 ## Railway (사용)
 
 1. railway.com → **New Project → Deploy from GitHub repo** → `alicena2ppn2/Capstone`
-2. 서비스 **Settings → Source → Root Directory** = `backend` (그 폴더의 `Dockerfile`로 빌드한다). **Config-as-code** 경로는 `/backend/railway.json` (상태 확인 `/health`)
+2. 설정할 것 없음 — 저장소 맨 위 `Dockerfile`·`railway.json`으로 서버(`backend/`)만 빌드한다. (Root Directory를 `backend`로 바꾼 경우엔 `backend/Dockerfile`을 쓴다. 둘 다 같은 내용)
+   - `Railpack failed to prepare the build`가 나오면 맨 위 `Dockerfile`이 없는 예전 커밋이다 → 최신 main으로 다시 배포
 3. 서비스에서 **+ Volume** → Mount path `/data`
 4. **Variables**에 위 환경변수 넣기
 5. **Settings → Networking → Generate Domain** → `https://…up.railway.app` 주소가 생긴다
