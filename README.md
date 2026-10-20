@@ -9,34 +9,6 @@
 | **윤경** (`alicena2ppn2`) | PM · 기획 · 백엔드(서버 · 연결 · 배포) · 프론트엔드(화면 다듬기) · 데이터 분석 |
 | **영주** (`yeongju217`) | 기획 · 프론트엔드(웹 · 앱) · 디자인(캐릭터 · 화면) · 데이터 분석 |
 
-| 문서 | 내용 |
-|---|---|
-| [FEATURES.md](FEATURES.md) | **기능별로 무엇을 어떻게 만들었는지** (사용한 도구·라이브러리·파일) — 아래 [6절](#6-기능별-구현)에도 같은 내용 |
-| [docs/GAME_RULES.md](docs/GAME_RULES.md) | **게임 규칙 기준표** — 미션·보상·레벨·상점·일기·저장, 서버가 최종 기준 |
-| [APP_INTRO.md](APP_INTRO.md) | 앱 소개 — 왜 만들었나, 근거 연구, 비슷한 앱 조사, 원칙 |
-| [MY_MOCHI_PRODUCT_GUIDE.md](MY_MOCHI_PRODUCT_GUIDE.md) | 제품 소개·발표·홍보용 가이드 (소개 문구, 피해야 할 오해) |
-| [QUEST_DESIGN.md](QUEST_DESIGN.md) | 퀘스트 설계 근거 (행동 활성화, 사회 기술 팁, 단계 사다리) |
-| [PROGRESS.md](PROGRESS.md) | 작업 기록과 **출시 전 남은 일** 체크리스트 |
-| [INITIAL_PLAN.md](INITIAL_PLAN.md) | 초기 기획 (생활 리듬 기반 사회적 고립 조기 개입 AI 에이전트) |
-| [backend/README.md](backend/README.md) | **서버** (FastAPI + SQLite) — 실행 방법, 시연용 데이터, 파일 구성, 전체 API 목록, 미션·보상·레벨 규칙, 상점·친밀도, 신고·차단·필터, 위기 표현 확인. 작업 기록은 [backend/CHANGELOG.md](backend/CHANGELOG.md) |
-| [mobile/README.md](mobile/README.md) | **앱** (Expo · React Native, iPhone·Android) — 소스 구조, 로그인 연결, 퀘스트 안내, 걸음 수·건강 앱 연결, 다시 부르기 알림, 동네 탐험(위치·지도·장소 쪽지), 실행 방법, 저장 |
-| [backend/DEPLOY.md](backend/DEPLOY.md) | **서버 배포** (Railway) — 환경변수, 순서, 확인, 백업 |
-| [frontend/README.md](frontend/README.md) | **웹** (React + Vite) — 소스 구조, 로그인 연결, 퀘스트 안내, 색상·공통 UI, 화면별 기능(미션·일기·출석·상점·이웃), 실행·검증, 개발용 미리보기 |
-
----
-
-## 화면
-
-앱(Expo, iPhone 크기 390×844) · 시연 계정 기준
-
-| **홈 — 모찌와 내 방** | **연속 출석 (1~7일차)** | **오늘의 도전 — 데일리 미션** | **오늘의 활동 — 사진으로 완료** |
-|---|---|---|---|
-| <img src="docs/screenshots/01-home.png" width="200" alt="홈 — 모찌와 내 방"> | <img src="docs/screenshots/02-attendance.png" width="200" alt="연속 출석 (1~7일차)"> | <img src="docs/screenshots/03-quest.png" width="200" alt="오늘의 도전 — 데일리 미션"> | <img src="docs/screenshots/04-quest-activities.png" width="200" alt="오늘의 활동 — 사진으로 완료"> |
-| **상점 — 친구 캐릭터** | **상점 — 집 꾸미기** | **이웃 — 비슷한 레벨 추천** | **친구 코드로 찾기·신청** |
-| <img src="docs/screenshots/05-shop-friends.png" width="200" alt="상점 — 친구 캐릭터"> | <img src="docs/screenshots/06-shop-decor.png" width="200" alt="상점 — 집 꾸미기"> | <img src="docs/screenshots/07-neighbors.png" width="200" alt="이웃 — 비슷한 레벨 추천"> | <img src="docs/screenshots/08-friends.png" width="200" alt="친구 코드로 찾기·신청"> |
-| **이웃 방 놀러 가기·친밀도** | **방명록 신고 창** | **일기** | **설정 — 내 프로필** |
-| <img src="docs/screenshots/09-visit-room.png" width="200" alt="이웃 방 놀러 가기·친밀도"> | <img src="docs/screenshots/10-report.png" width="200" alt="방명록 신고 창"> | <img src="docs/screenshots/11-diary.png" width="200" alt="일기"> | <img src="docs/screenshots/12-settings.png" width="200" alt="설정 — 내 프로필"> |
-
 ---
 
 ## 1. 앱 소개
@@ -53,6 +25,18 @@
   - 포켓몬고는 실제 걸음을 하루 약 1,500보 늘렸지만 몇 주 만에 효과가 줄었다 → **매일 바뀌는 미션·수집·이웃 연결로 오래 이어 가게** 설계
 - **비슷한 앱과 다른 점**: Finch(스스로 체크·외출 초점 없음), 피크민 블룸(이미 걷는 사람 중심), Habitica(실패하면 벌), 상담 앱(이미 도움을 찾는 사람 대상)과 달리 → **아주 작은 외출부터 · 사진·걸음으로 확인되는 행동에만 보상 · 벌점 없음 · 가벼운 연결 · 도움받을 곳 안내**
 - **하지 않는 것**: 위험 점수·"위험군" 라벨, 일기 분석으로 마음 상태 평가, 전문 상담·개입. 이 연구들은 대부분 **관련성**이며 MOCHI 자체의 효과는 사용 데이터로 따로 확인해야 한다.
+
+## 화면
+
+앱(Expo, iPhone 크기 390×844) · 시연 계정 기준
+
+| **홈 — 모찌와 내 방** | **연속 출석 (1~7일차)** | **오늘의 도전 — 데일리 미션** | **오늘의 활동 — 사진으로 완료** |
+|---|---|---|---|
+| <img src="docs/screenshots/01-home.png" width="200" alt="홈 — 모찌와 내 방"> | <img src="docs/screenshots/02-attendance.png" width="200" alt="연속 출석 (1~7일차)"> | <img src="docs/screenshots/03-quest.png" width="200" alt="오늘의 도전 — 데일리 미션"> | <img src="docs/screenshots/04-quest-activities.png" width="200" alt="오늘의 활동 — 사진으로 완료"> |
+| **상점 — 친구 캐릭터** | **상점 — 집 꾸미기** | **이웃 — 비슷한 레벨 추천** | **친구 코드로 찾기·신청** |
+| <img src="docs/screenshots/05-shop-friends.png" width="200" alt="상점 — 친구 캐릭터"> | <img src="docs/screenshots/06-shop-decor.png" width="200" alt="상점 — 집 꾸미기"> | <img src="docs/screenshots/07-neighbors.png" width="200" alt="이웃 — 비슷한 레벨 추천"> | <img src="docs/screenshots/08-friends.png" width="200" alt="친구 코드로 찾기·신청"> |
+| **이웃 방 놀러 가기·친밀도** | **방명록 신고 창** | **일기** | **설정 — 내 프로필** |
+| <img src="docs/screenshots/09-visit-room.png" width="200" alt="이웃 방 놀러 가기·친밀도"> | <img src="docs/screenshots/10-report.png" width="200" alt="방명록 신고 창"> | <img src="docs/screenshots/11-diary.png" width="200" alt="일기"> | <img src="docs/screenshots/12-settings.png" width="200" alt="설정 — 내 프로필"> |
 
 ## 2. 제품 가이드 
 
@@ -121,13 +105,13 @@
 
 ### 6-0. 전체 구조
 
-<img src="docs/screenshots/structure.png" alt="전체 구조: 앱(mobile)·웹(frontend)이 shared를 같이 쓰고, Supabase Auth로 로그인, HTTPS·Bearer 토큰으로 Railway 서버(backend: Dockerfile → start.py → FastAPI, Volume /data에 SQLite·사진, /admin/backup 백업)와 통신" width="100%">
+<img src="docs/screenshots/structure.png" alt="전체 구조: 앱(mobile)·웹(frontend)이 shared를 같이 쓰고, Supabase Auth로 로그인, HTTPS·Bearer 토큰으로 Railway 서버(backend: Dockerfile → start.py → FastAPI, Volume /data에 SQLite·사진, /admin/backup 백업)와 통신" width="80%">
 
 **원칙**: 코인·XP·레벨·미션 완료·상점·출석은 **서버가 판정**하고 앱·웹은 보여 주기만 한다(조작 방지, 앱·웹 결과가 같게). 서버 주소가 없으면 앱·웹은 휴대폰 안 기록으로 동작한다.
 
 ### 백엔드 구조
 
-<img src="docs/screenshots/backend-structure.png" alt="FastAPI 백엔드 서버 구조도: 앱·웹 → HTTPS·JSON → Railway의 FastAPI(라우터·비즈니스 로직·데이터 처리) → SQLite(Railway Volume, app.db), 로그인은 Supabase Auth(Google·카카오, JWT)" width="100%">
+<img src="docs/screenshots/backend-structure.png" alt="FastAPI 백엔드 서버 구조도: 앱·웹 → HTTPS·JSON → Railway의 FastAPI(라우터·비즈니스 로직·데이터 처리) → SQLite(Railway Volume, app.db), 로그인은 Supabase Auth(Google·카카오, JWT)" width="70%">
 
 - **서버 주소**: https://mymochi-api-production.up.railway.app · API 문서 [/docs](https://mymochi-api-production.up.railway.app/docs)
 - **서버**: FastAPI(Python) + uvicorn, Railway에서 실행. API 70개 전체는 [/docs](https://mymochi-api-production.up.railway.app/docs)·[backend/README.md](backend/README.md#api)
@@ -278,3 +262,21 @@
 7. 같은 사진 재사용 막기(사진 지문), 오류 모니터링
 
 체크리스트는 [PROGRESS.md](PROGRESS.md) "출시 전 남은 일".
+
+---
+
+## 7. 문서
+
+| 문서 | 내용 |
+|---|---|
+| [FEATURES.md](FEATURES.md) | **기능별로 무엇을 어떻게 만들었는지** (사용한 도구·라이브러리·파일) — 위 [6절](#6-기능별-구현)과 같은 내용 |
+| [docs/GAME_RULES.md](docs/GAME_RULES.md) | **게임 규칙 기준표** — 미션·보상·레벨·상점·일기·저장, 서버가 최종 기준 |
+| [APP_INTRO.md](APP_INTRO.md) | 앱 소개 — 왜 만들었나, 근거 연구, 비슷한 앱 조사, 원칙 |
+| [MY_MOCHI_PRODUCT_GUIDE.md](MY_MOCHI_PRODUCT_GUIDE.md) | 제품 소개·발표·홍보용 가이드 (소개 문구, 피해야 할 오해) |
+| [QUEST_DESIGN.md](QUEST_DESIGN.md) | 퀘스트 설계 근거 (행동 활성화, 사회 기술 팁, 단계 사다리) |
+| [PROGRESS.md](PROGRESS.md) | 작업 기록과 **출시 전 남은 일** 체크리스트 |
+| [INITIAL_PLAN.md](INITIAL_PLAN.md) | 초기 기획 (생활 리듬 기반 사회적 고립 조기 개입 AI 에이전트) |
+| [backend/README.md](backend/README.md) | **서버** (FastAPI + SQLite) — 실행 방법, 시연용 데이터, 파일 구성, 전체 API 목록, 미션·보상·레벨 규칙, 상점·친밀도, 신고·차단·필터, 위기 표현 확인. 작업 기록은 [backend/CHANGELOG.md](backend/CHANGELOG.md) |
+| [mobile/README.md](mobile/README.md) | **앱** (Expo · React Native, iPhone·Android) — 소스 구조, 로그인 연결, 퀘스트 안내, 걸음 수·건강 앱 연결, 다시 부르기 알림, 동네 탐험(위치·지도·장소 쪽지), 실행 방법, 저장 |
+| [backend/DEPLOY.md](backend/DEPLOY.md) | **서버 배포** (Railway) — 환경변수, 순서, 확인, 백업 |
+| [frontend/README.md](frontend/README.md) | **웹** (React + Vite) — 소스 구조, 로그인 연결, 퀘스트 안내, 색상·공통 UI, 화면별 기능(미션·일기·출석·상점·이웃), 실행·검증, 개발용 미리보기 |
