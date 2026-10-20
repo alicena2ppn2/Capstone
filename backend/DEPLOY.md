@@ -1,11 +1,12 @@
-# 서버 인터넷 배포 (Railway 또는 Render)
+# 서버 인터넷 배포 — Railway (2026-10-20 결정)
 
 휴대폰에 설치한 앱(APK·iPhone 설치 파일)이 어디서나 접속할 수 있게 서버를 인터넷에 올린다.
-Railway와 Render는 **같은 Dockerfile**(`backend/Dockerfile`)로 올라간다. 둘 중 하나만 고르면 된다.
+**Railway로 정했다**: 발표(10/22)까지 무료 체험 크레딧으로 저장 디스크(Volume)까지 쓸 수 있고, 체험이 끝나면 Hobby 월 $5.
+Render는 무료 요금제에 저장 디스크가 없어(재시작·재배포마다 DB·사진이 지워짐) 쓰지 않는다. 같은 Dockerfile로 옮길 수 있게 `render.yaml`은 대안으로 남겨 둔다.
 
 | | Railway | Render |
 |---|---|---|
-| 요금 | Hobby 월 $5 (사용량 $5 포함, 이 서버는 보통 안에 들어옴) | Starter 월 $7 + 디스크 1GB 약 $0.25 |
+| 요금 | 처음 30일 무료 체험 크레딧 $5 → 이후 Hobby 월 $5 (사용량 $5 포함, 이 서버는 보통 안에 들어옴). 조건은 가입 때 railway.com/pricing 확인 | 무료는 디스크 없음 → Starter 월 $7 + 디스크 1GB 약 $0.25 |
 | 지워지지 않는 디스크 | Volume (화면에서 추가) | Disk (`render.yaml`에 있음) |
 | 설정 파일 | `backend/railway.json` | `render.yaml`(저장소 맨 위) |
 
@@ -27,7 +28,7 @@ Railway와 Render는 **같은 Dockerfile**(`backend/Dockerfile`)로 올라간다
 | `DATA_DIR` | 기본 `/data` (Dockerfile). 디스크를 다른 곳에 연결했을 때만 | — |
 | `PORT` | 플랫폼이 자동으로 넣음 | — |
 
-## Railway
+## Railway (사용)
 
 1. railway.com → **New Project → Deploy from GitHub repo** → `alicena2ppn2/Capstone`
 2. 서비스 **Settings → Source → Root Directory** = `backend` (그 폴더의 `Dockerfile`로 빌드한다). **Config-as-code** 경로는 `/backend/railway.json` (상태 확인 `/health`)
@@ -35,7 +36,7 @@ Railway와 Render는 **같은 Dockerfile**(`backend/Dockerfile`)로 올라간다
 4. **Variables**에 위 환경변수 넣기
 5. **Settings → Networking → Generate Domain** → `https://…up.railway.app` 주소가 생긴다
 
-## Render
+## Render (대안, 지금은 안 씀)
 
 1. render.com → **New → Blueprint** → 저장소 `alicena2ppn2/Capstone` (맨 위 `render.yaml`을 읽어 서비스와 1GB 디스크를 만든다)
 2. 비밀 값 4개(`SUPABASE_URL` 등)를 물어보면 넣는다
