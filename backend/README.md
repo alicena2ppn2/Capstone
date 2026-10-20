@@ -2,6 +2,7 @@
 
 미션으로 행동을 유도하는 서버입니다. 밖에 잘 나가지 않는 사용자에게 하루 미션(하늘 사진 올리기, 동네 맛집 찾아보기, 주제 일기 쓰기 등)을 주고, 해내면 코인과 경험치를 줍니다. 경험치가 쌓이면 레벨이 오릅니다.
 
+- 서버 주소: https://mymochi-api-production.up.railway.app · API 문서 [/docs](https://mymochi-api-production.up.railway.app/docs) (Railway)
 - 스택: Python, FastAPI, SQLite
 - 프론트: React (`frontend/`, 기능 명세는 `frontend/FEATURE_SPEC.md`)
 - 마감: 10/22 발표 — 휴대폰으로 걷기 → 걸음 전달 → 미션 판정 → 캐릭터 반응까지 한 흐름으로 시연

@@ -2,7 +2,7 @@
 
 > 모찌 친구와 함께, 매일 작은 미션으로 **밖에 한 발 나가고 · 하루를 기록하고 · 사람과 가볍게 이어지는** 게임형 앱
 
-캡스톤 프로젝트 · 서버 https://mymochi-api-production.up.railway.app ([API 문서](https://mymochi-api-production.up.railway.app/docs))
+캡스톤 프로젝트
 
 | 이름 | 역할 |
 |---|---|
@@ -69,6 +69,7 @@
 앱 열기 → 연속 출석 (1~7일차 선물)
   → 홈: 모찌와 방, 오늘의 문장, 오늘의 도전
   → 밖에 나가 사진 찍기 · 걸음 채우기 → 오늘 찍은 사진이면 완료
+  → 동네 탐험: GPS로 가까운 장소·거리 확인 → 지도 → 장소에 도착하면 쪽지 남기기 (읽기는 어디서나)
   → 코인·XP → 레벨업 → 상점에서 친구·옷·집 꾸미기
   → 이웃 방 놀러 가서 방명록 한 줄 · 친구 신청
   → 오늘의 주제로 일기 → 사진첩에 하루가 쌓임
@@ -128,6 +129,7 @@
 
 <img src="docs/screenshots/backend-structure.png" alt="FastAPI 백엔드 서버 구조도: 앱·웹 → HTTPS·JSON → Railway의 FastAPI(라우터·비즈니스 로직·데이터 처리) → SQLite(Railway Volume, app.db), 로그인은 Supabase Auth(Google·카카오, JWT)" width="100%">
 
+- **서버 주소**: https://mymochi-api-production.up.railway.app · API 문서 [/docs](https://mymochi-api-production.up.railway.app/docs)
 - **서버**: FastAPI(Python) + uvicorn, Railway에서 실행. API 70개 전체는 [/docs](https://mymochi-api-production.up.railway.app/docs)·[backend/README.md](backend/README.md#api)
 - **요청 흐름**: 앱·웹 → `access.guard`(토큰 없으면 401, 남의 `{user_id}`면 403) → `app/main.py` 라우트 → 규칙 모듈(`missions.py`·`shop.py`·`survey.py`…) → `app/db.py`
 - **저장**: SQLite `app.db`(표 28개)와 사진 `uploads/`를 Railway Volume `/data`에
@@ -145,6 +147,7 @@
 | 테스트 | **pytest** (백엔드 277개), Node `node --test` (공통 134개), ESLint | `backend/tests/`, `shared/**/*.test.js` |
 | 앱 | **Expo** (Router, Image Picker, Notifications, Secure Store, Web Browser, Clipboard, Build Properties), React Native, react-native-svg, AsyncStorage | `mobile/` |
 | 앱 건강 | @kingstinct/react-native-healthkit + react-native-nitro-modules, react-native-health-connect | 걸음 수 (`mobile/src/health/`) |
+| 앱 위치·지도 | **expo-location**, **react-native-maps** (iPhone Apple 지도 · Android Google 지도) | 동네 탐험 (`mobile/src/screens/Explore.jsx`, `explore/`) |
 | 웹 | React, Vite | `frontend/` |
 | 로그인 | **Supabase Auth** (@supabase/supabase-js) | Google·카카오 OAuth |
 | 빌드·배포 | EAS (Expo Application Services) | 개발 빌드·APK (`mobile/eas.json`) |
@@ -237,6 +240,14 @@
 | **친밀도** | 서로 한 방문 +1·방명록 +2·좋아요 +1(종류마다 하루 한 번)을 한 점수로 → 서로 오가야 빨리 오름. 친구 사이면 레벨업 때 둘 다 코인 | `backend/app/friendship.py` |
 | **친구 코드** | 사용자마다 6자리(0·O·1·I 뺀 32글자, `secrets`로 생성, 겹치지 않게). 코드로 찾기 → 신청 → 상대가 수락. 상대가 먼저 신청했으면 바로 친구 | `db.new_friend_code`, `/friends/search`, `Friends` 탭 |
 | **필터·신고·차단** | 욕설·비하·혐오 표현 목록으로 방명록·닉네임 막기(혐오 표현은 방명록 정지). 신고하면 신고한 사람에게 바로 숨김, 여러 명이 신고하면 모두에게 숨김, 새 계정 신고는 숨김 횟수에 안 셈. 차단하면 서로 안 보임 (Habitica 방식 참고, App Store 심사 1.2) | `backend/app/moderation.py`, `profanity.json`, 신고 창 |
+
+#### 동네 탐험 (GPS)
+
+| 기능 | 어떻게 | 파일 |
+|---|---|---|
+| **장소 목록·거리** | '내 위치로 보기'를 눌렀을 때만 위치 권한(`expo-location`, 앱 사용 중만) → 서버가 하버사인 공식으로 거리를 계산해 **가까운 순**. 위치는 거리 계산에만 쓰고 저장하지 않음 | `GET /places?lat=&lng=`, `backend/app/places.py`, `mobile/src/screens/Explore.jsx` |
+| **지도** | `react-native-maps` — iPhone은 Apple 지도, Android는 Google 지도. 장소를 핀으로 | `mobile/src/screens/explore/PlaceMap.native.jsx` |
+| **장소 쪽지** | 장소마다 140자 쪽지 + 종이 색·스티커. **읽기는 어디서나, 남기기는 장소 근처에서만**(서울도서관 60m · 서울광장 80m · 남산공원 300m, 위치 오차 50m 넘으면 판정 안 함). 앱과 서버가 같은 거리 판정, 방명록과 같은 욕설 필터·신고·차단 | `POST /places/{id}/notes`, `backend/app/data/places.json`, `mobile/src/screens/explore/PlaceNotes.jsx` |
 
 #### 알림
 
