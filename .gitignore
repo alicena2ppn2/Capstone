@@ -6,3 +6,8 @@ output/block_month_features.csv
 __pycache__/
 .ipynb_checkpoints/
 analysis/
+
+# 비밀 값 (.env는 어느 폴더든 커밋 금지, 예시 파일만 허용)
+.env
+.env.*
+!.env.example
