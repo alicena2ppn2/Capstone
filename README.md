@@ -129,9 +129,11 @@
 
 ### 배포 (2026-10-20 결정)
 
+**서버 주소** https://mymochi-api-production.up.railway.app — 2026-10-20 배포 · API 문서 [/docs](https://mymochi-api-production.up.railway.app/docs) · 상태 [/health](https://mymochi-api-production.up.railway.app/health)
+
 | 무엇 | 어디에 | 어떻게 |
 |---|---|---|
-| **서버** | **Railway** (발표까지 무료 체험, 이후 Hobby 월 $5) | GitHub 저장소 연결 → Root Directory `backend` → Volume `/data` → 환경변수(`SUPABASE_URL`·`SUPABASE_KEY`·`SUPABASE_SERVICE_ROLE_KEY`) → 도메인. 자세히 [backend/DEPLOY.md](backend/DEPLOY.md) |
+| **서버** | **Railway** (발표까지 무료 체험, 이후 Hobby 월 $5) · ✅ 배포됨 | GitHub 저장소 연결 → Root Directory `backend` → Volume `/data` → 환경변수(`SUPABASE_URL`·`SUPABASE_KEY`·`SUPABASE_SERVICE_ROLE_KEY`) → 도메인. 자세히 [backend/DEPLOY.md](backend/DEPLOY.md) |
 | **Android 설치 파일** | EAS `@y00n/capstone-mochi` | expo.dev preview 환경변수에 서버 주소 → `npx eas-cli build -p android --profile preview` → 링크·QR로 APK 설치 |
 | **iPhone 설치 파일** | EAS + Apple 개발자 계정 | `npx eas-cli device:create`로 iPhone 등록 → `npx eas-cli build -p ios --profile preview` → 등록한 iPhone에서 링크로 설치(개발자 모드 켜기). 많이 나눌 땐 TestFlight |
 
