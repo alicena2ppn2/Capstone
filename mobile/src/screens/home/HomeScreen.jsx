@@ -17,8 +17,10 @@ const MOVE_LIMIT = 160;   // 서버와 같은 한계 (±160)
 const clamp = v => Math.max(-MOVE_LIMIT, Math.min(MOVE_LIMIT, v));
 // 아래 시트 (웹 홈 .home-sheet와 같게, 10/19): 접혀 있을 때는 손잡이 + 버튼 줄만 보이고, 끌어올리거나 누르면 오늘의 도전 요약이 올라온다
 const PEEK = 104;          // 접혔을 때 보이는 높이 (손잡이 + 버튼 줄)
-const SHEET = .62;
-const RUG_DROP = 16;        // 꽉 찬 방에서 러그·캐릭터·문장을 살짝 아래로 (그림 단위, 10/19)          // 펼쳤을 때 화면 높이 대비
+const SHEET = .62;          // 펼쳤을 때 화면 높이 대비
+const RUG_DROP = 34;        // 꽉 찬 방에서 러그·캐릭터를 아래로 (그림 단위, 10/19)
+const RUG_ONLY_DROP = 13;   // 러그·카페트만 더 아래로 (캐릭터는 러그 뒤쪽에 선 모양)
+const SENTENCE_DROP = 16;   // 한 줄 문장·LV는 조금만 (시트에 가리지 않게)
 
 // 서버 미션 요약: 오늘의 도전 n/m 과 아직 안 한 것 3개
 function ServerSummary({ userId, onQuest }) {
@@ -42,8 +44,8 @@ export default function HomeScreen({ serverUserId, onMoveDecor, levelInfo, game,
   const friendSize = Math.min(roomWidth * .66, 248);
   const sentenceExtra = Math.max(0,baseRoomHeight * .868 + sentenceHeight + 22 * fontScale + 14 - baseRoomHeight);
   // 방(바닥 색)을 시트 손잡이 바로 아래까지 이어서 사이 공백이 없게 — 시트 둥근 모서리 밑으로 조금 들어간다 (10/19)
-  const dropPx = full ? RUG_DROP * roomWidth / 368 : 0;
-  const roomHeight = Math.max(baseRoomHeight + sentenceExtra + dropPx, areaHeight ? areaHeight - (full ? 0 : 4) - PEEK + 24 : 0);
+  const dropPx = full ? RUG_DROP * roomWidth / 368 : 0, sentenceDropPx = full ? SENTENCE_DROP * roomWidth / 368 : 0;
+  const roomHeight = Math.max(baseRoomHeight + sentenceExtra + sentenceDropPx, areaHeight ? areaHeight - (full ? 0 : 4) - PEEK + 24 : 0);
   // 가구 옮기기 (서버): 옮길 소품을 고르고 방을 끌면 그만큼 움직인다. 손을 떼면 서버에 저장
   const placed = MOVABLE_SLOTS.filter(slot => game.decor?.[slot]);
   const [arranging, setArranging] = useState(false), [slot, setSlot] = useState(null), [live, setLive] = useState(null);
@@ -77,12 +79,12 @@ export default function HomeScreen({ serverUserId, onMoveDecor, levelInfo, game,
     onPanResponderTerminate: () => setDrag(null),
   });
   return <View style={{ flex: 1, paddingTop: full ? 0 : 4 }} onLayout={event => setAreaHeight(event.nativeEvent.layout.height)}>
-        <View {...(arranging ? pan.panHandlers : {})} style={[homeStyles.room, full && homeStyles.roomFull, arranging && homeStyles.arranging, { width: roomWidth, height: roomHeight,backgroundColor:roomTime(now).night?'#DBC1A2':'#EBCDA6' }]}><View accessible accessibilityLabel={`기기 현지 시간: ${roomTime(now).label}`} style={[StyleSheet.absoluteFill,{height:roomHeight,bottom:undefined}]}><RoomBackdrop decor={game.decor ?? {}} positions={positions} homeScene now={now} floorExtra={(roomHeight - baseRoomHeight) * 368 / roomWidth} rugDrop={full ? RUG_DROP : 0} /></View>
+        <View {...(arranging ? pan.panHandlers : {})} style={[homeStyles.room, full && homeStyles.roomFull, arranging && homeStyles.arranging, { width: roomWidth, height: roomHeight,backgroundColor:roomTime(now).night?'#DBC1A2':'#EBCDA6' }]}><View accessible accessibilityLabel={`기기 현지 시간: ${roomTime(now).label}`} style={[StyleSheet.absoluteFill,{height:roomHeight,bottom:undefined}]}><RoomBackdrop decor={game.decor ?? {}} positions={positions} homeScene now={now} floorExtra={(roomHeight - baseRoomHeight) * 368 / roomWidth} rugDrop={full ? RUG_DROP + RUG_ONLY_DROP : 0} /></View>
           <View style={homeStyles.settingsCorner}><Button onPress={() => go('settings')} accessibilityLabel="설정" icon={<UiIcon kind="gear" />} /></View>
 
           <View style={homeStyles.roomMenus}><Button textStyle={{ fontSize: 13 }} style={{ paddingHorizontal: 7 }} onPress={() => go('visit')} icon={<MenuIcon kind="visit" />}>방문하기</Button><Button textStyle={{ fontSize: 13 }} style={{ paddingHorizontal: 7 }} onPress={() => go('guest')} icon={<MenuIcon kind="guest" />}>방명록</Button><Button textStyle={{ fontSize: 13 }} style={{ paddingHorizontal: 7 }} onPress={() => openDiary()} icon={<MenuIcon kind="diary" />}>일기</Button></View>
           <View style={{position:'absolute',top:64,alignSelf:'center',maxWidth:'50%'}}><Button textStyle={{fontFamily:'A2z-600',fontSize:14}} style={{minHeight:38,paddingVertical:7}} onPress={()=>go('settings')}>{name}</Button></View><View style={[styles.friendPosition,{bottom:baseRoomHeight*.15+roomHeight-baseRoomHeight-sentenceExtra-dropPx}]}><Character variant={game.character} outfit={outfit} size={friendSize} label={name} interactive reactionId={reaction} onConsumed={consumeReaction} /></View>
-          <View style={[styles.identity,{top:baseRoomHeight*.868+dropPx,bottom:undefined,maxWidth:undefined,gap:6}]}><DailySentence now={now} characterId={game.character} width={Math.min(roomWidth-24,340)} onHeight={setSentenceHeight}/><View style={styles.level}><Label style={styles.small}>LV.{levelInfo?.level ?? level}</Label><View style={{ width: 60 }}><Progress value={levelInfo?.xp_in_level ?? localLevel.xp_in_level} max={levelInfo?.xp_for_level ?? localLevel.xp_for_level} /></View><Label style={styles.small}>{levelInfo?.xp_in_level ?? localLevel.xp_in_level} / {levelInfo?.xp_for_level ?? localLevel.xp_for_level} XP</Label></View></View>
+          <View style={[styles.identity,{top:baseRoomHeight*.868+sentenceDropPx,bottom:undefined,maxWidth:undefined,gap:6}]}><DailySentence now={now} characterId={game.character} width={Math.min(roomWidth-24,340)} onHeight={setSentenceHeight}/><View style={styles.level}><Label style={styles.small}>LV.{levelInfo?.level ?? level}</Label><View style={{ width: 60 }}><Progress value={levelInfo?.xp_in_level ?? localLevel.xp_in_level} max={levelInfo?.xp_for_level ?? localLevel.xp_for_level} /></View><Label style={styles.small}>{levelInfo?.xp_in_level ?? localLevel.xp_in_level} / {levelInfo?.xp_for_level ?? localLevel.xp_for_level} XP</Label></View></View>
         </View>
         {open && !arranging && <Pressable accessibilityLabel="오늘의 도전 닫기" style={[StyleSheet.absoluteFill, { backgroundColor: 'rgba(40,30,20,.18)' }]} onPress={() => snap(false)} />}
         {arranging ? <View style={homeStyles.arrangeDock}><Card style={{ gap: 6 }}><Label style={styles.body}>옮길 소품을 고르고 방 그림을 끌어 보세요.</Label><View style={styles.wrap}>{placed.map(id => <Button key={id} selected={current === id} onPress={() => setSlot(id)}>{DECOR_SLOTS[id]}</Button>)}<Button onPress={() => current && onMoveDecor(current, { dx: 0, dy: 0 })}>제자리로</Button><Button primary onPress={() => setArranging(false)}>다 했어요</Button></View></Card></View>
