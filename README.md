@@ -105,7 +105,7 @@
 
 ### 6-0. 전체 구조
 
-<img src="docs/screenshots/structure.png" alt="전체 구조: 앱(mobile)·웹(frontend)이 shared를 같이 쓰고, Supabase Auth로 로그인, HTTPS·Bearer 토큰으로 Railway 서버(backend: Dockerfile → start.py → FastAPI, Volume /data에 SQLite·사진, /admin/backup 백업)와 통신" width="100%">
+<img src="docs/screenshots/structure.png" alt="전체 구조: 앱(mobile)·웹(frontend)이 shared를 같이 쓰고, Supabase Auth로 로그인, HTTPS·Bearer 토큰으로 Railway 서버(backend: Dockerfile → start.py → FastAPI, Volume /data에 SQLite·사진, /admin/backup 백업)와 통신" width="80%">
 
 **원칙**: 코인·XP·레벨·미션 완료·상점·출석은 **서버가 판정**하고 앱·웹은 보여 주기만 한다(조작 방지, 앱·웹 결과가 같게). 서버 주소가 없으면 앱·웹은 휴대폰 안 기록으로 동작한다.
 
