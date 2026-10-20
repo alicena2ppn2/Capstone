@@ -5,6 +5,14 @@
 
 ---
 
+## 2026-10-20 — 배포 플랫폼 Railway로 결정, README 정리
+
+**브랜치** `readme-railway-deploy`
+
+- Railway: 발표까지 무료 체험 크레딧으로 Volume(`/data`)까지 사용, 이후 Hobby 월 $5. Render 무료는 저장 디스크가 없어 재시작마다 DB·사진이 지워져 제외(`render.yaml`은 대안으로 남김)
+- `DEPLOY.md` 제목·요금 표를 Railway 기준으로. 루트 README: 문서 표에 DEPLOY.md, 작업 기록 10/17~10/20, '배포' 절(서버·Android·iPhone), 숫자(백엔드 테스트 276·앱·공통 134)
+- 남은 것: Railway 가입·Volume·환경변수·도메인(사용자) → 서버 주소 확인 → expo.dev preview 환경변수 → 빌드
+
 ## 2026-10-20 — 서버 인터넷 배포 준비 (Railway·Render)
 
 **브랜치** `backend-deploy`

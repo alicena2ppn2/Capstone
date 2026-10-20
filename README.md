@@ -2,7 +2,7 @@
 
 > 모찌 친구와 함께, 매일 작은 미션으로 **밖에 한 발 나가고 · 하루를 기록하고 · 사람과 가볍게 이어지는** 게임형 앱
 
-캡스톤 프로젝트 · 최종 발표 2026-10-22 · 목표: App Store 출시 · 최종 갱신 2026-10-19
+캡스톤 프로젝트 · 최종 발표 2026-10-22 · 목표: App Store 출시 · 최종 갱신 2026-10-20
 
 | 문서 | 내용 |
 |---|---|
@@ -15,6 +15,7 @@
 | [INITIAL_PLAN.md](INITIAL_PLAN.md) | 초기 기획 (생활 리듬 기반 사회적 고립 조기 개입 AI 에이전트) |
 | [backend/README.md](backend/README.md) | **서버** (FastAPI + SQLite) — 실행 방법, 시연용 데이터, 파일 구성, 전체 API 목록, 미션·보상·레벨 규칙, 상점·친밀도, 신고·차단·필터, 위기 표현 확인. 작업 기록은 [backend/CHANGELOG.md](backend/CHANGELOG.md) |
 | [mobile/README.md](mobile/README.md) | **앱** (Expo · React Native, iPhone·Android) — 소스 구조, 로그인 연결, 퀘스트 안내, 걸음 수·건강 앱 연결, 다시 부르기 알림, 동네 탐험(위치·지도·장소 쪽지), 실행 방법, 저장 |
+| [backend/DEPLOY.md](backend/DEPLOY.md) | **서버 인터넷 배포** (Railway) — 저장 디스크, 환경변수, 순서, 확인 방법. 휴대폰 설치 파일은 [mobile/README.md](mobile/README.md#설치-파일-만들기--나눠-주기-2026-10-20) |
 | [frontend/README.md](frontend/README.md) | **웹** (React + Vite) — 소스 구조, 로그인 연결, 퀘스트 안내, 색상·공통 UI, 화면별 기능(미션·일기·출석·상점·이웃), 실행·검증, 개발용 미리보기 |
 
 ---
@@ -104,10 +105,13 @@
 | 10/1~10/6 | FastAPI 서버(미션·코인·레벨·일기·방문·방명록·상점), React 화면, 사진첩·촬영 일시 확인, 집 꾸미기 |
 | 10/7~10/13 | Expo(React Native) 앱으로 전환, 하루 6미션, 공통 디자인 시스템, 10/12 교수님 면담 반영 |
 | 10/14~10/16 | Supabase 로그인(Google·카카오), 웹·앱 ↔ 서버 연결, 사진 위치 정보 지우기, 모든 API 토큰 확인, 연속 출석표, 걸음 수(Apple 건강·Health Connect), 다시 부르기 알림, 친구 코드, 경제 밸런스, 앱 안 계정 삭제 |
+| 10/17~10/19 | 동네 탐험(위치·지도·장소 쪽지, 쓰기는 장소 근처에서만), 계정마다 기기 기록 따로, 일기 서버 저장 결과 알림, 레벨 곡선(100+35×(n−1)), 인사·운동 미션은 "했어요" 체크, 방명록은 매일 미션에서 빼고 방문만 |
+| 10/19~10/20 | 앱 화면 다듬기 — 방 그림 고정 + 오늘의 도전 시트, 방을 화면에 꽉, 러그·캐릭터 위치, 대표색 보라(#7A68C2), 상점 3칸 탭·2열·코인 아이콘 가격, 일기 화면, 내 프로필, 설정에서 효과음·알림 빼기(웹·앱), 오늘의 활동 색 동그라미 빼기. 버그: 벽지·바닥·소파·서랍장·커튼 장착 안 되던 것, 퀘스트 '어땠나요?'가 답한 뒤에도 남던 것 (#62~#77) |
+| 10/20 | **배포 준비** — 서버 Railway용 Dockerfile·시작 안전 확인(로그인 설정 없으면 안 켜짐), 앱은 EAS 프로젝트 `@y00n/capstone-mochi`, Android APK·iPhone(ad hoc) 설치 파일 순서 (#78~#79) |
 
-**숫자로 보면**: 서버 API 65개 · 미션 91개(데일리 5 + 바뀌는 86) · 일기 주제 50개 · 상점 친구 12 · 옷 9 · 집 꾸미기 46 · 테스트 백엔드 274개 · 앱·공통 127개
+**숫자로 보면**: 서버 API 65개 · 미션 91개(데일리 5 + 바뀌는 86) · 일기 주제 50개 · 상점 친구 12 · 옷 9 · 집 꾸미기 46 · 테스트 백엔드 276개 · 앱·공통 134개
 
-**출시 전 남은 큰 일**: ① 서버 배포(HTTPS·DB·사진 저장소) ② Apple 로그인 ③ 운영자 신고 확인 화면 ④ 개인정보 처리방침·민감정보 동의 ⑤ 만 14세 미만 처리 ⑥ 실기기 빌드·테스트(걸음·알림·로그인 복귀) ⑦ 스토어 등록 자료
+**출시 전 남은 큰 일**: ① 서버 배포 — 준비 완료, Railway 가입·환경변수·도메인만 남음 ([DEPLOY.md](backend/DEPLOY.md)) ② Apple 로그인 ③ 운영자 신고 확인 화면 ④ 개인정보 처리방침·민감정보 동의 ⑤ 만 14세 미만 처리 ⑥ 실기기 빌드·테스트(걸음·알림·로그인 복귀) ⑦ 스토어 등록 자료
 
 ## 5. 폴더 및 실행
 
@@ -122,6 +126,17 @@
 - 개발할 때 `backend/.env`에 `CAPSTONE_AUTH=dev`를 넣으면 로그인 없이 시연 계정(demo-mochi)으로 볼 수 있다. 시연 데이터: `backend/scripts/seed_demo.py`
 - **`.env`·키는 절대 커밋하지 않는다** (`.githooks/pre-commit`이 막음). PR은 기능별로 나눈다.
 - 담당: PM·백엔드·데이터 `alicena2ppn2` · 프론트·데이터 `yeongju217`
+
+### 배포 (2026-10-20 결정)
+
+| 무엇 | 어디에 | 어떻게 |
+|---|---|---|
+| **서버** | **Railway** (발표까지 무료 체험, 이후 Hobby 월 $5) | GitHub 저장소 연결 → Root Directory `backend` → Volume `/data` → 환경변수(`SUPABASE_URL`·`SUPABASE_KEY`·`SUPABASE_SERVICE_ROLE_KEY`) → 도메인. 자세히 [backend/DEPLOY.md](backend/DEPLOY.md) |
+| **Android 설치 파일** | EAS `@y00n/capstone-mochi` | expo.dev preview 환경변수에 서버 주소 → `npx eas-cli build -p android --profile preview` → 링크·QR로 APK 설치 |
+| **iPhone 설치 파일** | EAS + Apple 개발자 계정 | `npx eas-cli device:create`로 iPhone 등록 → `npx eas-cli build -p ios --profile preview` → 등록한 iPhone에서 링크로 설치(개발자 모드 켜기). 많이 나눌 땐 TestFlight |
+
+- Render 무료는 저장 디스크가 없어 재시작마다 일기·사진·코인이 지워지므로 쓰지 않는다 (대안으로 `render.yaml`만 남겨 둠)
+- 비밀 값은 Railway·expo.dev 화면에만 넣는다. 순서: [mobile/README.md — 설치 파일 만들기](mobile/README.md#설치-파일-만들기--나눠-주기-2026-10-20)
 
 ## 6. 기능별 구현
 
