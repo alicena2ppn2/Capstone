@@ -13,6 +13,7 @@ import { QUESTS, levelFor, questCompletionKey, goalProgress } from '../../../sha
 import { CATEGORIES } from '../../../shared/features/challenges.js';
 import { ROUTINES, routineDone, dailyActivities, dailyReward } from '../../../shared/features/dailyMissions.js';
 import { seoulDateKey } from '../../../shared/utils/seoulDate.js';
+const FEEDBACK_LABELS = { easy: '가벼웠어요', okay: '적당했어요', hard: '부담됐어요' };
 
 export default function Quest({ onServerChanged, onPreferences, game, focusId, onStart, onComplete, onPhotoSave, onPrepare, onPause, onReplace, onFeedback, onProfile, onDiary, onAttendance, onVisit, onGoal, petColor, onShop, onSettings, onHome }) {
   const [tab, setTab] = useState('day');
@@ -68,7 +69,8 @@ export default function Quest({ onServerChanged, onPreferences, game, focusId, o
         }}>{done ? '완료 ✓' : started ? '해냈어요!' : paused ? '다시 도전' : '도전하기'}</button>}
         {selected && <div className="quest-card-secondary"><button type="button" className="pb" disabled={done} onClick={event => openSheet(event, { kind: 'swap', id: quest.id })}>다른 활동으로</button><button type="button" className="pb" disabled={done} onClick={() => onPause(quest.id, today, '')}>나중에 하기</button></div>}</div>
       </>}
-      {done && selected && <button type="button" className="pb quest-feedback-link" onClick={event => openSheet(event, { kind: 'feedback', key })}>어땠나요? (선택)</button>}
+      {/* 느낌을 남기면 '어땠나요?' 대신 고른 답을 보여 준다 (10/20) */}
+      {done && selected && (game.feedback?.[key] ? <small className="quest-feedback-done">남긴 느낌: {FEEDBACK_LABELS[game.feedback[key]] ?? game.feedback[key]} ✓</small> : <button type="button" className="pb quest-feedback-link" onClick={event => openSheet(event, { kind: 'feedback', key })}>어땠나요? (선택)</button>)}
     </article>;
   };
   return <SubScreen backOnly title="오늘의 도전" plainTitle level={levelFor(game.xp)} petColor={petColor} onShop={onShop} onSettings={onSettings} onHome={onHome}>
