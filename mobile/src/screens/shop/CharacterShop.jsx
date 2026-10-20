@@ -2,6 +2,7 @@ import { useRef, useState } from 'react';
 import { StyleSheet, View } from 'react-native';
 import { Label, Button, Card, styles } from '../../components/ui';
 import UiIcon from '../../components/UiIcon';
+import Price from '../../components/Price';
 import { colors } from '../../../../shared/theme/tokens.js';
 import Character from '../../components/Character';
 import { CHARACTERS, equipCharacter } from '../../../../shared/features/game.js';
@@ -24,7 +25,7 @@ export default function CharacterShop({ game, level, ownedOnly, update, onBuy })
     <View style={shopStyles.grid}>{CHARACTERS.filter(item => !ownedOnly || game.characters.includes(item.id)).map(item => {
       const status = characterAvailability(game, item), has = status === 'owned' || status === 'active', secret = !has && item.method === 'quest', profile = FRIEND_INTROS[item.id];
       return <Card key={item.id} style={shopStyles.item}><View style={[styles.center, { position: 'relative', alignSelf: 'stretch' }]}>{secret ? <Label style={[styles.heading, { height: 96, lineHeight: 96 }]}>?</Label> : <Character variant={item.id} size={96} label={item.name} />}{status === 'level' && <View accessible accessibilityLabel={`${item.name}, 레벨 ${item.level}에서 열려요`} style={{ position: 'absolute', top: 0, right: 0, width: 30, height: 30, borderRadius: 10, alignItems: 'center', justifyContent: 'center', backgroundColor: colors.primarySoft }}><UiIcon kind="lock" size={17} color={colors.ink} /></View>}</View><Label style={[styles.cardTitle, { textAlign: 'center' }]}>{secret ? '비밀 친구' : item.name}</Label>
-        <Label style={[styles.small, { textAlign: 'center' }]}>{secret ? '현실 행동 누적 10회' : `LV.${item.level} · ${item.method ? '무료 보상' : `${item.price} 코인`}`}</Label><Label style={[styles.state, { alignSelf: 'center' }, has ? styles.done : null]}>{CHARACTER_STATUS[status]}</Label>
+        {secret || item.method ? <Label style={[styles.small, { textAlign: 'center' }]}>{secret ? '현실 행동 누적 10회' : `LV.${item.level} · 무료 보상`}</Label> : <View style={{ flexDirection: 'row', alignItems: 'center', justifyContent: 'center', gap: 4 }}><Label style={styles.small}>LV.{item.level} ·</Label><Price value={item.price} size={14} textStyle={styles.small} /></View>}<Label style={[styles.state, { alignSelf: 'center' }, has ? styles.done : null]}>{CHARACTER_STATUS[status]}</Label>
         {!secret && <><Button onPress={() => setIntro(intro === item.id ? null : item.id)}>{intro === item.id ? '⌃' : '⌄'} 친구 소개</Button>{intro === item.id && <Label style={styles.small}>{profile?.introduction}</Label>}</>}
         {status === 'active' ? item.id !== 'potato' && <Button onPress={() => equip('potato')}>함께하기 해제</Button> : has ? <Button primary onPress={() => equip(item.id)}>함께하기</Button> : status === 'level' ? null : <Button primary disabled={status !== 'available'} onPress={() => purchase(item)} textStyle={status === 'special' && item.id === 'pink' ? { fontSize: 12, lineHeight: 18 } : undefined}>{status === 'available' ? '구매하기' : status === 'coins' ? '코인이 부족해요' : status === 'special' ? '성장 보상' : '구매하기'}</Button>}
       </Card>;
