@@ -2,7 +2,12 @@
 
 > 모찌 친구와 함께, 매일 작은 미션으로 **밖에 한 발 나가고 · 하루를 기록하고 · 사람과 가볍게 이어지는** 게임형 앱
 
-캡스톤 프로젝트 · 최종 발표 2026-10-22 · 목표: App Store 출시 · 최종 갱신 2026-10-20
+캡스톤 프로젝트 · 서버 https://mymochi-api-production.up.railway.app ([API 문서](https://mymochi-api-production.up.railway.app/docs))
+
+| 이름 | 역할 |
+|---|---|
+| **윤경** (`alicena2ppn2`) | PM · 기획 · 백엔드(서버 · 연결 · 배포) · 프론트엔드(화면 다듬기) · 데이터 분석 |
+| **영주** (`yeongju217`) | 기획 · 프론트엔드(웹 · 앱) · 디자인(캐릭터 · 화면) · 데이터 분석 |
 
 | 문서 | 내용 |
 |---|---|
@@ -15,24 +20,22 @@
 | [INITIAL_PLAN.md](INITIAL_PLAN.md) | 초기 기획 (생활 리듬 기반 사회적 고립 조기 개입 AI 에이전트) |
 | [backend/README.md](backend/README.md) | **서버** (FastAPI + SQLite) — 실행 방법, 시연용 데이터, 파일 구성, 전체 API 목록, 미션·보상·레벨 규칙, 상점·친밀도, 신고·차단·필터, 위기 표현 확인. 작업 기록은 [backend/CHANGELOG.md](backend/CHANGELOG.md) |
 | [mobile/README.md](mobile/README.md) | **앱** (Expo · React Native, iPhone·Android) — 소스 구조, 로그인 연결, 퀘스트 안내, 걸음 수·건강 앱 연결, 다시 부르기 알림, 동네 탐험(위치·지도·장소 쪽지), 실행 방법, 저장 |
-| [backend/DEPLOY.md](backend/DEPLOY.md) | **서버 인터넷 배포** (Railway) — 저장 디스크, 환경변수, 순서, 확인 방법. 휴대폰 설치 파일은 [mobile/README.md](mobile/README.md#설치-파일-만들기--나눠-주기-2026-10-20) |
+| [backend/DEPLOY.md](backend/DEPLOY.md) | **서버 배포** (Railway) — 환경변수, 순서, 확인, 백업 |
 | [frontend/README.md](frontend/README.md) | **웹** (React + Vite) — 소스 구조, 로그인 연결, 퀘스트 안내, 색상·공통 UI, 화면별 기능(미션·일기·출석·상점·이웃), 실행·검증, 개발용 미리보기 |
 
 ---
 
 ## 화면
 
-앱(Expo, iPhone 크기 390×844) · 시연 계정 기준 · 2026-10-16
+앱(Expo, iPhone 크기 390×844) · 시연 계정 기준
 
-| **홈 — 모찌와 내 방** | **연속 출석 (1~7일차)** | **오늘의 도전 — 데일리 미션** |
-|---|---|---|
-| <img src="docs/screenshots/01-home.png" width="240" alt="홈 — 모찌와 내 방"> | <img src="docs/screenshots/02-attendance.png" width="240" alt="연속 출석 (1~7일차)"> | <img src="docs/screenshots/03-quest.png" width="240" alt="오늘의 도전 — 데일리 미션"> |
-| **오늘의 활동 — 사진으로 완료** | **상점 — 친구 캐릭터** | **상점 — 집 꾸미기** |
-| <img src="docs/screenshots/04-quest-activities.png" width="240" alt="오늘의 활동 — 사진으로 완료"> | <img src="docs/screenshots/05-shop-friends.png" width="240" alt="상점 — 친구 캐릭터"> | <img src="docs/screenshots/06-shop-decor.png" width="240" alt="상점 — 집 꾸미기"> |
-| **이웃 — 비슷한 레벨 추천** | **친구 코드로 찾기·신청** | **이웃 방 놀러 가기·친밀도** |
-| <img src="docs/screenshots/07-neighbors.png" width="240" alt="이웃 — 비슷한 레벨 추천"> | <img src="docs/screenshots/08-friends.png" width="240" alt="친구 코드로 찾기·신청"> | <img src="docs/screenshots/09-visit-room.png" width="240" alt="이웃 방 놀러 가기·친밀도"> |
-| **방명록 신고 창** | **일기** | **설정 — 내 프로필** |
-| <img src="docs/screenshots/10-report.png" width="240" alt="방명록 신고 창"> | <img src="docs/screenshots/11-diary.png" width="240" alt="일기"> | <img src="docs/screenshots/12-settings.png" width="240" alt="설정 — 내 프로필"> |
+| **홈 — 모찌와 내 방** | **연속 출석 (1~7일차)** | **오늘의 도전 — 데일리 미션** | **오늘의 활동 — 사진으로 완료** |
+|---|---|---|---|
+| <img src="docs/screenshots/01-home.png" width="200" alt="홈 — 모찌와 내 방"> | <img src="docs/screenshots/02-attendance.png" width="200" alt="연속 출석 (1~7일차)"> | <img src="docs/screenshots/03-quest.png" width="200" alt="오늘의 도전 — 데일리 미션"> | <img src="docs/screenshots/04-quest-activities.png" width="200" alt="오늘의 활동 — 사진으로 완료"> |
+| **상점 — 친구 캐릭터** | **상점 — 집 꾸미기** | **이웃 — 비슷한 레벨 추천** | **친구 코드로 찾기·신청** |
+| <img src="docs/screenshots/05-shop-friends.png" width="200" alt="상점 — 친구 캐릭터"> | <img src="docs/screenshots/06-shop-decor.png" width="200" alt="상점 — 집 꾸미기"> | <img src="docs/screenshots/07-neighbors.png" width="200" alt="이웃 — 비슷한 레벨 추천"> | <img src="docs/screenshots/08-friends.png" width="200" alt="친구 코드로 찾기·신청"> |
+| **이웃 방 놀러 가기·친밀도** | **방명록 신고 창** | **일기** | **설정 — 내 프로필** |
+| <img src="docs/screenshots/09-visit-room.png" width="200" alt="이웃 방 놀러 가기·친밀도"> | <img src="docs/screenshots/10-report.png" width="200" alt="방명록 신고 창"> | <img src="docs/screenshots/11-diary.png" width="200" alt="일기"> | <img src="docs/screenshots/12-settings.png" width="200" alt="설정 — 내 프로필"> |
 
 ---
 
@@ -73,8 +76,6 @@
 
 **말투·원칙**: 숫자로 판단을 통보하지 않는다("위험도 82점" ✕ → "오늘 15분 걸어 볼까요?" ○), 부담은 5분 크기부터, 실패해도 벌점 없음, 사진 확인은 서버 안에서 조용히.
 
-**발표·홍보에서 피할 것**: 사회적 고립 예방·우울증 치료·위험도 진단 효과를 입증한 서비스처럼 말하지 않는다. 교수님 면담 의견을 "효과를 보증받음"으로 쓰지 않는다.
-
 ## 3. 퀘스트 설계
 
 검증된 심리학 개입 방법을 게임으로 옮긴다. 자세한 근거는 [QUEST_DESIGN.md](QUEST_DESIGN.md).
@@ -82,7 +83,7 @@
 | 원리 | 근거 | 앱에서 |
 |---|---|---|
 | **행동 활성화** | Ekers 2014 (무작위 대조 시험 26편, 효과 크기 0.74) | 작은 활동 고르기 → 하기 → **"해 보니 어땠어?" 기분 한 줄**(소감) |
-| **"평소 하던 것 + 조금 더"** (10/12 교수님 면담) | 새 활동이 많으면 부담 | 처음 설문으로 하던 일 기반 미션, 정적인 미션 줄이고 몸을 움직이는 집 미션 |
+| **"평소 하던 것 + 조금 더"** (교수님 면담) | 새 활동이 많으면 부담 | 처음 설문으로 하던 일 기반 미션, 정적인 미션 줄이고 몸을 움직이는 집 미션 |
 | **성취감 × 소속감** | 생산적이면서 누군가와 이어지는 활동이 기분을 가장 올림 | 가족 식사 차리기, 단골 가게 가기, 강아지 산책하며 인사 |
 | **사회 기술 팁 카드** | PEERS 등 "구체적인 방법을 가르치는" 방식 | 교류 미션마다 "이렇게 해 보세요" (질문 하나 하기, 휴대폰 내려놓기 …) |
 | **단계 사다리** | 일본 히키코모리 지원 단계 | 혼자 → 한 명 → 여럿 (1~3단계, 지역은 뺌). 3번 하면 다음 단계, 내려가지 않음 |
@@ -95,23 +96,9 @@
 
 **보상 원칙**: 밖에 나가는 미션이 가장 크고(20코인) 집 미션(12코인)·스스로 체크(5코인)는 작게, 실패·미완료는 벌점 없음. 상점 가격은 그대로 두고 "사는 데 며칠 걸리나"로 맞췄다 — 소품 1일 · 옷 2~3일 · 친구 2~6일 · 상점 전체 3~4달 ([backend/ECONOMY.md](backend/ECONOMY.md)).
 
-## 4. 작업 기록 요약
+## 4. 규모
 
-자세한 기록·체크리스트는 [PROGRESS.md](PROGRESS.md).
-
-| 기간 | 한 일 |
-|---|---|
-| 9/17~9/30 | 프로젝트 개요, SK 통신 유동인구·신한카드 데이터 분석 |
-| 10/1~10/6 | FastAPI 서버(미션·코인·레벨·일기·방문·방명록·상점), React 화면, 사진첩·촬영 일시 확인, 집 꾸미기 |
-| 10/7~10/13 | Expo(React Native) 앱으로 전환, 하루 6미션, 공통 디자인 시스템, 10/12 교수님 면담 반영 |
-| 10/14~10/16 | Supabase 로그인(Google·카카오), 웹·앱 ↔ 서버 연결, 사진 위치 정보 지우기, 모든 API 토큰 확인, 연속 출석표, 걸음 수(Apple 건강·Health Connect), 다시 부르기 알림, 친구 코드, 경제 밸런스, 앱 안 계정 삭제 |
-| 10/17~10/19 | 동네 탐험(위치·지도·장소 쪽지, 쓰기는 장소 근처에서만), 계정마다 기기 기록 따로, 일기 서버 저장 결과 알림, 레벨 곡선(100+35×(n−1)), 인사·운동 미션은 "했어요" 체크, 방명록은 매일 미션에서 빼고 방문만 |
-| 10/19~10/20 | 앱 화면 다듬기 — 방 그림 고정 + 오늘의 도전 시트, 방을 화면에 꽉, 러그·캐릭터 위치, 대표색 보라(#7A68C2), 상점 3칸 탭·2열·코인 아이콘 가격, 일기 화면, 내 프로필, 설정에서 효과음·알림 빼기(웹·앱), 오늘의 활동 색 동그라미 빼기. 버그: 벽지·바닥·소파·서랍장·커튼 장착 안 되던 것, 퀘스트 '어땠나요?'가 답한 뒤에도 남던 것 (#62~#77) |
-| 10/20 | **배포 준비** — 서버 Railway용 Dockerfile·시작 안전 확인(로그인 설정 없으면 안 켜짐), 앱은 EAS 프로젝트 `@y00n/capstone-mochi`, Android APK·iPhone(ad hoc) 설치 파일 순서 (#78~#79) |
-
-**숫자로 보면**: 서버 API 66개 · 미션 91개(데일리 5 + 바뀌는 86) · 일기 주제 50개 · 상점 친구 12 · 옷 9 · 집 꾸미기 46 · 테스트 백엔드 277개 · 앱·공통 134개
-
-**출시 전 남은 큰 일**: ① 서버 배포 — 준비 완료, Railway 가입·환경변수·도메인만 남음 ([DEPLOY.md](backend/DEPLOY.md)) ② Apple 로그인 ③ 운영자 신고 확인 화면 ④ 개인정보 처리방침·민감정보 동의 ⑤ 만 14세 미만 처리 ⑥ 실기기 빌드·테스트(걸음·알림·로그인 복귀) ⑦ 스토어 등록 자료
+서버 API 70개 · 미션 91개(데일리 5 + 바뀌는 86) · 일기 주제 50개 · 상점 친구 12 · 옷 9 · 집 꾸미기 46 · 테스트 백엔드 277개 · 앱·공통 134개
 
 ## 5. 폴더 및 실행
 
@@ -124,25 +111,12 @@
 | `data/` | 합성 생활 데이터, 분석 노트북 | — |
 
 - 개발할 때 `backend/.env`에 `CAPSTONE_AUTH=dev`를 넣으면 로그인 없이 시연 계정(demo-mochi)으로 볼 수 있다. 시연 데이터: `backend/scripts/seed_demo.py`
-- **`.env`·키는 절대 커밋하지 않는다** (`.githooks/pre-commit`이 막음). PR은 기능별로 나눈다.
-- 담당: PM·백엔드·데이터 `alicena2ppn2` · 프론트·데이터 `yeongju217`
 
-### 배포 (2026-10-20 결정)
-
-**서버 주소** https://mymochi-api-production.up.railway.app — 2026-10-20 배포 · API 문서 [/docs](https://mymochi-api-production.up.railway.app/docs) · 상태 [/health](https://mymochi-api-production.up.railway.app/health)
-
-| 무엇 | 어디에 | 어떻게 |
-|---|---|---|
-| **서버** | **Railway** (발표까지 무료 체험, 이후 Hobby 월 $5) · ✅ 배포됨 | GitHub 저장소 연결 → Root Directory `backend` → Volume `/data` → 환경변수(`SUPABASE_URL`·`SUPABASE_KEY`·`SUPABASE_SERVICE_ROLE_KEY`) → 도메인. 자세히 [backend/DEPLOY.md](backend/DEPLOY.md) |
-| **Android 설치 파일** | EAS `@y00n/capstone-mochi` | expo.dev preview 환경변수에 서버 주소 → `npx eas-cli build -p android --profile preview` → 링크·QR로 APK 설치 |
-| **iPhone 설치 파일** | EAS + Apple 개발자 계정 | `npx eas-cli device:create`로 iPhone 등록 → `npx eas-cli build -p ios --profile preview` → 등록한 iPhone에서 링크로 설치(개발자 모드 켜기). 많이 나눌 땐 TestFlight |
-
-- Render 무료는 저장 디스크가 없어 재시작마다 일기·사진·코인이 지워지므로 쓰지 않는다 (대안으로 `render.yaml`만 남겨 둠)
-- 비밀 값은 Railway·expo.dev 화면에만 넣는다. 순서: [mobile/README.md — 설치 파일 만들기](mobile/README.md#설치-파일-만들기--나눠-주기-2026-10-20)
+**배포**: 서버는 Railway(Docker, Volume `/data`에 DB·사진), 앱은 EAS Build로 Android APK·iPhone 설치 파일. 순서는 [backend/DEPLOY.md](backend/DEPLOY.md)·[mobile/README.md](mobile/README.md#설치-파일-만들기--나눠-주기-2026-10-20)
 
 ## 6. 기능별 구현
 
-기능마다 **무엇을 쓰고 어떻게 만들었는지**. 같은 내용이 [FEATURES.md](FEATURES.md)에도 있다 (고칠 때는 둘 다).
+기능마다 **무엇을 쓰고 어떻게 만들었는지** ([FEATURES.md](FEATURES.md)와 같은 내용).
 
 ### 6-0. 전체 구조
 
@@ -150,46 +124,25 @@
 
 **원칙**: 코인·XP·레벨·미션 완료·상점·출석은 **서버가 판정**하고 앱·웹은 보여 주기만 한다(조작 방지, 앱·웹 결과가 같게). 서버 주소가 없으면 앱·웹은 휴대폰 안 기록으로 동작한다.
 
-**배포했을 때 어디서 돌아가나** (2026-10-20 결정 · 코드 구조는 그대로, 실행 위치만 바뀜)
-
-```text
- ┌──── 휴대폰 ────────────────────────┐
- │ Android: APK 설치 파일              │   EAS Build (@y00n/capstone-mochi)가 만듦
- │ iPhone : 등록한 기기 · TestFlight    │   빌드 때 EXPO_PUBLIC_API_URL = Railway 주소
- └───────────────┬────────────────────┘
-                 │ ① 로그인 ──────────────▶ Supabase Auth (Google · 카카오)
-                 │ ② HTTPS · Bearer 토큰
-                 ▼
- ┌──── Railway ──────────────────────────────────────┐
- │ backend/Dockerfile → scripts/start.py → FastAPI     │  Supabase 설정 없으면 안 켜짐
- │ Volume /data : app.db (SQLite) · uploads/ (사진)     │  재배포해도 남음
- └────────────────────────────────────────────────────┘
-          │ 백업: GET /admin/backup (X-Admin-Token) → mymochi-날짜.db
-```
-
-- 서버 1대 + SQLite는 발표·초기 사용자 규모에 충분하다. 서버를 여러 대로 늘리거나 자동 백업·복구가 필요해지면 DB는 Postgres, 사진은 파일 저장소(Supabase Storage 등)로 옮긴다
-- 자세한 순서: [backend/DEPLOY.md](backend/DEPLOY.md) · 설치 파일: [mobile/README.md](mobile/README.md#설치-파일-만들기--나눠-주기-2026-10-20)
-
 ### 백엔드 구조
 
 <img src="docs/screenshots/backend-structure.png" alt="FastAPI 백엔드 서버 구조도: 앱·웹 → HTTPS·JSON → Railway의 FastAPI(라우터·비즈니스 로직·데이터 처리) → SQLite(Railway Volume, app.db), 로그인은 Supabase Auth(Google·카카오, JWT)" width="100%">
 
-- **서버**: FastAPI(Python) + uvicorn, Railway에서 실행 → https://mymochi-api-production.up.railway.app ([/docs](https://mymochi-api-production.up.railway.app/docs)에서 API 70개 전체)
+- **서버**: FastAPI(Python) + uvicorn, Railway에서 실행. API 70개 전체는 [/docs](https://mymochi-api-production.up.railway.app/docs)·[backend/README.md](backend/README.md#api)
 - **요청 흐름**: 앱·웹 → `access.guard`(토큰 없으면 401, 남의 `{user_id}`면 403) → `app/main.py` 라우트 → 규칙 모듈(`missions.py`·`shop.py`·`survey.py`…) → `app/db.py`
-- **저장**: SQLite `app.db`(표 28개)와 사진 `uploads/`를 Railway Volume `/data`에 둔다. 재배포해도 남는다
-- **로그인**: Supabase Auth는 로그인(Google·카카오)과 JWT 발급만 한다. 데이터는 Supabase DB가 아니라 서버 SQLite에 있다
-- 정확한 API 목록은 그림보다 [backend/README.md](backend/README.md#api)와 `/docs`가 기준이다
+- **저장**: SQLite `app.db`(표 28개)와 사진 `uploads/`를 Railway Volume `/data`에
+- **로그인**: Supabase Auth는 로그인(Google·카카오)과 JWT 발급만, 데이터는 서버 SQLite에
 
 ### 6-1. 사용한 도구
 
 | 영역 | 도구 | 쓰는 곳 |
 |---|---|---|
-| 서버 | **FastAPI**, Uvicorn, Pydantic | API 65개, 요청 검사 (`backend/app/main.py`) |
-| DB | **SQLite** (파이썬 내장 `sqlite3`) | 사용자·미션·코인 장부·사진·일기·방명록 등 27개 표 (`backend/app/db.py`, [DATABASE.md](backend/DATABASE.md)) |
+| 서버 | **FastAPI**, Uvicorn, Pydantic | API 70개, 요청 검사 (`backend/app/main.py`) |
+| DB | **SQLite** (파이썬 내장 `sqlite3`) | 사용자·미션·코인 장부·사진·일기·방명록 등 28개 표 (`backend/app/db.py`, [DATABASE.md](backend/DATABASE.md)) |
 | 이미지 | **Pillow**, pillow-heif | 촬영 일시(EXIF) 읽기, 위치 정보 지우기, HEIC → JPEG |
 | HTTP | httpx | Supabase 토큰 확인·계정 삭제 |
 | 데이터 분석 | pandas, numpy, openpyxl, Jupyter | 합성 데이터·SK 통신인구·신한카드 분석 (`data/`) |
-| 테스트 | **pytest** (백엔드 267개), Node `node --test` (공통 127개), ESLint | `backend/tests/`, `shared/**/*.test.js` |
+| 테스트 | **pytest** (백엔드 277개), Node `node --test` (공통 134개), ESLint | `backend/tests/`, `shared/**/*.test.js` |
 | 앱 | **Expo** (Router, Image Picker, Notifications, Secure Store, Web Browser, Clipboard, Build Properties), React Native, react-native-svg, AsyncStorage | `mobile/` |
 | 앱 건강 | @kingstinct/react-native-healthkit + react-native-nitro-modules, react-native-health-connect | 걸음 수 (`mobile/src/health/`) |
 | 웹 | React, Vite | `frontend/` |
@@ -256,7 +209,7 @@
 
 | 기능 | 어떻게 | 파일 |
 |---|---|---|
-| **코인·XP·레벨** | 코인·XP는 **장부(coin_ledger)에 한 줄씩** 쌓고 합계로 계산(되돌리기·중복 방지 쉬움). 레벨 n → n+1에 필요한 XP = 100 + 35×(n−1) (10/19, LV.25 누적 12,060) | `db.py`, `missions.level_from_xp` |
+| **코인·XP·레벨** | 코인·XP는 **장부(coin_ledger)에 한 줄씩** 쌓고 합계로 계산(되돌리기·중복 방지 쉬움). 레벨 n → n+1에 필요한 XP = 100 + 35×(n−1) (LV.25 누적 12,060) | `db.py`, `missions.level_from_xp` |
 | **경제 밸런스** | 상점 가격은 그대로, 미션 보상을 줄여 "사는 데 며칠 걸리나"로 맞춤 (Habitica 보상 공식·faucet/sink 설계 참고) — 밖 20·집 12·일기 15코인, 50 XP | [backend/ECONOMY.md](backend/ECONOMY.md) |
 | **연속 출석** | 1일차 → 7일차 사다리. 출석 기록에서 **어제까지 이어진 연속 일수**를 세어 오늘 칸을 정함, 하루 빠지면 1일차, 7일차 다음은 새 바퀴. 7일차 특별 선물(옷·소품)은 사람·바퀴마다 정해진 난수, 가진 것이면 30코인 | `backend/app/attendance.py`, `AttendanceCards.jsx`(앱), `Attendance.jsx`(웹) |
 | **상점** | 서버 카탈로그(친구 12 · 옷 9 · 집 꾸미기 46)와 앱 카탈로그가 같은지 테스트로 확인. 상품마다 상태(보유·살 수 있음·코인 부족·레벨 부족)를 서버가 계산 | `backend/app/data/shop.json`, `shared/data/*.js`, `backend/app/shop.py` |
@@ -303,6 +256,14 @@
 
 ---
 
-### 6-3. 아직 없는 것
+### 6-3. 출시 전 남은 일
 
-서버 배포(HTTPS·DB·사진 저장소), Apple 로그인, 운영자 신고 확인 화면, 같은 사진 재사용 막기(사진 지문), 오류 모니터링. 걸음 수·알림·실제 로그인은 코드는 있지만 **실기기 확인 전**. 목록과 순서는 [PROGRESS.md](PROGRESS.md) "출시 전 남은 일".
+1. Apple 로그인
+2. 운영자 신고 확인 화면
+3. 개인정보 처리방침·민감정보 동의
+4. 만 14세 미만 처리
+5. 실기기 빌드·테스트 (걸음 수·알림·로그인 후 앱 복귀 — 코드는 있음)
+6. 스토어 등록 자료
+7. 같은 사진 재사용 막기(사진 지문), 오류 모니터링
+
+체크리스트는 [PROGRESS.md](PROGRESS.md) "출시 전 남은 일".
