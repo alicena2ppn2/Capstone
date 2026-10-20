@@ -4,6 +4,11 @@
 
 캡스톤 프로젝트 · 서버 https://mymochi-api-production.up.railway.app ([API 문서](https://mymochi-api-production.up.railway.app/docs))
 
+| 이름 | 역할 |
+|---|---|
+| 윤경 (`alicena2ppn2`) | PM · 백엔드 · 데이터 |
+| 영주 (`yeongju217`) | 프론트엔드 · 데이터 |
+
 | 문서 | 내용 |
 |---|---|
 | [FEATURES.md](FEATURES.md) | **기능별로 무엇을 어떻게 만들었는지** (사용한 도구·라이브러리·파일) — 아래 [6절](#6-기능별-구현)에도 같은 내용 |
@@ -106,7 +111,6 @@
 | `data/` | 합성 생활 데이터, 분석 노트북 | — |
 
 - 개발할 때 `backend/.env`에 `CAPSTONE_AUTH=dev`를 넣으면 로그인 없이 시연 계정(demo-mochi)으로 볼 수 있다. 시연 데이터: `backend/scripts/seed_demo.py`
-- 담당: PM·백엔드·데이터 `alicena2ppn2` · 프론트·데이터 `yeongju217`
 
 **배포**: 서버는 Railway(Docker, Volume `/data`에 DB·사진), 앱은 EAS Build로 Android APK·iPhone 설치 파일. 순서는 [backend/DEPLOY.md](backend/DEPLOY.md)·[mobile/README.md](mobile/README.md#설치-파일-만들기--나눠-주기-2026-10-20)
 
