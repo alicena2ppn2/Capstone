@@ -159,3 +159,22 @@ def test_delete_account_also_deletes_login_account(client, monkeypatch):
     assert client.get(f"/users/{uid}").status_code == 404
     monkeypatch.setattr(auth.httpx, "delete", lambda *a, **k: FakeResponse(500, {}))
     assert auth.delete_login_account("sb-x") == "failed"
+
+
+def test_backup_admin_only(client, monkeypatch):
+    """배포 서버 DB 백업: 관리자 토큰이 있어야만, 받은 파일은 그대로 열리는 SQLite"""
+    done_mission(client)
+    assert client.get("/admin/backup").status_code == 404                    # 관리자 기능 꺼짐
+    monkeypatch.setenv("ADMIN_TOKEN", "secret")
+    assert client.get("/admin/backup", headers={"X-Admin-Token": "nope"}).status_code == 403
+    r = client.get("/admin/backup", headers={"X-Admin-Token": "secret"})
+    assert r.status_code == 200 and r.content.startswith(b"SQLite format 3")
+    assert "mymochi-" in r.headers["content-disposition"]
+    import sqlite3, tempfile, os
+    fd, path = tempfile.mkstemp(suffix=".db"); os.write(fd, r.content); os.close(fd)
+    try:
+        con = sqlite3.connect(path)
+        assert con.execute("SELECT COUNT(*) FROM coin_ledger").fetchone()[0] > 0
+        con.close()
+    finally:
+        os.remove(path)

@@ -109,7 +109,7 @@
 | 10/19~10/20 | 앱 화면 다듬기 — 방 그림 고정 + 오늘의 도전 시트, 방을 화면에 꽉, 러그·캐릭터 위치, 대표색 보라(#7A68C2), 상점 3칸 탭·2열·코인 아이콘 가격, 일기 화면, 내 프로필, 설정에서 효과음·알림 빼기(웹·앱), 오늘의 활동 색 동그라미 빼기. 버그: 벽지·바닥·소파·서랍장·커튼 장착 안 되던 것, 퀘스트 '어땠나요?'가 답한 뒤에도 남던 것 (#62~#77) |
 | 10/20 | **배포 준비** — 서버 Railway용 Dockerfile·시작 안전 확인(로그인 설정 없으면 안 켜짐), 앱은 EAS 프로젝트 `@y00n/capstone-mochi`, Android APK·iPhone(ad hoc) 설치 파일 순서 (#78~#79) |
 
-**숫자로 보면**: 서버 API 65개 · 미션 91개(데일리 5 + 바뀌는 86) · 일기 주제 50개 · 상점 친구 12 · 옷 9 · 집 꾸미기 46 · 테스트 백엔드 276개 · 앱·공통 134개
+**숫자로 보면**: 서버 API 66개 · 미션 91개(데일리 5 + 바뀌는 86) · 일기 주제 50개 · 상점 친구 12 · 옷 9 · 집 꾸미기 46 · 테스트 백엔드 277개 · 앱·공통 134개
 
 **출시 전 남은 큰 일**: ① 서버 배포 — 준비 완료, Railway 가입·환경변수·도메인만 남음 ([DEPLOY.md](backend/DEPLOY.md)) ② Apple 로그인 ③ 운영자 신고 확인 화면 ④ 개인정보 처리방침·민감정보 동의 ⑤ 만 14세 미만 처리 ⑥ 실기기 빌드·테스트(걸음·알림·로그인 복귀) ⑦ 스토어 등록 자료
 
@@ -147,6 +147,26 @@
 <img src="docs/screenshots/structure.png" alt="전체 구조: 앱(mobile)·웹(frontend)이 shared를 같이 쓰고, Supabase Auth로 로그인, HTTPS·Bearer 토큰으로 서버(backend: FastAPI·SQLite)와 통신" width="100%">
 
 **원칙**: 코인·XP·레벨·미션 완료·상점·출석은 **서버가 판정**하고 앱·웹은 보여 주기만 한다(조작 방지, 앱·웹 결과가 같게). 서버 주소가 없으면 앱·웹은 휴대폰 안 기록으로 동작한다.
+
+**배포했을 때 어디서 돌아가나** (2026-10-20 결정 · 코드 구조는 그대로, 실행 위치만 바뀜)
+
+```text
+ ┌──── 휴대폰 ────────────────────────┐
+ │ Android: APK 설치 파일              │   EAS Build (@y00n/capstone-mochi)가 만듦
+ │ iPhone : 등록한 기기 · TestFlight    │   빌드 때 EXPO_PUBLIC_API_URL = Railway 주소
+ └───────────────┬────────────────────┘
+                 │ ① 로그인 ──────────────▶ Supabase Auth (Google · 카카오)
+                 │ ② HTTPS · Bearer 토큰
+                 ▼
+ ┌──── Railway ──────────────────────────────────────┐
+ │ backend/Dockerfile → scripts/start.py → FastAPI     │  Supabase 설정 없으면 안 켜짐
+ │ Volume /data : app.db (SQLite) · uploads/ (사진)     │  재배포해도 남음
+ └────────────────────────────────────────────────────┘
+          │ 백업: GET /admin/backup (X-Admin-Token) → mymochi-날짜.db
+```
+
+- 서버 1대 + SQLite는 발표·초기 사용자 규모에 충분하다. 서버를 여러 대로 늘리거나 자동 백업·복구가 필요해지면 DB는 Postgres, 사진은 파일 저장소(Supabase Storage 등)로 옮긴다
+- 자세한 순서: [backend/DEPLOY.md](backend/DEPLOY.md) · 설치 파일: [mobile/README.md](mobile/README.md#설치-파일-만들기--나눠-주기-2026-10-20)
 
 ### 6-1. 사용한 도구
 
