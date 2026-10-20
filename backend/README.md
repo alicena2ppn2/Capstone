@@ -96,6 +96,7 @@ python scripts/seed_demo.py --date 2026-10-22 --days 21
 | `PUT /users/{id}/missions/{mission_id}/feedback` | 미션 소감 (기분 1~5·한 줄, 그날 완료한 미션만, 보상 없음, 위기 표현 확인) |
 | `GET /users/{id}/feedback?from=&to=` | 내 미션 소감 목록 |
 | `GET /admin/feedback/stats` | [관리자] 미션별 소감 수·평균 기분 (`X-Admin-Token`) |
+| `GET /admin/backup` | [관리자] DB 백업 파일(app.db 사본, 사진 제외) 내려받기 (`X-Admin-Token`, `ADMIN_TOKEN` 없으면 꺼짐) |
 | `POST /users/{id}/missions/{mission_id}/reroll` | 미션 새로고침: 매일 바뀌는 미션을 같은 칸·같은 단계의 다른 미션으로 (하루 3번, 완료한 미션·매일 고정은 안 됨) |
 | `GET /users/{id}/ladder` | 단계 사다리: 움직이기·이어지기 지금 단계와 다음 단계까지 (`stage`·`done`/`need`·`top`) |
 | `POST /users/{id}/missions/{mission_id}/complete` | 완료 판정 → 코인·경험치 지급 (중복 지급 없음), 레벨업 여부, 단계가 오른 갈래 `stage_up` |
