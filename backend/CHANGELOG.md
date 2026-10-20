@@ -5,6 +5,18 @@
 
 ---
 
+## 2026-10-20 — 서버 인터넷 배포 준비 (Railway·Render)
+
+**브랜치** `backend-deploy`
+
+- 휴대폰 설치 파일(APK·iPhone)이 어디서나 접속하려면 서버가 인터넷에 있어야 해서, 두 플랫폼에 같은 방법으로 올라가게 준비. 플랫폼은 아직 고르는 중
+- `Dockerfile`(python 3.12-slim) + `.dockerignore`(.env·app.db·uploads·.venv·tests 제외)
+- `scripts/start.py`: DB·사진을 `DATA_DIR`(기본 `/data`, 지워지지 않는 디스크)에 두고 플랫폼 `PORT`로 uvicorn. **Supabase 값이 없거나 `CAPSTONE_AUTH`가 required가 아니면 켜지지 않음** — 설정을 빠뜨리면 `access.mode()`가 off가 되어 로그인 없이 남의 기록이 열리는 것을 막음
+- `railway.json`(상태 확인 /health), 저장소 맨 위 `render.yaml`(Starter + 1GB 디스크, 비밀 값은 화면에서)
+- `DEPLOY.md`: 플랫폼 비교, 환경변수 표, 순서, 확인 방법
+- 테스트 `test_start.py` 2개. 로컬에서 임시 폴더를 디스크 삼아 켜 봄: `/health` ok, 토큰 없는 사용자 API 401, DB·uploads 생성
+- 남은 것: 플랫폼 고르기·가입·환경변수 넣기(사용자), 서버 주소를 앱 빌드 환경변수에. Docker가 이 컴퓨터에 없어 이미지 빌드는 플랫폼에서 처음 확인
+
 ## 2026-10-19 — 미션 이름에서 '오늘' 빼기
 
 **브랜치** `app-home-sheet-shop-grid` (#66, 앱 화면 다듬기와 같이)

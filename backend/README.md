@@ -11,6 +11,8 @@
 
 ## 실행
 
+> 인터넷에 올리기(Railway·Render, 휴대폰 설치 파일용): [DEPLOY.md](DEPLOY.md)
+
 ```bash
 cd backend
 python -m venv .venv
