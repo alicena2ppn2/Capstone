@@ -5,6 +5,13 @@
 
 ---
 
+## 2026-10-20 — Railway 빌드 실패(Railpack) 고침: 맨 위 Dockerfile
+
+**브랜치** `railway-root-dockerfile`
+
+- 첫 배포가 `Railpack failed to prepare the build`로 9초 만에 실패. Root Directory를 못 정해(화면에 Source 메뉴가 안 보임) Railway가 저장소 맨 위를 자동 빌드하려 한 것
+- 저장소 맨 위에 `Dockerfile`(backend/만 복사)·`.dockerignore`(허용 목록: requirements·app·scripts만, .env·*.db 제외)·`railway.json`(Dockerfile 빌더, /health) → 설정 없이 빌드. `backend/Dockerfile`과 내용 같음(고칠 때 둘 다)
+
 ## 2026-10-20 — 배포 플랫폼 Railway로 결정, README 정리
 
 **브랜치** `readme-railway-deploy`
