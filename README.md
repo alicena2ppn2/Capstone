@@ -170,6 +170,16 @@
 - 서버 1대 + SQLite는 발표·초기 사용자 규모에 충분하다. 서버를 여러 대로 늘리거나 자동 백업·복구가 필요해지면 DB는 Postgres, 사진은 파일 저장소(Supabase Storage 등)로 옮긴다
 - 자세한 순서: [backend/DEPLOY.md](backend/DEPLOY.md) · 설치 파일: [mobile/README.md](mobile/README.md#설치-파일-만들기--나눠-주기-2026-10-20)
 
+### 백엔드 구조
+
+<img src="docs/screenshots/backend-structure.png" alt="FastAPI 백엔드 서버 구조도: 앱·웹 → HTTPS·JSON → Railway의 FastAPI(라우터·비즈니스 로직·데이터 처리) → SQLite(Railway Volume, app.db), 로그인은 Supabase Auth(Google·카카오, JWT)" width="100%">
+
+- **서버**: FastAPI(Python) + uvicorn, Railway에서 실행 → https://mymochi-api-production.up.railway.app ([/docs](https://mymochi-api-production.up.railway.app/docs)에서 API 70개 전체)
+- **요청 흐름**: 앱·웹 → `access.guard`(토큰 없으면 401, 남의 `{user_id}`면 403) → `app/main.py` 라우트 → 규칙 모듈(`missions.py`·`shop.py`·`survey.py`…) → `app/db.py`
+- **저장**: SQLite `app.db`(표 28개)와 사진 `uploads/`를 Railway Volume `/data`에 둔다. 재배포해도 남는다
+- **로그인**: Supabase Auth는 로그인(Google·카카오)과 JWT 발급만 한다. 데이터는 Supabase DB가 아니라 서버 SQLite에 있다
+- 정확한 API 목록은 그림보다 [backend/README.md](backend/README.md#api)와 `/docs`가 기준이다
+
 ### 6-1. 사용한 도구
 
 | 영역 | 도구 | 쓰는 곳 |
