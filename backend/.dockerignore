@@ -1,0 +1,11 @@
+# 이미지에 넣지 않는 것: 비밀 값·로컬 DB·사진·가상환경·테스트
+.env
+.env.*
+app.db
+app.db-*
+uploads/
+.venv/
+__pycache__/
+.pytest_cache/
+tests/
+*.md
