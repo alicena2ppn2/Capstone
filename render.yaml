@@ -1,0 +1,23 @@
+# Render 블루프린트: 저장소 연결 → New → Blueprint 로 이 파일을 고르면 서비스·디스크가 만들어진다.
+# 비밀 값(sync: false)은 Render 화면에서 직접 넣는다 — git에 올리지 않는다.
+services:
+  - type: web
+    name: mymochi-api
+    runtime: docker
+    rootDir: backend
+    plan: starter            # 디스크는 유료 요금제부터
+    region: singapore
+    healthCheckPath: /health
+    disk:
+      name: mochi-data
+      mountPath: /data
+      sizeGB: 1
+    envVars:
+      - key: SUPABASE_URL
+        sync: false
+      - key: SUPABASE_KEY
+        sync: false
+      - key: SUPABASE_SERVICE_ROLE_KEY
+        sync: false
+      - key: ADMIN_TOKEN
+        sync: false
