@@ -129,9 +129,11 @@
 
 ### 배포 (2026-10-20 결정)
 
+**서버 주소** https://mymochi-api-production.up.railway.app — 2026-10-20 배포 · API 문서 [/docs](https://mymochi-api-production.up.railway.app/docs) · 상태 [/health](https://mymochi-api-production.up.railway.app/health)
+
 | 무엇 | 어디에 | 어떻게 |
 |---|---|---|
-| **서버** | **Railway** (발표까지 무료 체험, 이후 Hobby 월 $5) | GitHub 저장소 연결 → Root Directory `backend` → Volume `/data` → 환경변수(`SUPABASE_URL`·`SUPABASE_KEY`·`SUPABASE_SERVICE_ROLE_KEY`) → 도메인. 자세히 [backend/DEPLOY.md](backend/DEPLOY.md) |
+| **서버** | **Railway** (발표까지 무료 체험, 이후 Hobby 월 $5) · ✅ 배포됨 | GitHub 저장소 연결 → Root Directory `backend` → Volume `/data` → 환경변수(`SUPABASE_URL`·`SUPABASE_KEY`·`SUPABASE_SERVICE_ROLE_KEY`) → 도메인. 자세히 [backend/DEPLOY.md](backend/DEPLOY.md) |
 | **Android 설치 파일** | EAS `@y00n/capstone-mochi` | expo.dev preview 환경변수에 서버 주소 → `npx eas-cli build -p android --profile preview` → 링크·QR로 APK 설치 |
 | **iPhone 설치 파일** | EAS + Apple 개발자 계정 | `npx eas-cli device:create`로 iPhone 등록 → `npx eas-cli build -p ios --profile preview` → 등록한 iPhone에서 링크로 설치(개발자 모드 켜기). 많이 나눌 땐 TestFlight |
 
@@ -144,7 +146,7 @@
 
 ### 6-0. 전체 구조
 
-<img src="docs/screenshots/structure.png" alt="전체 구조: 앱(mobile)·웹(frontend)이 shared를 같이 쓰고, Supabase Auth로 로그인, HTTPS·Bearer 토큰으로 서버(backend: FastAPI·SQLite)와 통신" width="100%">
+<img src="docs/screenshots/structure.png" alt="전체 구조: 앱(mobile)·웹(frontend)이 shared를 같이 쓰고, Supabase Auth로 로그인, HTTPS·Bearer 토큰으로 Railway 서버(backend: Dockerfile → start.py → FastAPI, Volume /data에 SQLite·사진, /admin/backup 백업)와 통신" width="100%">
 
 **원칙**: 코인·XP·레벨·미션 완료·상점·출석은 **서버가 판정**하고 앱·웹은 보여 주기만 한다(조작 방지, 앱·웹 결과가 같게). 서버 주소가 없으면 앱·웹은 휴대폰 안 기록으로 동작한다.
 
@@ -167,6 +169,16 @@
 
 - 서버 1대 + SQLite는 발표·초기 사용자 규모에 충분하다. 서버를 여러 대로 늘리거나 자동 백업·복구가 필요해지면 DB는 Postgres, 사진은 파일 저장소(Supabase Storage 등)로 옮긴다
 - 자세한 순서: [backend/DEPLOY.md](backend/DEPLOY.md) · 설치 파일: [mobile/README.md](mobile/README.md#설치-파일-만들기--나눠-주기-2026-10-20)
+
+### 백엔드 구조
+
+<img src="docs/screenshots/backend-structure.png" alt="FastAPI 백엔드 서버 구조도: 앱·웹 → HTTPS·JSON → Railway의 FastAPI(라우터·비즈니스 로직·데이터 처리) → SQLite(Railway Volume, app.db), 로그인은 Supabase Auth(Google·카카오, JWT)" width="100%">
+
+- **서버**: FastAPI(Python) + uvicorn, Railway에서 실행 → https://mymochi-api-production.up.railway.app ([/docs](https://mymochi-api-production.up.railway.app/docs)에서 API 70개 전체)
+- **요청 흐름**: 앱·웹 → `access.guard`(토큰 없으면 401, 남의 `{user_id}`면 403) → `app/main.py` 라우트 → 규칙 모듈(`missions.py`·`shop.py`·`survey.py`…) → `app/db.py`
+- **저장**: SQLite `app.db`(표 28개)와 사진 `uploads/`를 Railway Volume `/data`에 둔다. 재배포해도 남는다
+- **로그인**: Supabase Auth는 로그인(Google·카카오)과 JWT 발급만 한다. 데이터는 Supabase DB가 아니라 서버 SQLite에 있다
+- 정확한 API 목록은 그림보다 [backend/README.md](backend/README.md#api)와 `/docs`가 기준이다
 
 ### 6-1. 사용한 도구
 

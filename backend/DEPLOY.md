@@ -37,6 +37,8 @@ Render는 무료 요금제에 저장 디스크가 없어(재시작·재배포마
 4. **Variables**에 위 환경변수 넣기
 5. **Settings → Networking → Generate Domain** → `https://…up.railway.app` 주소가 생긴다
 
+지금 서버: **https://mymochi-api-production.up.railway.app** (2026-10-20 배포, 아래 확인 통과)
+
 ## Render (대안, 지금은 안 씀)
 
 1. render.com → **New → Blueprint** → 저장소 `alicena2ppn2/Capstone` (맨 위 `render.yaml`을 읽어 서비스와 1GB 디스크를 만든다)
@@ -49,6 +51,9 @@ Render는 무료 요금제에 저장 디스크가 없어(재시작·재배포마
 curl https://<서버 주소>/health                      # {"ok":true}
 curl https://<서버 주소>/users/아무거나/shop          # 401 로그인이 필요해요 (← 이게 정상)
 ```
+
+- 맨 앞 주소(`/`)는 `{"detail":"Not Found"}`가 정상이다 (그 주소에 API가 없음). 화면은 앱에 있고, 서버는 `/docs`에서 API 목록·실행만 볼 수 있다
+- `/docs`의 Try it out은 배포된 DB에 실제로 요청한다 (POST·DELETE 조심)
 
 시연용 데이터가 필요하면 플랫폼의 셸(Railway: `railway ssh`, Render: Shell 탭)에서 `python scripts/seed_demo.py`.
 다만 시연 계정은 로그인 없이 쓸 수 없으니(`CAPSTONE_AUTH=required`), 발표 때는 실제 로그인 계정으로 보여 준다.
