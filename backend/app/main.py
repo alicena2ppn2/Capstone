@@ -10,7 +10,9 @@
 from __future__ import annotations
 
 import os
+import sqlite3
 import statistics
+import tempfile
 import uuid
 from contextlib import asynccontextmanager
 from datetime import date as Date, datetime, timedelta, timezone
@@ -19,6 +21,7 @@ from pathlib import Path
 
 from fastapi import Depends, FastAPI, File, Form, Header, HTTPException, Query, Request, Response, UploadFile
 from fastapi.responses import FileResponse, PlainTextResponse
+from starlette.background import BackgroundTask
 from fastapi.middleware.cors import CORSMiddleware
 from pydantic import BaseModel, Field
 
@@ -685,6 +688,26 @@ def admin_feedback_stats(x_admin_token: str | None = Header(None), conn=Depends(
     return {"missions": [{**r, "title": ms.CATALOG[r["mission_id"]].title if r["mission_id"] in ms.CATALOG else None}
                          for r in db.feedback_stats(conn)]}
 
+
+
+@app.get("/admin/backup", summary="[관리자] DB 백업 파일 내려받기 (app.db 사본, 사진 제외) — X-Admin-Token 필요")
+def admin_backup(x_admin_token: str | None = Header(None), conn=Depends(get_conn)):
+    """배포 서버(Railway Volume)의 DB를 통째로 받아 두는 용도. 쓰는 중에도 일관된 사본을 만든다 (sqlite3 backup)."""
+    token = os.environ.get("ADMIN_TOKEN")
+    if not token:
+        raise HTTPException(404, "Not Found")
+    if x_admin_token != token:
+        raise HTTPException(403, "권한이 없습니다.")
+    fd, tmp = tempfile.mkstemp(suffix=".db")
+    os.close(fd)
+    out = sqlite3.connect(tmp)
+    try:
+        conn.backup(out)
+    finally:
+        out.close()
+    stamp = datetime.now(KST).strftime("%Y%m%d-%H%M")
+    return FileResponse(tmp, media_type="application/vnd.sqlite3", filename=f"mymochi-{stamp}.db",
+                        background=BackgroundTask(os.remove, tmp))
 
 # --- 주간 미션 ---------------------------------------------------------------------
 
