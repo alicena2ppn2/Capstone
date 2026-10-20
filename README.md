@@ -24,15 +24,13 @@
 
 앱(Expo, iPhone 크기 390×844) · 시연 계정 기준
 
-| **홈 — 모찌와 내 방** | **연속 출석 (1~7일차)** | **오늘의 도전 — 데일리 미션** |
-|---|---|---|
-| <img src="docs/screenshots/01-home.png" width="240" alt="홈 — 모찌와 내 방"> | <img src="docs/screenshots/02-attendance.png" width="240" alt="연속 출석 (1~7일차)"> | <img src="docs/screenshots/03-quest.png" width="240" alt="오늘의 도전 — 데일리 미션"> |
-| **오늘의 활동 — 사진으로 완료** | **상점 — 친구 캐릭터** | **상점 — 집 꾸미기** |
-| <img src="docs/screenshots/04-quest-activities.png" width="240" alt="오늘의 활동 — 사진으로 완료"> | <img src="docs/screenshots/05-shop-friends.png" width="240" alt="상점 — 친구 캐릭터"> | <img src="docs/screenshots/06-shop-decor.png" width="240" alt="상점 — 집 꾸미기"> |
-| **이웃 — 비슷한 레벨 추천** | **친구 코드로 찾기·신청** | **이웃 방 놀러 가기·친밀도** |
-| <img src="docs/screenshots/07-neighbors.png" width="240" alt="이웃 — 비슷한 레벨 추천"> | <img src="docs/screenshots/08-friends.png" width="240" alt="친구 코드로 찾기·신청"> | <img src="docs/screenshots/09-visit-room.png" width="240" alt="이웃 방 놀러 가기·친밀도"> |
-| **방명록 신고 창** | **일기** | **설정 — 내 프로필** |
-| <img src="docs/screenshots/10-report.png" width="240" alt="방명록 신고 창"> | <img src="docs/screenshots/11-diary.png" width="240" alt="일기"> | <img src="docs/screenshots/12-settings.png" width="240" alt="설정 — 내 프로필"> |
+| **홈 — 모찌와 내 방** | **연속 출석 (1~7일차)** | **오늘의 도전 — 데일리 미션** | **오늘의 활동 — 사진으로 완료** |
+|---|---|---|---|
+| <img src="docs/screenshots/01-home.png" width="200" alt="홈 — 모찌와 내 방"> | <img src="docs/screenshots/02-attendance.png" width="200" alt="연속 출석 (1~7일차)"> | <img src="docs/screenshots/03-quest.png" width="200" alt="오늘의 도전 — 데일리 미션"> | <img src="docs/screenshots/04-quest-activities.png" width="200" alt="오늘의 활동 — 사진으로 완료"> |
+| **상점 — 친구 캐릭터** | **상점 — 집 꾸미기** | **이웃 — 비슷한 레벨 추천** | **친구 코드로 찾기·신청** |
+| <img src="docs/screenshots/05-shop-friends.png" width="200" alt="상점 — 친구 캐릭터"> | <img src="docs/screenshots/06-shop-decor.png" width="200" alt="상점 — 집 꾸미기"> | <img src="docs/screenshots/07-neighbors.png" width="200" alt="이웃 — 비슷한 레벨 추천"> | <img src="docs/screenshots/08-friends.png" width="200" alt="친구 코드로 찾기·신청"> |
+| **이웃 방 놀러 가기·친밀도** | **방명록 신고 창** | **일기** | **설정 — 내 프로필** |
+| <img src="docs/screenshots/09-visit-room.png" width="200" alt="이웃 방 놀러 가기·친밀도"> | <img src="docs/screenshots/10-report.png" width="200" alt="방명록 신고 창"> | <img src="docs/screenshots/11-diary.png" width="200" alt="일기"> | <img src="docs/screenshots/12-settings.png" width="200" alt="설정 — 내 프로필"> |
 
 ---
 
