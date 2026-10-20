@@ -124,6 +124,22 @@ npm.cmd run export
 
 `export`는 iOS/Android/웹 JS·Hermes 번들 생성이며, 서명된 IPA/APK 빌드나 실기기 테스트는 아니다. TypeScript 검사는 기존 JavaScript를 허용하는 `allowJs/checkJs:false` 구성이다. 엄격한 TypeScript 전환까지 완료한 것은 아니다.
 
+## 설치 파일 만들기 · 나눠 주기 (2026-10-20)
+
+EAS 프로젝트 `@y00n/capstone-mochi`(app.json `owner`·`projectId`). `preview` 빌드는 EAS의 **preview 환경변수**를 쓴다.
+
+1. 서버를 인터넷에 올리고 주소를 받는다 → [backend/DEPLOY.md](../backend/DEPLOY.md)
+2. expo.dev → 프로젝트 → **Environment variables → preview**에 넣는다 (직접 입력, git에 올리지 않음)
+   - `EXPO_PUBLIC_API_URL` = 서버 주소 (`https://…`)
+   - `EXPO_PUBLIC_SUPABASE_URL`, `EXPO_PUBLIC_SUPABASE_PUBLISHABLE_KEY`
+   - `GOOGLE_MAPS_ANDROID_KEY` (Android 지도)
+3. Supabase → Authentication → URL Configuration → Redirect URLs에 `capstone-mochi://**` 가 있는지 확인
+4. 빌드 (명령은 사용자가 직접 — Apple·Google 로그인 창이 뜬다)
+   - **Android APK**: `npx eas-cli build -p android --profile preview` → 끝나면 나오는 링크·QR로 아무 Android 폰에서 설치 (출처를 알 수 없는 앱 허용)
+   - **iPhone**: 먼저 설치할 iPhone을 등록 `npx eas-cli device:create` (나온 링크를 iPhone Safari로 열어 프로필 설치) → `npx eas-cli build -p ios --profile preview` (Apple 개발자 계정 로그인) → 링크로 **등록한 iPhone에서만** 설치. iPhone을 새로 추가하면 다시 빌드
+   - iOS 16 이상에서는 설정 → 개인정보 보호 및 보안 → **개발자 모드**를 켜야 열린다
+5. 많은 사람에게 나눌 때는 iPhone은 TestFlight(`--profile production` 후 `eas submit -p ios`)가 편하다 (기기 등록 없이 최대 1만 명)
+
 ## 현재 기능 (2026-10-08)
 
 홈 방·친구/의상·가구·서울 시각·이름 밑 LV/XP·상단 코인/출석 유지. 둥근 도전 요약은 진행 중/시작 전/완료 순서와 해당 미션 이동, 상품 목표 선택·홈 목표 요약은 제거하고 구매·장착은 유지한다. 공통 ScreenHeader와 44px 버튼, 보라 주요 행동·선택, 살구 보상 포인트·밝은 크림 카드. 에이투지체 실제 400/500/600 번들·OS 폴백. 모든 목록은 부모 ScrollView 하나, KeyboardAvoidingView를 유지한다.
