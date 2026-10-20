@@ -128,7 +128,7 @@ npm.cmd run export
 
 EAS 프로젝트 `@y00n/capstone-mochi`(app.json `owner`·`projectId`). `preview` 빌드는 EAS의 **preview 환경변수**를 쓴다.
 
-1. 서버를 인터넷에 올리고 주소를 받는다 → [backend/DEPLOY.md](../backend/DEPLOY.md)
+1. 서버를 **Railway**에 올리고 주소(`https://…up.railway.app`)를 받는다 → [backend/DEPLOY.md](../backend/DEPLOY.md)
 2. expo.dev → 프로젝트 → **Environment variables → preview**에 넣는다 (직접 입력, git에 올리지 않음)
    - `EXPO_PUBLIC_API_URL` = 서버 주소 (`https://…`)
    - `EXPO_PUBLIC_SUPABASE_URL`, `EXPO_PUBLIC_SUPABASE_PUBLISHABLE_KEY`
