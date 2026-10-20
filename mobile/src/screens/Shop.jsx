@@ -8,6 +8,7 @@ import { CHARACTERS, buyDecor, equipDecor } from '../../../shared/features/game.
 import { CLOTHES } from '../../../shared/data/clothes.js';
 import { DECOR, categoryOf } from '../../../shared/data/decor.js';
 import CharacterShop from './shop/CharacterShop';
+import Price from '../components/Price';
 
 const TABS = [['character', '친구들'], ['clothes', '옷 꾸미기'], ['decor', '집 꾸미기']];
 const DECOR_TABS = [['all', '전체'], ['wallpaper', '벽지'], ['floor', '바닥'], ['sofa', '소파'], ['drawer', '서랍장'], ['curtain', '커튼'], ['lamp', '전등'], ['carpet', '카페트'], ['props', '소품'], ['scenery', '창밖 풍경']];
@@ -36,7 +37,7 @@ export default function Shop({ onBack, game, level, ownedClothes, outfit, update
     const equipped = tab === 'clothes' ? outfit === item.id : game.decor?.[item.slot] === item.id;
     const locked = level < (item.level ?? 1);
     const secret = item.method === 'quest' && !owned;
-    return <Card key={item.id} style={shop.item}><View style={styles.center}>{tab === 'character' ? secret ? <Label style={styles.heading}>?</Label> : <Character variant={item.id} size={130} label={item.name} /> : tab === 'clothes' ? <Character variant={game.character} size={92} outfit={item} label={item.name} /> : <View style={{ width: '100%', aspectRatio: 368 / 500, borderRadius: 12, overflow: 'hidden' }}><RoomBackdrop homeScene decor={{ ...game.decor, [item.slot]: item.id }} positions={game.decorPositions} /></View>}</View><Label style={[styles.cardTitle, { textAlign: 'center', fontSize: 15 }]}>{secret ? '비밀 친구' : item.name}</Label><Label style={[styles.small, { fontFamily: 'A2z-500', fontSize: 13, lineHeight: 20, color: colors.muted, textAlign: 'center' }]}>{secret ? '누적 행동 도전 10회' : `${item.price} 코인 · LV.${item.level ?? 1}${locked ? ' · 잠금' : ''}`}</Label>
+    return <Card key={item.id} style={shop.item}><View style={styles.center}>{tab === 'character' ? secret ? <Label style={styles.heading}>?</Label> : <Character variant={item.id} size={130} label={item.name} /> : tab === 'clothes' ? <Character variant={game.character} size={92} outfit={item} label={item.name} /> : <View style={{ width: '100%', aspectRatio: 368 / 500, borderRadius: 12, overflow: 'hidden' }}><RoomBackdrop homeScene decor={{ ...game.decor, [item.slot]: item.id }} positions={game.decorPositions} /></View>}</View><Label style={[styles.cardTitle, { textAlign: 'center', fontSize: 15 }]}>{secret ? '비밀 친구' : item.name}</Label>{secret ? <Label style={[styles.small, shop.meta]}>누적 행동 도전 10회</Label> : <View style={shop.metaRow}><Price value={item.price} size={14} textStyle={shop.meta} /><Label style={[styles.small, shop.meta]}>· LV.{item.level ?? 1}{locked ? ' · 잠금' : ''}</Label></View>}
 
       {equipped && <Label style={[styles.state, styles.done, { alignSelf: 'center' }]}>장착 중 ✓</Label>}
       <Button primary={!equipped} disabled={tab === 'character' && equipped && item.id === 'potato' || !owned && (locked || game.coins < item.price)} onPress={() => {
@@ -47,6 +48,7 @@ export default function Shop({ onBack, game, level, ownedClothes, outfit, update
 }
 
 const shop = StyleSheet.create({
+  meta: { fontFamily: 'A2z-500', fontSize: 13, lineHeight: 20, color: colors.muted, textAlign: 'center' }, metaRow: { flexDirection: 'row', alignItems: 'center', justifyContent: 'center', gap: 4 },
   tabs: { flexDirection: 'row', padding: 4, gap: 4, borderRadius: 16, backgroundColor: colors.primarySoft },
   tab: { flex: 1, minHeight: 44, alignItems: 'center', justifyContent: 'center', borderRadius: 12 },
   tabOn: { backgroundColor: colors.surface, shadowColor: '#000', shadowOpacity: .08, shadowRadius: 4, shadowOffset: { width: 0, height: 1 }, elevation: 2 },
