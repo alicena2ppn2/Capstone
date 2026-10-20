@@ -10,6 +10,7 @@
 **브랜치** `server-link-backend`
 
 - 루트 README 맨 앞의 서버 주소를 빼고 '백엔드 구조' 절 첫 줄로. backend/README 맨 위에도 주소·/docs
+- 하루 흐름에 동네 탐험(GPS → 지도 → 장소 근처에서 쪽지) 단계, 기능별 구현에 '동네 탐험 (GPS)' 절(장소 목록·거리, 지도, 장소 쪽지)과 사용한 도구에 expo-location·react-native-maps (README·FEATURES)
 
 ## 2026-10-20 — README·FEATURES 핵심만 남기기
 
