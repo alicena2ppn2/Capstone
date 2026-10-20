@@ -153,7 +153,7 @@ function Game() {
         return recordRoutine(claimAttendance({ ...ensureAttendanceWeek(value, date), attendanceClothes: ownedClothes }, date), 'day-attendance', date);
       }); const receipt = result.ok ? newAttendanceReward(previous, gameRef.current, date) : null; if (receipt) setAttendanceAward(receipt); return { ...result, receipt }; }} />}
       {screen !== 'home' && <div className="growth-bar"><strong>LV.{level}</strong><progress value={levelInfo.xp_in_level} max={levelInfo.xp_for_level} aria-label="다음 레벨까지 경험치" /><span>{levelInfo.xp_in_level} / {levelInfo.xp_for_level} XP</span><button type="button" className="pb" onClick={() => setScreen('quest')}>퀘스트 →</button></div>}
-      {screen === 'home' && <div className="home-wallet" aria-label={`보유 코인 ${coins}`}><UiIcon kind="coin" size={18} /><strong>{coins.toLocaleString('ko-KR')}</strong><span>코인</span></div>}
+      {screen === 'home' && <div className="home-wallet" aria-label={`보유 코인 ${coins}`}><UiIcon kind="coin" size={18} /><strong>{coins.toLocaleString('ko-KR')}</strong></div>}
       </div>
       <div className={`phone-content${screen === 'quest' ? ' is-quest' : ''}`}>
       <div className="phone-page" hidden={screen !== 'home'}><Home game={game} day={day} active={screen === 'home'} reactionId={potatoReaction} onReactionConsumed={consumePotatoReaction} petName={petName} petColor={petColor} onQuest={openQuest} onDiary={() => openDiary()} onGuestbook={() => setScreen('guest')} onVisit={() => setScreen('visit')} onSettings={() => setScreen('settings')} onShop={() => setScreen('shop')} coins={coins} outfit={outfit} decor={shownDecor} levelInfo={levelInfo}
