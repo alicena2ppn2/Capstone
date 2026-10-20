@@ -79,6 +79,14 @@ test('소품 구매는 레벨/코인을 확인하고 배치는 구매와 별개�
   assert.equal(equipDecor(equipped, 'doll', 'lamp-moon'), equipped);
   assert.equal(equipDecor(equipped, 'scenery', 'view-newyork'), equipped);
   assert.equal(equipDecor(equipped, 'lamp', null).decor.lamp, null);
+  // 벽지를 놓은 뒤 러그를 놓아도 벽지는 그대로 (10/19 벽지 장착 안 되던 버그)
+  const walled = equipDecor(buyDecor(buyDecor({ ...purchased, coins: 1000 }, 'wall-cream-dot'), 'carpet-peach'), 'wallpaper', 'wall-cream-dot');
+  assert.equal(walled.decor.wallpaper, 'wall-cream-dot');
+  const rugged = equipDecor(walled, 'carpet', 'carpet-peach');
+  assert.equal(rugged.decor.wallpaper, 'wall-cream-dot');
+  assert.equal(rugged.decor.carpet, 'carpet-peach');
+  assert.equal(equipDecor(rugged, 'wallpaper', 'carpet-peach'), rugged);   // 다른 자리 소품은 안 됨
+  assert.equal(equipDecor(rugged, 'roof', null), rugged);                  // 없는 자리
 });
 test('출석에서 레벨과 무관하게 소품을 획득하고 중복은 코인으로 바꾼다', () => {
   const state = ensureAttendanceWeek(initialGame(), '2026-10-05', () => .15);
