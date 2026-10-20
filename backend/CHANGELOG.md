@@ -5,6 +5,12 @@
 
 ---
 
+## 2026-10-20 — 서버 주소를 백엔드 쪽으로
+
+**브랜치** `server-link-backend`
+
+- 루트 README 맨 앞의 서버 주소를 빼고 '백엔드 구조' 절 첫 줄로. backend/README 맨 위에도 주소·/docs
+
 ## 2026-10-20 — README·FEATURES 핵심만 남기기
 
 **브랜치** `readme-core-only`
