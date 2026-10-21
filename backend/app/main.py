@@ -194,7 +194,6 @@ def usual_steps(conn, user_id: str, today: Date) -> float | None:
     return float(statistics.median(values)) if values else None
 
 
-DIARY_DELETED_MESSAGE = "지운 날의 일기는 다시 쓸 수 없어요."
 WELCOME_BACK_DAYS = 3     # 이만큼 이상 안 들어왔다가 오면 "다시 와 줘서 반가워"
 RESET_AFTER_DAYS = 14     # 이만큼 이상 안 들어왔다가 오면 지금 레벨의 처음부터 (레벨은 내려가지 않음)
 
@@ -631,8 +630,6 @@ def complete_mission(user_id: str, mission_id: str, body: CompleteIn, date: str 
             raise HTTPException(422, "아직 다른 친구 방에 방명록을 남기지 않았어요.")
     if mission["kind"] == "diary":
         # 일기 미션은 기록 탭 일기로 저장한다. 미션 화면에서 썼으면 오늘의 추천 주제로 쓴 것으로 본다.
-        if db.diary_deleted(conn, user_id, today.isoformat()):
-            raise HTTPException(409, DIARY_DELETED_MESSAGE)
         submission["topic_id"] = mission.get("suggested_topic_id")
     if mission.get("prompt") and not body.answer:
         raise HTTPException(422, f"먼저 답해 주세요: {mission['prompt']}")
@@ -953,8 +950,6 @@ def get_diary_topic(user_id: str, date: str | None = DateQuery):
 @app.put("/users/{user_id}/diary/{entry_date}", summary="일기 쓰기·고치기 (일기 미션이 있으면 자동 완료)")
 def put_diary(user_id: str, entry_date: str, body: DiaryIn, conn=Depends(get_conn)):
     today = day(entry_date)
-    if db.diary_deleted(conn, user_id, today.isoformat()):
-        raise HTTPException(409, DIARY_DELETED_MESSAGE)
     topic = dy.topic_for(user_id, today.isoformat()) if body.use_topic else None
     photos = check_photos(conn, user_id, body.photos)
     entry = db.save_diary(conn, user_id, today.isoformat(), body.text.strip(), topic and topic["id"], body.mood, photos)
@@ -966,7 +961,7 @@ def put_diary(user_id: str, entry_date: str, body: DiaryIn, conn=Depends(get_con
     return {"entry": {**entry, "topic": topic}, **result, "care": care}
 
 
-@app.delete("/users/{user_id}/diary/{entry_date}", summary="일기 지우기 — 지운 날은 다시 쓸 수 없음, 받은 보상은 그대로")
+@app.delete("/users/{user_id}/diary/{entry_date}", summary="일기 지우기 — 지운 날도 다시 쓸 수 있음, 받은 보상은 그대로(다시 써도 두 번 주지 않음)")
 def delete_diary(user_id: str, entry_date: str, conn=Depends(get_conn)):
     date = day(entry_date).isoformat()
     if not db.delete_diary(conn, user_id, date):

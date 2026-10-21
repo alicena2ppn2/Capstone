@@ -18,7 +18,6 @@ export function journalDates(state) {
   return [...new Set([...(Array.isArray(state.journalDates) ? state.journalDates : []), ...Object.keys(state.journals ?? {}).filter(date => typeof state.journals[date] === 'string' && state.journals[date].trim())])].filter(validJournalDate).sort();
 }
 export const hasJournal = (state, date) => typeof state.journals?.[date] === 'string' && !!state.journals[date].trim();
-export const deletedJournal = (state, date) => journalDates(state).includes(date) && !hasJournal(state, date);
 export function saveJournal(state, date, text, now = new Date(), emotion) {
   if (date !== seoulDateKey(now) || typeof text !== 'string') return state;
   const value = text.trim().slice(0, JOURNAL_LIMIT);
