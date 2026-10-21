@@ -112,7 +112,7 @@ python scripts/seed_demo.py --date 2026-10-22 --days 21
 | `GET /users/{id}/diary/topic` | 오늘의 일기 주제 |
 | `PUT /users/{id}/diary/{date}` | 일기 쓰기·고치기 (글·기분·사진, 오늘의 주제 사용 여부). 일기 미션이 있으면 자동 완료 |
 | `GET /users/{id}/diary/{date}` | 하루 일기 보기 |
-| `DELETE /users/{id}/diary/{date}` | 일기 지우기 — **지운 날은 다시 쓸 수 없음** (앱과 같은 규칙), 받은 보상은 그대로 |
+| `DELETE /users/{id}/diary/{date}` | 일기 지우기 — 지워도 그날 **다시 쓸 수 있음** (앱과 같은 규칙), 받은 보상은 그대로(다시 써도 두 번 주지 않음) |
 | `GET /users/{id}/diary/export?from=&to=` | 일기 내보내기 — 텍스트 파일(.txt) 내려받기. 기관 연동 없이 사용자가 직접 보관·공유 |
 | `GET /users/{id}/diary?from=&to=` | 일기 목록 (기록 탭) |
 | `GET /users/{id}/coins` | 코인 잔액 |

@@ -12,12 +12,12 @@ test('3 routines + 3 stable activities, diary excluded, legacy 3-reward cap does
   for(const q of dailyActivities(game,day)){const key=`${day}:${q.id}`;if(q.choices)game={...game,challengeChoices:{...game.challengeChoices,[key]:q.choices[0]}};const old=game.coins;game=startDailyMission(game,q.id,now);assert.equal(game.coins,old);game=q.photo?completePhotoMission(game,q.id,day,{id:'test',uri:'test',storage:'indexeddb',mime:'image/jpeg',size:100},now):finishDailyMission(game,q.id,now);assert.equal(game.coins,old+25);const paid=game;game=finishDailyMission(game,q.id,now);assert.equal(game,paid);}
   assert.equal(game.coins,initialCoins+100);assert.deepEqual(dailyActivities(ensureDailyMissions(JSON.parse(JSON.stringify(game)),day),day).map(q=>q.id),ids);
 });
-test('diary blank rejected, optional mood, drafts not stamps; deleted day cannot be rewritten (server rule) and keeps balances',()=>{
+test('diary blank rejected, optional mood, drafts not stamps; deleted day can be rewritten (server rule) without a second reward',()=>{
   let game={...ready(),journalDrafts:{[day]:{text:'초안'}}};assert.equal(routineDone(game,'day-diary',day),false);assert.equal(game.journalDates?.includes(day)??false,false);
   assert.equal(saveDiaryMission(game,day,'   ',now),game);game=saveDiaryMission(game,day,'첫 일기',now);assert.equal(game.journalDrafts[day],undefined);assert(routineDone(game,'day-diary',day));const coins=game.coins,xp=game.xp;
   game={...game,journalDrafts:{[day]:{text:'수정 초안'}}};game=deleteDiaryMission(game,day,now);assert.equal(game.journals[day],undefined);assert.equal(game.journalDrafts[day],undefined);assert(game.journalDates.includes(day));
-  // 10/19: 지운 날은 다시 쓸 수 없다 (서버와 같은 규칙) → 저장해도 그대로, 코인·XP도 그대로
-  assert.equal(saveDiaryMission(game,day,'재작성',now,'happy'),game);assert.equal(game.journals[day],undefined);assert.equal(game.coins,coins);assert.equal(game.xp,xp);assert.equal(goalProgress(game,QUESTS.find(q=>q.id==='week-diary'),day),1);
+  // 10/21: 지운 날도 다시 쓸 수 있다 (서버와 같은 규칙) → 글은 저장, 코인·XP는 그대로 (하루 한 번만)
+  const rewritten=saveDiaryMission(game,day,'재작성',now,'happy');assert.equal(rewritten.journals[day],'재작성');assert.equal(rewritten.coins,coins);assert.equal(rewritten.xp,xp);assert.equal(goalProgress(rewritten,QUESTS.find(q=>q.id==='week-diary'),day),1);
   assert.equal(saveDiaryMission(game,day,'invalid',now,'fake'),game);
 });
 test('legacy current-day rewards/assets/raw records preserved, migration idempotent and no re-award',()=>{
