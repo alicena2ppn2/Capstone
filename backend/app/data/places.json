@@ -1,7 +1,15 @@
 {
   "note_limit": 140,
-  "colors": ["yellow", "apricot", "mint"],
-  "stickers": ["♡", "✿", "☀"],
+  "colors": [
+    "yellow",
+    "apricot",
+    "mint"
+  ],
+  "stickers": [
+    "♡",
+    "✿",
+    "☀"
+  ],
   "write_accuracy_m": 50,
   "places": [
     {
@@ -16,7 +24,9 @@
       "location_note": "서울특별시 중구 세종대로 110",
       "official_url": "https://lib.seoul.go.kr/",
       "coordinate_source": "https://fr.wikipedia.org/wiki/Biblioth%C3%A8que_m%C3%A9tropolitaine_de_S%C3%A9oul",
-      "sample_notes": ["책 제목만 보려고 들어갔다가 표지를 한참 구경했어요. 빌린 책은 없지만 제목 하나는 기억나요."]
+      "sample_notes": [
+        "책 제목만 보려고 들어갔다가 표지를 한참 구경했어요. 빌린 책은 없지만 제목 하나는 기억나요."
+      ]
     },
     {
       "id": "seoul-plaza",
@@ -30,7 +40,9 @@
       "location_note": "잔디광장 안의 참고 지점",
       "official_url": "https://plaza.seoul.go.kr/",
       "coordinate_source": "https://fr.wikipedia.org/wiki/Seoul_Plaza",
-      "sample_notes": ["친구를 기다리면서 하늘을 올려다봤어요. 구름 모양은 서로 다르게 봤지만 기다리는 시간은 금방 갔어요."]
+      "sample_notes": [
+        "친구를 기다리면서 하늘을 올려다봤어요. 구름 모양은 서로 다르게 봤지만 기다리는 시간은 금방 갔어요."
+      ]
     },
     {
       "id": "namsan-park",
@@ -44,7 +56,201 @@
       "location_note": "넓은 공원 구역을 대표하는 참고 지점 · 입구 아님",
       "official_url": "https://parks.seoul.go.kr/",
       "coordinate_source": "https://mapcarta.com/25946702",
-      "sample_notes": ["바람이 좋아서 잠깐 더 서 있었어요. 가방 안 과자 부스러기를 털어야겠다는 생각은 집에 가서 났고요."]
+      "sample_notes": [
+        "바람이 좋아서 잠깐 더 서 있었어요. 가방 안 과자 부스러기를 털어야겠다는 생각은 집에 가서 났고요."
+      ]
+    },
+    {
+      "id": "seoul-forest",
+      "name": "서울숲",
+      "kind": "공원",
+      "icon": "park",
+      "latitude": 37.544625,
+      "longitude": 127.0398444,
+      "write_radius_m": 400,
+      "intro": "성동구 성수동의 큰 숲 공원이에요.",
+      "location_note": "넓은 공원 구역을 대표하는 참고 지점 · 입구 아님",
+      "official_url": "https://parks.seoul.go.kr/",
+      "coordinate_source": "https://en.wikipedia.org/wiki/Seoul_Forest",
+      "sample_notes": [
+        "나무 사이 그늘에서 잠깐 쉬었어요. 사슴 우리 앞에서 한참 서 있다 왔어요."
+      ]
+    },
+    {
+      "id": "yeouido-hangang",
+      "name": "여의도한강공원",
+      "kind": "한강공원",
+      "icon": "park",
+      "latitude": 37.5256731,
+      "longitude": 126.9360586,
+      "write_radius_m": 500,
+      "intro": "여의도 옆 한강을 따라 길게 이어진 공원이에요.",
+      "location_note": "강변을 따라 긴 공원 구역의 참고 지점 · 입구 아님",
+      "official_url": "https://hangang.seoul.go.kr/",
+      "coordinate_source": "https://www.openstreetmap.org/search?query=%EC%97%AC%EC%9D%98%EB%8F%84%ED%95%9C%EA%B0%95%EA%B3%B5%EC%9B%90",
+      "sample_notes": [
+        "강바람이 시원해서 벤치에 오래 앉아 있었어요. 자전거 지나가는 소리가 좋았어요."
+      ]
+    },
+    {
+      "id": "banpo-hangang",
+      "name": "반포한강공원",
+      "kind": "한강공원",
+      "icon": "park",
+      "latitude": 37.514703,
+      "longitude": 127.004921,
+      "write_radius_m": 400,
+      "intro": "반포대교 아래 달빛무지개분수가 있는 한강공원이에요.",
+      "location_note": "강변 공원 구역의 참고 지점 · 입구 아님",
+      "official_url": "https://hangang.seoul.go.kr/",
+      "coordinate_source": "https://ko.wikipedia.org/wiki/%EB%B0%98%ED%8F%AC%ED%95%9C%EA%B0%95%EA%B3%B5%EC%9B%90",
+      "sample_notes": [
+        "분수 시간에 맞춰 왔는데 조금 늦었어요. 그래도 다리 불빛이 예뻤어요."
+      ]
+    },
+    {
+      "id": "ttukseom-hangang",
+      "name": "뚝섬한강공원",
+      "kind": "한강공원",
+      "icon": "park",
+      "latitude": 37.528029,
+      "longitude": 127.076329,
+      "write_radius_m": 400,
+      "intro": "자양동 한강변의 공원이에요.",
+      "location_note": "강변 공원 구역의 참고 지점 · 입구 아님",
+      "official_url": "https://hangang.seoul.go.kr/",
+      "coordinate_source": "https://ko.wikipedia.org/wiki/%EB%9A%9D%EC%84%AC%ED%95%9C%EA%B0%95%EA%B3%B5%EC%9B%90",
+      "sample_notes": [
+        "강 건너 건물들을 세어 보다가 잊어버렸어요. 산책 한 바퀴는 다 채웠어요."
+      ]
+    },
+    {
+      "id": "olympic-park",
+      "name": "올림픽공원",
+      "kind": "공원",
+      "icon": "park",
+      "latitude": 37.5207,
+      "longitude": 127.1227,
+      "write_radius_m": 600,
+      "intro": "송파구의 넓은 잔디와 호수가 있는 공원이에요.",
+      "location_note": "넓은 공원 구역을 대표하는 참고 지점 · 입구 아님",
+      "official_url": "https://www.ksponco.or.kr/olympicpark/",
+      "coordinate_source": "https://en.wikipedia.org/wiki/Olympic_Park,_Seoul",
+      "sample_notes": [
+        "나 홀로 나무까지 걸어갔어요. 사진 찍는 사람들 사이에서 저도 한 장 찍었어요."
+      ]
+    },
+    {
+      "id": "haneul-park",
+      "name": "하늘공원 (월드컵공원)",
+      "kind": "공원",
+      "icon": "park",
+      "latitude": 37.568064,
+      "longitude": 126.8849778,
+      "write_radius_m": 400,
+      "intro": "월드컵공원 안 언덕 위의 억새 공원이에요.",
+      "location_note": "언덕 위 공원 구역의 참고 지점 · 입구 아님",
+      "official_url": "https://parks.seoul.go.kr/",
+      "coordinate_source": "https://www.openstreetmap.org/search?query=%ED%95%98%EB%8A%98%EA%B3%B5%EC%9B%90",
+      "sample_notes": [
+        "계단 올라오느라 숨이 찼는데 억새가 바람에 흔들리는 걸 보니 괜찮았어요."
+      ]
+    },
+    {
+      "id": "dream-forest",
+      "name": "북서울꿈의숲",
+      "kind": "공원",
+      "icon": "park",
+      "latitude": 37.621052,
+      "longitude": 127.041079,
+      "write_radius_m": 400,
+      "intro": "강북구의 숲과 전망대가 있는 공원이에요.",
+      "location_note": "넓은 공원 구역을 대표하는 참고 지점 · 입구 아님",
+      "official_url": "https://parks.seoul.go.kr/",
+      "coordinate_source": "https://ko.wikipedia.org/wiki/%EB%B6%81%EC%84%9C%EC%9A%B8%EA%BF%88%EC%9D%98%EC%88%B2",
+      "sample_notes": [
+        "연못 옆 길이 조용해서 천천히 걸었어요. 오리 두 마리를 봤어요."
+      ]
+    },
+    {
+      "id": "national-library",
+      "name": "국립중앙도서관",
+      "kind": "도서관",
+      "icon": "library",
+      "latitude": 37.4975,
+      "longitude": 127.00278,
+      "write_radius_m": 150,
+      "intro": "서초구 반포동의 나라 대표 도서관이에요.",
+      "location_note": "도서관 건물 구역의 참고 지점",
+      "official_url": "https://www.nl.go.kr/",
+      "coordinate_source": "https://en.wikipedia.org/wiki/National_Library_of_Korea",
+      "sample_notes": [
+        "열람실 창가 자리에서 잡지를 넘겨 봤어요. 조용한 게 생각보다 편했어요."
+      ]
+    },
+    {
+      "id": "jeongdok-library",
+      "name": "정독도서관",
+      "kind": "도서관",
+      "icon": "library",
+      "latitude": 37.5808444,
+      "longitude": 126.9831528,
+      "write_radius_m": 100,
+      "intro": "종로구 북촌의 옛 학교 건물을 쓰는 공공 도서관이에요.",
+      "location_note": "도서관 마당을 포함한 참고 지점",
+      "official_url": "https://jdlib.sen.go.kr/",
+      "coordinate_source": "https://en.wikipedia.org/wiki/Jeongdok_Public_Library",
+      "sample_notes": [
+        "마당 벤치에서 책 한 장 읽고 나왔어요. 벚나무가 많았어요."
+      ]
+    },
+    {
+      "id": "namsan-library",
+      "name": "남산도서관",
+      "kind": "도서관",
+      "icon": "library",
+      "latitude": 37.5521429,
+      "longitude": 126.9811638,
+      "write_radius_m": 100,
+      "intro": "용산구 소월로의 공공 도서관이에요 (서울특별시 용산구 소월로 109).",
+      "location_note": "도서관 건물 앞 참고 지점",
+      "official_url": "https://nslib.sen.go.kr/",
+      "coordinate_source": "https://www.openstreetmap.org/search?query=%EB%82%A8%EC%82%B0%EB%8F%84%EC%84%9C%EA%B4%80",
+      "sample_notes": [
+        "남산 올라가는 길에 들렀어요. 책 냄새가 좋았어요."
+      ]
+    },
+    {
+      "id": "mapo-library",
+      "name": "마포중앙도서관",
+      "kind": "도서관",
+      "icon": "library",
+      "latitude": 37.5638225,
+      "longitude": 126.9079894,
+      "write_radius_m": 100,
+      "intro": "마포구 성산로의 구립 도서관이에요 (서울특별시 마포구 성산로 128).",
+      "location_note": "도서관 건물 앞 참고 지점",
+      "official_url": "https://mplib.mapo.go.kr/",
+      "coordinate_source": "https://www.openstreetmap.org/search?query=%EB%A7%88%ED%8F%AC%EC%A4%91%EC%95%99%EB%8F%84%EC%84%9C%EA%B4%80",
+      "sample_notes": [
+        "새로 나온 책 코너만 둘러봤어요. 다음엔 한 권 빌려 볼래요."
+      ]
+    },
+    {
+      "id": "gangnam-library",
+      "name": "강남도서관",
+      "kind": "도서관",
+      "icon": "library",
+      "latitude": 37.513763,
+      "longitude": 127.0470919,
+      "write_radius_m": 100,
+      "intro": "강남구 삼성동의 공공 도서관이에요 (서울특별시 강남구 선릉로116길 45).",
+      "location_note": "도서관 건물 앞 참고 지점",
+      "official_url": "https://gnlib.sen.go.kr/",
+      "coordinate_source": "https://www.openstreetmap.org/search?query=%EA%B0%95%EB%82%A8%EB%8F%84%EC%84%9C%EA%B4%80",
+      "sample_notes": [
+        "시험 공부하는 사람들 사이에서 저도 30분 집중했어요."
+      ]
     }
   ]
 }
