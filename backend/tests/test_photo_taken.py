@@ -157,7 +157,7 @@ def test_rotation_baked_in_and_big_photo_shrunk():
     data, ext, mime = photo_meta.clean_image(buf.getvalue(), "image/jpeg")
     img = Image.open(io.BytesIO(data))
     assert (ext, mime) == (".jpg", "image/jpeg")
-    assert img.size == (512, 2048)                      # 돌려서 세로로, 긴 변 2048로 줄임
+    assert img.size == (320, 1280)                      # 돌려서 세로로, 긴 변 1280으로 줄임
     assert 0x0112 not in img.getexif()
 
 
