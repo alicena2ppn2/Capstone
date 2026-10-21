@@ -13,6 +13,29 @@
 - 홈 달력 '수요일'의 '수'·'요'가 겹쳐 보임: `RoomTimeProps.jsx`에서 요일 세 글자를 12 간격으로 한 글자씩 그림
 - 확인: `npx expo export -p ios` 번들 성공. 실제 화면은 다음 iPhone 빌드에서
 
+## 2026-10-21 — 일기: 지운 날도 다시 쓸 수 있게
+
+**브랜치** `diary-rewrite`
+
+- 서버: `PUT /diary/{date}`·일기 미션 완료의 409("지운 날의 일기는 다시 쓸 수 없어요.") 없앰, 지울 때 `diary_deleted`에 남기지 않음(표는 예전 DB 호환으로 남김)
+- 보상은 그대로 한 번만: 코인 장부(`already_paid`)가 같은 날 같은 미션을 두 번 지급하지 않음. 테스트로 확인(다시 쓰기 200, `earned` 비어 있음, 코인 그대로)
+- 앱·웹 공통(`shared/`): `saveDiaryMission`·`completeQuest`의 막기와 `deletedJournal`·`DIARY_DELETED_MESSAGE` 제거, 앱(`GameApp.jsx`)·웹(`App.jsx`) 저장 전 막기 제거. 기기 보상도 `recordRoutine`·`completed`로 하루 한 번
+- 문서: README·FEATURES·GAME_RULES·backend README·FRONTEND_GUIDE·DATABASE
+- 테스트: 백엔드 277 통과, 앱·공통 134 통과
+
+## 2026-10-20 — 앱 아이콘, .env 커밋 막기
+
+**브랜치** `app-icon`
+
+- 앱 아이콘을 모찌 캐릭터 그림으로 (`mobile/assets/icon.png`, 사용자가 넣은 파일). `app.json`에 `ITSAppUsesNonExemptEncryption: false`(사용자 수정, TestFlight·App Store 수출 규정 질문 생략)
+- `mobile/.env`가 git 무시 목록에 없어 커밋될 수 있었음 → 맨 위 `.gitignore`에 `.env`·`.env.*`(예시 `.env.example`만 허용)
+
+## 2026-10-20 — 퀘스트 파일 위치 표를 FEATURES.md로
+
+**브랜치** `quest-files-to-features`
+
+- 개발자용 표(서버·앱·웹 파일 위치)라 README 6-2 미션에서 빼고 FEATURES.md 미션 절 아래로, README에는 링크 한 줄
+
 ## 2026-10-20 — README 순서: 앱 소개 먼저, 문서 표는 맨 아래
 
 **브랜치** `readme-order`
