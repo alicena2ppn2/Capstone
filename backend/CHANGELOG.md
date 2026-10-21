@@ -5,6 +5,14 @@
 
 ---
 
+## 2026-10-21 — 사진 저장 크기 1280px, 앱 사진 업로드 실패 원인
+
+**브랜치** `photo-1280`
+
+- 사진 저장 크기: 긴 변 2048 → 1280px (`photo_meta.MAX_SIDE`). 휴대폰 화면에선 차이가 거의 없고 저장 용량은 절반 아래. 이미 올라간 사진은 그대로
+- 앱 사진 미션 "서버에 연결하지 못했어요" 원인: Expo 57이 전역 `fetch`를 `expo/fetch`로 바꾸는데, 이 fetch는 RN 방식 사진 폼(`{uri, name, type}`)을 못 보내고 요청 전에 에러(`Unsupported FormDataPart implementation`) → 앱은 fetch 에러를 모두 '연결 못 함'으로 보여 줌. 서버는 정상(6.8MB 사진도 Railway까지 도착 확인)
+- 해결: EAS preview 환경변수 `EXPO_PUBLIC_USE_RN_FETCH=1`(Expo가 마련한 RN fetch 사용 옵션) 등록. 코드 수정 없음, iPhone 재빌드 필요. 실제 기기 확인은 다음 빌드에서
+
 ## 2026-10-21 — 동네 탐험 장소 12곳 추가 (서울 공원·한강공원·도서관)
 
 **브랜치** `more-places`

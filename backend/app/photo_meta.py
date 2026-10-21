@@ -49,7 +49,7 @@ def parse_client_taken(value: str | None) -> str | None:
     return when.replace(microsecond=0).isoformat()
 
 
-MAX_SIDE = 2048            # 긴 변이 이보다 크면 줄여서 저장
+MAX_SIDE = 1280            # 긴 변이 이보다 크면 줄여서 저장 (10/21: 2048 → 1280, 휴대폰 화면엔 충분하고 저장 용량은 절반 아래)
 SAVE_AS = {"image/png": ("PNG", ".png", "image/png"), "image/webp": ("WEBP", ".webp", "image/webp")}   # 나머지(jpeg·heic)는 JPEG
 
 
