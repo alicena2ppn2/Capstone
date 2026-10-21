@@ -251,6 +251,102 @@
       "sample_notes": [
         "시험 공부하는 사람들 사이에서 저도 30분 집중했어요."
       ]
+    },
+    {
+      "id": "hanyang-univ",
+      "name": "한양대학교 서울캠퍼스",
+      "kind": "학교",
+      "icon": "school",
+      "latitude": 37.5569876,
+      "longitude": 127.0470893,
+      "write_radius_m": 400,
+      "intro": "성동구 사근동의 대학 캠퍼스예요 (서울특별시 성동구 왕십리로 222).",
+      "location_note": "넓은 캠퍼스를 대표하는 참고 지점 · 정문 아님",
+      "official_url": "https://www.hanyang.ac.kr/",
+      "coordinate_source": "https://www.openstreetmap.org/search?query=%ED%95%9C%EC%96%91%EB%8C%80%ED%95%99%EA%B5%90%20%EC%84%9C%EC%9A%B8%EC%BA%A0%ED%8D%BC%EC%8A%A4",
+      "sample_notes": [
+        "캠퍼스 언덕길을 천천히 올라가 봤어요. 꼭대기에서 본 노을이 예뻤어요."
+      ]
+    },
+    {
+      "id": "hongik-univ",
+      "name": "홍익대학교 서울캠퍼스",
+      "kind": "학교",
+      "icon": "school",
+      "latitude": 37.55056,
+      "longitude": 126.92583,
+      "write_radius_m": 250,
+      "intro": "마포구 상수동의 대학 캠퍼스예요.",
+      "location_note": "넓은 캠퍼스를 대표하는 참고 지점 · 정문 아님",
+      "official_url": "https://www.hongik.ac.kr/",
+      "coordinate_source": "https://en.wikipedia.org/wiki/Hongik_University",
+      "sample_notes": [
+        "벽에 붙은 전시 포스터를 하나씩 읽어 봤어요. 다음 주엔 전시도 보러 올래요."
+      ]
+    },
+    {
+      "id": "sungshin-univ",
+      "name": "성신여자대학교 돈암수정캠퍼스",
+      "kind": "학교",
+      "icon": "school",
+      "latitude": 37.5913559,
+      "longitude": 127.0222074,
+      "write_radius_m": 250,
+      "intro": "성북구 동선동의 대학 캠퍼스예요.",
+      "location_note": "넓은 캠퍼스를 대표하는 참고 지점 · 정문 아님",
+      "official_url": "https://www.sungshin.ac.kr/",
+      "coordinate_source": "https://www.openstreetmap.org/search?query=%EC%84%B1%EC%8B%A0%EC%97%AC%EC%9E%90%EB%8C%80%ED%95%99%EA%B5%90",
+      "sample_notes": [
+        "수업 사이 쉬는 시간에 벤치에 앉아 바람을 쐬었어요. 10분이 꽤 길게 느껴졌어요."
+      ]
+    },
+    {
+      "id": "ewha-univ",
+      "name": "이화여자대학교",
+      "kind": "학교",
+      "icon": "school",
+      "latitude": 37.5625,
+      "longitude": 126.945,
+      "write_radius_m": 350,
+      "intro": "서대문구 대현동의 대학 캠퍼스예요.",
+      "location_note": "넓은 캠퍼스를 대표하는 참고 지점 · 정문 아님",
+      "official_url": "https://www.ewha.ac.kr/",
+      "coordinate_source": "https://en.wikipedia.org/wiki/Ewha_Womans_University",
+      "sample_notes": [
+        "캠퍼스 계단을 내려가면서 하늘을 한 번 올려다봤어요. 오늘 하늘은 맑았어요."
+      ]
+    },
+    {
+      "id": "chungang-univ",
+      "name": "중앙대학교 서울캠퍼스",
+      "kind": "학교",
+      "icon": "school",
+      "latitude": 37.5043446,
+      "longitude": 126.9562823,
+      "write_radius_m": 300,
+      "intro": "동작구 흑석동의 대학 캠퍼스예요.",
+      "location_note": "넓은 캠퍼스를 대표하는 참고 지점 · 정문 아님",
+      "official_url": "https://www.cau.ac.kr/",
+      "coordinate_source": "https://www.openstreetmap.org/search?query=%EC%A4%91%EC%95%99%EB%8C%80%ED%95%99%EA%B5%90%20%EC%84%9C%EC%9A%B8%EC%BA%A0%ED%8D%BC%EC%8A%A4",
+      "sample_notes": [
+        "도서관 가는 길에 고양이를 만났어요. 잠깐 눈인사만 하고 지나갔어요."
+      ]
+    },
+    {
+      "id": "konkuk-univ",
+      "name": "건국대학교 서울캠퍼스",
+      "kind": "학교",
+      "icon": "school",
+      "latitude": 37.54194,
+      "longitude": 127.07639,
+      "write_radius_m": 400,
+      "intro": "광진구 화양동의 대학 캠퍼스예요. 안에 호수(일감호)가 있어요.",
+      "location_note": "넓은 캠퍼스를 대표하는 참고 지점 · 정문 아님",
+      "official_url": "https://www.konkuk.ac.kr/",
+      "coordinate_source": "https://en.wikipedia.org/wiki/Konkuk_University",
+      "sample_notes": [
+        "호숫가를 한 바퀴 걸었어요. 오리가 저보다 부지런했어요."
+      ]
     }
   ]
 }
