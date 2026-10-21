@@ -67,7 +67,7 @@ export default function ServerMissions({ userId, onChanged, onAttendance, onDiar
     setSteps(v => ({ ...v, connected: true, today: r.today }));
     return completeSteps(userId, id);
   });
-  useEffect(() => { if (!toast) return undefined; const timer = setTimeout(() => setToast(null), 2200); return () => clearTimeout(timer); }, [toast]);
+  useEffect(() => { if (!toast) return undefined; const timer = setTimeout(() => setToast(null), toast.reaction ? 3200 : 2200); return () => clearTimeout(timer); }, [toast]);
   const run = async (id, job) => {
     if (busy) return; setBusy(id); setNotes(value => ({ ...value, [id]: '' }));
     try { const result = await job(); if (result?.earned_total !== undefined) setToast(result); await load(); onChanged?.(); }
@@ -119,7 +119,7 @@ export default function ServerMissions({ userId, onChanged, onAttendance, onDiar
         </>}
       </Card>; })}
     </Card>
-    {toast && <View pointerEvents="none" style={styles.toast} accessibilityLiveRegion="polite"><Label style={{ fontFamily: 'A2z-600' }}>미션 완료!</Label>{(toast.earned_total > 0 || toast.earned_xp > 0) && <QuestRewards xp={toast.earned_xp} coins={toast.earned_total} />}</View>}
+    {toast && <View pointerEvents="none" style={styles.toast} accessibilityLiveRegion="polite"><Label style={{ fontFamily: 'A2z-600' }}>미션 완료!</Label>{(toast.earned_total > 0 || toast.earned_xp > 0) && <QuestRewards xp={toast.earned_xp} coins={toast.earned_total} />}{!!toast.reaction?.message && <Label style={styles.small}>{toast.reaction.message}</Label>}</View>}
   </>;
 }
 

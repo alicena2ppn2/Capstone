@@ -5,6 +5,20 @@
 
 ---
 
+## 2026-10-21 — 사진 인식: 사진 미션에 맞는 반응 (CLIP)
+
+**브랜치** `photo-reaction` (앱·웹 완료 토스트 한 줄도 같이, 사용자 요청)
+
+- `app/vision.py`: OpenAI CLIP ViT-B/32(오픈소스, MIT)의 이미지 쪽 ONNX(Hugging Face `Xenova/clip-vit-base-patch32`, 양자화 89MB)로 사진 미션 사진을 봄. 외부 API 없음
+- 이름표 42개(`data/clip_labels.json`): 하늘·노을·고양이·빵·이불 등 36개 + 셀카·화면 캡처·문서·어두운 사진·어질러진 방·빈 벽처럼 '아님'을 가려내는 6개. 사진 미션 36개마다 맞는 이름표 목록
+- 글 쪽은 미리 계산(`scripts/build_clip_labels.py` → `data/clip_text.npy`, 86KB) → 서버에 토크나이저·글 모델 없음
+- 규칙: 이름표 전부와 비교해 가장 비슷한 이름표가 그 미션 것이고 확률 0.2 이상이면 `POST /missions/{id}/photo` 응답에 `reaction: {label, message}`. **반응만** — 안 맞거나 모델이 없거나 에러여도 완료·보상 그대로 (`reaction: null`). 인식이 틀릴 수 있어 인증에는 안 씀
+- 확인: 위키백과 대표 사진 20장으로 미션에 맞는 사진 19장 반응(벽화 1장 놓침), 다른 미션에 잘못 반응 0. 한 장 0.1~0.3초, 메모리 약 +125MB(모델 처음 열 때)
+- 배포: Dockerfile(맨 위·backend 둘 다)이 빌드할 때 `scripts/fetch_clip.py`로 모델을 받음(리비전·SHA-256 고정, git에는 안 올림 — `backend/models/` 무시). `requirements.txt`에 onnxruntime
+- 앱·웹: 완료 토스트 아래 반응 한 줄, 반응이 있으면 3.2초 보임. 앱은 iPhone 재빌드 필요
+- 테스트 `tests/test_vision.py`: 이름표·벡터 개수, 사진 미션마다 이름표, 모델 없을 때 None, 다른 미션 사진엔 None, 에러여도 None, 응답에 reaction → 백엔드 283 통과, 앱·공통 134 통과
+- README·FEATURES: 전체 구조 밑에 '사진 미션 흐름'(날짜 확인 → 개인정보 지우기·1280px → 완료 → 사진 인식 반응), 백엔드 구조에 사진 인식, 하루 흐름에 반응. 장소 21곳·1280px 문구는 #90·#91과 같게
+
 ## 2026-10-21 — 사진 저장 크기 1280px, 앱 사진 업로드 실패 원인
 
 **브랜치** `photo-1280`
