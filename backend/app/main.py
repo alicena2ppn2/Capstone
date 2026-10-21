@@ -23,6 +23,7 @@ from fastapi import Depends, FastAPI, File, Form, Header, HTTPException, Query, 
 from fastapi.responses import FileResponse, PlainTextResponse
 from starlette.background import BackgroundTask
 from fastapi.middleware.cors import CORSMiddleware
+from fastapi.concurrency import run_in_threadpool
 from pydantic import BaseModel, Field
 
 from . import access
@@ -38,6 +39,7 @@ from . import photo_meta
 from . import places as pl
 from . import shop
 from . import survey as sv
+from . import vision
 
 USUAL_STEPS_DAYS = 28   # 평소 걸음 = 최근 28일 걸음 중앙값
 
@@ -582,7 +584,8 @@ def reroll_mission(user_id: str, mission_id: str, date: str | None = DateQuery, 
 
 
 @app.post("/users/{user_id}/missions/{mission_id}/photo",
-          summary="사진 미션 한 번에: 사진 올리기 + 완료 (multipart file, 선택 taken_at). 미션 날짜에 찍은 사진이어야 성공")
+          summary="사진 미션 한 번에: 사진 올리기 + 완료 (multipart file, 선택 taken_at). 미션 날짜에 찍은 사진이어야 성공. "
+                  "reaction: 사진이 미션과 맞아 보이면 {label, message} (사진 인식, 없으면 null — 완료·보상과 상관없음)")
 async def complete_with_photo(user_id: str, mission_id: str, file: UploadFile = File(...),
                               taken_at: str | None = Form(None, description="파일에 EXIF가 없을 때 앱이 아는 촬영 일시"),
                               answer: str | None = Form(None), date: str | None = DateQuery, conn=Depends(get_conn)):
@@ -595,7 +598,9 @@ async def complete_with_photo(user_id: str, mission_id: str, file: UploadFile = 
     photo = await save_photo(conn, user_id, file, taken_at, today.isoformat())
     result = complete_mission(user_id, mission_id, CompleteIn(photos=[photo["photo_id"]], answer=answer),
                               date=today.isoformat(), conn=conn)
-    return {**result, "photo": photo}
+    saved = next(upload_dir().glob(photo["photo_id"] + ".*"))
+    reaction = await run_in_threadpool(vision.react, saved.read_bytes(), mission_id)   # CPU 작업이라 다른 요청을 막지 않게
+    return {**result, "photo": photo, "reaction": reaction}
 
 
 @app.get("/users/{user_id}/ladder", summary="단계 사다리: 움직이기·이어지기 지금 단계(1 혼자 · 2 한 명 · 3 여럿)와 다음 단계까지 남은 횟수")
