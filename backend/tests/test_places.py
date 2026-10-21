@@ -16,15 +16,19 @@ def note(client, me, text="오늘 하늘이 맑았어요", place="seoul-plaza", 
 
 
 def test_places_list_and_distance():
-    assert set(pl.PLACES) == {"seoul-library", "seoul-plaza", "namsan-park"}
+    assert {"seoul-library", "seoul-plaza", "namsan-park", "seoul-forest", "yeouido-hangang", "national-library"} <= set(pl.PLACES)
+    assert len(pl.PLACES) == 15   # 10/21: 서울 공원·한강공원·공공 도서관 12곳 추가
+    for p in pl.PLACES.values():   # 서울 안, 쓰기 반경 있음
+        assert 37.4 < p["latitude"] < 37.7 and 126.7 < p["longitude"] < 127.2 and p["write_radius_m"] > 0
     assert 0 < pl.distance_m(37.5665, 126.9780, 37.5506, 126.9926) < 2500      # 시청 ↔ 남산 약 2km
 
 
 def test_places_api_sorted_by_distance(client):
     plain = client.get("/places").json()
-    assert len(plain["places"]) == 3 and "distance_m" not in plain["places"][0] and plain["note_limit"] == 140
+    assert len(plain["places"]) == 15 and "distance_m" not in plain["places"][0] and plain["note_limit"] == 140
     near = client.get("/places", params=CITY_HALL).json()["places"]
-    assert [p["id"] for p in near][-1] == "namsan-park" and near[0]["distance_m"] < 200
+    ids, dist = [p["id"] for p in near], [p["distance_m"] for p in near]
+    assert dist == sorted(dist) and near[0]["distance_m"] < 200 and ids.index("namsan-park") < ids.index("olympic-park")
     assert client.get("/places/nowhere/notes").status_code == 404
 
 
