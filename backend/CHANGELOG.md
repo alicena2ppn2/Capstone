@@ -15,6 +15,19 @@
 - 문서: README·FEATURES·GAME_RULES·backend README·FRONTEND_GUIDE·DATABASE
 - 테스트: 백엔드 277 통과, 앱·공통 134 통과
 
+## 2026-10-20 — 앱 아이콘, .env 커밋 막기
+
+**브랜치** `app-icon`
+
+- 앱 아이콘을 모찌 캐릭터 그림으로 (`mobile/assets/icon.png`, 사용자가 넣은 파일). `app.json`에 `ITSAppUsesNonExemptEncryption: false`(사용자 수정, TestFlight·App Store 수출 규정 질문 생략)
+- `mobile/.env`가 git 무시 목록에 없어 커밋될 수 있었음 → 맨 위 `.gitignore`에 `.env`·`.env.*`(예시 `.env.example`만 허용)
+
+## 2026-10-20 — 퀘스트 파일 위치 표를 FEATURES.md로
+
+**브랜치** `quest-files-to-features`
+
+- 개발자용 표(서버·앱·웹 파일 위치)라 README 6-2 미션에서 빼고 FEATURES.md 미션 절 아래로, README에는 링크 한 줄
+
 ## 2026-10-20 — README 순서: 앱 소개 먼저, 문서 표는 맨 아래
 
 **브랜치** `readme-order`
