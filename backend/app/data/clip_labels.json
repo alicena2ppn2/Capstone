@@ -38,7 +38,7 @@
     {"id": "floor", "prompts": ["a photo of a clean floor in a room"], "message": "바닥이 깨끗해졌어요!"},
     {"id": "fridge", "prompts": ["a photo of the inside of a refrigerator"], "message": "냉장고가 정리됐네요!"},
     {"id": "selfie", "prompts": ["a selfie", "a photo of a person's face"]},
-    {"id": "screen", "prompts": ["a screenshot of a phone screen", "a photo of a computer screen"]},
+    {"id": "screen", "prompts": ["a screenshot of a phone screen", "a screenshot of a mobile app", "a user interface with buttons and text", "a photo of a computer screen"]},
     {"id": "document", "prompts": ["a photo of a document with text"]},
     {"id": "dark", "prompts": ["a completely black photo", "a very dark blurry photo"]},
     {"id": "messy", "prompts": ["a photo of a messy room"]},
