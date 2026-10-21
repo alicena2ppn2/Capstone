@@ -17,6 +17,7 @@
 - 배포: Dockerfile(맨 위·backend 둘 다)이 빌드할 때 `scripts/fetch_clip.py`로 모델을 받음(리비전·SHA-256 고정, git에는 안 올림 — `backend/models/` 무시). `requirements.txt`에 onnxruntime
 - 앱·웹: 완료 토스트 아래 반응 한 줄, 반응이 있으면 3.2초 보임. 앱은 iPhone 재빌드 필요
 - 테스트 `tests/test_vision.py`: 이름표·벡터 개수, 사진 미션마다 이름표, 모델 없을 때 None, 다른 미션 사진엔 None, 에러여도 None, 응답에 reaction → 백엔드 283 통과, 앱·공통 134 통과
+- README·FEATURES: 전체 구조 밑에 '사진 미션 흐름'(날짜 확인 → 개인정보 지우기·1280px → 완료 → 사진 인식 반응), 백엔드 구조에 사진 인식, 하루 흐름에 반응. 장소 21곳·1280px 문구는 #90·#91과 같게
 
 ## 2026-10-21 — 앱 방 그림: 창밖 풍경 위치, 달력 요일 글자 겹침
 
