@@ -8,7 +8,8 @@ export default function RoomTimeProps({ time }) {
       <Path d="M17 -3 V7 M47 -3 V7" stroke="#AD927B" strokeWidth="3" strokeLinecap="round" />
       <SvgText x="32" y="16" textAnchor="middle" fontSize="12" fontFamily="A2z-500" fill="#354744">{time.month}월</SvgText>
       <SvgText x="32" y="48" textAnchor="middle" fontSize="27" fontFamily="A2z-600" fill="#354744">{time.day}</SvgText>
-      <SvgText x="32" y="66" textAnchor="middle" fontSize="12" fontFamily="A2z-400" fill="#354744">{time.weekday}요일</SvgText>
+      {/* iPhone에서 '수요일'처럼 한 줄로 쓰면 글자가 겹쳐 보여서 한 글자씩 자리를 정해 그림 (10/21) */}
+      {[time.weekday, '요', '일'].map((ch, i) => <SvgText key={i} x={20 + i * 12} y="66" textAnchor="middle" fontSize="12" fontFamily="A2z-400" fill="#354744">{ch}</SvgText>)}
     </G>
     <G transform="translate(314 158)">
       <Circle cy="3" r="34" fill="#C9A982" opacity=".18" />
