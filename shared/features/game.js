@@ -1,7 +1,7 @@
 import { seoulDateKey, attendanceWeek } from '../utils/seoulDate.js';
 import { CLOTHES } from '../data/clothes.js';
 import { DECOR, DECOR_SLOTS } from '../data/decor.js';
-import { deletedJournal, saveJournal } from './journal.js';
+import { saveJournal } from './journal.js';
 import { CHALLENGES, migrateChallenges, ensureChallenges, previewReward, goalProgress } from './challenges.js';
 import { levelFor } from './levelProgression.js';
 export { EARLY_LEVEL_THRESHOLDS, XP_PER_LEVEL, levelFor, levelProgress, xpThresholdForLevel } from './levelProgression.js';
@@ -47,7 +47,6 @@ export function completeQuest(state, id, now = new Date(), answer = '') {
   const quest = QUESTS.find((item) => item.id === id);
   if (!quest || quest.period !== 'day') return state;
   const dayKey = seoulDateKey(now);
-  if (quest.input && deletedJournal(state, dayKey)) return state;
   const key = questCompletionKey(quest, dayKey);
   const text = typeof answer === 'string' ? answer.trim().slice(0, 80) : '';
   if (state.completed.includes(key) || (quest.input ? !text : !state.started?.includes(key))) return state;

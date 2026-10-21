@@ -7,8 +7,7 @@ import RewardPanel from './components/RewardPanel.jsx';
 import { newAttendanceReward } from '../../shared/features/rewardFeedback.js';
 import { useCallback, useEffect, useRef, useState } from 'react';
 import Diary from './screens/Diary.jsx';
-import { ensureDailyMissions, startDailyMission, finishDailyMission, pauseDailyMission, replaceDailyMission, saveDiaryMission, deleteDiaryMission, recordRoutine, DIARY_DELETED_MESSAGE } from '../../shared/features/dailyMissions.js';
-import { deletedJournal } from '../../shared/features/journal.js';
+import { ensureDailyMissions, startDailyMission, finishDailyMission, pauseDailyMission, replaceDailyMission, saveDiaryMission, deleteDiaryMission, recordRoutine } from '../../shared/features/dailyMissions.js';
 import Home from './screens/Home.jsx';
 import Visit from './screens/Visit.jsx';
 import Neighbors from './screens/Neighbors.jsx';
@@ -84,7 +83,6 @@ function Game() {
   };
   const saveDiary = async (date, text, emotion) => {
     if (date !== seoulDateKey() || !text.trim()) return { ok:false, message:'당일의 공백 아닌 일기만 저장할 수 있어요.' };
-    if (deletedJournal(gameRef.current, date)) return { ok:false, message: DIARY_DELETED_MESSAGE };
     const saved = commitGame(value => saveDiaryMission(value, date, text, new Date(), emotion));
     if (!saved.ok) return saved;
     if (!serverUserId) return { ...saved, message: '이 브라우저에 저장했어요.' };
