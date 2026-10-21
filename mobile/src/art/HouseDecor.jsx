@@ -1,14 +1,19 @@
-import Svg, { G, Path, Ellipse, Circle, Rect, Line, Defs, ClipPath, Text as SvgText } from 'react-native-svg';
+import { G, Path, Ellipse, Circle, Rect, Line, Defs, ClipPath, Text as SvgText } from 'react-native-svg';
 import { DECOR } from '../../../shared/data/decor.js';
 import GarmentPattern, { garmentFill } from '../../../shared/art/GarmentPattern.jsx';
 import { Pattern } from 'react-native-svg';
+import { useId } from 'react';
 
 const RUG = { Defs, Pattern, Rect, Circle, Path };
 
 export function Scenery({ item, night: roomNight }) {
   const kind = item?.landscape ?? 'coast';
   const night = roomNight ?? kind === 'city';
-  return <Svg x="124" y="160" width="120" height="170" viewBox="0 0 120 170">
+  // 창문 칸(124,160 · 120×170)에 고정. 앱의 react-native-svg는 안쪽 <Svg>의 x·y를 무시해 풍경이 창문 밖에 그려져서 G + 자르기로 (10/21)
+  const clip = `scenery${useId().replace(/[^a-zA-Z0-9]/g, '')}`;
+  return <G transform="translate(124 160)">
+    <Defs><ClipPath id={clip}><Rect width="120" height="170" /></ClipPath></Defs>
+    <G clipPath={`url(#${clip})`}>
     <Rect width="120" height="170" fill={night ? '#535F8F' : kind === 'sunset' ? '#F7C3AB' : '#D7ECF8'} />
     {night ? <><Path d="M100 16 C77 11 73 42 98 44 C84 36 87 23 100 16Z" fill="#F9EFCA" /><Path d="M17 18 v5 m-2.5 -2.5 h5 M51 36 v5 m-2.5 -2.5 h5 M111 59 v5 m-2.5 -2.5 h5" stroke="#F9EFCA" strokeWidth="1.3" /></> : <Circle cx="30" cy="30" r="13" fill="#FFF5CB" />}
     {kind === 'city' ? <>
@@ -30,7 +35,8 @@ export function Scenery({ item, night: roomNight }) {
       {kind === 'harbour' && <><Path d="M52 107 Q64 79 76 109 Q77 66 95 101 Q105 85 117 108Z" fill="#FFF7DE" stroke="#B8C4BD" strokeWidth="1.5" /><Path d="M14 130 L14 91 L40 124Z" fill="#FFF9E9" /><Path d="M9 133 H43 L35 140 H16Z" fill="#9E9DAC" /></>}
       {kind === 'coast' && <><Path d="M98 83 V52 M83 65 H112" stroke="#E6D8BA" strokeWidth="3" /><Path d="M92 83 V56 H104 V83Z" fill="#FFF7E4" /></>}
     </>}
-  </Svg>;
+    </G>
+  </G>;
 }
 
 // positions: {slot: {dx, dy}} 방에서 옮긴 거리 (전등·액자·인형)
