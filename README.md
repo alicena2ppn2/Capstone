@@ -81,7 +81,7 @@
 
 ## 4. 규모
 
-서버 API 70개 · 미션 91개(데일리 5 + 바뀌는 86) · 일기 주제 50개 · 상점 친구 12 · 옷 9 · 집 꾸미기 46 · 테스트 백엔드 277개 · 앱·공통 134개
+서버 API 70개 · 미션 91개(데일리 5 + 바뀌는 86) · 일기 주제 50개 · 상점 친구 12 · 옷 9 · 집 꾸미기 46 · 테스트 백엔드 283개 · 앱·공통 134개
 
 ## 5. 폴더 및 실행
 
@@ -124,9 +124,10 @@
 | 서버 | **FastAPI**, Uvicorn, Pydantic | API 70개, 요청 검사 (`backend/app/main.py`) |
 | DB | **SQLite** (파이썬 내장 `sqlite3`) | 사용자·미션·코인 장부·사진·일기·방명록 등 28개 표 (`backend/app/db.py`, [DATABASE.md](backend/DATABASE.md)) |
 | 이미지 | **Pillow**, pillow-heif | 촬영 일시(EXIF) 읽기, 위치 정보 지우기, HEIC → JPEG |
+| 사진 인식 | **onnxruntime** + CLIP ViT-B/32 | 사진 미션 사진에 맞는 반응 (오픈소스 모델, 서버 안에서) |
 | HTTP | httpx | Supabase 토큰 확인·계정 삭제 |
 | 데이터 분석 | pandas, numpy, openpyxl, Jupyter | 합성 데이터·SK 통신인구·신한카드 분석 (`data/`) |
-| 테스트 | **pytest** (백엔드 277개), Node `node --test` (공통 134개), ESLint | `backend/tests/`, `shared/**/*.test.js` |
+| 테스트 | **pytest** (백엔드 283개), Node `node --test` (공통 134개), ESLint | `backend/tests/`, `shared/**/*.test.js` |
 | 앱 | **Expo** (Router, Image Picker, Notifications, Secure Store, Web Browser, Clipboard, Build Properties), React Native, react-native-svg, AsyncStorage | `mobile/` |
 | 앱 건강 | @kingstinct/react-native-healthkit + react-native-nitro-modules, react-native-health-connect | 걸음 수 (`mobile/src/health/`) |
 | 앱 위치·지도 | **expo-location**, **react-native-maps** (iPhone Apple 지도 · Android Google 지도) | 동네 탐험 (`mobile/src/screens/Explore.jsx`, `explore/`) |
@@ -170,6 +171,7 @@
 |---|---|---|
 | **사진으로 완료** | 앱은 `expo-image-picker`(카메라·앨범)로 고르고 `exif:true`로 촬영 일시를 같이 받음. 서버는 **파일의 EXIF 촬영 일시(DateTimeOriginal)를 먼저** 보고, 없으면 앱이 보낸 시각을 씀 → **미션 날짜(서울 기준)에 찍은 사진만 성공**. 카메라로 막 찍었는데 EXIF가 없으면 찍은 시각을 보냄 | `backend/app/photo_meta.py`, `mobile/src/screens/quests/ServerMissions.jsx` |
 | **사진 개인정보** | 저장 전에 **위치(GPS)·기기 정보 등 메타데이터를 모두 지움**(Pillow로 다시 저장), 방향은 `exif_transpose`로 바로잡고 iPhone HEIC는 JPEG로, 긴 변 2048px. 주소는 추측할 수 없는 무작위 id | `photo_meta.clean_image` |
+| **사진 인식 (반응)** | 사진 미션 사진을 **CLIP**(OpenAI 오픈소스, MIT · ViT-B/32 ONNX)으로 서버 안에서 봄. 이름표 42개(하늘·노을·고양이·빵·이불… + 셀카·화면 캡처 같은 '아님' 이름표)와 비교해, 가장 비슷한 이름표가 그 미션 것이면 완료 토스트에 반응 한 줄("오늘 하늘이 잘 담겼어요!"). **인증에는 안 씀** — 안 맞아도 완료·보상 그대로. 외부 API 없음, 사진 한 장 0.1~0.3초, 메모리 약 125MB | `backend/app/vision.py`, `backend/app/data/clip_labels.json`, `backend/scripts/fetch_clip.py` |
 | **걸음 수** | iPhone은 **HealthKit**, Android는 **Health Connect**에서 하루 걸음 합계만 읽음(쓰지 않음). '걸음 수 연결하기' 한 번 → 권한 → 오늘+지난 7일을 `POST /steps`로. 이후 화면 열 때·'걸음 확인' 전에 자동. 서버가 이 값으로 '어제보다·지난주보다 1,000보 더' 목표를 정함. Expo 플러그인으로 권한 문구·Android 설정 자동 | `mobile/src/health/`, `mobile/app.json` |
 
 #### 보상 · 성장 · 상점
