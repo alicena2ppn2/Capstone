@@ -77,8 +77,6 @@
 
 **하루 미션**: 데일리 미션 5개(출석 · 산책하기 · 지난주보다 1,000보 더 걷기 · 일기 쓰기 · 다른 친구 방 놀러 가기) + **오늘의 활동 3개**(움직이기 · 집에서 · 이어지기, 하루 3번 다른 미션으로 바꾸기) + 주간 미션 1개. 미션은 사진(그날 찍은 것), 걸음, 서버가 확인하는 방문, 또는 인사·안부·운동처럼 사진이 어색한 미션은 **"했어요" 체크**로 완료한다. 방명록은 매일 미션이 아니고 원할 때 남긴다.
 
-퀘스트 코드가 어느 파일에 있는지는 [6-2 미션 → 퀘스트 파일 위치](#퀘스트-파일-위치).
-
 **보상 원칙**: 밖에 나가는 미션이 가장 크고(20코인) 집 미션(12코인)·스스로 체크(5코인)는 작게, 실패·미완료는 벌점 없음. 상점 가격은 그대로 두고 "사는 데 며칠 걸리나"로 맞췄다 — 소품 1일 · 옷 2~3일 · 친구 2~6일 · 상점 전체 3~4달 ([backend/ECONOMY.md](backend/ECONOMY.md)).
 
 ## 4. 규모
@@ -164,25 +162,7 @@
 | **소감** | 완료 후 "해 보니 어땠어?" 1~5 이모지 + 한 줄 (행동 활성화) | `PUT /missions/{id}/feedback` |
 | **주간 미션** | 자연 속 산책 사진, 서로 다른 날 2번 | `missions.py` `WEEKLY_QUESTS` |
 
-##### 퀘스트 파일 위치
-
-**서버가 정하고 판정**하고, 앱·웹은 서버 미션을 보여 주고 제출만 한다. 미션을 고치거나 추가할 때는 거의 `missions.json`과 `missions.py`만 보면 된다.
-
-| 하는 일 | 서버 (`backend/`) | 앱 (`mobile/src/`) | 웹 (`frontend/src/`) |
-|---|---|---|---|
-| **미션 목록 (제목·종류·단계·팁·보상)** | `app/data/missions.json` (91개) | — | — |
-| **오늘 미션 고르기 · 완료 판정 · 코인·XP · 레벨 · 단계 사다리 · 주간 미션** | `app/missions.py` (`pick_missions`, `is_complete`, `settle_coins`, `LADDER`, `WEEKLY_QUESTS`, `xp_for_next`) | — | — |
-| **API (오늘 미션 · 바꾸기 · 사진 · 완료 · 소감 · 주간)** | `app/main.py` (`/users/{id}/missions/...`, `/users/{id}/weekly`) | `api/server.js` | `api/missions.js` |
-| **사진 촬영 일시 확인 · 개인정보 지우기** | `app/photo_meta.py` | — | — |
-| **출석** | `app/attendance.py` | `components/AttendanceCards.jsx` | `components/Attendance.jsx` |
-| **퀘스트 화면 (오늘 · 이번 주 탭)** | — | `screens/quests/Quests.jsx` | `screens/Quest.jsx` |
-| **서버 미션 카드 (사진 고르기 · 걸음 확인 · 했어요 · 이웃 가기 · 바꾸기)** | — | `screens/quests/ServerMissions.jsx` | `components/ServerMissions.jsx` |
-| **사진 미션 · 미션 바꾸기 · 처음 취향 질문** | — | `screens/quests/PhotoMission.jsx`, `MissionReplacement.jsx`, `MissionPreferences.jsx` | `components/PhotoMission.jsx`, `MissionReplacement.jsx`, `MissionPreferences.jsx` |
-| **보상 표시 (코인·XP 스티커, 받은 보상)** | — | `components/QuestRewards.jsx`, `RewardPanel.jsx` | `components/QuestRewards.jsx`, `RewardPanel.jsx` |
-| **홈의 오늘의 도전 요약 · 끌어올리는 시트** | — | `screens/home/HomeScreen.jsx` | `screens/Home.jsx` |
-| **테스트** | `tests/test_missions.py`, `test_reroll.py`, `test_api.py` | — | — |
-
-서버 없이 쓰는 **개발용 미리보기**의 기기 안 미션은 `shared/`에 있다: `shared/data/missions.js`(미션 목록), `shared/features/dailyMissions.js`(데일리·일기·바꾸기), `shared/features/missionGuidance.js`(취향 추천·완료 기준), `shared/features/missionPhotos.js`, `shared/features/levelProgression.js`. 테스트는 같은 폴더의 `*.test.js`. 설계 근거는 [QUEST_DESIGN.md](QUEST_DESIGN.md), 규칙 한눈에 보기는 [docs/GAME_RULES.md](docs/GAME_RULES.md).
+퀘스트 코드가 어느 파일에 있는지(서버·앱·웹)는 [FEATURES.md — 퀘스트 파일 위치](FEATURES.md#퀘스트-파일-위치).
 
 #### 사진 · 걸음 (확인되는 행동)
 
@@ -209,7 +189,7 @@
 
 | 기능 | 어떻게 | 파일 |
 |---|---|---|
-| **일기** | 하루 한 편(서울 날짜), 기분 이모지, 지운 날은 다시 못 씀. 주제 50개를 사용자마다 섞어 날짜순으로 하나씩 → 50일 동안 겹치지 않음. 글 내보내기 | `backend/app/diary.py`, `diary_topics.json` |
+| **일기** | 하루 한 편(서울 날짜), 기분 이모지, 지워도 그날 다시 쓸 수 있음(보상은 한 번만). 주제 50개를 사용자마다 섞어 날짜순으로 하나씩 → 50일 동안 겹치지 않음. 글 내보내기 | `backend/app/diary.py`, `diary_topics.json` |
 | **위기 표현 확인** | 일기·미션 글에서 위기 표현 사전(출처·위험도 포함 103개)과 맞춰 봄. high는 바로 상담 안내(109), medium은 캐릭터 안부, low는 기록만. **진단이 아니라 도움을 건네는 장치**, 글 내용은 저장하지 않음 | `backend/app/crisis.py`, `crisis_lexicon.json` |
 | **도움받을 곳** | 일기·설정에서 상담 기관 안내를 언제든 | `HelpResources.jsx` |
 | **사진첩** | 미션으로 올린 사진을 달·미션 이름과 함께 | `GET /album` |

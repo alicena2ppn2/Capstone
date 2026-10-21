@@ -2,7 +2,7 @@ import { recommendMissions, eligibleMission, missionMode, missionCriterion } fro
 import { DAILY_CHALLENGES, ensureChallenges } from './challenges.js';
 import { grantMilestone } from './game.js';
 import { seoulDateKey } from '../utils/seoulDate.js';
-import { hasJournal, journalDates, saveJournal, deleteJournal, JOURNAL_EMOTIONS, deletedJournal } from './journal.js';
+import { hasJournal, journalDates, saveJournal, deleteJournal, JOURNAL_EMOTIONS } from './journal.js';
 
 export const ROUTINES = [
   { id: 'day-attendance', name: '출석하기', kind: 'attendance', icon: '☀', action: '출석하기' },
@@ -119,10 +119,8 @@ export function replaceDailyMission(game,id,day=seoulDateKey(),options={}) {
   const started=(game.started??[]).filter(key=>key!==keyFor(day,id)&&key!==keyFor(day,next.id));
   return {...game,started,dailyMissions:{...game.dailyMissions,[day]:{...plan,activities:plan.activities.map(a=>a.id===id?{...a,id:next.id,criterion:next.criterion,reason:'지금 조건에 맞는 다른 활동이에요.'}:a),paused:(plan.paused??[]).filter(q=>q!==id),passed,replacements:[...(plan.replacements??[]),{id,replacement:next.id,reason:'different',revisited:!!options?.revisit,slot:current.slot,criterion:missionCriterion(game,current,day),mode:missionMode(game,current,day)}]}}};
 }
-// 지운 날의 일기는 다시 쓸 수 없다 (서버 규칙과 같게, 10/19)
-export const DIARY_DELETED_MESSAGE = '지운 날의 일기는 다시 쓸 수 없어요.';
+// 지운 날에도 다시 쓸 수 있다 (서버 규칙과 같게, 10/21). 보상은 recordRoutine이 하루 한 번만
 export function saveDiaryMission(game,date,text,now=new Date(),emotion) {
-  if (deletedJournal(game, date)) return game;
   if (date !== seoulDateKey(now) || typeof text !== 'string' || !text.trim() || (emotion !== undefined && !JOURNAL_EMOTIONS.some(e=>e.id===emotion))) return game;
   if (journalDates(game).includes(date)) game = recordRoutine(game,'day-diary',date,{legacy:true});
   const saved=saveJournal(game,date,text,now,emotion);

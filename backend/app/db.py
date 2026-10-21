@@ -117,7 +117,7 @@ CREATE TABLE IF NOT EXISTS guestbook_likes (  -- 방명록 좋아요: 한 사람
     created_at  TEXT NOT NULL DEFAULT (datetime('now')),
     PRIMARY KEY (entry_id, user_id)
 );
-CREATE TABLE IF NOT EXISTS diary_deleted (    -- 지운 일기 날짜: 그날은 다시 쓸 수 없다 (앱과 같은 규칙)
+CREATE TABLE IF NOT EXISTS diary_deleted (    -- 10/21부터 안 씀 (지운 날도 다시 쓸 수 있음). 예전 DB 호환으로 표만 남김
     user_id     TEXT NOT NULL,
     date        TEXT NOT NULL,
     deleted_at  TEXT NOT NULL DEFAULT (datetime('now')),
@@ -758,17 +758,10 @@ def save_diary(conn, user_id: str, date: str, text: str, topic_id: str | None, m
 
 
 def delete_diary(conn, user_id: str, date: str) -> bool:
-    """일기를 지우고 그날을 '지운 날'로 남긴다. 지웠으면 True."""
+    """일기를 지운다. 지웠으면 True. 그날 다시 쓸 수 있다 (10/21, 보상은 장부로 한 번만)."""
     cur = conn.execute("DELETE FROM diary WHERE user_id = ? AND date = ?", (user_id, date))
-    if cur.rowcount:
-        conn.execute("INSERT OR IGNORE INTO diary_deleted (user_id, date) VALUES (?, ?)", (user_id, date))
     conn.commit()
     return cur.rowcount == 1
-
-
-def diary_deleted(conn, user_id: str, date: str) -> bool:
-    row = conn.execute("SELECT 1 FROM diary_deleted WHERE user_id = ? AND date = ?", (user_id, date)).fetchone()
-    return row is not None
 
 
 def _diary_row(row) -> dict:
