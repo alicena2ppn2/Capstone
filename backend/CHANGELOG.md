@@ -5,6 +5,13 @@
 
 ---
 
+## 2026-10-20 — 앱 아이콘, .env 커밋 막기
+
+**브랜치** `app-icon`
+
+- 앱 아이콘을 모찌 캐릭터 그림으로 (`mobile/assets/icon.png`, 사용자가 넣은 파일). `app.json`에 `ITSAppUsesNonExemptEncryption: false`(사용자 수정, TestFlight·App Store 수출 규정 질문 생략)
+- `mobile/.env`가 git 무시 목록에 없어 커밋될 수 있었음 → 맨 위 `.gitignore`에 `.env`·`.env.*`(예시 `.env.example`만 허용)
+
 ## 2026-10-20 — 퀘스트 파일 위치 표를 FEATURES.md로
 
 **브랜치** `quest-files-to-features`
