@@ -36,7 +36,7 @@ export default function ServerMissions({ userId, onChanged, onAttendance, onDiar
     catch (e) { if (mounted.current) setError(e.message); }
   }, [userId]);
   useEffect(() => { void load(); }, [load]);
-  useEffect(() => { if (!toast) return undefined; const timer = setTimeout(() => setToast(null), 2200); return () => clearTimeout(timer); }, [toast]);
+  useEffect(() => { if (!toast) return undefined; const timer = setTimeout(() => setToast(null), toast.reaction ? 3200 : 2200); return () => clearTimeout(timer); }, [toast]);
   const run = async (id, job) => {
     if (busy) return; setBusy(id); setNotes(value => ({ ...value, [id]: '' }));
     try { const result = await job(); if (result?.earned_total !== undefined) setToast(result); await load(); onChanged?.(); }
@@ -87,7 +87,7 @@ export default function ServerMissions({ userId, onChanged, onAttendance, onDiar
         <p role="status" className="mission-note">{notes[m.id]}</p>
       </>}
     </li>; })}</ol>
-    <div className="quest-toast-region" role="status" aria-live="polite">{toast && <div className="quest-reward-toast"><strong>{toast.earned_total || toast.earned_xp ? '미션 완료!' : '완료했어요!'}</strong>{(toast.earned_total > 0 || toast.earned_xp > 0) && <QuestRewards xp={toast.earned_xp} coins={toast.earned_total} className="quest-toast-reward"/>}</div>}</div>
+    <div className="quest-toast-region" role="status" aria-live="polite">{toast && <div className="quest-reward-toast"><strong>{toast.earned_total || toast.earned_xp ? '미션 완료!' : '완료했어요!'}</strong>{(toast.earned_total > 0 || toast.earned_xp > 0) && <QuestRewards xp={toast.earned_xp} coins={toast.earned_total} className="quest-toast-reward"/>}{toast.reaction?.message && <span>{toast.reaction.message}</span>}</div>}</div>
   </section>
   </>;
 }
