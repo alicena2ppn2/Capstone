@@ -5,6 +5,14 @@
 
 ---
 
+## 2026-10-21 — 앱 방 그림: 창밖 풍경 위치, 달력 요일 글자 겹침
+
+**브랜치** `room-scenery-weekday` (앱 `mobile/src/art/`만, 사용자 요청)
+
+- 창밖 풍경이 창문이 아닌 곳에 그려짐: `HouseDecor.jsx`의 `Scenery`가 방 그림 안에 `<Svg x=124 y=160>`을 넣는 방식이라 iPhone의 react-native-svg가 x·y를 무시함 → `<G transform="translate(124 160)">` + 창문 칸(120×170) 자르기(ClipPath)로. 웹은 그대로
+- 홈 달력 '수요일'의 '수'·'요'가 겹쳐 보임: `RoomTimeProps.jsx`에서 요일 세 글자를 12 간격으로 한 글자씩 그림
+- 확인: `npx expo export -p ios` 번들 성공. 실제 화면은 다음 iPhone 빌드에서
+
 ## 2026-10-20 — README 순서: 앱 소개 먼저, 문서 표는 맨 아래
 
 **브랜치** `readme-order`
