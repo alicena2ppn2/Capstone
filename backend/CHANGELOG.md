@@ -5,6 +5,12 @@
 
 ---
 
+## 2026-10-20 — 퀘스트 파일 위치 표를 FEATURES.md로
+
+**브랜치** `quest-files-to-features`
+
+- 개발자용 표(서버·앱·웹 파일 위치)라 README 6-2 미션에서 빼고 FEATURES.md 미션 절 아래로, README에는 링크 한 줄
+
 ## 2026-10-20 — README 순서: 앱 소개 먼저, 문서 표는 맨 아래
 
 **브랜치** `readme-order`
