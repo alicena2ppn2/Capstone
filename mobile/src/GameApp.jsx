@@ -5,7 +5,7 @@ import { saveMissionPreferences } from '../../shared/features/missionGuidance.js
 import BottomNav from './components/BottomNav';
 import { cancelComeback, notificationsAllowed, scheduleComeback } from './notify/comeback';
 import { completePhotoMission } from '../../shared/features/missionPhotos.js';
-import { continueJournalDraft, deletedJournal } from '../../shared/features/journal.js';
+import { continueJournalDraft } from '../../shared/features/journal.js';
 import RewardPanel from './components/RewardPanel';
 import AttendanceCards from './components/AttendanceCards';
 import React, { useEffect, useRef, useState } from 'react';
@@ -26,7 +26,7 @@ import Explore from './screens/Explore';
 import { CHARACTERS, buyCharacter, levelProgress } from '../../shared/features/game.js';
 import { CLOTHES } from '../../shared/data/clothes.js';
 import { seoulDateKey, attendanceWeek } from '../../shared/utils/seoulDate.js';
-import { replaceDailyMission, saveDiaryMission, deleteDiaryMission, DIARY_DELETED_MESSAGE } from '../../shared/features/dailyMissions.js';
+import { replaceDailyMission, saveDiaryMission, deleteDiaryMission } from '../../shared/features/dailyMissions.js';
 import { useServerUserId, useServerGame, shopAsGame, buyItem, equip, placeDecor, moveDecor, checkIn, saveDiary as saveServerDiary, removeDiary as removeServerDiary } from './api/server';
 
 export default function App({ children }) { return <SafeAreaProvider><GameApp>{children}</GameApp></SafeAreaProvider>; }
@@ -89,7 +89,6 @@ function GameApp({ children }) {
   // 일기: 기기에 저장 → 서버에 저장(서버 일기 미션도 완료). 서버 결과를 화면에 알린다 (synced: true·false). 조용히 실패하지 않게 (10/19)
   const saveDiary=async(date,text,emotion)=>{
     if(date!==seoulDateKey()||!text.trim())return {ok:false,message:'당일의 공백 아닌 일기만 저장할 수 있어요.'};
-    if(deletedJournal(state.game,date))return {ok:false,message:DIARY_DELETED_MESSAGE};
     const saved=await commitState(old=>({...old,game:saveDiaryMission(old.game,date,text,new Date(),emotion)}));
     if(!saved.ok)return saved;
     if(!serverUserId)return {...saved,message:'이 기기에 저장했어요.'};

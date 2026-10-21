@@ -59,7 +59,7 @@ API를 직접 눌러 보려면 서버를 켜고 `http://localhost:8000/docs`.
 | 기록(일기) | 오늘의 주제 | `GET /users/{id}/diary/topic` |
 | 기록(일기) | 쓰기·고치기 | `PUT /users/{id}/diary/{YYYY-MM-DD}` `{text, use_topic, mood, photos}` → 일기 미션 자동 완료 |
 | 기록(일기) | 목록 | `GET /users/{id}/diary?from=…&to=…` |
-| 기록(일기) | 지우기 | `DELETE /users/{id}/diary/{YYYY-MM-DD}` — 지운 날에 다시 쓰면 409 "지운 날의 일기는 다시 쓸 수 없어요." (앱 `deletedJournal`과 같음) |
+| 기록(일기) | 지우기 | `DELETE /users/{id}/diary/{YYYY-MM-DD}` — 지운 날에도 `PUT`으로 다시 쓸 수 있음. 일기 미션 보상은 그날 한 번만 (10/21) |
 | 이웃 방문 | 놀러 갈 방 추천 (내 레벨과 가까운 순) | `GET /users/{id}/rooms/recommended` → `{my_level, rooms: [{id, nickname, level, level_diff, similar}]}`. `similar`(레벨 차이 2 이내)면 "나와 비슷한 레벨" 표시 |
 | 이웃 방문 | 놀러 가기 | `POST /users/{방주인}/visits` `{visitor_id: 내 id}` → 방문 미션 자동 완료 |
 | 이웃 방문 | 내 방에 온 친구 | `GET /users/{id}/visits` |
