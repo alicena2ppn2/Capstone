@@ -211,7 +211,7 @@
 |---|---|---|
 | **장소 목록·거리** | '내 위치로 보기'를 눌렀을 때만 위치 권한(`expo-location`, 앱 사용 중만) → 서버가 하버사인 공식으로 거리를 계산해 **가까운 순**. 위치는 거리 계산에만 쓰고 저장하지 않음 | `GET /places?lat=&lng=`, `backend/app/places.py`, `mobile/src/screens/Explore.jsx` |
 | **지도** | `react-native-maps` — iPhone은 Apple 지도, Android는 Google 지도. 장소를 핀으로 | `mobile/src/screens/explore/PlaceMap.native.jsx` |
-| **장소 쪽지** | 장소마다 140자 쪽지 + 종이 색·스티커. **읽기는 어디서나, 남기기는 장소 근처에서만**(서울도서관 60m · 서울광장 80m · 남산공원 300m, 위치 오차 50m 넘으면 판정 안 함). 앱과 서버가 같은 거리 판정, 방명록과 같은 욕설 필터·신고·차단 | `POST /places/{id}/notes`, `backend/app/data/places.json`, `mobile/src/screens/explore/PlaceNotes.jsx` |
+| **장소 쪽지** | 장소마다 140자 쪽지 + 종이 색·스티커. **읽기는 어디서나, 남기기는 장소 근처에서만**(서울 21곳: 공원·한강공원 반경 300~600m, 대학 캠퍼스 250~400m, 도서관 60~150m, 위치 오차 50m 넘으면 판정 안 함). 앱과 서버가 같은 거리 판정, 방명록과 같은 욕설 필터·신고·차단 | `POST /places/{id}/notes`, `backend/app/data/places.json`, `mobile/src/screens/explore/PlaceNotes.jsx` |
 
 #### 알림
 
