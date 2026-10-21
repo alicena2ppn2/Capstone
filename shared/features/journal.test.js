@@ -49,7 +49,8 @@ test('당일 삭제·재작성은 가능하고 날짜 경계와 중복 보상은
  assert.equal(hasJournal(pastDeleted,'2026-10-07'),false);
  assert.deepEqual(journalDates(pastDeleted),['2026-10-07']);
  const selected = selectChallenge(deleted, 'day-diary', '2026-10-07');
- assert.equal(completeQuest(selected, 'day-diary', now, '다시'), selected);
+ const done = completeQuest(selected, 'day-diary', now, '다시');   // 10/21: 지운 날도 다시 쓸 수 있음, 완료는 한 번만
+ assert.equal(completeQuest(done, 'day-diary', now, '또'), done);
  const restored = JSON.parse(JSON.stringify(deleted));
  assert.equal(saveJournal(restored, '2026-10-07', '다시', now).journals['2026-10-07'], '다시');
  assert.equal(saveJournal(restored, '2026-10-07', '지난 날', new Date('2026-10-07T15:00:00Z')), restored);

@@ -33,13 +33,15 @@ def test_like_blocked_author_and_cleanup(client):
 
 # --- 일기 삭제 ---------------------------------------------------------------------
 
-def test_delete_diary_blocks_rewrite(client):
+def test_delete_diary_then_rewrite(client):
     client.put("/users/u1/diary/2026-10-05", json={"text": "지울 일기"})
     assert client.delete("/users/u1/diary/2026-10-05").json() == {"deleted": "2026-10-05"}
     assert client.get("/users/u1/diary/2026-10-05").status_code == 404
-    r = client.put("/users/u1/diary/2026-10-05", json={"text": "다시 쓰기"})
-    assert r.status_code == 409 and r.json()["detail"] == "지운 날의 일기는 다시 쓸 수 없어요."
     assert client.delete("/users/u1/diary/2026-10-05").status_code == 404
+    # 10/21: 지운 날도 다시 쓸 수 있다
+    r = client.put("/users/u1/diary/2026-10-05", json={"text": "다시 쓰기"})
+    assert r.status_code == 200 and client.get("/users/u1/diary/2026-10-05").json()["text"] == "다시 쓰기"
+    client.delete("/users/u1/diary/2026-10-05")
     assert client.delete("/users/u1/diary/2026-10-06").status_code == 404
     # 다른 날은 그대로 쓸 수 있음, 내보내기에도 지운 날은 없음
     client.put("/users/u1/diary/2026-10-06", json={"text": "남은 일기"})
@@ -47,7 +49,7 @@ def test_delete_diary_blocks_rewrite(client):
     assert "남은 일기" in text and "지울 일기" not in text
 
 
-def test_deleted_day_blocks_diary_mission_and_keeps_reward(client):
+def test_rewrite_after_delete_keeps_reward_once(client):
     day_ = "2026-10-05"
     client.get("/users/u1/missions/today", params={"date": day_})
     done = client.put(f"/users/u1/diary/{day_}", json={"text": "오늘 기록"}).json()
@@ -55,5 +57,8 @@ def test_deleted_day_blocks_diary_mission_and_keeps_reward(client):
     assert any(e["id"] == "diary" for e in done["earned"])
     client.delete(f"/users/u1/diary/{day_}")
     assert client.get("/users/u1/coins").json()["coins"] == coins                           # 받은 보상은 그대로
+    again = client.put(f"/users/u1/diary/{day_}", json={"text": "다시 쓴 기록"})            # 10/21: 다시 쓸 수 있음
+    assert again.status_code == 200 and again.json()["earned"] == []                       # 보상은 두 번 주지 않음
     r = client.post("/users/u1/missions/diary/complete", params={"date": day_}, json={"text": "다시"})
-    assert r.status_code == 409
+    assert r.status_code == 200 and r.json()["earned"] == []
+    assert client.get("/users/u1/coins").json()["coins"] == coins

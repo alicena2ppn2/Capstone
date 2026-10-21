@@ -5,6 +5,16 @@
 
 ---
 
+## 2026-10-21 — 일기: 지운 날도 다시 쓸 수 있게
+
+**브랜치** `diary-rewrite`
+
+- 서버: `PUT /diary/{date}`·일기 미션 완료의 409("지운 날의 일기는 다시 쓸 수 없어요.") 없앰, 지울 때 `diary_deleted`에 남기지 않음(표는 예전 DB 호환으로 남김)
+- 보상은 그대로 한 번만: 코인 장부(`already_paid`)가 같은 날 같은 미션을 두 번 지급하지 않음. 테스트로 확인(다시 쓰기 200, `earned` 비어 있음, 코인 그대로)
+- 앱·웹 공통(`shared/`): `saveDiaryMission`·`completeQuest`의 막기와 `deletedJournal`·`DIARY_DELETED_MESSAGE` 제거, 앱(`GameApp.jsx`)·웹(`App.jsx`) 저장 전 막기 제거. 기기 보상도 `recordRoutine`·`completed`로 하루 한 번
+- 문서: README·FEATURES·GAME_RULES·backend README·FRONTEND_GUIDE·DATABASE
+- 테스트: 백엔드 277 통과, 앱·공통 134 통과
+
 ## 2026-10-20 — README 순서: 앱 소개 먼저, 문서 표는 맨 아래
 
 **브랜치** `readme-order`
