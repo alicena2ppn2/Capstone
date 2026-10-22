@@ -66,7 +66,7 @@ MY MOCHI의 기능마다 **무엇을 쓰고 어떻게 만들었는지**를 정�
 
 ### 로그인 · 계정
 
-| 기능 | 어떻게 | 파일 |
+| 기능&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; | 어떻게 | 파일 |
 |---|---|---|
 | **Google·카카오 로그인** | Supabase Auth의 OAuth **PKCE** 흐름. 앱은 `expo-web-browser`로 로그인 창을 열고 `capstone-mochi://` 주소로 돌아와 코드를 세션으로 바꿈. 세션은 **SecureStore**(기기 보안 저장소)에 보관 | `mobile/src/auth/supabaseAuthCore.mjs`, `authClient.native.js`, `frontend/src/auth/authClient.js` |
 | **서버 계정 연결** | 로그인 뒤 `POST /auth/supabase` — 서버가 토큰을 Supabase `/auth/v1/user`에 물어 진짜인지 확인 → Supabase 사용자와 서버 사용자 id를 이음. 처음이면 닉네임을 받아 가입 | `backend/app/auth.py`, `shared/auth/authBackendController.mjs` |
@@ -77,7 +77,7 @@ MY MOCHI의 기능마다 **무엇을 쓰고 어떻게 만들었는지**를 정�
 
 ### 미션
 
-| 기능 | 어떻게 | 파일 |
+| 기능&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; | 어떻게 | 파일 |
 |---|---|---|
 | **미션 목록** | 92개를 JSON 한 파일로 관리(데일리 6 + 움직이기·집·찾아보기·기록·이어지기). 미션마다 종류(사진·걸음·글·방문·방명록…), 단계, 팁, 보상 규칙 | `backend/app/data/missions.json` |
 | **오늘의 미션 고르기** | 사용자·날짜로 만든 난수(`random.Random(user:date)`)로 고름 → 같은 날 다시 열어도 같음. 어제 걸음(없으면 설문의 외출 빈도)으로 "안 나간 날 / 나간 날" 조합, 최근에 한 미션은 피함 | `backend/app/missions.py` `pick_missions` |
@@ -109,7 +109,7 @@ MY MOCHI의 기능마다 **무엇을 쓰고 어떻게 만들었는지**를 정�
 
 ### 사진 · 걸음 (확인되는 행동)
 
-| 기능 | 어떻게 | 파일 |
+| 기능&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; | 어떻게 | 파일 |
 |---|---|---|
 | **사진으로 완료** | 앱은 `expo-image-picker`(카메라·앨범)로 고르고 `exif:true`로 촬영 일시를 같이 받음. 서버는 **파일의 EXIF 촬영 일시(DateTimeOriginal)를 먼저** 보고, 없으면 앱이 보낸 시각을 씀 → **미션 날짜(서울 기준)에 찍은 사진만 성공**. 카메라로 막 찍었는데 EXIF가 없으면 찍은 시각을 보냄 | `backend/app/photo_meta.py`, `mobile/src/screens/quests/ServerMissions.jsx` |
 | **사진 개인정보** | 저장 전에 **위치(GPS)·기기 정보 등 메타데이터를 모두 지움**(Pillow로 다시 저장), 방향은 `exif_transpose`로 바로잡고 iPhone HEIC는 JPEG로, 긴 변 1280px. 주소는 추측할 수 없는 무작위 id | `photo_meta.clean_image` |
@@ -118,7 +118,7 @@ MY MOCHI의 기능마다 **무엇을 쓰고 어떻게 만들었는지**를 정�
 
 ### 보상 · 성장 · 상점
 
-| 기능 | 어떻게 | 파일 |
+| 기능&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; | 어떻게 | 파일 |
 |---|---|---|
 | **코인·XP·레벨** | 코인·XP는 **장부(coin_ledger)에 한 줄씩** 쌓고 합계로 계산(되돌리기·중복 방지 쉬움). 레벨 n → n+1에 필요한 XP = 100 + 35×(n−1) (LV.25 누적 12,060) | `db.py`, `missions.level_from_xp` |
 | **경제 밸런스** | 상점 가격은 그대로, 미션 보상을 줄여 "사는 데 며칠 걸리나"로 맞춤 (Habitica 보상 공식·faucet/sink 설계 참고) — 밖 20·집 12·일기 15코인, 50 XP | [backend/ECONOMY.md](backend/ECONOMY.md) |
@@ -131,7 +131,7 @@ MY MOCHI의 기능마다 **무엇을 쓰고 어떻게 만들었는지**를 정�
 
 ### 기록
 
-| 기능 | 어떻게 | 파일 |
+| 기능&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; | 어떻게 | 파일 |
 |---|---|---|
 | **일기** | 하루 한 편(서울 날짜), 기분 이모지, 지워도 그날 다시 쓸 수 있음(보상은 한 번만). 주제 50개를 사용자마다 섞어 날짜순으로 하나씩 → 50일 동안 겹치지 않음. 글 내보내기 | `backend/app/diary.py`, `diary_topics.json` |
 | **위기 표현 확인** | 일기·미션 글에서 위기 표현 사전(출처·위험도 포함 103개)과 맞춰 봄. high는 바로 상담 안내(109), medium은 캐릭터 안부, low는 기록만. **진단이 아니라 도움을 건네는 장치**, 글 내용은 저장하지 않음 | `backend/app/crisis.py`, `crisis_lexicon.json` |
@@ -141,7 +141,7 @@ MY MOCHI의 기능마다 **무엇을 쓰고 어떻게 만들었는지**를 정�
 
 ### 이웃 · 친구
 
-| 기능 | 어떻게 | 파일 |
+| 기능&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; | 어떻게 | 파일 |
 |---|---|---|
 | **이웃 추천** | 최근 7일에 앱을 쓴 사람 중 **내 레벨과 가까운 순**. '다른 이웃 보기'는 가까운 후보(보여 줄 수의 3배) 중 난수로 다른 조합 | `GET /rooms/recommended?refresh=n` |
 | **방문·방명록** | 놀러 가면 TODAY/TOTAL 방문 수가 오르고 방문 미션이 자동 완료. 방명록 60자, 좋아요, 지우기 | `main.py` visits·guestbook |
@@ -151,7 +151,7 @@ MY MOCHI의 기능마다 **무엇을 쓰고 어떻게 만들었는지**를 정�
 
 ### 동네 탐험 (GPS)
 
-| 기능 | 어떻게 | 파일 |
+| 기능&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; | 어떻게 | 파일 |
 |---|---|---|
 | **장소 목록·거리** | '내 위치로 보기'를 눌렀을 때만 위치 권한(`expo-location`, 앱 사용 중만) → 서버가 하버사인 공식으로 거리를 계산해 **가까운 순**. 위치는 거리 계산에만 쓰고 저장하지 않음 | `GET /places?lat=&lng=`, `backend/app/places.py`, `mobile/src/screens/Explore.jsx` |
 | **지도** | `react-native-maps` — iPhone은 Apple 지도, Android는 Google 지도. 장소를 핀으로 | `mobile/src/screens/explore/PlaceMap.native.jsx` |
@@ -159,13 +159,13 @@ MY MOCHI의 기능마다 **무엇을 쓰고 어떻게 만들었는지**를 정�
 
 ### 알림
 
-| 기능 | 어떻게 | 파일 |
+| 기능&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; | 어떻게 | 파일 |
 |---|---|---|
 | **다시 부르기 알림** | `expo-notifications`로 **휴대폰 안에서 예약**(서버 불필요). 앱을 열 때·돌아올 때마다 예약을 지우고 2·4·7일 뒤 저녁 7시로 다시 잡음 → 계속 오는 사람에게는 안 울림. 친구 이름 + 받침에 맞는 조사(이/가) | `mobile/src/notify/` |
 
 ### 개발 · 운영
 
-| 기능 | 어떻게 | 파일 |
+| 기능&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; | 어떻게 | 파일 |
 |---|---|---|
 | **비밀 값 보호** | `.githooks/pre-commit`이 `.env`, Supabase secret·service_role 키, 개인 키, JWT, `backend/.env`의 실제 값이 커밋에 들어가면 막음 | `.githooks/pre-commit` |
 | **시연 데이터** | 주인공 demo-mochi(3주 회복 이야기)와 이웃 3명을 만들어 줌 | `backend/scripts/seed_demo.py` |
