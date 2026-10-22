@@ -99,7 +99,7 @@ const ds = StyleSheet.create({
   tabOn: { backgroundColor: colors.surface, shadowColor: '#000', shadowOpacity: .08, shadowRadius: 4, shadowOffset: { width: 0, height: 1 }, elevation: 1 },
   tabText: { fontFamily: 'A2z-500', fontSize: 14, color: colors.muted }, tabTextOn: { color: colors.primary, fontFamily: 'A2z-600' },
   today: { gap: 10, backgroundColor: colors.primarySoft, borderColor: colors.primarySoft },
-  todayDate: { fontFamily: 'A2z-600', fontSize: 22, color: colors.ink },
+  todayDate: { fontFamily: 'A2z-600', fontSize: 22, lineHeight: 30, paddingTop: 4, color: colors.ink },   // 기본 줄 높이(22)면 글자 위가 잘림
   item: { flexDirection: 'row', alignItems: 'center', gap: 12, paddingVertical: 12 },
   dateBox: { width: 52, alignItems: 'center', paddingVertical: 6, borderRadius: 12, backgroundColor: colors.primarySoft },
   dateMonth: { fontSize: 11, color: colors.primary }, dateDay: { fontFamily: 'A2z-600', fontSize: 22, lineHeight: 26, color: colors.primary }, dateWeek: { fontSize: 11, color: colors.muted },
@@ -111,7 +111,7 @@ const ds = StyleSheet.create({
   dayCell: { width: 42, height: 46, borderRadius: 14, alignItems: 'center', justifyContent: 'center' },
   dayDone: { backgroundColor: colors.primarySoft }, dayToday: { borderWidth: 2, borderColor: colors.primary },
   dayNum: { fontSize: 14, color: colors.ink }, dayNumDone: { color: colors.primary, fontFamily: 'A2z-600' }, stamp: { fontSize: 12, lineHeight: 14 },
-  entryDate: { fontFamily: 'A2z-600', fontSize: 22, color: colors.ink },
+  entryDate: { fontFamily: 'A2z-600', fontSize: 22, lineHeight: 30, paddingTop: 4, color: colors.ink },   // 기본 줄 높이(22)면 글자 위가 잘림
   notice: { gap: 8, padding: 12, borderRadius: 14, backgroundColor: colors.warningSoft },
   prompt: { gap: 4, padding: 14, borderRadius: 16, backgroundColor: colors.primarySoft },
   promptCaption: { fontSize: 12, color: colors.primary, fontFamily: 'A2z-500' }, promptText: { fontFamily: 'A2z-500', fontSize: 16, lineHeight: 24, color: colors.ink },
