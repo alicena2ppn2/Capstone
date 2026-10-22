@@ -161,6 +161,18 @@ def test_delete_account_also_deletes_login_account(client, monkeypatch):
     assert auth.delete_login_account("sb-x") == "failed"
 
 
+def test_admin_key_headers_by_kind(monkeypatch):
+    """새 방식 secret 키(sb_secret_…)는 apikey 헤더만, 예전 service_role 키(JWT)는 Bearer도 같이."""
+    from app import auth
+    monkeypatch.setenv("SUPABASE_URL", "https://example.supabase.co")
+    sent = []
+    monkeypatch.setattr(auth.httpx, "delete", lambda url, headers, timeout: sent.append(headers) or FakeResponse(204, {}))
+    for key in ("sb_secret_test-only", "eyJ.test-only"):
+        monkeypatch.setenv("SUPABASE_SERVICE_ROLE_KEY", key)
+        assert auth.delete_login_account("sb-x") == "deleted"
+    assert sent == [{"apikey": "sb_secret_test-only"}, {"Authorization": "Bearer eyJ.test-only", "apikey": "eyJ.test-only"}]
+
+
 def test_backup_admin_only(client, monkeypatch):
     """배포 서버 DB 백업: 관리자 토큰이 있어야만, 받은 파일은 그대로 열리는 SQLite"""
     done_mission(client)
