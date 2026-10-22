@@ -312,6 +312,21 @@ def check_taken_today(conn, photo_ids: list[str], today: Date) -> None:
             raise HTTPException(422, NOT_TODAY_MESSAGE)
 
 
+def check_photo_content(conn, photo_ids: list[str], mission_id: str) -> dict | None:
+    """사진 미션: 사진 인식(vision.judge)으로 확실히 다른 사진이면 422, 맞아 보이면 반응을 돌려준다."""
+    reaction = None
+    for photo_id in photo_ids:
+        row = db.get_photo(conn, photo_id)
+        path = upload_dir() / row["filename"] if row else None
+        if path is None or not path.exists():
+            continue
+        verdict = vision.judge(path.read_bytes(), mission_id)
+        if not verdict["ok"]:
+            raise HTTPException(422, verdict["message"])
+        reaction = reaction or verdict["reaction"]
+    return reaction
+
+
 def screen_text(conn, user_id: str, today: Date, source: str, text: str) -> dict | None:
     """사용자가 쓴 글에서 위기 신호를 찾아 기록하고, 사용자에게 보낼 반응(care)을 돌려준다.
 
@@ -585,7 +600,7 @@ def reroll_mission(user_id: str, mission_id: str, date: str | None = DateQuery, 
 
 @app.post("/users/{user_id}/missions/{mission_id}/photo",
           summary="사진 미션 한 번에: 사진 올리기 + 완료 (multipart file, 선택 taken_at). 미션 날짜에 찍은 사진이어야 성공. "
-                  "reaction: 사진이 미션과 맞아 보이면 {label, message} (사진 인식, 없으면 null — 완료·보상과 상관없음)")
+                  "사진 인식: 미션과 확실히 다른 사진(화면 캡처·다른 미션 장면)이면 422, 맞아 보이면 reaction {label, message}")
 async def complete_with_photo(user_id: str, mission_id: str, file: UploadFile = File(...),
                               taken_at: str | None = Form(None, description="파일에 EXIF가 없을 때 앱이 아는 촬영 일시"),
                               answer: str | None = Form(None), date: str | None = DateQuery, conn=Depends(get_conn)):
@@ -596,11 +611,15 @@ async def complete_with_photo(user_id: str, mission_id: str, file: UploadFile = 
     if mission["kind"] != "photo":
         raise HTTPException(422, "사진으로 끝내는 미션이 아니에요.")
     photo = await save_photo(conn, user_id, file, taken_at, today.isoformat())
-    result = complete_mission(user_id, mission_id, CompleteIn(photos=[photo["photo_id"]], answer=answer),
-                              date=today.isoformat(), conn=conn)
-    saved = next(upload_dir().glob(photo["photo_id"] + ".*"))
-    reaction = await run_in_threadpool(vision.react, saved.read_bytes(), mission_id)   # CPU 작업이라 다른 요청을 막지 않게
-    return {**result, "photo": photo, "reaction": reaction}
+    try:   # 사진 인식이 CPU를 쓰므로 다른 요청을 막지 않게 스레드에서
+        result = await run_in_threadpool(complete_mission, user_id, mission_id,
+                                         CompleteIn(photos=[photo["photo_id"]], answer=answer), today.isoformat(), conn)
+    except HTTPException:   # 날짜·사진 인식에서 실패한 사진은 사진첩에 남기지 않는다
+        filename = db.delete_photo(conn, user_id, photo["photo_id"])
+        if filename:
+            (upload_dir() / filename).unlink(missing_ok=True)
+        raise
+    return {**result, "photo": photo}
 
 
 @app.get("/users/{user_id}/ladder", summary="단계 사다리: 움직이기·이어지기 지금 단계(1 혼자 · 2 한 명 · 3 여럿)와 다음 단계까지 남은 횟수")
@@ -617,12 +636,14 @@ def complete_mission(user_id: str, mission_id: str, body: CompleteIn, date: str 
         raise HTTPException(404, f"오늘의 미션이 아닙니다: {mission_id}")
 
     submission = body.model_dump(exclude_none=True)
+    reaction = None
     if mission["kind"] == "steps":
         # 걸음 미션은 사용자가 입력하지 않고 서버에 올라온 걸음으로 판정한다.
         submission = {"steps": db.get_steps(conn, user_id, today.isoformat()) or 0}
     if mission["kind"] == "photo":
         submission["photos"] = check_photos(conn, user_id, submission.get("photos"))
         check_taken_today(conn, submission["photos"], today)
+        reaction = check_photo_content(conn, submission["photos"], mission_id)   # 사진 인식: 확실히 다르면 422
     if mission["kind"] == "visit":
         # 방문 미션은 사용자가 입력하지 않고 서버 기록으로 확인한다.
         submission = {"visited": db.visited_someone(conn, user_id, today.isoformat())}
@@ -653,7 +674,8 @@ def complete_mission(user_id: str, mission_id: str, body: CompleteIn, date: str 
     settle = finish_and_pay(conn, user_id, today, day_, mission_id, submission)
     after = ladder(conn, user_id)
     stage_up = [t for t in after if after[t]["stage"] > before[t]["stage"]]   # 이번 완료로 다음 단계가 열린 갈래
-    return {"mission_id": mission_id, **rewards(conn, user_id, settle), "care": care, "ladder": after, "stage_up": stage_up}
+    return {"mission_id": mission_id, **rewards(conn, user_id, settle), "care": care, "ladder": after, "stage_up": stage_up,
+            "reaction": reaction}
 
 
 # --- 미션 소감 ---------------------------------------------------------------------
