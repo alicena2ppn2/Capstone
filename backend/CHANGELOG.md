@@ -5,6 +5,15 @@
 
 ---
 
+## 2026-10-22 — Railway 보안 사고 대응: Supabase 관리자 키 바꾸기 준비
+
+**브랜치** `supabase-secret-key`
+
+- Railway 플랫폼 장애·보안 사고(10/21 08:28 UTC부터 모든 빌드 중지, Railway에 넣은 환경변수를 모두 바꾸라고 권고). 우리 Railway 변수 중 위험한 건 `SUPABASE_SERVICE_ROLE_KEY`(Supabase 관리자 키) → 사용자가 Supabase에서 새 secret 키로 바꾸고 Railway 변수도 바꿈
+- `auth.delete_login_account`: 새 방식 secret 키(`sb_secret_…`)는 JWT가 아니라 `apikey` 헤더로만 보내고, 예전 service_role 키(JWT)는 지금처럼 Bearer도 같이
+- 빌드가 멈춰 #93·#94와 이 변경은 Railway 빌드가 다시 열린 뒤 배포됨. 그때까지 서버는 #92 버전(사진은 날짜만 확인, CLIP은 반응만)
+- 테스트: 키 종류별 헤더 → 백엔드 284 통과
+
 ## 2026-10-21 — 앱 일기 화면: 날짜 글자 위가 잘림
 
 **브랜치** `diary-date-clip` (앱 `mobile/src/screens/Diary.jsx`만, 사용자 요청)

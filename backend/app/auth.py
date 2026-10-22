@@ -61,8 +61,9 @@ def delete_login_account(supabase_id: str | None) -> str:
     if not url or not key:
         return "not_configured"
     try:
-        r = httpx.delete(f"{url.rstrip('/')}/auth/v1/admin/users/{supabase_id}",
-                         headers={"Authorization": f"Bearer {key}", "apikey": key}, timeout=TIMEOUT)
+        # 새 방식 secret 키(sb_secret_…)는 JWT가 아니라 apikey 헤더로만, 예전 service_role 키(eyJ…)는 Bearer도 같이
+        headers = {"apikey": key} if key.startswith("sb_") else {"Authorization": f"Bearer {key}", "apikey": key}
+        r = httpx.delete(f"{url.rstrip('/')}/auth/v1/admin/users/{supabase_id}", headers=headers, timeout=TIMEOUT)
     except httpx.HTTPError:
         return "failed"
     return "deleted" if r.status_code in (200, 204, 404) else "failed"   # 404 = 이미 없음

@@ -81,7 +81,7 @@
 
 ## 4. 규모
 
-서버 API 70개 · 미션 91개(데일리 5 + 바뀌는 86) · 일기 주제 50개 · 상점 친구 12 · 옷 9 · 집 꾸미기 46 · 테스트 백엔드 283개 · 앱·공통 134개
+서버 API 70개 · 미션 91개(데일리 5 + 바뀌는 86) · 일기 주제 50개 · 상점 친구 12 · 옷 9 · 집 꾸미기 46 · 테스트 백엔드 284개 · 앱·공통 134개
 
 ## 5. 폴더 및 실행
 
@@ -144,7 +144,7 @@
 | 사진 인식 | **onnxruntime** + CLIP ViT-B/32 | 사진이 미션과 맞는지 확인 + 반응 (오픈소스 모델, 서버 안에서) |
 | HTTP | httpx | Supabase 토큰 확인·계정 삭제 |
 | 데이터 분석 | pandas, numpy, openpyxl, Jupyter | 합성 데이터·SK 통신인구·신한카드 분석 (`data/`) |
-| 테스트 | **pytest** (백엔드 283개), Node `node --test` (공통 134개), ESLint | `backend/tests/`, `shared/**/*.test.js` |
+| 테스트 | **pytest** (백엔드 284개), Node `node --test` (공통 134개), ESLint | `backend/tests/`, `shared/**/*.test.js` |
 | 앱 | **Expo** (Router, Image Picker, Notifications, Secure Store, Web Browser, Clipboard, Build Properties), React Native, react-native-svg, AsyncStorage | `mobile/` |
 | 앱 건강 | @kingstinct/react-native-healthkit + react-native-nitro-modules, react-native-health-connect | 걸음 수 (`mobile/src/health/`) |
 | 앱 위치·지도 | **expo-location**, **react-native-maps** (iPhone Apple 지도 · Android Google 지도) | 동네 탐험 (`mobile/src/screens/Explore.jsx`, `explore/`) |
