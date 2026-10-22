@@ -19,7 +19,8 @@
 **브랜치** `remove-lecture-pdf` (사용자 요청)
 
 - 저장소를 공개로 돌리기 전 검사: 커밋 316개 전체에 비밀 키·`.env`·DB·업로드 사진 없음
-- `frontend/src/refe/WEEK6_멀티모달_심화.pdf`(수업 발표 자료, 12MB, 코드에서 안 씀) 삭제. 예전 커밋 기록에는 남아 있음
+- `frontend/src/refe/WEEK6_멀티모달_심화.pdf`(수업 발표 자료, 12MB, 코드에서 안 씀) 삭제
+- 같은 날 git 기록 전체에서도 뺌: `git filter-repo --invert-paths`로 다시 쓰고 브랜치 3개·태그 2개 force push(작업 전 mirror 백업). 커밋 해시가 바뀌어 팀원은 저장소를 새로 clone. GitHub PR 기록(refs/pull)에 남은 예전 커밋은 지원 요청 안 함(사용자 결정)
 - 남은 확인거리: `frontend/src/refe/poc5.jpg`(Cartoon Network 그림), 빅콘테스트 데이터 가공 결과(`data/output/*.csv`, 신한카드 노트북 출력)
 
 ## 2026-10-21 — 앱 일기 화면: 날짜 글자 위가 잘림
