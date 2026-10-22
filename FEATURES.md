@@ -50,7 +50,7 @@ MY MOCHI의 기능마다 **무엇을 쓰고 어떻게 만들었는지**를 정�
 | 이미지 | **Pillow**, pillow-heif | 촬영 일시(EXIF) 읽기, 위치 정보 지우기, HEIC → JPEG |
 | 사진 인식 | **onnxruntime** + CLIP ViT-B/32 | 사진이 미션과 맞는지 확인 + 반응 (오픈소스 모델, 서버 안에서) |
 | HTTP | httpx | Supabase 토큰 확인·계정 삭제 |
-| 데이터 분석 | pandas, numpy, openpyxl, Jupyter | 합성 데이터·SK 통신인구·신한카드 분석 (`data/`) |
+| 데이터 분석 | pandas, numpy, openpyxl, Jupyter | 합성 데이터 분석 (`data/`). 빅콘테스트(SK 통신인구·신한카드) 분석은 데이터 이용 조건상 저장소에 올리지 않음 |
 | 테스트 | **pytest** (백엔드 284개), Node `node --test` (공통 134개), ESLint | `backend/tests/`, `shared/**/*.test.js` |
 | 앱 | **Expo** (Router, Image Picker, Notifications, Secure Store, Web Browser, Clipboard, Build Properties), React Native, react-native-svg, AsyncStorage | `mobile/` |
 | 앱 건강 | @kingstinct/react-native-healthkit + react-native-nitro-modules, react-native-health-connect | 걸음 수 (`mobile/src/health/`) |
