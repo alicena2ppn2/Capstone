@@ -31,13 +31,14 @@ MY MOCHI의 기능마다 **무엇을 쓰고 어떻게 만들었는지**를 정�
 앱: 카메라·앨범으로 사진 → POST /users/{id}/missions/{미션}/photo
 서버: ① 오늘 찍은 사진인지 (EXIF 촬영 일시, 없으면 앱이 보낸 시각)
       ② 위치(GPS)·기기 정보 지우고 긴 변 1280px JPEG로 저장 (photo_meta.py)
-      ③ 미션 완료 · 코인·XP 지급
-      ④ 사진 인식 (vision.py): CLIP(오픈소스) 이미지 모델로 이름표 42개와 비교
+      ③ 사진 인증 (vision.py): CLIP(오픈소스) 이미지 모델로 이름표 42개와 비교
+         → 화면 캡처·문서·다른 미션 장면이 확실하면 실패(422, 사진도 지움)
          → 그 미션의 이름표(하늘·노을·빵·고양이…)가 가장 비슷하면 reaction 한 줄
+      ④ 미션 완료 · 코인·XP 지급
 앱: 완료 토스트 "미션 완료! +20코인" + "오늘 하늘이 잘 담겼어요!"
 ```
 
-- **사진 인식은 반응만**: 안 맞거나 실패해도 ③ 완료·보상은 그대로. 인식이 틀릴 수 있어 인증에는 쓰지 않는다
+- **확실히 다를 때만 실패**: 인식이 틀려 제대로 찍은 사람이 실패하지 않게, 애매하면 통과. 모델이 없거나 에러가 나도 통과
 - **서버 안에서만**: 외부 API 없음. 모델(89MB)은 Docker 빌드 때 받고, 글 쪽 벡터는 미리 계산해 둠(`data/clip_text.npy`) → 사진 한 장 0.1~0.3초, 메모리 약 125MB
 
 ## 1. 사용한 도구
@@ -47,7 +48,7 @@ MY MOCHI의 기능마다 **무엇을 쓰고 어떻게 만들었는지**를 정�
 | 서버 | **FastAPI**, Uvicorn, Pydantic | API 70개, 요청 검사 (`backend/app/main.py`) |
 | DB | **SQLite** (파이썬 내장 `sqlite3`) | 사용자·미션·코인 장부·사진·일기·방명록 등 28개 표 (`backend/app/db.py`, [DATABASE.md](backend/DATABASE.md)) |
 | 이미지 | **Pillow**, pillow-heif | 촬영 일시(EXIF) 읽기, 위치 정보 지우기, HEIC → JPEG |
-| 사진 인식 | **onnxruntime** + CLIP ViT-B/32 | 사진 미션 사진에 맞는 반응 (오픈소스 모델, 서버 안에서) |
+| 사진 인식 | **onnxruntime** + CLIP ViT-B/32 | 사진이 미션과 맞는지 확인 + 반응 (오픈소스 모델, 서버 안에서) |
 | HTTP | httpx | Supabase 토큰 확인·계정 삭제 |
 | 데이터 분석 | pandas, numpy, openpyxl, Jupyter | 합성 데이터·SK 통신인구·신한카드 분석 (`data/`) |
 | 테스트 | **pytest** (백엔드 283개), Node `node --test` (공통 134개), ESLint | `backend/tests/`, `shared/**/*.test.js` |
@@ -112,7 +113,7 @@ MY MOCHI의 기능마다 **무엇을 쓰고 어떻게 만들었는지**를 정�
 |---|---|---|
 | **사진으로 완료** | 앱은 `expo-image-picker`(카메라·앨범)로 고르고 `exif:true`로 촬영 일시를 같이 받음. 서버는 **파일의 EXIF 촬영 일시(DateTimeOriginal)를 먼저** 보고, 없으면 앱이 보낸 시각을 씀 → **미션 날짜(서울 기준)에 찍은 사진만 성공**. 카메라로 막 찍었는데 EXIF가 없으면 찍은 시각을 보냄 | `backend/app/photo_meta.py`, `mobile/src/screens/quests/ServerMissions.jsx` |
 | **사진 개인정보** | 저장 전에 **위치(GPS)·기기 정보 등 메타데이터를 모두 지움**(Pillow로 다시 저장), 방향은 `exif_transpose`로 바로잡고 iPhone HEIC는 JPEG로, 긴 변 1280px. 주소는 추측할 수 없는 무작위 id | `photo_meta.clean_image` |
-| **사진 인식 (반응)** | 사진 미션 사진을 **CLIP**(OpenAI 오픈소스, MIT · ViT-B/32 ONNX)으로 서버 안에서 봄. 이름표 42개(하늘·노을·고양이·빵·이불… + 셀카·화면 캡처 같은 '아님' 이름표)와 비교해, 가장 비슷한 이름표가 그 미션 것이면 완료 토스트에 반응 한 줄("오늘 하늘이 잘 담겼어요!"). **인증에는 안 씀** — 안 맞아도 완료·보상 그대로. 외부 API 없음, 사진 한 장 0.1~0.3초, 메모리 약 125MB | `backend/app/vision.py`, `backend/app/data/clip_labels.json`, `backend/scripts/fetch_clip.py` |
+| **사진 인식 (인증·반응)** | 사진 미션 사진을 **CLIP**(OpenAI 오픈소스, MIT · ViT-B/32 ONNX)으로 서버 안에서 봄. 이름표 42개(하늘·노을·고양이·빵·이불… + 셀카·화면 캡처 같은 '아님' 이름표)와 비교해, 화면 캡처·문서·다른 미션 장면이 **확실할 때만 완료를 막고**(애매하면 통과), 그 미션 이름표가 가장 비슷하면 완료 토스트에 반응 한 줄("오늘 하늘이 잘 담겼어요!"). 테스트: 진짜 사진 20장 모두 통과, 엉뚱한 미션 72% · 앱 화면 캡처 15장 중 11장 막음. 외부 API 없음, 사진 한 장 0.1~0.3초, 메모리 약 125MB | `backend/app/vision.py`, `backend/app/data/clip_labels.json`, `backend/scripts/fetch_clip.py` |
 | **걸음 수** | iPhone은 **HealthKit**, Android는 **Health Connect**에서 하루 걸음 합계만 읽음(쓰지 않음). '걸음 수 연결하기' 한 번 → 권한 → 오늘+지난 7일을 `POST /steps`로. 이후 화면 열 때·'걸음 확인' 전에 자동. 서버가 이 값으로 '어제보다·지난주보다 1,000보 더' 목표를 정함. Expo 플러그인으로 권한 문구·Android 설정 자동 | `mobile/src/health/`, `mobile/app.json` |
 
 ### 보상 · 성장 · 상점
