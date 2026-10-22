@@ -5,6 +5,10 @@
 
 ---
 
+## 2026-10-22 — README: 백엔드 구조 그림 뺌
+
+- 사용자 요청으로 README '백엔드 구조' 절의 `backend-structure.png`를 뺌(글 설명은 그대로, 그림 파일은 `docs/screenshots/`에 남김)
+
 ## 2026-10-22 — 공개 전 정리: 빅콘테스트 데이터 가공 결과 빼기
 
 **브랜치** `remove-bigcontest-data` (사용자 요청)
