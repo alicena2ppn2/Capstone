@@ -1,4 +1,4 @@
-// 이웃·방명록 서버 API (backend/FRONTEND_GUIDE.md "이웃 방문 · 방명록")
+// 이웃·방명록 서버 API (docs/FRONTEND_GUIDE.md "이웃 방문 · 방명록")
 import { call } from './missions.js';
 
 const u = id => encodeURIComponent(id);

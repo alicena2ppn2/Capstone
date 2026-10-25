@@ -17,7 +17,7 @@
 
 - **대상**: 외로움, 오랜만의 만남이 어색함, 집에 있는 시간이 늘어 활동이 줄어든 **비교적 가벼운 단계**. 정신질환·트라우마·심한 우울은 전문 기관의 영역 → 진단·치료·상담을 하지 않고 **도움받을 곳을 안내**한다.
 - **자리**: 심리적 회복 → **(MOCHI)** → 사회적 회복 → 사회적 통합. 상담과 공공 지원 사이의 "작게 움직이고 가볍게 만나는" 단계.
-- **근거** (자세한 표는 [APP_INTRO.md](APP_INTRO.md)):
+- **근거** (자세한 표는 [docs/APP_INTRO.md](docs/APP_INTRO.md)):
   - 외로움이 이후의 우울을 예측한다 (Cacioppo 2010)
   - 활동이 거의 없던 사람이 **조금만 늘려도** 우울 위험이 가장 많이 줄어든다 (Pearce 2022)
   - 하루 1,000보 늘 때마다 우울 위험 9% 낮음 (Bizzozero-Peroni 2024)
@@ -63,7 +63,7 @@
 
 ## 3. 퀘스트 설계
 
-검증된 심리학 개입 방법을 게임으로 옮긴다. 자세한 근거는 [QUEST_DESIGN.md](QUEST_DESIGN.md).
+검증된 심리학 개입 방법을 게임으로 옮긴다. 자세한 근거는 [docs/QUEST_DESIGN.md](docs/QUEST_DESIGN.md).
 
 | 원리 | 근거 | 앱에서 |
 |---|---|---|
@@ -77,7 +77,7 @@
 
 **하루 미션**: 데일리 미션 5개(출석 · 산책하기 · 지난주보다 1,000보 더 걷기 · 일기 쓰기 · 다른 친구 방 놀러 가기) + **오늘의 활동 3개**(움직이기 · 집에서 · 이어지기, 하루 3번 다른 미션으로 바꾸기) + 주간 미션 1개. 미션은 사진(그날 찍은 것), 걸음, 서버가 확인하는 방문, 또는 인사·안부·운동처럼 사진이 어색한 미션은 **"했어요" 체크**로 완료한다. 방명록은 매일 미션이 아니고 원할 때 남긴다.
 
-**보상 원칙**: 밖에 나가는 미션이 가장 크고(20코인) 집 미션(12코인)·스스로 체크(5코인)는 작게, 실패·미완료는 벌점 없음. 상점 가격은 그대로 두고 "사는 데 며칠 걸리나"로 맞췄다 — 소품 1일 · 옷 2~3일 · 친구 2~6일 · 상점 전체 3~4달 ([backend/ECONOMY.md](backend/ECONOMY.md)).
+**보상 원칙**: 밖에 나가는 미션이 가장 크고(20코인) 집 미션(12코인)·스스로 체크(5코인)는 작게, 실패·미완료는 벌점 없음. 상점 가격은 그대로 두고 "사는 데 며칠 걸리나"로 맞췄다 — 소품 1일 · 옷 2~3일 · 친구 2~6일 · 상점 전체 3~4달 ([docs/ECONOMY.md](docs/ECONOMY.md)).
 
 ## 4. 규모
 
@@ -95,11 +95,11 @@
 
 - 개발할 때 `backend/.env`에 `CAPSTONE_AUTH=dev`를 넣으면 로그인 없이 시연 계정(demo-mochi)으로 볼 수 있다. 시연 데이터: `backend/scripts/seed_demo.py`
 
-**배포**: 서버는 Railway(Docker, Volume `/data`에 DB·사진), 앱은 EAS Build로 Android APK·iPhone 설치 파일. 순서는 [backend/DEPLOY.md](backend/DEPLOY.md)·[mobile/README.md](mobile/README.md#설치-파일-만들기--나눠-주기-2026-10-20)
+**배포**: 서버는 Railway(Docker, Volume `/data`에 DB·사진), 앱은 EAS Build로 Android APK·iPhone 설치 파일. 순서는 [docs/DEPLOY.md](docs/DEPLOY.md)·[mobile/README.md](mobile/README.md#설치-파일-만들기--나눠-주기-2026-10-20)
 
 ## 6. 기능별 구현
 
-기능마다 **무엇을 쓰고 어떻게 만들었는지** ([FEATURES.md](FEATURES.md)와 같은 내용).
+기능마다 **무엇을 쓰고 어떻게 만들었는지** ([docs/FEATURES.md](docs/FEATURES.md)와 같은 내용).
 
 ### 6-0. 전체 구조
 
@@ -137,7 +137,7 @@
 | 영역 | 도구 | 쓰는 곳 |
 |---|---|---|
 | 서버 | **FastAPI**, Uvicorn, Pydantic | API 70개, 요청 검사 (`backend/app/main.py`) |
-| DB | **SQLite** (파이썬 내장 `sqlite3`) | 사용자·미션·코인 장부·사진·일기·방명록 등 28개 표 (`backend/app/db.py`, [DATABASE.md](backend/DATABASE.md)) |
+| DB | **SQLite** (파이썬 내장 `sqlite3`) | 사용자·미션·코인 장부·사진·일기·방명록 등 28개 표 (`backend/app/db.py`, [DATABASE.md](docs/DATABASE.md)) |
 | 이미지 | **Pillow**, pillow-heif | 촬영 일시(EXIF) 읽기, 위치 정보 지우기, HEIC → JPEG |
 | 사진 인식 | **onnxruntime** + CLIP ViT-B/32 | 사진이 미션과 맞는지 확인 + 반응 (오픈소스 모델, 서버 안에서) |
 | HTTP | httpx | Supabase 토큰 확인·계정 삭제 |
@@ -178,7 +178,7 @@
 | **소⁠감** | 완료 후 "해 보니 어땠어?" 1~5 이모지 + 한 줄 (행동 활성화) | `PUT /missions/{id}/feedback` |
 | **주⁠간⁠ ⁠미⁠션** | 자연 속 산책 사진, 서로 다른 날 2번 | `missions.py` `WEEKLY_QUESTS` |
 
-퀘스트 코드가 어느 파일에 있는지(서버·앱·웹)는 [FEATURES.md — 퀘스트 파일 위치](FEATURES.md#퀘스트-파일-위치).
+퀘스트 코드가 어느 파일에 있는지(서버·앱·웹)는 [docs/FEATURES.md — 퀘스트 파일 위치](docs/FEATURES.md#퀘스트-파일-위치).
 
 #### ③ 사진 · 걸음 (확인되는 행동)
 
@@ -194,7 +194,7 @@
 | 기⁠능 | 어떻게 | 파일 |
 |---|---|---|
 | **코⁠인⁠·⁠X⁠P⁠·⁠레⁠벨** | 코인·XP는 **장부(coin_ledger)에 한 줄씩** 쌓고 합계로 계산(되돌리기·중복 방지 쉬움). 레벨 n → n+1에 필요한 XP = 100 + 35×(n−1) (LV.25 누적 12,060) | `db.py`, `missions.level_from_xp` |
-| **경⁠제⁠ ⁠밸⁠런⁠스** | 상점 가격은 그대로, 미션 보상을 줄여 "사는 데 며칠 걸리나"로 맞춤 (Habitica 보상 공식·faucet/sink 설계 참고) — 밖 20·집 12·일기 15코인, 50 XP | [backend/ECONOMY.md](backend/ECONOMY.md) |
+| **경⁠제⁠ ⁠밸⁠런⁠스** | 상점 가격은 그대로, 미션 보상을 줄여 "사는 데 며칠 걸리나"로 맞춤 (Habitica 보상 공식·faucet/sink 설계 참고) — 밖 20·집 12·일기 15코인, 50 XP | [docs/ECONOMY.md](docs/ECONOMY.md) |
 | **연⁠속⁠ ⁠출⁠석** | 1일차 → 7일차 사다리. 출석 기록에서 **어제까지 이어진 연속 일수**를 세어 오늘 칸을 정함, 하루 빠지면 1일차, 7일차 다음은 새 바퀴. 7일차 특별 선물(옷·소품)은 사람·바퀴마다 정해진 난수, 가진 것이면 30코인 | `backend/app/attendance.py`, `AttendanceCards.jsx`(앱), `Attendance.jsx`(웹) |
 | **상⁠점** | 서버 카탈로그(친구 12 · 옷 9 · 집 꾸미기 46)와 앱 카탈로그가 같은지 테스트로 확인. 상품마다 상태(보유·살 수 있음·코인 부족·레벨 부족)를 서버가 계산 | `backend/app/data/shop.json`, `shared/data/*.js`, `backend/app/shop.py` |
 | **캐⁠릭⁠터⁠·⁠옷⁠ ⁠그⁠림** | 모두 **SVG 코드**로 그림(이미지 파일 없음). 한 그림 코드를 웹(DOM)과 앱(react-native-svg)에 같이 쓰려고 그림 함수에 태그 묶음(`elements`)을 넘김. 땡땡이·줄무늬·체크·무지개 등 무늬는 SVG `<pattern>` | `shared/art/`, `shared/art/GarmentPattern.jsx` |
@@ -244,7 +244,7 @@
 | **시⁠연⁠ ⁠데⁠이⁠터** | 주인공 demo-mochi(3주 회복 이야기)와 이웃 3명을 만들어 줌 | `backend/scripts/seed_demo.py` |
 | **휴⁠대⁠폰⁠ ⁠접⁠속** | 같은 와이파이에서 휴대폰으로 서버에 접속할 수 있게 실행 | `backend/scripts/serve.py` |
 | **앱⁠ ⁠미⁠리⁠보⁠기** | Expo 웹(5183)을 휴대폰 크기 틀(5184)에 띄움 | `mobile/dev-preview/` |
-| **디⁠자⁠인⁠ ⁠시⁠스⁠템** | 공통 8색·글꼴(에이투지체)·간격 토큰을 앱·웹이 같이 씀 | `shared/theme/tokens.js`, [frontend/DESIGN_SYSTEM.md](frontend/DESIGN_SYSTEM.md) |
+| **디⁠자⁠인⁠ ⁠시⁠스⁠템** | 공통 8색·글꼴(에이투지체)·간격 토큰을 앱·웹이 같이 씀 | `shared/theme/tokens.js`, [docs/DESIGN_SYSTEM.md](docs/DESIGN_SYSTEM.md) |
 
 ---
 
@@ -258,7 +258,7 @@
 6. 스토어 등록 자료
 7. 같은 사진 재사용 막기(사진 지문), 오류 모니터링
 
-체크리스트는 [PROGRESS.md](PROGRESS.md) "출시 전 남은 일".
+체크리스트는 [docs/PROGRESS.md](docs/PROGRESS.md) "출시 전 남은 일".
 
 ---
 
@@ -266,14 +266,14 @@
 
 | 문서 | 내용 |
 |---|---|
-| [FEATURES.md](FEATURES.md) | **기능별로 무엇을 어떻게 만들었는지** (사용한 도구·라이브러리·파일) — 위 [6절](#6-기능별-구현)과 같은 내용 |
+| [docs/FEATURES.md](docs/FEATURES.md) | **기능별로 무엇을 어떻게 만들었는지** (사용한 도구·라이브러리·파일) — 위 [6절](#6-기능별-구현)과 같은 내용 |
 | [docs/GAME_RULES.md](docs/GAME_RULES.md) | **게임 규칙 기준표** — 미션·보상·레벨·상점·일기·저장, 서버가 최종 기준 |
-| [APP_INTRO.md](APP_INTRO.md) | 앱 소개 — 왜 만들었나, 근거 연구, 비슷한 앱 조사, 원칙 |
-| [MY_MOCHI_PRODUCT_GUIDE.md](MY_MOCHI_PRODUCT_GUIDE.md) | 제품 소개·발표·홍보용 가이드 (소개 문구, 피해야 할 오해) |
-| [QUEST_DESIGN.md](QUEST_DESIGN.md) | 퀘스트 설계 근거 (행동 활성화, 사회 기술 팁, 단계 사다리) |
-| [PROGRESS.md](PROGRESS.md) | 작업 기록과 **출시 전 남은 일** 체크리스트 |
-| [INITIAL_PLAN.md](INITIAL_PLAN.md) | 초기 기획 (생활 리듬 기반 사회적 고립 조기 개입 AI 에이전트) |
-| [backend/README.md](backend/README.md) | **서버** (FastAPI + SQLite) — 실행 방법, 시연용 데이터, 파일 구성, 전체 API 목록, 미션·보상·레벨 규칙, 상점·친밀도, 신고·차단·필터, 위기 표현 확인. 작업 기록은 [backend/CHANGELOG.md](backend/CHANGELOG.md) |
+| [docs/APP_INTRO.md](docs/APP_INTRO.md) | 앱 소개 — 왜 만들었나, 근거 연구, 비슷한 앱 조사, 원칙 |
+| [docs/MY_MOCHI_PRODUCT_GUIDE.md](docs/MY_MOCHI_PRODUCT_GUIDE.md) | 제품 소개·발표·홍보용 가이드 (소개 문구, 피해야 할 오해) |
+| [docs/QUEST_DESIGN.md](docs/QUEST_DESIGN.md) | 퀘스트 설계 근거 (행동 활성화, 사회 기술 팁, 단계 사다리) |
+| [docs/PROGRESS.md](docs/PROGRESS.md) | 작업 기록과 **출시 전 남은 일** 체크리스트 |
+| [docs/INITIAL_PLAN.md](docs/INITIAL_PLAN.md) | 초기 기획 (생활 리듬 기반 사회적 고립 조기 개입 AI 에이전트) |
+| [backend/README.md](backend/README.md) | **서버** (FastAPI + SQLite) — 실행 방법, 시연용 데이터, 파일 구성, 전체 API 목록, 미션·보상·레벨 규칙, 상점·친밀도, 신고·차단·필터, 위기 표현 확인. 작업 기록은 [docs/CHANGELOG.md](docs/CHANGELOG.md) |
 | [mobile/README.md](mobile/README.md) | **앱** (Expo · React Native, iPhone·Android) — 소스 구조, 로그인 연결, 퀘스트 안내, 걸음 수·건강 앱 연결, 다시 부르기 알림, 동네 탐험(위치·지도·장소 쪽지), 실행 방법, 저장 |
-| [backend/DEPLOY.md](backend/DEPLOY.md) | **서버 배포** (Railway) — 환경변수, 순서, 확인, 백업 |
+| [docs/DEPLOY.md](docs/DEPLOY.md) | **서버 배포** (Railway) — 환경변수, 순서, 확인, 백업 |
 | [frontend/README.md](frontend/README.md) | **웹** (React + Vite) — 소스 구조, 로그인 연결, 퀘스트 안내, 색상·공통 UI, 화면별 기능(미션·일기·출석·상점·이웃), 실행·검증, 개발용 미리보기 |

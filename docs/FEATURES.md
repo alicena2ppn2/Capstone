@@ -1,6 +1,6 @@
 # 기능별 구현 정리
 
-MY MOCHI의 기능마다 **무엇을 쓰고 어떻게 만들었는지**를 정리한 문서. 앱 소개·근거는 [README.md](README.md)·[APP_INTRO.md](APP_INTRO.md), API 자세한 사용법은 [backend/FRONTEND_GUIDE.md](backend/FRONTEND_GUIDE.md).
+MY MOCHI의 기능마다 **무엇을 쓰고 어떻게 만들었는지**를 정리한 문서. 앱 소개·근거는 [README.md](../README.md)·[docs/APP_INTRO.md](APP_INTRO.md), API 자세한 사용법은 [docs/FRONTEND_GUIDE.md](FRONTEND_GUIDE.md).
 
 ---
 
@@ -46,7 +46,7 @@ MY MOCHI의 기능마다 **무엇을 쓰고 어떻게 만들었는지**를 정�
 | 영역 | 도구 | 쓰는 곳 |
 |---|---|---|
 | 서버 | **FastAPI**, Uvicorn, Pydantic | API 70개, 요청 검사 (`backend/app/main.py`) |
-| DB | **SQLite** (파이썬 내장 `sqlite3`) | 사용자·미션·코인 장부·사진·일기·방명록 등 28개 표 (`backend/app/db.py`, [DATABASE.md](backend/DATABASE.md)) |
+| DB | **SQLite** (파이썬 내장 `sqlite3`) | 사용자·미션·코인 장부·사진·일기·방명록 등 28개 표 (`backend/app/db.py`, [DATABASE.md](DATABASE.md)) |
 | 이미지 | **Pillow**, pillow-heif | 촬영 일시(EXIF) 읽기, 위치 정보 지우기, HEIC → JPEG |
 | 사진 인식 | **onnxruntime** + CLIP ViT-B/32 | 사진이 미션과 맞는지 확인 + 반응 (오픈소스 모델, 서버 안에서) |
 | HTTP | httpx | Supabase 토큰 확인·계정 삭제 |
@@ -105,7 +105,7 @@ MY MOCHI의 기능마다 **무엇을 쓰고 어떻게 만들었는지**를 정�
 | **홈의 오늘의 도전 요약 · 끌어올리는 시트** | — | `screens/home/HomeScreen.jsx` | `screens/Home.jsx` |
 | **테스트** | `tests/test_missions.py`, `test_reroll.py`, `test_api.py` | — | — |
 
-서버 없이 쓰는 **개발용 미리보기**의 기기 안 미션은 `shared/`에 있다: `shared/data/missions.js`(미션 목록), `shared/features/dailyMissions.js`(데일리·일기·바꾸기), `shared/features/missionGuidance.js`(취향 추천·완료 기준), `shared/features/missionPhotos.js`, `shared/features/levelProgression.js`. 테스트는 같은 폴더의 `*.test.js`. 설계 근거는 [QUEST_DESIGN.md](QUEST_DESIGN.md), 규칙 한눈에 보기는 [docs/GAME_RULES.md](docs/GAME_RULES.md).
+서버 없이 쓰는 **개발용 미리보기**의 기기 안 미션은 `shared/`에 있다: `shared/data/missions.js`(미션 목록), `shared/features/dailyMissions.js`(데일리·일기·바꾸기), `shared/features/missionGuidance.js`(취향 추천·완료 기준), `shared/features/missionPhotos.js`, `shared/features/levelProgression.js`. 테스트는 같은 폴더의 `*.test.js`. 설계 근거는 [docs/QUEST_DESIGN.md](QUEST_DESIGN.md), 규칙 한눈에 보기는 [docs/GAME_RULES.md](GAME_RULES.md).
 
 ### ③ 사진 · 걸음 (확인되는 행동)
 
@@ -121,7 +121,7 @@ MY MOCHI의 기능마다 **무엇을 쓰고 어떻게 만들었는지**를 정�
 | 기⁠능 | 어떻게 | 파일 |
 |---|---|---|
 | **코⁠인⁠·⁠X⁠P⁠·⁠레⁠벨** | 코인·XP는 **장부(coin_ledger)에 한 줄씩** 쌓고 합계로 계산(되돌리기·중복 방지 쉬움). 레벨 n → n+1에 필요한 XP = 100 + 35×(n−1) (LV.25 누적 12,060) | `db.py`, `missions.level_from_xp` |
-| **경⁠제⁠ ⁠밸⁠런⁠스** | 상점 가격은 그대로, 미션 보상을 줄여 "사는 데 며칠 걸리나"로 맞춤 (Habitica 보상 공식·faucet/sink 설계 참고) — 밖 20·집 12·일기 15코인, 50 XP | [backend/ECONOMY.md](backend/ECONOMY.md) |
+| **경⁠제⁠ ⁠밸⁠런⁠스** | 상점 가격은 그대로, 미션 보상을 줄여 "사는 데 며칠 걸리나"로 맞춤 (Habitica 보상 공식·faucet/sink 설계 참고) — 밖 20·집 12·일기 15코인, 50 XP | [docs/ECONOMY.md](ECONOMY.md) |
 | **연⁠속⁠ ⁠출⁠석** | 1일차 → 7일차 사다리. 출석 기록에서 **어제까지 이어진 연속 일수**를 세어 오늘 칸을 정함, 하루 빠지면 1일차, 7일차 다음은 새 바퀴. 7일차 특별 선물(옷·소품)은 사람·바퀴마다 정해진 난수, 가진 것이면 30코인 | `backend/app/attendance.py`, `AttendanceCards.jsx`(앱), `Attendance.jsx`(웹) |
 | **상⁠점** | 서버 카탈로그(친구 12 · 옷 9 · 집 꾸미기 46)와 앱 카탈로그가 같은지 테스트로 확인. 상품마다 상태(보유·살 수 있음·코인 부족·레벨 부족)를 서버가 계산 | `backend/app/data/shop.json`, `shared/data/*.js`, `backend/app/shop.py` |
 | **캐⁠릭⁠터⁠·⁠옷⁠ ⁠그⁠림** | 모두 **SVG 코드**로 그림(이미지 파일 없음). 한 그림 코드를 웹(DOM)과 앱(react-native-svg)에 같이 쓰려고 그림 함수에 태그 묶음(`elements`)을 넘김. 땡땡이·줄무늬·체크·무지개 등 무늬는 SVG `<pattern>` | `shared/art/`, `shared/art/GarmentPattern.jsx` |
@@ -171,7 +171,7 @@ MY MOCHI의 기능마다 **무엇을 쓰고 어떻게 만들었는지**를 정�
 | **시⁠연⁠ ⁠데⁠이⁠터** | 주인공 demo-mochi(3주 회복 이야기)와 이웃 3명을 만들어 줌 | `backend/scripts/seed_demo.py` |
 | **휴⁠대⁠폰⁠ ⁠접⁠속** | 같은 와이파이에서 휴대폰으로 서버에 접속할 수 있게 실행 | `backend/scripts/serve.py` |
 | **앱⁠ ⁠미⁠리⁠보⁠기** | Expo 웹(5183)을 휴대폰 크기 틀(5184)에 띄움 | `mobile/dev-preview/` |
-| **디⁠자⁠인⁠ ⁠시⁠스⁠템** | 공통 8색·글꼴(에이투지체)·간격 토큰을 앱·웹이 같이 씀 | `shared/theme/tokens.js`, [frontend/DESIGN_SYSTEM.md](frontend/DESIGN_SYSTEM.md) |
+| **디⁠자⁠인⁠ ⁠시⁠스⁠템** | 공통 8색·글꼴(에이투지체)·간격 토큰을 앱·웹이 같이 씀 | `shared/theme/tokens.js`, [docs/DESIGN_SYSTEM.md](DESIGN_SYSTEM.md) |
 
 ---
 
@@ -185,4 +185,4 @@ MY MOCHI의 기능마다 **무엇을 쓰고 어떻게 만들었는지**를 정�
 6. 스토어 등록 자료
 7. 같은 사진 재사용 막기(사진 지문), 오류 모니터링
 
-체크리스트는 [PROGRESS.md](PROGRESS.md) "출시 전 남은 일".
+체크리스트는 [docs/PROGRESS.md](PROGRESS.md) "출시 전 남은 일".

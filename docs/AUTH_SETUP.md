@@ -1,4 +1,4 @@
-> 현재 모바일 인증: 2026-10-12 Supabase Google 브라우저 OAuth/PKCE로 전환. mobile/SUPABASE_IOS_SETUP.md를 따른다. Firebase는 이전 준비 이력이며 frontend 웹은 기존 미연결 상태를 유지한다.
+> 현재 모바일 인증: 2026-10-12 Supabase Google 브라우저 OAuth/PKCE로 전환. docs/SUPABASE_IOS_SETUP.md를 따른다. Firebase는 이전 준비 이력이며 frontend 웹은 기존 미연결 상태를 유지한다.
 
 # 로그인 연결 준비
 

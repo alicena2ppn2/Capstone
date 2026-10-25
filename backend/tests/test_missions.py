@@ -157,7 +157,7 @@ def test_is_complete(mid, submission, done):
 # --- 코인 ------------------------------------------------------------------------
 
 def test_rewards_match_frontend_day_quests():
-    # 경제 밸런스 (10/16, ECONOMY.md): 밖 20 · 집 12 · 일기 15 코인, 50 XP
+    # 경제 밸런스 (10/16, docs/ECONOMY.md): 밖 20 · 집 12 · 일기 15 코인, 50 XP
     # 밖에 나가는 미션은 집 미션보다 코인이 많다 (외출을 이끌기 위해)
     assert (ms.CATALOG["sky_photo"].coins, ms.CATALOG["sky_photo"].xp) == (20, 50)
     assert (ms.CATALOG["cook"].coins, ms.CATALOG["cook"].xp) == (12, 50)

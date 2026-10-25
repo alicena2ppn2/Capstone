@@ -2,7 +2,7 @@
 
 모찌라는 캐릭터를 함께 키우면서, 매일 작은 미션으로 **밖에 한 발 나가고, 하루를 기록하고, 다른 사람과 가볍게 연결되도록** 돕는 **사회적 만남·관계와 행동 활성화 앱**입니다.
 
-최종 갱신: 2026-10-13 · 연구 배경과 설계 근거는 [README](README.md), 서버는 [backend/README](backend/README.md), 화면은 [frontend/README](frontend/README.md)
+최종 갱신: 2026-10-13 · 연구 배경과 설계 근거는 [README](../README.md), 서버는 [backend/README](../backend/README.md), 화면은 [frontend/README](../frontend/README.md)
 
 ---
 
@@ -226,10 +226,10 @@ MOCHI에서 게임 요소가 하는 일:
 
 | 영역 | 구성 |
 |---|---|
-| 프론트 | React + Vite (모바일 화면 크기), [frontend/](frontend/) |
-| 백엔드 | Python FastAPI + SQLite, [backend/](backend/) — 게임 규칙(코인·경험치·레벨·미션·상점)은 서버가 기준 |
+| 프론트 | React + Vite (모바일 화면 크기), [frontend/](../frontend) |
+| 백엔드 | Python FastAPI + SQLite, [backend/](../backend) — 게임 규칙(코인·경험치·레벨·미션·상점)은 서버가 기준 |
 | 데이터 | 합성 생활 데이터(50명 × 90일), 공개 글 표현 제한 목록, KOTE 한국어 감정 댓글(점검용) |
-| 연결 방법 | [backend/FRONTEND_GUIDE.md](backend/FRONTEND_GUIDE.md) |
+| 연결 방법 | [docs/FRONTEND_GUIDE.md](FRONTEND_GUIDE.md) |
 
 ## 지금 상태와 남은 일 (10/22 발표 기준)
 
