@@ -2,7 +2,7 @@
 @font-face { font-family: 'A2z'; src: url('/fonts/A2z-400.woff2') format('woff2'); font-weight: 400; font-style: normal; font-display: swap; }
 @font-face { font-family: 'A2z'; src: url('/fonts/A2z-500.woff2') format('woff2'); font-weight: 500; font-style: normal; font-display: swap; }
 @font-face { font-family: 'A2z'; src: url('/fonts/A2z-600.woff2') format('woff2'); font-weight: 600; font-style: normal; font-display: swap; }
-/* A2Z original v1.001: real 400/500/600 only. See FONT_LICENSE.md. */
+/* A2Z original v1.001: real 400/500/600 only. See docs/FONT_LICENSE.md. */
 
 
 :root {

@@ -1,4 +1,4 @@
-// 앱 ↔ 서버 게임 API (웹 frontend/src/api/*.js와 같은 계약, backend/FRONTEND_GUIDE.md).
+// 앱 ↔ 서버 게임 API (웹 frontend/src/api/*.js와 같은 계약, docs/FRONTEND_GUIDE.md).
 // 서버 사용자: 로그인으로 받은 backendUserId, 없으면 개발 빌드에서만 EXPO_PUBLIC_DEV_USER_ID (예: 시연 데이터의 demo-mochi).
 // 서버 주소(EXPO_PUBLIC_API_URL)가 없으면 null → 앱은 지금처럼 휴대폰 안 기록으로 동작.
 import { Platform } from 'react-native';

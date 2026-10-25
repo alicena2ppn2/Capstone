@@ -302,24 +302,24 @@ MY MOCHI는 작은 일상 활동과 하루 기록을 캐릭터와 함께 이어 
 
 | 확인할 내용 | 코드·문서 경로 |
 | --- | --- |
-| 최신 기능·화면 위치 | [프론트 기능 명세서](frontend/FEATURE_SPEC.md), [웹 README](frontend/README.md), [모바일 README](mobile/README.md) |
-| 현재 구조·검증/미확인 범위 | [ARCHITECTURE](mobile/ARCHITECTURE.md) |
-| 백엔드 인증 계약·연결 한계 | [AUTH_BACKEND_SETUP](mobile/AUTH_BACKEND_SETUP.md), shared/auth/authBackendController.mjs, shared/api/backendClient.mjs, mobile/src/auth/supabaseAuthCore.mjs |
+| 최신 기능·화면 위치 | [프론트 기능 명세서](FEATURE_SPEC.md), [웹 README](../frontend/README.md), [모바일 README](../mobile/README.md) |
+| 현재 구조·검증/미확인 범위 | [ARCHITECTURE](ARCHITECTURE.md) |
+| 백엔드 인증 계약·연결 한계 | [AUTH_BACKEND_SETUP](AUTH_BACKEND_SETUP.md), shared/auth/authBackendController.mjs, shared/api/backendClient.mjs, mobile/src/auth/supabaseAuthCore.mjs |
 | 실제 화면 위치/연결 | frontend/src/App.jsx·screens/Home.jsx·Quest.jsx·Diary.jsx·Visit.jsx·Settings.jsx·Shop.jsx, mobile/src/GameApp.jsx·screens/home/HomeScreen.jsx·screens/quests/Quests.jsx |
-| 친구 목록·가격·최종 외형 | [characters](shared/data/characters.js), [finalFriends](shared/features/finalFriends.js), shared/art, mobile/src/art |
-| 성격/소개·20종 구성안 | [catalog](shared/data/catalog.js), shared/data/prototypeFriends.js, [characterExpansion](shared/data/characterExpansion.js) |
-| 미션·배정·교체·피드백 | [missions](shared/data/missions.js), [dailyMissions](shared/features/dailyMissions.js), [missionGuidance](shared/features/missionGuidance.js) |
-| 성장·출석·상품 | [game](shared/features/game.js), shared/data/clothes.js·decor.js |
+| 친구 목록·가격·최종 외형 | [characters](../shared/data/characters.js), [finalFriends](../shared/features/finalFriends.js), shared/art, mobile/src/art |
+| 성격/소개·20종 구성안 | [catalog](../shared/data/catalog.js), shared/data/prototypeFriends.js, [characterExpansion](../shared/data/characterExpansion.js) |
+| 미션·배정·교체·피드백 | [missions](../shared/data/missions.js), [dailyMissions](../shared/features/dailyMissions.js), [missionGuidance](../shared/features/missionGuidance.js) |
+| 성장·출석·상품 | [game](../shared/features/game.js), shared/data/clothes.js·decor.js |
 | 일기·사진·필터 | shared/features/journal.js·missionPhotos.js·guestModeration.js, 양쪽 Diary/PhotoMission/Visit, frontend/src/components/GuestbookSafety.jsx |
-| 일별 문장과 순서 | [dailySentences](shared/data/dailySentences.js), [dailySentence](shared/features/dailySentence.js), shared/utils/seoulDate.js |
-| 디자인/글꼴 | [tokens](shared/theme/tokens.js), [DESIGN_SYSTEM](frontend/DESIGN_SYSTEM.md), [FONT_LICENSE](frontend/FONT_LICENSE.md), frontend/src/styles.css·mobile/src/components/ui.jsx |
+| 일별 문장과 순서 | [dailySentences](../shared/data/dailySentences.js), [dailySentence](../shared/features/dailySentence.js), shared/utils/seoulDate.js |
+| 디자인/글꼴 | [tokens](../shared/theme/tokens.js), [DESIGN_SYSTEM](DESIGN_SYSTEM.md), [FONT_LICENSE](FONT_LICENSE.md), frontend/src/styles.css·mobile/src/components/ui.jsx |
 | 기획의 이전 맥락 | [APP_INTRO](APP_INTRO.md), [QUEST_DESIGN](QUEST_DESIGN.md), [초기 기획 INITIAL_PLAN](INITIAL_PLAN.md). 현재 코드와 구분해서 읽음 |
 
 ### 문서와 현재 코드에서 발견한 차이
 
 | 기존 설명/아이디어 | 현재 확인한 구현과 이 가이드의 처리 |
 | --- | --- |
-| 초기 기획(INITIAL_PLAN.md)의 AI·생활 리듬·위험 탐지 연구 설계 | 현재 게임 프론트의 추천은 로컬 규칙이다. 연구/이전 설계를 현재 자동 센서·AI 진단 기능이나 효과 증거로 소개하지 않음 |
+| 초기 기획(docs/INITIAL_PLAN.md)의 AI·생활 리듬·위험 탐지 연구 설계 | 현재 게임 프론트의 추천은 로컬 규칙이다. 연구/이전 설계를 현재 자동 센서·AI 진단 기능이나 효과 증거로 소개하지 않음 |
 | APP_INTRO의 걸음·방문·사회기술 팁 등 폭넓은 소개 | 백엔드/기획 기능과 현재 프론트 연결을 분리. 긴 수행 안내 UI·실제 센서 확인·실사용자 방문을 현재 제공 기능으로 묶지 않음 |
 | 총20종/신규 시안이라는 이름 | 실제 목록12종, 계획8종. proto/draft ID여도 최종6종은 이미 상점에 연결되므로 미완성으로 잘못 분류하지 않음 |
 | ‘부담 응답이면 모두 effort0’ | 다른 적합한 행동의 다음 추천 우선순위로 반영. 오늘 목록 유지, 자동 난도 상승 없음 |

@@ -1,6 +1,6 @@
 # 프론트 기능 명세서
 
-최종 수정: 2026-10-15. 본문은 최신 로컬 구현만 설명하며 과거 동작은 변경 이력에서 확인한다. 실행 방법은 [웹 README](README.md), [모바일 README](../mobile/README.md).
+최종 수정: 2026-10-15. 본문은 최신 로컬 구현만 설명하며 과거 동작은 변경 이력에서 확인한다. 실행 방법은 [웹 README](../frontend/README.md), [모바일 README](../mobile/README.md).
 
 ## 색상과 공통 UI
 
@@ -38,29 +38,29 @@ MY MOCHI 로그인/가입 화면에서 시작한다. 보라·크림 UI와 기존
 
 | 기능/화면 | 사용자가 찾는 위치와 진입 경로 | 웹 화면 구현 | 모바일 화면 구현/경로 |
 | --- | --- | --- | --- |
-| 로그인·가입 | 첫 진입 시 세션 확인 후 표시. 워드마크 → 소개 → 친구 환영 장면 → 카카오/Google 버튼 → 하단 안내. 가입은 별도 화면 URL 없이 같은 인증 게이트에서 분기 | [AuthGate](src/auth/AuthGate.jsx), [로그인 스타일](src/auth/login.css) | [AuthGate](../mobile/src/auth/AuthGate.jsx), [LoginScreen](../mobile/src/screens/login/LoginScreen.jsx). 루트 `/`도 인증 전에는 이 화면 |
-| 신규 회원 닉네임 | 계약상 신규회원404를 받은 경우 로그인 버튼 영역을 닉네임 입력·제출 영역으로 교체. 다른404/네트워크 오류에는 가입 화면으로 전환하지 않음 | [NicknameEntry](src/auth/NicknameEntry.jsx) | [NicknameEntry](../mobile/src/auth/NicknameEntry.jsx). 독립 `/signup` 경로 없음 |
-| 홈 | 하단 가운데 ‘홈’. 다른 화면 상단 뒤로가기는 홈으로 연결하되 이웃 방 내부는 먼저 이웃 목록으로 돌아감 | [Home](src/screens/Home.jsx), [App 화면 연결](src/App.jsx) | [HomeScreen](../mobile/src/screens/home/HomeScreen.jsx), [GameApp](../mobile/src/GameApp.jsx), `/` |
-| 오늘의 도전 | 홈 방 아래 왼쪽 주요 버튼 ‘오늘의 도전’, 하단 왼쪽 ‘퀘스트’, 홈 요약 항목 클릭. ‘오늘/이번 주/이번 달’은 제목 아래, ‘기록·취향’은 기간 탭과 별도 보조 버튼 | [Quest](src/screens/Quest.jsx) | [Quests](../mobile/src/screens/quests/Quests.jsx), `/quest` |
-| 상점 | 홈 방 아래 오른쪽 ‘꾸미기’, 하단 오른쪽 ‘상점’. 제목 아래 친구/의상/집 꾸미기 탭과 보유 필터, 아래 상품 목록 | [Shop](src/screens/Shop.jsx), [CharacterShop](src/components/CharacterShop.jsx) | [Shop](../mobile/src/screens/Shop.jsx), [CharacterShop](../mobile/src/screens/shop/CharacterShop.jsx), `/shop` |
-| 일기 | 방 안 왼쪽 위 보조 메뉴의 ‘일기’(방명록 오른쪽). 도전 고정 루틴의 ‘일기 쓰기/보기’ 또는 기록·취향의 일기 항목도 같은 날짜 편집기로 연결 | [Diary](src/screens/Diary.jsx) | [Diary](../mobile/src/screens/Diary.jsx), `/diary` |
-| 방문하기 | 방 안 왼쪽 위 ‘방문하기’. 도전 방명록 루틴의 ‘이웃 둘러보기’도 연결. 상단에 오늘 추천/최근 방문/저장한 이웃/내가 남긴 글, 아래 이웃 목록 | [Visit](src/screens/Visit.jsx) | [Visit](../mobile/src/screens/Visit.jsx), `/visit` |
+| 로그인·가입 | 첫 진입 시 세션 확인 후 표시. 워드마크 → 소개 → 친구 환영 장면 → 카카오/Google 버튼 → 하단 안내. 가입은 별도 화면 URL 없이 같은 인증 게이트에서 분기 | [AuthGate](../frontend/src/auth/AuthGate.jsx), [로그인 스타일](../frontend/src/auth/login.css) | [AuthGate](../mobile/src/auth/AuthGate.jsx), [LoginScreen](../mobile/src/screens/login/LoginScreen.jsx). 루트 `/`도 인증 전에는 이 화면 |
+| 신규 회원 닉네임 | 계약상 신규회원404를 받은 경우 로그인 버튼 영역을 닉네임 입력·제출 영역으로 교체. 다른404/네트워크 오류에는 가입 화면으로 전환하지 않음 | [NicknameEntry](../frontend/src/auth/NicknameEntry.jsx) | [NicknameEntry](../mobile/src/auth/NicknameEntry.jsx). 독립 `/signup` 경로 없음 |
+| 홈 | 하단 가운데 ‘홈’. 다른 화면 상단 뒤로가기는 홈으로 연결하되 이웃 방 내부는 먼저 이웃 목록으로 돌아감 | [Home](../frontend/src/screens/Home.jsx), [App 화면 연결](../frontend/src/App.jsx) | [HomeScreen](../mobile/src/screens/home/HomeScreen.jsx), [GameApp](../mobile/src/GameApp.jsx), `/` |
+| 오늘의 도전 | 홈 방 아래 왼쪽 주요 버튼 ‘오늘의 도전’, 하단 왼쪽 ‘퀘스트’, 홈 요약 항목 클릭. ‘오늘/이번 주/이번 달’은 제목 아래, ‘기록·취향’은 기간 탭과 별도 보조 버튼 | [Quest](../frontend/src/screens/Quest.jsx) | [Quests](../mobile/src/screens/quests/Quests.jsx), `/quest` |
+| 상점 | 홈 방 아래 오른쪽 ‘꾸미기’, 하단 오른쪽 ‘상점’. 제목 아래 친구/의상/집 꾸미기 탭과 보유 필터, 아래 상품 목록 | [Shop](../frontend/src/screens/Shop.jsx), [CharacterShop](../frontend/src/components/CharacterShop.jsx) | [Shop](../mobile/src/screens/Shop.jsx), [CharacterShop](../mobile/src/screens/shop/CharacterShop.jsx), `/shop` |
+| 일기 | 방 안 왼쪽 위 보조 메뉴의 ‘일기’(방명록 오른쪽). 도전 고정 루틴의 ‘일기 쓰기/보기’ 또는 기록·취향의 일기 항목도 같은 날짜 편집기로 연결 | [Diary](../frontend/src/screens/Diary.jsx) | [Diary](../mobile/src/screens/Diary.jsx), `/diary` |
+| 방문하기 | 방 안 왼쪽 위 ‘방문하기’. 도전 방명록 루틴의 ‘이웃 둘러보기’도 연결. 상단에 오늘 추천/최근 방문/저장한 이웃/내가 남긴 글, 아래 이웃 목록 | [Visit](../frontend/src/screens/Visit.jsx) | [Visit](../mobile/src/screens/Visit.jsx), `/visit` |
 | 이웃 방 | 방문 목록의 이웃 카드 또는 내가 남긴 글의 ‘그 집 방명록 보기’. 방 미리보기 아래 저장/응원/감사 → 작성칸 → 해당 방명록 목록. 상단 뒤로가기는 이웃 목록으로 복귀 | Visit의 `selected` 분기 | Visit의 `selected` 분기. 별도 사용자별 URL/실제 매칭 경로 없음 |
-| 내 방명록 | 방 안 ‘방명록’ 보조 메뉴. 내 집 방명록을 읽고 로컬 글 작성/좋아요. 일일 루틴은 내 집 글이 아니라 다른 샘플 이웃에게 등록한 글로 완료 | [Guestbook](src/screens/Guestbook.jsx) | [Visit.jsx의 Guestbook export](../mobile/src/screens/Visit.jsx), `/guest` |
-| 설정 | 방 안 오른쪽 위 톱니바퀴, 또는 방 상단 중앙 친구 이름표 클릭. 애칭 → 선호/설정 → 기록 옮기기 → 계정 삭제 안내/로그아웃 | [Settings](src/screens/Settings.jsx) | [Settings](../mobile/src/screens/Settings.jsx), `/settings` |
+| 내 방명록 | 방 안 ‘방명록’ 보조 메뉴. 내 집 방명록을 읽고 로컬 글 작성/좋아요. 일일 루틴은 내 집 글이 아니라 다른 샘플 이웃에게 등록한 글로 완료 | [Guestbook](../frontend/src/screens/Guestbook.jsx) | [Visit.jsx의 Guestbook export](../mobile/src/screens/Visit.jsx), `/guest` |
+| 설정 | 방 안 오른쪽 위 톱니바퀴, 또는 방 상단 중앙 친구 이름표 클릭. 애칭 → 선호/설정 → 기록 옮기기 → 계정 삭제 안내/로그아웃 | [Settings](../frontend/src/screens/Settings.jsx) | [Settings](../mobile/src/screens/Settings.jsx), `/settings` |
 
 ### 홈 안의 세부 위치
 
 | 요소 | 현재 표시 위치/동작 | 소유 코드·스타일 |
 | --- | --- | --- |
-| 코인 / 출석표 | 게임 콘텐츠 위 공통 상태 줄: 코인 왼쪽, 출석표 오른쪽. 출석표는 모든 화면에서 같은 진입 UI | 웹 App + [Attendance](src/components/Attendance.jsx), 앱 GameApp + [components/ui](../mobile/src/components/ui.jsx)의 AttendanceButton |
-| 방문·방명록·일기 / 설정 | 방 왼쪽 위에 방문하기 → 방명록 → 일기 순. 설정은 방 오른쪽 위. 웹 top/left 12px, 앱 top/left 8px 기준이며 좁으면 보조 메뉴 줄바꿈 | 웹 Home + [styles.css](src/styles.css)의 `.home-room-menus`/`.home-settings`, 앱 HomeScreen의 `homeStyles.roomMenus/settingsCorner` |
+| 코인 / 출석표 | 게임 콘텐츠 위 공통 상태 줄: 코인 왼쪽, 출석표 오른쪽. 출석표는 모든 화면에서 같은 진입 UI | 웹 App + [Attendance](../frontend/src/components/Attendance.jsx), 앱 GameApp + [components/ui](../mobile/src/components/ui.jsx)의 AttendanceButton |
+| 방문·방명록·일기 / 설정 | 방 왼쪽 위에 방문하기 → 방명록 → 일기 순. 설정은 방 오른쪽 위. 웹 top/left 12px, 앱 top/left 8px 기준이며 좁으면 보조 메뉴 줄바꿈 | 웹 Home + [styles.css](../frontend/src/styles.css)의 `.home-room-menus`/`.home-settings`, 앱 HomeScreen의 `homeStyles.roomMenus/settingsCorner` |
 | 친구 이름 | 방 상단 중앙, top 64px, 최대 방 너비의 50%. 클릭하면 설정의 친구별 애칭을 편집. 계정 닉네임 입력과 별개 | 웹 `.home-friend-name`, 앱 HomeScreen의 이름 View/Button |
-| 달력 / 아날로그 시계 | 방 왼쪽 벽의 달력, 오른쪽 벽의 시계. 달력·바늘·창밖 낮/밤은 기기 현지 시간. 출석·일일 미션·일일 문장 날짜는 서울 기준 | [RoomTimeProps](src/components/RoomTimeProps.jsx), [앱 RoomTimeProps](../mobile/src/art/RoomTimeProps.jsx), [roomTime](../shared/utils/roomTime.js) |
+| 달력 / 아날로그 시계 | 방 왼쪽 벽의 달력, 오른쪽 벽의 시계. 달력·바늘·창밖 낮/밤은 기기 현지 시간. 출석·일일 미션·일일 문장 날짜는 서울 기준 | [RoomTimeProps](../frontend/src/components/RoomTimeProps.jsx), [앱 RoomTimeProps](../mobile/src/art/RoomTimeProps.jsx), [roomTime](../shared/utils/roomTime.js) |
 | 친구·가구·창밖 | 방 중앙, 카페트/바닥에 친구. 소품과 풍경은 장착한 항목을 방 SVG에 표시. 터치/키보드 반응은 홈에서 사용 | 웹 Mochi/Home/HouseDecor, 앱 [Character](../mobile/src/components/Character.jsx)/[RoomBackdrop](../mobile/src/art/RoomBackdrop.jsx)/HouseDecor |
-| 일일 문장 / LV·XP | 현재 문장은 친구 아래 가로형 말풍선(방 높이의 약86.8% 기준), 그 아래 실제 LV/XP. ‘오늘의 한 문장’ 제목은 화면에서 숨기고 접근성 이름에만 사용. 긴 문장/글자 확대 시 필요한 공간 추가 | [DailySentence](src/components/DailySentence.jsx), [앱 DailySentence](../mobile/src/screens/home/DailySentence.jsx), `.home-identity` / HomeScreen identity |
-| 주요 버튼 / 요약 | 방 바로 아래 왼쪽 오늘의 도전, 오른쪽 꾸미기. 그 아래 둥근 오늘의 도전 요약 카드. 요약 클릭 시 해당 도전으로 이동 | [웹 HomeSummary](src/components/HomeSummary.jsx), [앱 HomeSummary](../mobile/src/screens/home/HomeSummary.jsx) |
-| 하단 단축 메뉴 | 콘텐츠 스크롤 영역 바깥 아래에 퀘스트 → 홈 → 상점 순. 개발 iframe 바깥 안내·배율 표시는 실제 앱 UI가 아님 | [웹 BottomNav](src/components/BottomNav.jsx), [앱 BottomNav](../mobile/src/components/BottomNav.jsx) |
+| 일일 문장 / LV·XP | 현재 문장은 친구 아래 가로형 말풍선(방 높이의 약86.8% 기준), 그 아래 실제 LV/XP. ‘오늘의 한 문장’ 제목은 화면에서 숨기고 접근성 이름에만 사용. 긴 문장/글자 확대 시 필요한 공간 추가 | [DailySentence](../frontend/src/components/DailySentence.jsx), [앱 DailySentence](../mobile/src/screens/home/DailySentence.jsx), `.home-identity` / HomeScreen identity |
+| 주요 버튼 / 요약 | 방 바로 아래 왼쪽 오늘의 도전, 오른쪽 꾸미기. 그 아래 둥근 오늘의 도전 요약 카드. 요약 클릭 시 해당 도전으로 이동 | [웹 HomeSummary](../frontend/src/components/HomeSummary.jsx), [앱 HomeSummary](../mobile/src/screens/home/HomeSummary.jsx) |
+| 하단 단축 메뉴 | 콘텐츠 스크롤 영역 바깥 아래에 퀘스트 → 홈 → 상점 순. 개발 iframe 바깥 안내·배율 표시는 실제 앱 UI가 아님 | [웹 BottomNav](../frontend/src/components/BottomNav.jsx), [앱 BottomNav](../mobile/src/components/BottomNav.jsx) |
 
 ### 기능 안의 상세 진입과 표시 위치
 
@@ -68,15 +68,15 @@ MY MOCHI 로그인/가입 화면에서 시작한다. 보라·크림 UI와 기존
 | --- | --- | --- |
 | 초기 선호 / 음악·음식 취향 | 도전 첫 진입 상단의 선택 질문, 도전의 ‘기록·취향’, 설정. 음악/음식 수정은 도전의 기록·취향에 있고 매일 보상 미션이 아님 | 웹 MissionPreferences/Quest/Settings, 앱 [MissionPreferences](../mobile/src/screens/quests/MissionPreferences.jsx)/Quests/Settings, [공유 선호](../shared/features/missionGuidance.js) |
 | 고정3 / 변동3 | 오늘 탭 본문에서 매일 하는3가지 행을 먼저, 오늘의 활동3가지 카드를 뒤에 표시. 사진 활동은 진행 중 카드 안에 사진 입력 표시 | Quest/Quests, [미션 콘텐츠](../shared/data/missions.js), [일일 처리](../shared/features/dailyMissions.js) |
-| 다른 활동으로 / 느낌 남기기 | 미완료 카드 하단 보조 ‘다른 활동으로’ → 앱 프레임의 선택 창. 완료 항목의 ‘느낌 남기기(선택)’ → 부담 피드백. 방법 보기/수행 수준 선택 UI 없음 | 웹 [MissionReplacement](src/components/MissionReplacement.jsx)/[QuestSheet](src/components/QuestSheet.jsx), 앱 [MissionReplacement](../mobile/src/screens/quests/MissionReplacement.jsx)/Sheet |
-| 사진 선택·촬영 / 사진첩 | 사진 미션 시작 후 카드 안에서 사진 선택/사진 찍기 → 미리보기 → 저장하고 완료. 저장한 사진은 일기 목록의 ‘사진첩’ 탭에서 미션 제목·날짜와 확인 | [웹 PhotoMission](src/components/PhotoMission.jsx)/[PhotoAlbum](src/components/PhotoAlbum.jsx), [앱 PhotoMission](../mobile/src/screens/quests/PhotoMission.jsx)/[PhotoAlbum](../mobile/src/screens/diary/PhotoAlbum.jsx), [공유 사진 처리](../shared/features/missionPhotos.js) |
+| 다른 활동으로 / 느낌 남기기 | 미완료 카드 하단 보조 ‘다른 활동으로’ → 앱 프레임의 선택 창. 완료 항목의 ‘느낌 남기기(선택)’ → 부담 피드백. 방법 보기/수행 수준 선택 UI 없음 | 웹 [MissionReplacement](../frontend/src/components/MissionReplacement.jsx)/[QuestSheet](../frontend/src/components/QuestSheet.jsx), 앱 [MissionReplacement](../mobile/src/screens/quests/MissionReplacement.jsx)/Sheet |
+| 사진 선택·촬영 / 사진첩 | 사진 미션 시작 후 카드 안에서 사진 선택/사진 찍기 → 미리보기 → 저장하고 완료. 저장한 사진은 일기 목록의 ‘사진첩’ 탭에서 미션 제목·날짜와 확인 | [웹 PhotoMission](../frontend/src/components/PhotoMission.jsx)/[PhotoAlbum](../frontend/src/components/PhotoAlbum.jsx), [앱 PhotoMission](../mobile/src/screens/quests/PhotoMission.jsx)/[PhotoAlbum](../mobile/src/screens/diary/PhotoAlbum.jsx), [공유 사진 처리](../shared/features/missionPhotos.js) |
 | 일기 입력 / 다시 읽기 | 일기 목록 위 오늘 일기 버튼, 아래 지난 초안 진입과 날짜별 목록/월별 달력/사진첩 탭. 편집기는 날짜·목록 복귀 → 선택적 질문/감정 → 본문 → 저장/삭제/상태 순. 달력의 도장 날짜를 누르면 해당 글 | 양쪽 Diary의 Entry/DiaryEntry, [일기 규칙](../shared/features/journal.js) |
 | 친구 소개 / 구매·함께하기 | 상점 친구 카드: 그림 → 이름/레벨/가격/상태/성격 → 친구 소개 펼침 → 구매 또는 함께하기. 구매 성공의 환영 영역은 목록 위에 표시하며 자동 캐릭터 교체 없음 | 양쪽 CharacterShop, [캐릭터 목록](../shared/data/characters.js), [친구 정보](../shared/data/catalog.js), [구매/선택](../shared/features/game.js) |
 | 옷·집 소품·창밖 | 상점 의상/옷 꾸미기 또는 집 꾸미기 탭. 집 탭에서 전등/카페트/액자/인형/창밖 필터. 상품 미리보기 아래 가격/조건/구매·장착·해제 | 양쪽 Shop, [의상](../shared/data/clothes.js), [집 상품](../shared/data/decor.js) |
 | 이웃 응원 / 내 글 찾기 | 선택한 이웃의 방 아래 응원/감사 버튼 근처 1.3초 안내. 선택 상태는 버튼에 남음. 방문 목록 ‘내가 남긴 글’에서 해당 방명록으로 재진입 | 양쪽 Visit, [이웃 상태](../shared/features/neighbors.js), [짧은 안내 훅](../shared/hooks/useBriefFeedback.js) |
-| 신고·차단·차단 목록 | 웹 내/이웃 글 하단의 신고·차단 버튼 → 확인 창. 차단 작성자 목록 확인·해제는 내 방명록 안전 안내 안에서만 표시. 모바일은 전체 관리 UI 없이 이웃 글 등록 전 필터만 재사용 | [GuestbookSafety](src/components/GuestbookSafety.jsx), [안전 규칙](../shared/features/guestModeration.js). 앱 Visit의 `violation` 검사 |
-| 출석표 / 선물 패널 | 상단 출석표 → 주간 표와 오늘 버튼. 미출석 날짜 진입/서울 자정에도 자동 표시. 새 지급 성공 시 표 자동 닫힘 → 앱 중앙 선물1초 → 이후 출석표에서 오늘 결과 확인 | 웹 Attendance/App/[RewardPanel](src/components/RewardPanel.jsx), 앱 useGameState/GameApp/[RewardPanel](../mobile/src/components/RewardPanel.jsx), [실제 영수증 표시](../shared/features/rewardFeedback.js) |
-| 기록 옮기기 / 로그아웃 / 계정 삭제 | 설정 안 전용 카드. 웹 백업 다운로드, 앱 백업·가져오기 Sheet. 로그아웃은 로그인으로 복귀하되 게임 기록 유지. 계정 삭제는 실제 삭제가 아닌 안내만 표시 | [BackupExport](src/components/BackupExport.jsx), 앱 Settings의 Backup, 양쪽 AuthGate/AuthContext |
+| 신고·차단·차단 목록 | 웹 내/이웃 글 하단의 신고·차단 버튼 → 확인 창. 차단 작성자 목록 확인·해제는 내 방명록 안전 안내 안에서만 표시. 모바일은 전체 관리 UI 없이 이웃 글 등록 전 필터만 재사용 | [GuestbookSafety](../frontend/src/components/GuestbookSafety.jsx), [안전 규칙](../shared/features/guestModeration.js). 앱 Visit의 `violation` 검사 |
+| 출석표 / 선물 패널 | 상단 출석표 → 주간 표와 오늘 버튼. 미출석 날짜 진입/서울 자정에도 자동 표시. 새 지급 성공 시 표 자동 닫힘 → 앱 중앙 선물1초 → 이후 출석표에서 오늘 결과 확인 | 웹 Attendance/App/[RewardPanel](../frontend/src/components/RewardPanel.jsx), 앱 useGameState/GameApp/[RewardPanel](../mobile/src/components/RewardPanel.jsx), [실제 영수증 표시](../shared/features/rewardFeedback.js) |
+| 기록 옮기기 / 로그아웃 / 계정 삭제 | 설정 안 전용 카드. 웹 백업 다운로드, 앱 백업·가져오기 Sheet. 로그아웃은 로그인으로 복귀하되 게임 기록 유지. 계정 삭제는 실제 삭제가 아닌 안내만 표시 | [BackupExport](../frontend/src/components/BackupExport.jsx), 앱 Settings의 Backup, 양쪽 AuthGate/AuthContext |
 | 개발 비교/크기 미리보기 | 웹의 기존 개발 비교 진입과 모바일 `/friend-preview`, `/friend-identity-review`. 별도 localhost:5184 페이지는 localhost:5183 Expo 웹을390×844 iframe으로 표시. 사용자 기능과 별도 | 웹 FriendPreview/FriendIdentityReview, 앱 screens의 같은 이름 및 src/app 라우트, [개발 프레임](../mobile/dev-preview/index.html)/[개발 서버](../mobile/scripts/serve-dev-preview.mjs) |
 
 ### UI와 별개로 수정할 규칙·저장·인증 위치
@@ -85,7 +85,7 @@ MY MOCHI 로그인/가입 화면에서 시작한다. 보라·크림 UI와 기존
 - 캐릭터/미션/상품/일일 문장: [shared/data](../shared/data/characters.js)의 해당 콘텐츠 파일. 날짜 선정은 [dailySentence.js](../shared/features/dailySentence.js), 서울 날짜는 [seoulDate.js](../shared/utils/seoulDate.js).
 - 공통 색/크기: [tokens.js](../shared/theme/tokens.js), 웹 스타일 src/styles.css·src/design/ui.css, 앱 components/ui.jsx 및 화면 가까이 있는 StyleSheet.
 - 웹 상태/저장 연결: src/App.jsx 및 화면의 localStorage/사진 IndexedDB 코드. 앱 상태 연결: [useGameState](../mobile/src/hooks/useGameState.js), 백업·AsyncStorage 어댑터: [storage.js](../mobile/src/storage/storage.js). 키와 기록 구조는 기존 것 유지.
-- 로그인 판단·서버 ID/토큰 연결: [authBackendController](../shared/auth/authBackendController.mjs), HTTP: [backendClient](../shared/api/backendClient.mjs), 플랫폼 SDK: mobile/src/auth/authClient.native.js/.android.js/기본.js. 실제 로그인 제공자별 상태와 미검증 범위는 [AUTH_BACKEND_SETUP](../mobile/AUTH_BACKEND_SETUP.md).
+- 로그인 판단·서버 ID/토큰 연결: [authBackendController](../shared/auth/authBackendController.mjs), HTTP: [backendClient](../shared/api/backendClient.mjs), 플랫폼 SDK: mobile/src/auth/authClient.native.js/.android.js/기본.js. 실제 로그인 제공자별 상태와 미검증 범위는 [AUTH_BACKEND_SETUP](AUTH_BACKEND_SETUP.md).
 
 ## 1. 의도와 구현 범위
 
@@ -353,13 +353,13 @@ challengeVersion 2 이관은 XP·코인·자산·원본 완료·답변을 유지
 
 backendUserId와 supabaseUserId는 AuthContext에 별도 메모리 필드로 유지한다. 연결 성공 후에만 홈으로 이동하며 재실행은 SDK 세션과 백엔드 연결을 다시 확인한다. requestUser는 백엔드 ID 경로와 새 SDK 토큰을 사용하고 계정 변경/로그아웃/늦은 응답에서 이전 계정을 차단한다. 토큰을 별도 영구 저장하지 않는다. 기존 로컬 게임 데이터와 계정 데이터를 자동 병합하지 않는다. Vite 웹은 같은 연결 구조/UI만 준비되어 있고 소셜 인증은 미설정이다.
 
-계약은 origin/backend-onboarding-survey 82c24f5에서 읽었다. 2026-10-15 최신 main 반영 후 backend/app/main.py에도 해당 경로가 존재한다. 앱의 실제 서버 주소(EXPO_PUBLIC_API_URL)는 아직 설정되지 않았다. 실제 서버 연결/실기기 성공은 미확인이다. Android 남은 Firebase 어댑터는 로컬 백업 후 Supabase native 공유로 바꿨다. backend/의 인증·API 정책은 변경하지 않았다. [연결 설정/재개 문서](../mobile/AUTH_BACKEND_SETUP.md)를 따른다.
+계약은 origin/backend-onboarding-survey 82c24f5에서 읽었다. 2026-10-15 최신 main 반영 후 backend/app/main.py에도 해당 경로가 존재한다. 앱의 실제 서버 주소(EXPO_PUBLIC_API_URL)는 아직 설정되지 않았다. 실제 서버 연결/실기기 성공은 미확인이다. Android 남은 Firebase 어댑터는 로컬 백업 후 Supabase native 공유로 바꿨다. backend/의 인증·API 정책은 변경하지 않았다. [연결 설정/재개 문서](AUTH_BACKEND_SETUP.md)를 따른다.
 
 ## 소스 책임과 공유 경계
 
 실제 최신 경로는 루트 shared/features의 게임·퀘스트·보상·일기 규칙, shared/data의 미션·캐릭터·상품·일일 문장, shared/utils의 서울 날짜·기기 시간, shared/theme의 공통 UI 값이다. shared/api와 shared/auth는 HTTP·계정 연결 상태 머신이며 토큰을 새 저장소에 복제하지 않는다. 공유 SVG는 shared/art에서 태그를 주입받고, React 공유 훅/컨텍스트는 순수 규칙과 별도 경계다.
 
-모바일 src/app은 기존 라우트만, GameApp은 화면 연결, hooks/useGameState는 저장·날짜·출석/반응 이벤트, storage/storage는 기존 AsyncStorage와 백업 형식, auth는 실제 Supabase SDK/플랫폼 복귀, api/client는 기존 환경변수 주소를 맡는다. home/quests/login 전용 UI는 screens 하위에 둔다. 웹은 자체 DOM/CSS/IndexedDB, 모바일은 네이티브 UI/카메라/SecureStore를 유지한다. 저장 키·ID·보상·상품 가격·캐릭터 그림·경로·OAuth 설정은 변경하지 않았다. 상세 구조와 검증은 mobile/ARCHITECTURE.md.
+모바일 src/app은 기존 라우트만, GameApp은 화면 연결, hooks/useGameState는 저장·날짜·출석/반응 이벤트, storage/storage는 기존 AsyncStorage와 백업 형식, auth는 실제 Supabase SDK/플랫폼 복귀, api/client는 기존 환경변수 주소를 맡는다. home/quests/login 전용 UI는 screens 하위에 둔다. 웹은 자체 DOM/CSS/IndexedDB, 모바일은 네이티브 UI/카메라/SecureStore를 유지한다. 저장 키·ID·보상·상품 가격·캐릭터 그림·경로·OAuth 설정은 변경하지 않았다. 상세 구조와 검증은 docs/ARCHITECTURE.md.
 
 ### 리팩토링 마무리 검증
 
@@ -482,11 +482,11 @@ characterExpansion.js에 독립 친구11종의 이름·소재·색·성격·습�
 검증: 방 시간 모델 테스트3개, 웹 빌드와 임시 Edge360/390/430px의 달력·낮밤·자정 자동 갱신 검사를 통과했다. 낮/밤390px 캡처를 직접 검토했다. 모바일 수정 JSX4파일 구문 검사는 통과했으며 실제 네이티브 기기 화면은 미확인이다.
 
 ### 2026-10-11 Android Firebase 인증 사전 설정
-최종 모바일 인증은 React Native Firebase + Google native 로그인 방향으로 결정했다. 영구 Android 패키지명은 io.github.alicena2ppn2.mymochi이며 development build를 준비한다. Firebase 설정 파일과 SHA-1·콘솔·OAuth 값은 사용자 설정 대기이며 로그인은 아직 미연결이다. 웹과 백엔드 인증 코드는 변경하지 않는다. 상세 등록·서명·빌드 절차 및 Supabase 계획에서의 백엔드 전환 합의는 mobile/FIREBASE_ANDROID_SETUP.md를 따른다.
+최종 모바일 인증은 React Native Firebase + Google native 로그인 방향으로 결정했다. 영구 Android 패키지명은 io.github.alicena2ppn2.mymochi이며 development build를 준비한다. Firebase 설정 파일과 SHA-1·콘솔·OAuth 값은 사용자 설정 대기이며 로그인은 아직 미연결이다. 웹과 백엔드 인증 코드는 변경하지 않는다. 상세 등록·서명·빌드 절차 및 Supabase 계획에서의 백엔드 전환 합의는 docs/FIREBASE_ANDROID_SETUP.md를 따른다.
 
 ### 2026-10-11 EAS 조직 연결
 
-Android 개발 빌드 프로젝트를 sungshin/capstone-mochi에 연결했다(projectId: 694b8d60-d14d-442e-b2ff-15c31d5450b7). development 키스토어 생성은 대화형 터미널 입력이 필요해 아직 완료되지 않았고 SHA-1은 미확인이다. 제공된 Firebase 파일의 패키지는 일치하지만 Google Web OAuth 설정이 없어 firebase:check는 실패한다. 상세 절차는 mobile/FIREBASE_ANDROID_SETUP.md를 참고한다. 실제 인증 연결·네이티브 빌드는 미완료이며 게임 데이터와 백엔드는 변경하지 않았다.
+Android 개발 빌드 프로젝트를 sungshin/capstone-mochi에 연결했다(projectId: 694b8d60-d14d-442e-b2ff-15c31d5450b7). development 키스토어 생성은 대화형 터미널 입력이 필요해 아직 완료되지 않았고 SHA-1은 미확인이다. 제공된 Firebase 파일의 패키지는 일치하지만 Google Web OAuth 설정이 없어 firebase:check는 실패한다. 상세 절차는 docs/FIREBASE_ANDROID_SETUP.md를 참고한다. 실제 인증 연결·네이티브 빌드는 미완료이며 게임 데이터와 백엔드는 변경하지 않았다.
 
 ### 2026-10-11 Android Google 인증 연결
 
@@ -501,7 +501,7 @@ Home.png/Quest.png의 구조를 참고해 퀘스트/홈/상점 하단 바로가�
 
 ## 현재 모바일 인증 (2026-10-12)
 Firebase 인증은 Supabase Auth로 전환했다. 프로젝트 vayotfrfmokgdbquvxhg, 공개 URL/key는 EXPO_PUBLIC 환경 변수로 로컬 .env.local과 EAS development에 설정한다. Google Client Secret/service_role/secret 키는 앱에 없다. capstone-mochi://auth/callback을 Supabase Redirect URLs에 등록해야 한다. 브라우저 OAuth라 Google iOS native Client ID나 Firebase plist는 사용하지 않는다. auth/callback 경로는 AuthGate의 실제 PKCE 세션 검증 후 홈으로 이동한다. 취소/실패·중복 실행·콜백 재전달·콜드 스타트·로그아웃을 처리하고 SIGNED_OUT 이벤트에서 로그인 화면으로 돌아간다. Firebase 로컬 의존성과 플러그인만 제거, 원격 프로젝트/서명 키/제공된 설정 파일은 삭제하지 않는다. 기존 기기 게임 기록과 계정 데이터를 임의 병합하지 않는다.
-iOS bundleIdentifier는 io.github.alicena2ppn2.mymochi로 준비했다. 저장소 기존 iOS ID는 없었으며 Apple 포털 등록/소유 여부는 Apple 인증 전 미확인. EAS에 Apple 팀이 없어 사용자 Apple 인증·두 기기 등록·프로비저닝이 필요하다. 인증 로직8개 테스트 및 실제 Supabase 공개 settings의 Google 활성화 확인. 상세 재개 절차/빌드 제출 결과는 mobile/SUPABASE_IOS_SETUP.md를 기준으로 한다.
+iOS bundleIdentifier는 io.github.alicena2ppn2.mymochi로 준비했다. 저장소 기존 iOS ID는 없었으며 Apple 포털 등록/소유 여부는 Apple 인증 전 미확인. EAS에 Apple 팀이 없어 사용자 Apple 인증·두 기기 등록·프로비저닝이 필요하다. 인증 로직8개 테스트 및 실제 Supabase 공개 settings의 Google 활성화 확인. 상세 재개 절차/빌드 제출 결과는 docs/SUPABASE_IOS_SETUP.md를 기준으로 한다.
 
 ### 2026-10-14 홈 문장 표시
 
@@ -568,4 +568,4 @@ iOS bundleIdentifier는 io.github.alicena2ppn2.mymochi로 준비했다. 저장�
 
 ### 2026-10-15 위치 기반 탐험 개발 시안 (정식 기능 아님)
 
-기존 게임과 분리한 A(지도 중심)/B(목적지 선택)/C(메모 중심)를 `dev/exploration/`에서 비교한다. 주소는 `http://localhost:5180/dev/exploration/`이며 390×844 CSS px로 비율 유지 축소한다. 공통 가상 장소·이동·도착·예시 보상·포스트잇 읽기/작성/내 글 삭제를 사용하고 개발 전용 sessionStorage 키로 분리한다. 실제 지도·GPS·권한 요청·서버 연동은 제외했다. 실제 게임·로그인·보상·저장 구조는 변경하지 않았다. 상세 구성과 보류 사항은 [시안 README](dev/exploration/README.md)를 참고한다.
+기존 게임과 분리한 A(지도 중심)/B(목적지 선택)/C(메모 중심)를 `dev/exploration/`에서 비교한다. 주소는 `http://localhost:5180/dev/exploration/`이며 390×844 CSS px로 비율 유지 축소한다. 공통 가상 장소·이동·도착·예시 보상·포스트잇 읽기/작성/내 글 삭제를 사용하고 개발 전용 sessionStorage 키로 분리한다. 실제 지도·GPS·권한 요청·서버 연동은 제외했다. 실제 게임·로그인·보상·저장 구조는 변경하지 않았다. 상세 구성과 보류 사항은 [시안 README](../frontend/dev/exploration/README.md)를 참고한다.

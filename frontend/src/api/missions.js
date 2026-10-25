@@ -1,4 +1,4 @@
-// 서버 미션 API (backend/FRONTEND_GUIDE.md). 요청마다 로그인 토큰을 붙인다 (서버: 토큰 주인 = 주소의 사용자만 허용).
+// 서버 미션 API (docs/FRONTEND_GUIDE.md). 요청마다 로그인 토큰을 붙인다 (서버: 토큰 주인 = 주소의 사용자만 허용).
 // 로그인으로 받은 backendUserId, 없으면 개발 환경에서만 VITE_DEV_USER_ID(예: 시연 데이터의 demo-mochi).
 import { useAuthActions } from '../../../shared/auth/AuthContext.js';
 

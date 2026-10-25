@@ -4,15 +4,15 @@
 
 - 서버 주소: https://mymochi-api-production.up.railway.app · API 문서 [/docs](https://mymochi-api-production.up.railway.app/docs) (Railway)
 - 스택: Python, FastAPI, SQLite
-- 프론트: React (`frontend/`, 기능 명세는 `frontend/FEATURE_SPEC.md`)
+- 프론트: React (`frontend/`, 기능 명세는 `docs/FEATURE_SPEC.md`)
 - 마감: 10/22 발표 — 휴대폰으로 걷기 → 걸음 전달 → 미션 판정 → 캐릭터 반응까지 한 흐름으로 시연
-- 작업 기록: [CHANGELOG.md](CHANGELOG.md) — 작업할 때마다 날짜별로 남김
-- 프론트 연결: [FRONTEND_GUIDE.md](FRONTEND_GUIDE.md) — 게임 규칙은 서버가 기준, 화면별 API
-- DB 구조: [DATABASE.md](DATABASE.md) — DB 파일 하나를 모든 회원이 같이 쓰고 `user_id`로 구분
+- 작업 기록: [CHANGELOG.md](../docs/CHANGELOG.md) — 작업할 때마다 날짜별로 남김
+- 프론트 연결: [FRONTEND_GUIDE.md](../docs/FRONTEND_GUIDE.md) — 게임 규칙은 서버가 기준, 화면별 API
+- DB 구조: [DATABASE.md](../docs/DATABASE.md) — DB 파일 하나를 모든 회원이 같이 쓰고 `user_id`로 구분
 
 ## 실행
 
-> 인터넷에 올리기(Railway·Render, 휴대폰 설치 파일용): [DEPLOY.md](DEPLOY.md)
+> 인터넷에 올리기(Railway·Render, 휴대폰 설치 파일용): [DEPLOY.md](../docs/DEPLOY.md)
 
 ```bash
 cd backend
@@ -284,7 +284,7 @@ python scripts/seed_demo.py --date 2026-10-22 --days 21
 - [x] 주간 퀘스트 (자연 속 산책 2번). 월간 목표는 10/14에 뺌
 - [x] 처음 설문 (10/14) — 관심 취미·평소 하는 일로 미션 고르기는 남음
 - [x] 사용자 등록 — 닉네임, 닉네임 변경, 계정 삭제
-- [ ] 로그인 — **Supabase로 프론트에서 하기로 결정** (10/6). 백엔드는 나중에 Supabase 토큰 확인을 붙임 ([DATABASE.md](DATABASE.md) "로그인 연결 계획")
+- [ ] 로그인 — **Supabase로 프론트에서 하기로 결정** (10/6). 백엔드는 나중에 Supabase 토큰 확인을 붙임 ([DATABASE.md](../docs/DATABASE.md) "로그인 연결 계획")
 - [x] 위기 표현 확인 — 목록 기반 (high → 109 안내, medium → 안부)
 - [ ] 캐릭터 말풍선 (AI) — 미션 완료 칭찬, 일기에 한마디 (검토 중)
 - 위기 표현은 **목록 일치로 탐지** (2026-10-06 결정). AI 판단은 나중에 검토
@@ -294,7 +294,7 @@ python scripts/seed_demo.py --date 2026-10-22 --days 21
 
 ## 프론트와 다른 점 → 서버 기준으로 맞춤 (2026-10-04 결정)
 
-코인·경험치·레벨·퀘스트·출석·상점은 서버가 기준이고 프론트는 서버 응답을 보여 준다. 프론트가 바꿀 목록은 [FRONTEND_GUIDE.md](FRONTEND_GUIDE.md).
+코인·경험치·레벨·퀘스트·출석·상점은 서버가 기준이고 프론트는 서버 응답을 보여 준다. 프론트가 바꿀 목록은 [FRONTEND_GUIDE.md](../docs/FRONTEND_GUIDE.md).
 
 - 출석 보상: 서버 기준 고정 10 코인 · 10 XP (프론트는 지금 무작위)
 - 퀘스트 목록: 서버가 주는 매일 고정 6개 + 매일 바뀌는 3개 (프론트는 지금 고정 목록)

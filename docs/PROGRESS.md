@@ -4,9 +4,9 @@ GitHub의 PR·커밋 기록을 바탕으로 정리. 최종 갱신: 2026-10-16 (�
 
 - 기간: 9/17~9/30 · 10/1~10/4 · 10/5~10/6 · 10/7~10/8 · 10/9~10/10 · 10/11~10/13 · 발표 10/22 · **목표: App Store 출시**
 - 담당: PM·백엔드·데이터 `alicena2ppn2` · 프론트·데이터 `yeongju217`
-- 백엔드 [backend/CHANGELOG.md](backend/CHANGELOG.md) 변경 이력
-- 프론트 [frontend/FEATURE_SPEC.md](frontend/FEATURE_SPEC.md) 변경 이력
-- 퀘스트 설계 근거 [QUEST_DESIGN.md](QUEST_DESIGN.md)
+- 백엔드 [docs/CHANGELOG.md](CHANGELOG.md) 변경 이력
+- 프론트 [docs/FEATURE_SPEC.md](FEATURE_SPEC.md) 변경 이력
+- 퀘스트 설계 근거 [docs/QUEST_DESIGN.md](QUEST_DESIGN.md)
 
 ## 작업 현황
 
@@ -27,9 +27,9 @@ GitHub의 PR·커밋 기록을 바탕으로 정리. 최종 갱신: 2026-10-16 (�
 | 모바일 앱 | `mobile/` | Expo SDK 57 · React Native 0.86. 로그인·가입 화면(Kakao·Google 버튼), 홈·하루 6미션(고정 3 + 활동 3)·통합 일기(월별 스탬프 달력)·상점(최종 친구 6종)·이웃 방문·설정. 에이투지체, 공통 8색 디자인 시스템. 저장은 AsyncStorage, 게임 계산은 `frontend/src/utils` 공유 | 서버 미연결. 실제 로그인·걸음 센서·카메라·알림 없음. 실기기 검증 전 |
 | 웹 프론트 | `frontend/` | React + Vite 목업 (같은 화면), 앱과 공유하는 게임 계산 코드 | 앱 전환 후 보존용 |
 | 데이터 | `data/` | 고립 위험 합성 데이터(50명 × 90일). 빅콘테스트 분석 결과는 공개 금지라 저장소에서 뺌(10/22) | — |
-| 문서 | 루트·각 폴더 | 루트: 연구 배경 `README.md`, 앱 소개 `APP_INTRO.md`(근거·비슷한 앱·보완점), 퀘스트 설계 `QUEST_DESIGN.md`, 작업 기록 `PROGRESS.md`<br>백엔드: `README`·`CHANGELOG`·`FRONTEND_GUIDE`(Expo 연결 예시 포함)·`DATABASE`<br>프론트: `README`·`FEATURE_SPEC`(백엔드 계약 표 포함)·`DESIGN_SYSTEM`·`AUTH_SETUP` · 앱: `mobile/README` | — |
+| 문서 | 루트·각 폴더 | 루트: 연구 배경 `README.md`, 앱 소개 `docs/APP_INTRO.md`(근거·비슷한 앱·보완점), 퀘스트 설계 `docs/QUEST_DESIGN.md`, 작업 기록 `docs/PROGRESS.md`<br>백엔드: `README`·`CHANGELOG`·`FRONTEND_GUIDE`(Expo 연결 예시 포함)·`DATABASE`<br>프론트: `README`·`FEATURE_SPEC`(백엔드 계약 표 포함)·`DESIGN_SYSTEM`·`AUTH_SETUP` · 앱: `mobile/README` | — |
 
-**앱과 서버가 아직 다른 점** (서버 기준으로 맞추기로 함 → 연결할 때 정리. 프론트 쪽 합의안은 `frontend/FEATURE_SPEC.md` 12절)
+**앱과 서버가 아직 다른 점** (서버 기준으로 맞추기로 함 → 연결할 때 정리. 프론트 쪽 합의안은 `docs/FEATURE_SPEC.md` 12절)
 
 | 항목 | 앱 (`mobile/`) | 서버 (`backend/`) |
 |---|---|---|
@@ -101,14 +101,14 @@ GitHub의 PR·커밋 기록을 바탕으로 정리. 최종 갱신: 2026-10-16 (�
 | 10/6 | alicena2ppn2 | 사진첩, 사진 촬영 일시 서버 확인 (오늘 찍은 사진만 미션 인정) | #16 |
 | 10/6 | alicena2ppn2 | 집 꾸미기 서버 저장, 위기 표현 확인(목록 103개, KOTE로 점검, 109 안내) | #17 |
 | 10/6 | alicena2ppn2 | 레벨 곡선 — 처음엔 빨리, 갈수록 천천히 (100, 250, 400 …) | #17 |
-| 10/6 | alicena2ppn2 | DB 구조 문서 (`backend/DATABASE.md`) | #17 |
+| 10/6 | alicena2ppn2 | DB 구조 문서 (`docs/DATABASE.md`) | #17 |
 
 ### 데이터·기획
 
 | 날짜 | 담당 | 작업 | PR |
 |---|---|---|---|
 | 10/6 | alicena2ppn2 | 고립·우울·자살 관련 언어 연구와 공개 데이터 조사 (자살 경고신호, KOTE, 절대주의 단어, AI Hub 웰니스 등) | #17 |
-| 10/6 | alicena2ppn2 | 분석 결과 `output/` → `data/output/` 이동, 앱 소개 문서 `APP_INTRO.md`(포켓몬고·SPARX 등 기능성 게임 사전 조사), 작업 기록 `PROGRESS.md` | #17 |
+| 10/6 | alicena2ppn2 | 분석 결과 `output/` → `data/output/` 이동, 앱 소개 문서 `docs/APP_INTRO.md`(포켓몬고·SPARX 등 기능성 게임 사전 조사), 작업 기록 `docs/PROGRESS.md` | #17 |
 | 10/6 | alicena2ppn2 | 결정: 로그인은 Supabase로 프론트에서, 처음 설문은 보류, **목표는 App Store 출시** | #17 |
 
 ## 10/7~10/8
@@ -142,7 +142,7 @@ GitHub의 PR·커밋 기록을 바탕으로 정리. 최종 갱신: 2026-10-16 (�
 | 10/7 | alicena2ppn2 · yeongju217 | 앱 형태 Expo(React Native)로 결정 | #19 |
 | 10/8 | alicena2ppn2 | 작업 기록 갱신 | #20, #21 |
 | 10/8 | alicena2ppn2 | 앱 소개: 활동량·고립과 우울의 근거(메타분석 7편, 2023 고립·은둔 청년 실태조사), 비슷한 앱 조사 | #22 |
-| 10/8 | alicena2ppn2 | 앱 소개: 보완하면 좋을 점 11가지, 퀘스트 설계 근거 `QUEST_DESIGN.md` (행동 활성화·웰빙 5가지 행동·히키코모리 지원 단계) | #23 |
+| 10/8 | alicena2ppn2 | 앱 소개: 보완하면 좋을 점 11가지, 퀘스트 설계 근거 `docs/QUEST_DESIGN.md` (행동 활성화·웰빙 5가지 행동·히키코모리 지원 단계) | #23 |
 | 10/8 | alicena2ppn2 | Habitica·Nakama 오픈소스 참고 (신고 숨김 기준, 새 계정 신고, 쉬어 가기, 친구 요청·수락) | #23 |
 | 10/8 | alicena2ppn2 | 결정: 일기는 지운 날 다시 쓸 수 없음(앱과 같음), 밖 미션 코인을 더 많이 | #23 |
 
@@ -215,7 +215,7 @@ GitHub의 PR·커밋 기록을 바탕으로 정리. 최종 갱신: 2026-10-16 (�
 - [ ] **12. 같은 사진 재사용 막기** (백엔드) — 사진 지문(imagehash, AI 없이)
 - [ ] **13. 걸음 센서** (앱) — Apple 건강(HealthKit)·Health Connect에서 하루 걸음을 읽어 서버에 올리는 코드 완료(10/16, `mobile/src/health`). **남은 것: 개발 빌드로 실기기 확인, 스토어 건강 데이터 신고**
 - [ ] **14. 휴대폰 기록 → 서버 옮기기 여부 결정** (기획)
-- [x] **15. 경제 밸런스** (기획 + 백엔드) — 서버 규칙(미션 100XP·30~70코인)이면 코인이 빨리 쌓임 → 상점 가격 조정 → **완료 (#52)**: 미션 보상을 줄여 사는 데 걸리는 날로 맞춤 ([backend/ECONOMY.md](backend/ECONOMY.md))
+- [x] **15. 경제 밸런스** (기획 + 백엔드) — 서버 규칙(미션 100XP·30~70코인)이면 코인이 빨리 쌓임 → 상점 가격 조정 → **완료 (#52)**: 미션 보상을 줄여 사는 데 걸리는 날로 맞춤 ([docs/ECONOMY.md](ECONOMY.md))
 - [x] **16. 알림** (앱) — 며칠 안 들어온 사람 다시 부르기 → **완료 (#49)**: 2·4·7일 뒤 저녁 7시 다시 부르기 알림 (실기기 확인 남음)
 - [ ] **17. 오류 기록·모니터링** (백엔드 + 앱) — 서버 로그, 앱 오류 수집
 - [ ] **18. 방명록 운영 기준** (기획) — 교수님 "검증 필요". 운영자 확인·제재 기준

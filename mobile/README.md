@@ -20,7 +20,7 @@
 
 모바일은 이제 frontend/src를 직접 import하지 않는다. Metro는 shared만 감시하며 React를 모바일의 설치본으로 해석한다. Vite도 자신의 React를 사용한다. 실제 웹 UI·IndexedDB 사진 저장과 모바일 AsyncStorage·SecureStore·카메라·OAuth는 각각 유지한다. 모노레포 패키지 설치/의존성 변경 없이 상대 경로를 사용한다.
 
-자세한 변경 전후 구조와 검증/남은 문제는 [구조 문서](../mobile/ARCHITECTURE.md)를 참고한다.
+자세한 변경 전후 구조와 검증/남은 문제는 [구조 문서](../docs/ARCHITECTURE.md)를 참고한다.
 
 최종 수정: 2026-10-15.
 
@@ -30,13 +30,13 @@
 
 모바일 Supabase getSession은 검증된 user.id와 실제 access_token을 반환한다. POST /auth/supabase에 조회{}·등록{nickname}을 보내고 알려진 신규회원404만 닉네임 입력으로 전환한다. 성공한 backendUserId는 Supabase ID와 분리해 메모리에 저장하며 requestUser가 서버ID·현재 토큰을 사용한다. 연결 실패/닉네임 오류/재시도/복원/중복콜백/로그아웃·계정전환을 처리한다. 연결 성공 전 홈에 들어가지 않으며 토큰 추가 저장·로컬 기록 자동 병합은 없다.
 
-현재 실제 서버 주소가 미설정이고 체크아웃의 backend에는 해당API가 없다. 원격 backend-onboarding-survey의 계약으로 코드와 모의 검증을 진행했다. Vite 웹 소셜 인증은 기존처럼 미연결이며 공유 연결 구조/UI만 준비했다. [설정·검증·재개 문서](AUTH_BACKEND_SETUP.md)에서 EXPO_PUBLIC_API_URL/백엔드 배포와 실기기 확인 항목을 본다.
+현재 실제 서버 주소가 미설정이고 체크아웃의 backend에는 해당API가 없다. 원격 backend-onboarding-survey의 계약으로 코드와 모의 검증을 진행했다. Vite 웹 소셜 인증은 기존처럼 미연결이며 공유 연결 구조/UI만 준비했다. [설정·검증·재개 문서](../docs/AUTH_BACKEND_SETUP.md)에서 EXPO_PUBLIC_API_URL/백엔드 배포와 실기기 확인 항목을 본다.
 
 ## 현재 퀘스트 추천과 수행 안내
 
 고정 출석/일기/방명록3개와 변동 활동3개를 유지한다. 세 가지 선택 질문은 건너뛸 수 있고 설정·기록/취향에서 같은 선호를 수정한다. 기존 preferences에 missions를 추가해 음악/음식과 자산을 보존한다. 익숙한 활동을 우선하며 정보가 없으면 기본 후보라고 안내한다. 같은 날짜 목록은 그대로, 제외 조건은 다음 배정과 명시적 교체에 반영한다. 같은 의미 그룹은 하루 중복하지 않으며 날짜 간 반복을 허용한다.
 
-미션 카드의 제목과 짧은 설명으로 행동·완료 기준을 안내한다. 방법 보기와 단계 나열/수행 수준 선택 UI는 제거했다. 기존 missionModes는 보존하고 진행 중/이미 선택한 조건은 criterion으로 고정한다. 신규 시작은 현재 짧은 조건을 기록한다. 사진·공통 일기·기존 걷기 목표 입력을 유지하며 활동 변경은 다른 활동으로로 통일한다. 완료 후 선택 피드백은 보상 조건이 아니고 자동 난도 상승에 사용하지 않는다. 방명록이 현실 교류 추천을 자동 변경하지 않는다. 실제 게임 서버 연결은 아직 없으며 보상/레벨/서버 확인 차이는 [협의 문서](../frontend/QUEST_BACKEND_AGREEMENT.md)를 따른다.
+미션 카드의 제목과 짧은 설명으로 행동·완료 기준을 안내한다. 방법 보기와 단계 나열/수행 수준 선택 UI는 제거했다. 기존 missionModes는 보존하고 진행 중/이미 선택한 조건은 criterion으로 고정한다. 신규 시작은 현재 짧은 조건을 기록한다. 사진·공통 일기·기존 걷기 목표 입력을 유지하며 활동 변경은 다른 활동으로로 통일한다. 완료 후 선택 피드백은 보상 조건이 아니고 자동 난도 상승에 사용하지 않는다. 방명록이 현실 교류 추천을 자동 변경하지 않는다. 실제 게임 서버 연결은 아직 없으며 보상/레벨/서버 확인 차이는 [협의 문서](../docs/QUEST_BACKEND_AGREEMENT.md)를 따른다.
 
 검증용: mobile에서 npm test / npm run typecheck / npm run lint, 웹에서 npm run build. 웹 임시 Edge 검증은 frontend/scripts/check-mission-guidance.mjs를 사용하며 사용자 저장소를 사용하지 않는다.
 
@@ -46,7 +46,7 @@
 
 ## 색상과 공통 UI
 
-보라 #7A68C2 / 크림 #FFF9F0 / 표면 #FFFEFA를 중심으로 웹·앱의 역할별 토큰을 공유한다. 대표색은 행동·선택, 살구 #F2B69D는 작은 보상 장식에 사용한다. 본문 #354744, 설명 #65736F. 캐릭터/의상/방과 공식 로그인 버튼 색은 유지한다. 상세 토큰·버튼·타이포그래피·아이콘 규칙과 생성/대비 검사 명령은 [디자인 시스템](../frontend/DESIGN_SYSTEM.md)을 따른다.
+보라 #7A68C2 / 크림 #FFF9F0 / 표면 #FFFEFA를 중심으로 웹·앱의 역할별 토큰을 공유한다. 대표색은 행동·선택, 살구 #F2B69D는 작은 보상 장식에 사용한다. 본문 #354744, 설명 #65736F. 캐릭터/의상/방과 공식 로그인 버튼 색은 유지한다. 상세 토큰·버튼·타이포그래피·아이콘 규칙과 생성/대비 검사 명령은 [디자인 시스템](../docs/DESIGN_SYSTEM.md)을 따른다.
 
 ## 반응·출석 연출과 미션/일기 예외 처리
 
@@ -99,7 +99,7 @@
 
 MY MOCHI 로그인/가입 화면에서 시작한다. 보라·크림 UI와 기존 친구 렌더러, 공식 카카오 로그인·Google 버튼 이미지를 사용한다. A2z 400~600을 유지하며 공급자 버튼 글씨는 공식 PNG에 포함된 스타일이다. 세션 확인 중 홈을 마운트하지 않는다. 설정의 로그아웃은 signOut 성공 후 로그인 화면으로 돌아가며 개발 미리보기도 종료한다. 실패 시 설정에서 다시 시도할 수 있고 게임 저장 데이터는 삭제하지 않는다. 현재 인증 어댑터는 미연결로, 사용자 ID나 임의 토큰을 로그인으로 취급하지 않는다. 실패/취소 시 재시도하고 진행 중 중복 입력을 막는다. 게임 데이터는 초기화하지 않는다.
 
-개발 환경에서만 게임 미리보기 버튼을 제공한다. 웹 `http://127.0.0.1:5180/?preview=game`, 모바일 로그인 화면의 개발용 게임 미리보기. 실제 카카오·Google 인증, 계정별 동기화와 신규 가입/온보딩은 서버 계약·앱 등록·리다이렉트 설정이 필요하다. 게스트/계정 병합은 미확정이며 자동 병합하지 않는다. 약관·개인정보처리방침은 실제 URL이 없어 준비 상태만 표시한다. 자세한 연결 항목은 [AUTH_SETUP.md](../frontend/AUTH_SETUP.md).
+개발 환경에서만 게임 미리보기 버튼을 제공한다. 웹 `http://127.0.0.1:5180/?preview=game`, 모바일 로그인 화면의 개발용 게임 미리보기. 실제 카카오·Google 인증, 계정별 동기화와 신규 가입/온보딩은 서버 계약·앱 등록·리다이렉트 설정이 필요하다. 게스트/계정 병합은 미확정이며 자동 병합하지 않는다. 약관·개인정보처리방침은 실제 URL이 없어 준비 상태만 표시한다. 자세한 연결 항목은 [AUTH_SETUP.md](../docs/AUTH_SETUP.md).
 
 
 ## 실행
@@ -128,7 +128,7 @@ npm.cmd run export
 
 EAS 프로젝트 `@y00n/capstone-mochi`(app.json `owner`·`projectId`). `preview` 빌드는 EAS의 **preview 환경변수**를 쓴다.
 
-1. 서버를 **Railway**에 올리고 주소(`https://…up.railway.app`)를 받는다 → [backend/DEPLOY.md](../backend/DEPLOY.md)
+1. 서버를 **Railway**에 올리고 주소(`https://…up.railway.app`)를 받는다 → [docs/DEPLOY.md](../docs/DEPLOY.md)
 2. expo.dev → 프로젝트 → **Environment variables → preview**에 넣는다 (직접 입력, git에 올리지 않음)
    - `EXPO_PUBLIC_API_URL` = 서버 주소 (`https://…`)
    - `EXPO_PUBLIC_SUPABASE_URL`, `EXPO_PUBLIC_SUPABASE_PUBLISHABLE_KEY`
@@ -144,7 +144,7 @@ EAS 프로젝트 `@y00n/capstone-mochi`(app.json `owner`·`projectId`). `preview
 
 홈 방·친구/의상·가구·서울 시각·이름 밑 LV/XP·상단 코인/출석 유지. 둥근 도전 요약은 진행 중/시작 전/완료 순서와 해당 미션 이동, 상품 목표 선택·홈 목표 요약은 제거하고 구매·장착은 유지한다. 공통 ScreenHeader와 44px 버튼, 보라 주요 행동·선택, 살구 보상 포인트·밝은 크림 카드. 에이투지체 실제 400/500/600 번들·OS 폴백. 모든 목록은 부모 ScrollView 하나, KeyboardAvoidingView를 유지한다.
 
-일일 루틴3(출석/일기/다른 샘플 이웃 방명록)+변경 활동3. 기능 저장 성공으로 루틴 완료, 활동 시작/해냈어요·보류/교체·선택 부담 응답. 기존 최대3개 선택·전역3회 제한은 새 화면에 사용하지 않는다. 날짜/슬롯 원장으로 중복 방지. 주간/월간 집계·성장·가격/해금은 공유 utils 사용. 로컬 보상 정책과 서버 충돌은 [기능 명세서](../frontend/FEATURE_SPEC.md)의 합의 표 참고.
+일일 루틴3(출석/일기/다른 샘플 이웃 방명록)+변경 활동3. 기능 저장 성공으로 루틴 완료, 활동 시작/해냈어요·보류/교체·선택 부담 응답. 기존 최대3개 선택·전역3회 제한은 새 화면에 사용하지 않는다. 날짜/슬롯 원장으로 중복 방지. 주간/월간 집계·성장·가격/해금은 공유 utils 사용. 로컬 보상 정책과 서버 충돌은 [기능 명세서](../docs/FEATURE_SPEC.md)의 합의 표 참고.
 
 일기 /diary: 모든 진입이 같은2000자 편집기. 질문과 감정5종 선택, 공백 거절, 초안 저장/복귀와 저장 중·성공·실패/재시도. 당일 수정/삭제/재작성·과거 읽기, 날짜목록/달력 유지. 삭제는 본문/초안 정리하고 완료/지급 원장은 보존. AsyncStorage 성공 뒤 완료/보상 반영. 샘플 이웃 글 등록도 글/루틴 저장 성공 뒤 반영하며 필터·실패 안내. 실제 상대 전달 없음.
 
@@ -166,10 +166,10 @@ EAS 프로젝트 `@y00n/capstone-mochi`(app.json `owner`·`projectId`). `preview
 
 서버 실제 계정·동기화·보상 권한·일기 삭제·주제 교체·인증·신고/차단·계정 삭제·알림·배포·스토어 제출은 별도 연결 필요. backend/는 이번 작업에서 읽기만 했다. 가격/XP/교체 정책의 충돌은 명세서의 현재 프론트/서버/추천안을 기준으로 팀과 결정한다.
 
-코드: GameApp.jsx 화면 연결, hooks/useGameState.js 상태·저장·날짜, screens 네이티브 UI, components/ui.jsx 공통 규칙, storage/storage.js 백업/복원, shared/features/wardrobeActions.js 의상·반응, shared/features/dailyMissions.js 공유6개 미션/원장. 폰트/라이선스 [FONT_LICENSE.md](../frontend/FONT_LICENSE.md).
+코드: GameApp.jsx 화면 연결, hooks/useGameState.js 상태·저장·날짜, screens 네이티브 UI, components/ui.jsx 공통 규칙, storage/storage.js 백업/복원, shared/features/wardrobeActions.js 의상·반응, shared/features/dailyMissions.js 공유6개 미션/원장. 폰트/라이선스 [FONT_LICENSE.md](../docs/FONT_LICENSE.md).
 
 ## 캐릭터 확장 · 총20종 목표
-전체 목표20종 중12종을 실제 상점에서 제공한다. 나머지8종은 제안만이며 상품으로 등록하지 않는다. 상세는 아래 최종6종 설명과 [구성안](../frontend/CHARACTER_EXPANSION.md)을 참고한다.
+전체 목표20종 중12종을 실제 상점에서 제공한다. 나머지8종은 제안만이며 상품으로 등록하지 않는다. 상세는 아래 최종6종 설명과 [구성안](../docs/CHARACTER_EXPANSION.md)을 참고한다.
 
 ## 6종 개성 비교 시안 (개발 전용)
 
@@ -262,11 +262,11 @@ EAS 프로젝트 `@y00n/capstone-mochi`(app.json `owner`·`projectId`). `preview
 홈의 한 줄 시간 표시를 작은 벽 달력(월·일·요일)과 시계(시침·분침·12눈금)로 교체했다. 기기 현지 시간06:00~18:00은 낮,18:00~06:00은 밤이며 열린 화면에서1초마다 갱신한다. 웹 탭 복귀/포커스와 앱 활성화 시 즉시 갱신하고 타이머·리스너는 해제 시 정리한다. 구매한 창밖 풍경의 지형과 기존 가구·캐릭터를 보존하며 밤 음영은 배경에만9% 적용한다. 미션·출석 서울 날짜 및 저장·경제 규칙은 변경하지 않았다.
 
 ### 2026-10-11 Android Firebase 인증 사전 설정
-최종 모바일 인증은 React Native Firebase + Google native 로그인 방향으로 결정했다. 영구 Android 패키지명은 io.github.alicena2ppn2.mymochi이며 development build를 준비한다. Firebase 설정 파일과 SHA-1·콘솔·OAuth 값은 사용자 설정 대기이며 로그인은 아직 미연결이다. 웹과 백엔드 인증 코드는 변경하지 않는다. 상세 등록·서명·빌드 절차 및 Supabase 계획에서의 백엔드 전환 합의는 mobile/FIREBASE_ANDROID_SETUP.md를 따른다.
+최종 모바일 인증은 React Native Firebase + Google native 로그인 방향으로 결정했다. 영구 Android 패키지명은 io.github.alicena2ppn2.mymochi이며 development build를 준비한다. Firebase 설정 파일과 SHA-1·콘솔·OAuth 값은 사용자 설정 대기이며 로그인은 아직 미연결이다. 웹과 백엔드 인증 코드는 변경하지 않는다. 상세 등록·서명·빌드 절차 및 Supabase 계획에서의 백엔드 전환 합의는 docs/FIREBASE_ANDROID_SETUP.md를 따른다.
 
 ### 2026-10-11 EAS 조직 연결
 
-Android 개발 빌드 프로젝트를 sungshin/capstone-mochi에 연결했다(projectId: 694b8d60-d14d-442e-b2ff-15c31d5450b7). development 키스토어 생성은 대화형 터미널 입력이 필요해 아직 완료되지 않았고 SHA-1은 미확인이다. 제공된 Firebase 파일의 패키지는 일치하지만 Google Web OAuth 설정이 없어 firebase:check는 실패한다. 상세 절차는 mobile/FIREBASE_ANDROID_SETUP.md를 참고한다. 실제 인증 연결·네이티브 빌드는 미완료이며 게임 데이터와 백엔드는 변경하지 않았다.
+Android 개발 빌드 프로젝트를 sungshin/capstone-mochi에 연결했다(projectId: 694b8d60-d14d-442e-b2ff-15c31d5450b7). development 키스토어 생성은 대화형 터미널 입력이 필요해 아직 완료되지 않았고 SHA-1은 미확인이다. 제공된 Firebase 파일의 패키지는 일치하지만 Google Web OAuth 설정이 없어 firebase:check는 실패한다. 상세 절차는 docs/FIREBASE_ANDROID_SETUP.md를 참고한다. 실제 인증 연결·네이티브 빌드는 미완료이며 게임 데이터와 백엔드는 변경하지 않았다.
 
 ### Android Google 로그인 (2026-10-11)
 
@@ -275,7 +275,7 @@ mobile의 Android 전용 Firebase 인증 어댑터를 기존 로그인·로그�
 Android development EAS 빌드: https://expo.dev/accounts/sungshin/projects/capstone-mochi/builds/d07c38b1-8e68-47f6-96d9-e3413a24626e . 실제 원격 키스토어 Build Credentials JlS2DuEJ6M(default)를 사용해 제출됐으며 현재 빌드 결과 확인 중이다. 개발 APK는 설치 후 `npm run start:dev`로 최신 Metro 코드를 실행한다. 로컬 Android Hermes 번들 생성 통과. 실기기 Google 계정 선택·인증·재시작 복원은 아직 확인하지 않았다.
 
 ### 현재 모바일 인증·사진 미션 (2026-10-15)
-Google과 Kakao는 Supabase 브라우저 OAuth/PKCE를 사용하고 같은 앱 callback·세션 검증·백엔드 계정 연결 흐름을 공유한다. Kakao 앱은 이메일·프로필 응답이 없어도 클라이언트에서 필수로 읽지 않으며, Supabase Kakao provider가 요구하는 기본 동의 scope 설정은 Kakao Developers에서 준비해야 한다. URL/publishable key는 EXPO_PUBLIC 환경 변수, 인증 세션은 SecureStore, 게임 기록은 기존 AsyncStorage다. 서버 주소가 없는 상태에서는 소셜 인증 후에도 백엔드 연결이 끝나지 않아 홈에 진입하지 않는다. Apple, Vite 웹 소셜 인증, 게임 데이터 동기화는 미연결이다. 인증 세부 사항은 [AUTH_BACKEND_SETUP.md](./AUTH_BACKEND_SETUP.md), iOS 빌드와 기기 등록은 [SUPABASE_IOS_SETUP.md](./SUPABASE_IOS_SETUP.md)를 참고한다.
+Google과 Kakao는 Supabase 브라우저 OAuth/PKCE를 사용하고 같은 앱 callback·세션 검증·백엔드 계정 연결 흐름을 공유한다. Kakao 앱은 이메일·프로필 응답이 없어도 클라이언트에서 필수로 읽지 않으며, Supabase Kakao provider가 요구하는 기본 동의 scope 설정은 Kakao Developers에서 준비해야 한다. URL/publishable key는 EXPO_PUBLIC 환경 변수, 인증 세션은 SecureStore, 게임 기록은 기존 AsyncStorage다. 서버 주소가 없는 상태에서는 소셜 인증 후에도 백엔드 연결이 끝나지 않아 홈에 진입하지 않는다. Apple, Vite 웹 소셜 인증, 게임 데이터 동기화는 미연결이다. 인증 세부 사항은 [AUTH_BACKEND_SETUP.md](../docs/AUTH_BACKEND_SETUP.md), iOS 빌드와 기기 등록은 [SUPABASE_IOS_SETUP.md](../docs/SUPABASE_IOS_SETUP.md)를 참고한다.
 음악/볼륨 UI 제거, 사진 선택·촬영 미션과 일기 사진첩, 퀘스트/홈/상점 하단바, 간결한 6개 완료 요약을 웹·모바일에 적용했다. 웹 IndexedDB/앱 document 파일 + 기존 게임 metadata 저장; 사진 원본은 JSON 백업으로 타 기기에 전송되지 않는다. 기존 자산/기록 보존. Edge 작은 화면/저장 실패 재시도/앨범 복원 검증 및 웹 build·Android export 통과. 실제 카메라/권한은 미확인.
 
 ### 2026-10-14 홈 문장 표시
